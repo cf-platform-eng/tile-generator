@@ -7,14 +7,152 @@ import sys
 import yaml
 import shutil
 import urllib
+import base64
+import zipfile
 
 CONFIG_FILE = "tile.yml"
 
+# This script expects:
+# - To be executed in the root of the tile repository
+# - To fine a config file named 'tile.yml' in that directory
+# - (by convention) To find all required resources in the 'resources' subdirectory
+#
+# To create a tile, it:
+# 1. Creates a BOSH release as a tarball (in 'release' subdirectory)
+# 2. Wraps a tile around that tarball (in 'product' subdirectory)
+#
 def main(argv):
 	config = read_config()
 	update_version(config)
 	with cd('release'):
-		create_bosh_release(config)
+		release = create_bosh_release(config)
+	with cd('product'):
+		create_tile(config, release)
+
+def create_tile(config, release):
+	release['file'] = os.path.basename(release['tarball'])
+	with cd('releases'):
+		print 'tile generate release'
+		shutil.copy(release['tarball'], release['file'])
+	with cd('metadata'):
+		print 'tile generate metadata'
+		metadata = tile_metadata(config, release)
+		with open(release['name'] + '.yml', 'wb') as f:
+			f.write(yaml.safe_dump(metadata))
+	with cd('content-migrations'):
+		print 'tile generate content-migrations'
+		migrations = {}
+		with open(release['name'] + '.yml', 'wb') as f:
+			f.write(yaml.safe_dump(metadata))
+	with zipfile.ZipFile(release['file'] + '.pivotal') as f:
+		f.write(os.path.join('releases'), release['file'])
+		f.write(os.path.join('metadata'), release['name'] + '.yml')
+		# f.write(os.path.join('content-migrations'), release['name'] + '.yml')
+
+default_vm_definitions = [
+	{ 'name': 'cpu', 'type': 'integer', 'configurable': False, 'default': 1 },
+	{ 'name': 'ram', 'type': 'integer', 'configurable': False, 'default': 1024 },
+	{ 'name': 'ephemeral_disk', 'type': 'integer', 'configurable': False, 'default': 2048 },
+	{ 'name': 'persistent_disk', 'type': 'integer', 'configurable': False, 'default': 0 },
+]
+default_instance_definitions = [
+	{ 'name': 'instances', 'type': 'integer', 'configurable': False, 'default': 1 },
+]
+
+def tile_metadata(config, release):
+	metadata = {
+		'name': release['name'],
+		'product_version': release['version'],
+		'metadata_version': '1.5',
+		'label': config['label'],
+		'description': config['description'],
+		'icon_image': tile_icon(config),
+		'rank': 1,
+		'stemcell_criteria': {
+			'os': 'ubuntu-trusty',
+			'requires_cpi': False,
+			'version': 3062,
+		},
+		'releases': [{
+			'name': release['name'],
+			'file': release['file'],
+			'version': release['version'],
+		}],
+		'job_types': [{
+			'name': 'compilation',
+			'resource_label': 'compilation',
+			'static_ip': 0,
+			'dynamic_ip': 1,
+			'max_in_flight': 1,
+			'resource_definitions': default_vm_definitions,
+			'instance_definitions': default_instance_definitions,
+		}]
+	}
+	metadata['stemcell_criteria'].update(config.get('stemcell_criteria', {}))
+	for bp in config.get('buildpacks', []):
+		metadata['form_types'] = metadata.get('form_types', [{
+			'name': 'buildpack_properties',
+			'label': 'Buildpack',
+			'description': 'Buildpack Properties',
+			'property_inputs': []
+		}])
+		metadata['form_types'][0]['property_inputs'] += [{
+			'reference': '.properties.' + bp['name'] + '_rank',
+			'label': 'Buildpack rank for ' + bp['name'],
+			'description': 'Ranking of this buildpack relative to others'
+		}]
+		metadata['property_blueprints'] = metadata.get('property_blueprints', [])
+		metadata['property_blueprints'] += [{
+			'name': bp['name'] + '_rank',
+			'type': 'integer',
+			'configurable': True,
+			'default': bp['rank'],
+		}]
+		metadata['job_types'] += [ create_errand(metadata, {
+			'name': 'install_' + bp['name'],
+			'resource_label': 'Install ' + bp['name'],
+			'templates': [{ 'name': 'install_' + bp['name'], 'release': release['name'] }],
+		}, [
+			bp['name'] + '_rank: (( .properties.' + bp['name'] + '_rank.value ))'
+		])]
+		metadata['job_types'] += [ create_errand(metadata, {
+			'name': 'remove_' + bp['name'],
+			'resource_label': 'Remove ' + bp['name'],
+			'templates': [{ 'name': 'remove_' + bp['name'], 'release': release['name'] }],
+		})]
+	return metadata
+
+def tile_icon(config):
+	with open(os.path.join('..', '..', config['icon']), 'rb') as f:
+		return base64.b64encode(f.read())
+
+def create_errand(metadata, properties, manifest_lines=[] ):
+	print 'tile generate errand', properties['name']
+	errand = {
+		'errand': True,
+		'resource_definitions': default_vm_definitions,
+		'instance_definitions': default_instance_definitions,
+		'static_ip': 0,
+		'dynamic_ip': 1,
+		'max_in_flight': 1,
+		'property_blueprints': [{
+			'name': 'vm_credentials',
+			'type': 'salted_credentials',
+			'default': { 'identity': 'vcap' }
+		}],
+		'manifest': '      ' + '\n      '.join(
+			manifest_lines + [
+				'ssl:',
+				'  skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))',
+				'cf:',
+				'  domain: (( ..cf.cloud_controller.system_domain.value ))',
+				'  admin_user: (( ..cf.uaa.system_services_credentials.identity ))',
+				'  admin_password: (( ..cf.uaa.system_services_credentials.password ))'
+			]
+		)
+	}
+	errand.update(properties)
+	return errand
 
 def create_bosh_release(config):
 	bosh('init', 'release')
@@ -22,7 +160,21 @@ def create_bosh_release(config):
 	add_cf_cli()
 	add_buildpacks(config)
 	add_service_brokers(config)
-	bosh('create', 'release', '--final', '--with-tarball')
+	output = bosh('create', 'release', '--final', '--with-tarball', '--version', config['version'])
+	return bosh_extract(output, [
+		{ 'label': 'name', 'pattern': 'Release name' },
+		{ 'label': 'version', 'pattern': 'Release version' },
+		{ 'label': 'manifest', 'pattern': 'Release manifest' },
+		{ 'label': 'tarball', 'pattern': 'Release tarball' },
+	])
+
+def bosh_extract(output, properties):
+	result = {}
+	for l in output.split('\n'):
+		for p in properties:
+			if l.startswith(p['pattern']):
+				result[p['label']] = l.split(':', 1)[-1].strip()
+	return result
 
 def add_bosh_config(config):
 	spec = {
@@ -167,9 +319,9 @@ def read_config():
 		sys.exit(1)
 
 def update_version(config):
-	version = config.get('version', '0.0.1')
+	config['version'] = config.get('version', '0.0.1')
 	if os.path.isdir('product'):
-		semver = version.split('.')
+		semver = config['version'].split('.')
 		if len(semver) != 3:
 			print >>sys.stderr, "Version must be in semver format (x.x.x)"
 		semver[2] = str(int(semver[2]) + 1)
