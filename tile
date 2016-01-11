@@ -422,6 +422,17 @@ def init_cmd(argv):
 def status_cmd(argv):
 	config = read_config()
 	check_status(config)
+	version = config.get('version', None)
+	if version is not None:
+		print 'last build:', version
+	stemcell = config.get('stemmcell_criteria', None)
+	if stemcell is not None:
+		print 'stemcell:', stemcell.get('os', ''), stemcell.get('version', '<unspecified>')
+	buildpacks = config.get('buildpacks', None)
+	if buildpacks is not None:
+		print 'buildpacks:'
+		for bp in buildpacks:
+			print '   ', bp['name']
 
 def build_cmd(argv):
 	config = read_config()
