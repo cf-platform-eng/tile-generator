@@ -271,7 +271,7 @@ def add_bosh_job(name, commands, properties={}, dependencies=[]):
 				for c in commands:
 					f.write(c + '\n')
 
-def add_src_package(name, binary, url=None):
+def add_src_package(name, binary, url=None, commands=None):
 	bosh('generate', 'package', name)
 	srcdir = os.path.join('src', name)
 	pkgdir = os.path.join('packages', name)
@@ -287,7 +287,11 @@ def add_src_package(name, binary, url=None):
 	}
 	with cd(pkgdir):
 		with open('packaging', 'wb') as f:
-			f.write('cp ' + name + '/* ${BOSH_INSTALL_TARGET}')
+			if commands is None:
+				f.write('cp ' + name + '/* ${BOSH_INSTALL_TARGET}')
+			else:
+				for c in commands:
+					f.write(c + '\n')
 		with open('pre_packaging', 'wb') as f:
 			pass
 		with open('spec', 'wb') as f:
@@ -301,7 +305,18 @@ def add_service_brokers(config):
 	sys.exit(1)
 
 def add_cf_cli():
-	add_src_package('cf_cli', 'cf-linux-amd64.tgz', url='https://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel')
+	add_src_package(
+		'cf_cli',
+		'cf-linux-amd64.tgz',
+		url='https://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel',
+		commands=[
+			'set -e -x',
+			'mkdir -p ${BOSH_INSTALL_TARGET}/bin',
+			'cd cf_cli',
+			'tar zxvf cf-linux-amd64.tgz',
+			'cp cf ${BOSH_INSTALL_TARGET}/bin/'
+		]
+	)
 
 def validate_config(config, key, message):
 	value = config.get(key, None)
