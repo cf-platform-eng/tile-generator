@@ -31,14 +31,14 @@ def create_tile(config, release):
 			write_yaml(f, metadata)
 	with cd('content-migrations'):
 		print 'tile generate content-migrations'
-		migrations = {}
+		migrations = tile_migrations(config, release)
 		with open(release['name'] + '.yml', 'wb') as f:
 			write_yaml(f, migrations)
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		f.write(os.path.join('releases', release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
-		# f.write(os.path.join('content-migrations'), release['name'] + '.yml')
+		f.write(os.path.join('content-migrations'), release['name'] + '.yml')
 	print
 	print 'created tile', pivotal_file
 
@@ -118,6 +118,25 @@ def tile_metadata(config, release):
 		metadata['pre_delete_errands'] = metadata.get('pre_delete_errands', [])
 		metadata['pre_delete_errands'] += [{ 'name': 'remove_' + bp['name'] }]
 	return metadata
+
+def tile_migrations(config, release):
+	migrations = {
+		'product': release['name'],
+		'installation_schema_version': '1.5',
+		'to_version': release['version'],
+		'migrations': [
+			{
+				'from_version': prior,
+				'rules': [{
+					'type': 'update',
+					'selector': 'product_version',
+					'to': release['version']
+				}]
+			}
+			for prior in config.get('history', []) if prior != release['version']
+		]
+	}
+	return migrations
 
 def create_errand(metadata, properties, manifest_lines=[] ):
 	print 'tile generate errand', properties['name']
@@ -364,6 +383,10 @@ def is_semver(version):
 		return False
 
 def update_version(config, version):
+	prior_version = config.get('version', None)
+	if prior_version is not None:
+		config['history'] = config.get('history', [])
+		config['history'] += [ prior_version ]
 	if not is_semver(version):
 		semver = config.get('version', '0.0.0')
 		if not is_semver(semver):
