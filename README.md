@@ -38,7 +38,7 @@ the build command, e.g. `tile build 3.4.5`.
 ## Example
 
 ```
-$ tile build 0.0.2
+$ tile build
 name: tibco-bwce
 icon: icon.png
 label: TIBCO BusinessWorks Container Edition
