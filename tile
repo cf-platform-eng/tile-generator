@@ -13,14 +13,13 @@ import zipfile
 CONFIG_FILE = "tile.yml"
 
 def build(config):
-	with cd('release'):
+	with cd('release', clobber=True):
 		release = create_bosh_release(config)
-	with cd('product'):
+	print
+	with cd('product', clobber=True):
 		create_tile(config, release)
 
 def create_tile(config, release):
-	if os.path.isdir('release'):
-		shutil.rmtree('product')
 	release['file'] = os.path.basename(release['tarball'])
 	with cd('releases'):
 		print 'tile generate release'
@@ -35,7 +34,7 @@ def create_tile(config, release):
 		migrations = {}
 		with open(release['name'] + '.yml', 'wb') as f:
 			write_yaml(f, migrations)
-	with zipfile.ZipFile(release['file'] + '.pivotal') as f:
+	with zipfile.ZipFile(release['name'] + '-' + release['version'] + '.pivotal', 'w') as f:
 		f.write(os.path.join('releases'), release['file'])
 		f.write(os.path.join('metadata'), release['name'] + '.yml')
 		# f.write(os.path.join('content-migrations'), release['name'] + '.yml')
@@ -379,11 +378,14 @@ def bosh(*argv):
 
 class cd:
     """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
+    def __init__(self, newPath, clobber=False):
+    	self.clobber = clobber
         self.newPath = os.path.expanduser(newPath)
 
     def __enter__(self):
         self.savedPath = os.getcwd()
+        if os.path.isdir(self.newPath):
+			shutil.rmtree(self.newPath)
         mkdir_p(self.newPath)
         os.chdir(self.newPath)
 
