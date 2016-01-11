@@ -12,24 +12,15 @@ import zipfile
 
 CONFIG_FILE = "tile.yml"
 
-# This script expects:
-# - To be executed in the root of the tile repository
-# - To fine a config file named 'tile.yml' in that directory
-# - (by convention) To find all required resources in the 'resources' subdirectory
-#
-# To create a tile, it:
-# 1. Creates a BOSH release as a tarball (in 'release' subdirectory)
-# 2. Wraps a tile around that tarball (in 'product' subdirectory)
-#
-def main(argv):
-	config = read_config()
-	update_version(config)
+def build(config):
 	with cd('release'):
 		release = create_bosh_release(config)
 	with cd('product'):
 		create_tile(config, release)
 
 def create_tile(config, release):
+	if os.path.isdir('release'):
+		shutil.rmtree('product')
 	release['file'] = os.path.basename(release['tarball'])
 	with cd('releases'):
 		print 'tile generate release'
@@ -38,12 +29,12 @@ def create_tile(config, release):
 		print 'tile generate metadata'
 		metadata = tile_metadata(config, release)
 		with open(release['name'] + '.yml', 'wb') as f:
-			f.write(yaml.safe_dump(metadata))
+			write_yaml(f, metadata)
 	with cd('content-migrations'):
 		print 'tile generate content-migrations'
 		migrations = {}
 		with open(release['name'] + '.yml', 'wb') as f:
-			f.write(yaml.safe_dump(metadata))
+			write_yaml(f, migrations)
 	with zipfile.ZipFile(release['file'] + '.pivotal') as f:
 		f.write(os.path.join('releases'), release['file'])
 		f.write(os.path.join('metadata'), release['name'] + '.yml')
@@ -66,7 +57,7 @@ def tile_metadata(config, release):
 		'metadata_version': '1.5',
 		'label': config['label'],
 		'description': config['description'],
-		'icon_image': tile_icon(config),
+		'icon_image': config['icon_image'],
 		'rank': 1,
 		'stemcell_criteria': {
 			'os': 'ubuntu-trusty',
@@ -121,10 +112,6 @@ def tile_metadata(config, release):
 			'templates': [{ 'name': 'remove_' + bp['name'], 'release': release['name'] }],
 		})]
 	return metadata
-
-def tile_icon(config):
-	with open(os.path.join('..', '..', config['icon']), 'rb') as f:
-		return base64.b64encode(f.read())
 
 def create_errand(metadata, properties, manifest_lines=[] ):
 	print 'tile generate errand', properties['name']
@@ -188,7 +175,7 @@ def add_bosh_config(config):
 	}
 	with cd('config'):
 		with open('final.yml', 'wb') as f:
-			f.write(yaml.safe_dump(spec))
+			write_yaml(f, spec)
 
 def add_buildpacks(config):
 	buildpacks = config.get('buildpacks', [])
@@ -272,7 +259,7 @@ def add_bosh_job(name, commands, properties={}, dependencies=[]):
 		with open('monit', 'wb') as f:
 			pass
 		with open('spec', 'wb') as f:
-			f.write(yaml.safe_dump(spec))
+			write_yaml(f, spec)
 		with cd('templates'):
 			with open(shname, 'wb') as f:
 				for c in commands:
@@ -298,7 +285,7 @@ def add_src_package(name, binary, url=None):
 		with open('pre_packaging', 'wb') as f:
 			pass
 		with open('spec', 'wb') as f:
-			f.write(yaml.safe_dump(spec))
+			write_yaml(f, spec)
 
 def add_service_brokers(config):
 	brokers = config.get('service-brokers', None)
@@ -310,22 +297,71 @@ def add_service_brokers(config):
 def add_cf_cli():
 	add_src_package('cf_cli', 'cf-linux-amd64.tgz', url='https://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel')
 
+def validate_config(config, key, message):
+	value = config.get(key, None)
+	print key + ':', message if value is None else value
+	return value is not None
+
 def read_config():
 	try:
 		with open(CONFIG_FILE) as config_file:
-			return yaml.load(config_file)
+			return read_yaml(config_file)
 	except IOError as e:
-		print >> sys.stderr, "File tile.yml not found. Must execute in the root directory of your tile."
+		print >> sys.stderr, 'Not a tile repository. Use "tile init" in the root of your repository to create one.'
 		sys.exit(1)
 
-def update_version(config):
-	config['version'] = config.get('version', '0.0.1')
-	if os.path.isdir('product'):
-		semver = config['version'].split('.')
-		if len(semver) != 3:
-			print >>sys.stderr, "Version must be in semver format (x.x.x)"
-		semver[2] = str(int(semver[2]) + 1)
-		config['version'] = '.'.join(semver)
+def write_config(config):
+	with open(CONFIG_FILE, 'wb') as config_file:
+		write_yaml(config_file, config)
+
+def read_yaml(file):
+	return yaml.safe_load(file)
+
+def write_yaml(file, data):
+	file.write('---\n')
+	file.write(yaml.dump(data, default_flow_style=False))
+
+def check_status(config):
+	status = True
+	status &= validate_config(config, 'name', '<use "tile set-name" to specify the tile name>')
+	status &= validate_config(config, 'icon', '<use "tile set-icon" to specify the tile icon>')
+	status &= validate_config(config, 'label', '<use "tile set-label" to specify the tile label>')
+	status &= validate_config(config, 'description', '<use "tile set-description" to specify the tile description>')
+	if not status:
+		sys.exit(1)
+
+def is_semver(version):
+	semver = version.split('.')
+	if len(semver) != 3:
+		return False
+	try:
+		int(semver[0])
+		int(semver[1])
+		int(semver[2])
+		return True
+	except:
+		return False
+
+def update_version(config, version):
+	if not is_semver(version):
+		semver = config.get('version', '0.0.0')
+		if not is_semver(semver):
+			print >>sys.stderr, 'Version must be in semver format (x.y.z), instead found', semver
+		semver = semver.split('.')
+		if version == 'patch':
+			semver[2] = str(int(semver[2]) + 1)
+		elif version == 'minor':
+			semver[1] = str(int(semver[1]) + 1)
+			semver[2] = '0'
+		elif version == 'major':
+			semver[0] = str(int(semver[0]) + 1)
+			semver[1] = '0'
+			semver[2] = '0'
+		else:
+			print >>sys.stderr, 'Argument must specify "patch", "minor", "major", or a valid semver version (x.y.z)'
+		version = '.'.join(semver)
+	config['version'] = version
+	print 'version:', version
 
 def bosh(*argv):
 	argv = list(argv)
@@ -361,5 +397,147 @@ def mkdir_p(dir):
       if e.errno != errno.EEXIST:
          raise
 
-if __name__ == "__main__":
-	main(sys.argv)
+""" Commands """
+
+def init_cmd(argv):
+	if len(argv) > 1:
+		name = argv[1]
+		os.mkdir(name)
+		os.chdir(name)
+	if os.path.isfile(CONFIG_FILE):
+		print >>sys.stderr, 'Already initialized.'
+		sys.exit(0)
+	name = os.path.basename(os.getcwd())
+	config = {
+		'name': name
+	}
+	write_config(config)
+
+def status_cmd(argv):
+	config = read_config()
+	check_status(config)
+
+def build_cmd(argv):
+	config = read_config()
+	check_status(config)
+	update_version(config, argv[1] if len(argv) > 1 else 'patch')
+	print
+	build(config)
+	write_config(config)
+
+def clean_cmd(argv):
+	if not os.path.isfile(CONFIG_FILE):
+		print >>sys.stderr, 'Not a tile repository'
+		sys.exit(1)
+	shutil.rmtree('release')
+
+def clobber_cmd(argv):
+	if not os.path.isfile(CONFIG_FILE):
+		print >>sys.stderr, 'Not a tile repository'
+		sys.exit(1)
+	shutil.rmtree('release')
+	shutil.rmtree('product')
+
+def set_name_cmd(argv):
+	cli.exit_with_usage(argv) if len(argv) < 2 or len(argv) > 2 else None
+	config = read_config()
+	config['name'] = argv[1]
+	write_config(config)
+
+def set_icon_cmd(argv):
+	cli.exit_with_usage(argv) if len(argv) < 2 or len(argv) > 2 else None
+	with open(argv[1], 'rb') as f:
+		icon_image = base64.b64encode(f.read())
+	config = read_config()
+	config['icon'] = os.path.basename(argv[1])
+	config['icon_image'] = icon_image
+	write_config(config)
+
+def set_label_cmd(argv):
+	cli.exit_with_usage(argv) if len(argv) < 2 else None
+	config = read_config()
+	config['label'] = ' '.join(argv[1:])
+	write_config(config)
+
+def set_description_cmd(argv):
+	cli.exit_with_usage(argv) if len(argv) < 2 else None
+	config = read_config()
+	config['description'] = ' '.join(argv[1:])
+	write_config(config)
+
+def update_stemcell_cmd(argv):
+	cli.exit_with_usage(argv) if len(argv) < 2 or len(argv) > 3 else None
+	config = read_config()
+	config['stemcell_criteria'] = config.get('stemcell_criteria', {})
+	if len(argv) < 3:
+		config['stemcell_criteria']['version'] = argv[2]
+	else:
+		config['stemcell_criteria']['os'] = argv[2]
+		config['stemcell_criteria']['version'] = argv[3]
+	config['description'] = ' '.join(argv[1:])
+	write_config(config)
+
+def add_buildpack_cmd(argv):
+	print >>sys.stderr, 'Command not yet implemented'
+	sys.exit(1)
+
+def update_buildpack_cmd(argv):
+	print >>sys.stderr, 'Command not yet implemented'
+	sys.exit(1)
+
+def delete_buildpack_cmd(argv):
+	print >>sys.stderr, 'Command not yet implemented'
+	sys.exit(1)
+
+commands = {
+	"init":             { "func": init_cmd,             "usage": "init [<tile-name>]" },
+	"status":           { "func": status_cmd,           "usage": "status" },
+	"build":            { "func": build_cmd,            "usage": "build [patch|minor|major|<version>]" },
+	"clean":            { "func": clean_cmd,            "usage": "clean" },
+	"clobber":          { "func": clobber_cmd,          "usage": "clobber" },
+	"set-name":         { "func": set_name_cmd,         "usage": "set-name <name>" },
+	"set-icon":         { "func": set_icon_cmd,         "usage": "set-icon <image-file>" },
+	"set-label":        { "func": set_label_cmd,        "usage": "set-label <label>" },
+	"set-description":  { "func": set_description_cmd,  "usage": "set-description <description>" },
+	"update_stemcell":  { "func": update_stemcell_cmd,  "usage": "update-stemcell [<os>] <version>" },
+	"add-buildpack":    { "func": add_buildpack_cmd,    "usage": "add-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]" },
+	"update-buildpack": { "func": update_buildpack_cmd, "usage": "update-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]" },
+	"delete-buildpack": { "func": delete_buildpack_cmd, "usage": "delete-buildpack <buildpack-name>" },
+}
+
+""" Generic CLI Implementation """
+
+def unknown_command(argv):
+	print "unknown command", argv[0]
+	return 1
+
+def print_help(argv = None):
+	for name, command in commands.iteritems():
+		print command["usage"]
+
+def print_usage(argv):
+	print "Usage:", commands.get(argv[0])["usage"]
+
+def exit_with_usage(argv = None):
+	if argv is None:
+		print_help()
+	else:
+		print_usage(argv)
+	sys.exit(1)
+
+def cli(argv, client_commands):
+	try:
+		global commands
+		commands = client_commands
+		commands["help"] = { "func": print_help, "usage": "help" }
+		exit_with_usage() if len(argv) < 2 else None
+		command = commands.get(argv[1], { "func": unknown_command } )
+		result = command["func"](argv[1:])
+		sys.exit(result)
+	except KeyboardInterrupt:
+		sys.exit(1)
+
+""" Main """
+
+if __name__ == '__main__':
+	cli(sys.argv, commands)
