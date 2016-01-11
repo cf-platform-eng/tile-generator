@@ -62,7 +62,7 @@ created tile tibco-bwce-0.0.2.pivotal
 ```
 
 This tile includes a single large buildpack, and takes less than 15 seconds
-to build inlcude the CF CLI download and the BOSH release generation.
+to build including the CF CLI download and the BOSH release generation.
 
 ## Supported Commands
 
