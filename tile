@@ -493,9 +493,10 @@ def update_buildpack(argv, update_existing=True):
 	others = [bp for bp in buildpacks if bp['name'] != name]
 	if not update_existing and len(others) < len(buildpacks):
 		print >>sys.stderr, 'Buildpack', name, 'already exists. Use "tile update-buildpack" instead.'
+		sys.exit(1)
 	if update_existing and len(others) == len(buildpacks):
 		print >>sys.stderr, 'Buildpack', name, 'does not exist. Use "tile add-buildpack" instead.'
-
+		sys.exit(1)
 	config['buildpacks'] = others + [{
 		'name': name,
 		'binary': binary,
@@ -510,37 +511,35 @@ def update_buildpack_cmd(argv):
 	update_buildpack(argv, True)
 
 def delete_buildpack_cmd(argv):
-	print >>sys.stderr, 'Command not yet implemented'
-	sys.exit(1)
-
-commands = {
-	"init":             { "func": init_cmd,             "usage": "init [<tile-name>]" },
-	"status":           { "func": status_cmd,           "usage": "status" },
-	"build":            { "func": build_cmd,            "usage": "build [patch|minor|major|<version>]" },
-	"clean":            { "func": clean_cmd,            "usage": "clean" },
-	"clobber":          { "func": clobber_cmd,          "usage": "clobber" },
-	"set-name":         { "func": set_name_cmd,         "usage": "set-name <name>" },
-	"set-icon":         { "func": set_icon_cmd,         "usage": "set-icon <image-file>" },
-	"set-label":        { "func": set_label_cmd,        "usage": "set-label <label>" },
-	"set-description":  { "func": set_description_cmd,  "usage": "set-description <description>" },
-	"update_stemcell":  { "func": update_stemcell_cmd,  "usage": "update-stemcell [<os>] <version>" },
-	"add-buildpack":    { "func": add_buildpack_cmd,    "usage": "add-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]" },
-	"update-buildpack": { "func": update_buildpack_cmd, "usage": "update-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]" },
-	"delete-buildpack": { "func": delete_buildpack_cmd, "usage": "delete-buildpack <buildpack-name>" },
-}
+	cli.exit_with_usage(argv) if len(argv) < 2 or len(argv) > 2 else None
+	name = argv[1]
+	config = read_config()
+	buildpacks = config.get('buildpacks', [])
+	others = [bp for bp in buildpacks if bp['name'] != name]
+	if len(others) == len(buildpacks):
+		print >>sys.stderr, 'Buildpack', name, 'does not exist'
+		sys.exit(1)
+	config['buildpacks'] = others
+	write_config(config)
 
 """ Generic CLI Implementation """
 
 def unknown_command(argv):
 	print "unknown command", argv[0]
-	return 1
+	sys.exit(1)
+
+def find_command(argv):
+	matches = [ cmd for cmd in commands if cmd["usage"].split(" ")[0] == argv[0] ]
+	if len(matches) < 1:
+		unknown_command(argv)
+	return matches[0]
 
 def print_help(argv = None):
-	for name, command in commands.iteritems():
+	for command in commands:
 		print command["usage"]
 
 def print_usage(argv):
-	print "Usage:", commands.get(argv[0])["usage"]
+	print "Usage:", find_command(argv)["usage"]
 
 def exit_with_usage(argv = None):
 	if argv is None:
@@ -549,19 +548,33 @@ def exit_with_usage(argv = None):
 		print_usage(argv)
 	sys.exit(1)
 
-def cli(argv, client_commands):
+def cli(argv):
 	try:
-		global commands
-		commands = client_commands
-		commands["help"] = { "func": print_help, "usage": "help" }
 		exit_with_usage() if len(argv) < 2 else None
-		command = commands.get(argv[1], { "func": unknown_command } )
+		command = find_command(argv[1:])
 		result = command["func"](argv[1:])
 		sys.exit(result)
 	except KeyboardInterrupt:
 		sys.exit(1)
 
+commands = [
+	{ "func": init_cmd,             "usage": "init [<tile-name>]" },
+	{ "func": status_cmd,           "usage": "status" },
+	{ "func": build_cmd,            "usage": "build [patch|minor|major|<version>]" },
+	{ "func": clean_cmd,            "usage": "clean" },
+	{ "func": clobber_cmd,          "usage": "clobber" },
+	{ "func": set_name_cmd,         "usage": "set-name <name>" },
+	{ "func": set_icon_cmd,         "usage": "set-icon <image-file>" },
+	{ "func": set_label_cmd,        "usage": "set-label <label>" },
+	{ "func": set_description_cmd,  "usage": "set-description <description>" },
+	{ "func": update_stemcell_cmd,  "usage": "update-stemcell [<os>] <version>" },
+	{ "func": add_buildpack_cmd,    "usage": "add-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]" },
+	{ "func": update_buildpack_cmd, "usage": "update-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]" },
+	{ "func": delete_buildpack_cmd, "usage": "delete-buildpack <buildpack-name>" },
+	{ "func": print_help,           "usage": "help" }
+]
+
 """ Main """
 
 if __name__ == '__main__':
-	cli(sys.argv, commands)
+	cli(sys.argv)
