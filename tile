@@ -34,10 +34,13 @@ def create_tile(config, release):
 		migrations = {}
 		with open(release['name'] + '.yml', 'wb') as f:
 			write_yaml(f, migrations)
-	with zipfile.ZipFile(release['name'] + '-' + release['version'] + '.pivotal', 'w') as f:
+	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
+	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		f.write(os.path.join('releases'), release['file'])
 		f.write(os.path.join('metadata'), release['name'] + '.yml')
 		# f.write(os.path.join('content-migrations'), release['name'] + '.yml')
+	print
+	print 'created tile', pivotal_file
 
 default_vm_definitions = [
 	{ 'name': 'cpu', 'type': 'integer', 'configurable': False, 'default': 1 },
@@ -358,6 +361,7 @@ def update_version(config, version):
 			semver[2] = '0'
 		else:
 			print >>sys.stderr, 'Argument must specify "patch", "minor", "major", or a valid semver version (x.y.z)'
+			sys.exit(1)
 		version = '.'.join(semver)
 	config['version'] = version
 	print 'version:', version
@@ -479,13 +483,31 @@ def update_stemcell_cmd(argv):
 	config['description'] = ' '.join(argv[1:])
 	write_config(config)
 
+def update_buildpack(argv, update_existing=True):
+	cli.exit_with_usage(argv) if len(argv) < 3 or len(argv) > 4 else None
+	name = argv[1]
+	binary = argv[2]
+	rank = int(argv[3]) if len(argv) > 3 else 0
+	config = read_config()
+	buildpacks = config.get('buildpacks', [])
+	others = [bp for bp in buildpacks if bp['name'] != name]
+	if not update_existing and len(others) < len(buildpacks):
+		print >>sys.stderr, 'Buildpack', name, 'already exists. Use "tile update-buildpack" instead.'
+	if update_existing and len(others) == len(buildpacks):
+		print >>sys.stderr, 'Buildpack', name, 'does not exist. Use "tile add-buildpack" instead.'
+
+	config['buildpacks'] = others + [{
+		'name': name,
+		'binary': binary,
+		'rank': rank
+	}]
+	write_config(config)
+
 def add_buildpack_cmd(argv):
-	print >>sys.stderr, 'Command not yet implemented'
-	sys.exit(1)
+	update_buildpack(argv, False)
 
 def update_buildpack_cmd(argv):
-	print >>sys.stderr, 'Command not yet implemented'
-	sys.exit(1)
+	update_buildpack(argv, True)
 
 def delete_buildpack_cmd(argv):
 	print >>sys.stderr, 'Command not yet implemented'
