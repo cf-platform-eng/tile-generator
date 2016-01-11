@@ -113,6 +113,10 @@ def tile_metadata(config, release):
 			'resource_label': 'Remove ' + bp['name'],
 			'templates': [{ 'name': 'remove_' + bp['name'], 'release': release['name'] }],
 		})]
+		metadata['post_deploy_errands'] = metadata.get('post_deploy_errands', [])
+		metadata['post_deploy_errands'] += [{ 'name': 'install_' + bp['name'] }]
+		metadata['pre_delete_errands'] = metadata.get('pre_delete_errands', [])
+		metadata['pre_delete_errands'] += [{ 'name': 'remove_' + bp['name'] }]
 	return metadata
 
 def create_errand(metadata, properties, manifest_lines=[] ):
