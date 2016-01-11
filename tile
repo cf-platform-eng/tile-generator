@@ -36,8 +36,8 @@ def create_tile(config, release):
 			write_yaml(f, migrations)
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
-		f.write(os.path.join('releases'), release['file'])
-		f.write(os.path.join('metadata'), release['name'] + '.yml')
+		f.write(os.path.join('releases', release['file']))
+		f.write(os.path.join('metadata', release['name'] + '.yml'))
 		# f.write(os.path.join('content-migrations'), release['name'] + '.yml')
 	print
 	print 'created tile', pivotal_file
@@ -64,7 +64,7 @@ def tile_metadata(config, release):
 		'stemcell_criteria': {
 			'os': 'ubuntu-trusty',
 			'requires_cpi': False,
-			'version': 3062,
+			'version': '3062',
 		},
 		'releases': [{
 			'name': release['name'],
