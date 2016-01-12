@@ -29,7 +29,7 @@ def create_tile(config, release):
 		metadata = tile_metadata(config, release)
 		with open(release['name'] + '.yml', 'wb') as f:
 			write_yaml(f, metadata)
-	with cd('content-migrations'):
+	with cd('content_migrations'):
 		print 'tile generate content-migrations'
 		migrations = tile_migrations(config, release)
 		with open(release['name'] + '.yml', 'wb') as f:
@@ -38,7 +38,7 @@ def create_tile(config, release):
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		f.write(os.path.join('releases', release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
-		f.write(os.path.join('content-migrations'), release['name'] + '.yml')
+		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
 	print
 	print 'created tile', pivotal_file
 
@@ -217,7 +217,7 @@ def add_buildpacks(config):
 				'cf delete-buildpack ' + 
 					bp['name'] + ' -f',
 				'cf create-buildpack ' +
-					bp['name'] + ' ${PACKAGE_PATH}/' + bp['name'] + '/* ' +
+					bp['name'] + ' /var/vcap/packages/' + bp['name'] + '/' + os.path.basename(bp['binary']) + ' ' +
 					bosh_property(bp['name'] + '_rank') +
 					' --enable',
 			],
