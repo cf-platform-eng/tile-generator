@@ -35,6 +35,10 @@ by explicitly specifying `tile build major` or `tile build minor`. Or to
 override the version number completely, specify a valid semver version on
 the build command, e.g. `tile build 3.4.5`.
 
+No-op content migration rules are generated for every prior release to the
+current release, so that Ops Manager will allow tile upgrades from any
+version to any newer version.
+
 ## Example
 
 ```
