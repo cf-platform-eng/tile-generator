@@ -15,11 +15,28 @@ CONFIG_FILE = "tile.yml"
 def cli():
 	pass
 
+@cli.command('init')
+@click.argument('name', nargs=1, required=False)
+def init_cmd(name):
+	if name is not None:
+		os.mkdir(name)
+		os.chdir(name)
+	if os.path.isfile(CONFIG_FILE):
+		print >>sys.stderr, 'Already initialized.'
+		sys.exit(0)
+	name = os.path.basename(os.getcwd())
+	config = {
+		'name': name
+	}
+	write_config(config)
+
 @cli.command('build')
-def build_cmd():
+@click.argument('version', 'patch', required=False)
+def build_cmd(version):
 	config = read_config()
-	print config
+	build.update_version(config, version)
 	build.build(config)
+	write_config(config)
 
 def read_config():
 	try:
