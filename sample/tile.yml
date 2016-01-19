@@ -1,6 +1,4 @@
 ---
-name: test-tile
-label: A short description
 apps:
 - name: app1
   path: resources/app1.jar
@@ -19,3 +17,20 @@ buildpacks:
   path: resources/buildpack1.zip
 - name: buildpack2
   path: resources/buildpack2.zip
+forms: []
+history:
+- 0.0.1
+- 0.0.2
+icon_file: resources/icon.png
+label: A short description
+name: test-tile
+release:
+  file: test-tile-0.0.3.tgz
+  manifest: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.3.yml
+  name: test-tile
+  tarball: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.3.tgz
+  version: 0.0.3
+stemcell_criteria:
+  os: ubuntu_trusty
+  version: '3062'
+version: 0.0.3

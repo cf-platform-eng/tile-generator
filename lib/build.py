@@ -5,6 +5,7 @@ import sys
 import shutil
 import subprocess
 import template
+import urllib
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 SABHA_PATH = os.path.realpath(os.path.join(PATH, '..', 'bosh-generic-sb-release', 'bin'))
@@ -70,9 +71,8 @@ def create_tile(config):
 #	with cd('releases'):
 #		print 'tile generate release'
 #		shutil.copy(release['tarball'], release['file'])
-	with cd('metadata'):
-		print 'tile generate metadata'
-		template.render('metadata/' + release['name'] + '.yml', 'tile-metadata.yml', config)
+	print 'tile generate metadata'
+	template.render('metadata/' + release['name'] + '.yml', 'tile-metadata.yml', config)
 #	with cd('content_migrations'):
 #		print 'tile generate content-migrations'
 #		migrations = tile_migrations(config, release)
@@ -107,47 +107,6 @@ def bosh(*argv):
 			return e.output
 		print e.output
 		sys.exit(e.returncode)
-
-def add_blob(name, binary, url=None, commands=None):
-	bosh('generate', 'package', name)
-	srcdir = os.path.join('src', name)
-	pkgdir = os.path.join('packages', name)
-	mkdir_p(srcdir)
-	if url is None:
-		shutil.copy(os.path.join('..', binary), srcdir)
-	else:
-		urllib.urlretrieve(url, os.path.join(srcdir, binary))
-	spec = {
-		'name': name,
-		'dependencies': [],
-		'files': [ name + '/*' ],
-	}
-	with cd(pkgdir):
-		with open('packaging', 'wb') as f:
-			if commands is None:
-				f.write('cp ' + name + '/* ${BOSH_INSTALL_TARGET}')
-			else:
-				for c in commands:
-					f.write(c + '\n')
-		with open('pre_packaging', 'wb') as f:
-			pass
-		with open('spec', 'wb') as f:
-			write_yaml(f, spec)
-
-
-def add_cf_cli():
-	add_src_package(
-		'cf_cli',
-		'cf-linux-amd64.tgz',
-		url='https://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel',
-		commands=[
-			'set -e -x',
-			'mkdir -p ${BOSH_INSTALL_TARGET}/bin',
-			'cd cf_cli',
-			'tar zxvf cf-linux-amd64.tgz',
-			'cp cf ${BOSH_INSTALL_TARGET}/bin/'
-		]
-	)
 
 def is_semver(version):
 	semver = version.split('.')

@@ -13,9 +13,9 @@ releases:
   version: {{ release.version }}
 
 stemcell_criteria:
-  os: {{ stemcell.os or 'ubuntu-trusty' }}
+  os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
   requires_cpi: false
-  version: {{ stemcell.version }}
+  version: {{ stemcell_criteria.version }}
 
 property_blueprints:
 - name: encryption_key
@@ -24,9 +24,7 @@ property_blueprints:
   type: salted_credentials
   default:
     identity: vcap
-
-property_blueprints:
-{% for property in form.properties %}
+{% for property in properties %}
 - name: {{ property.name }}
   type: {{ property.type }}
   {% if defined(property.default) %}
