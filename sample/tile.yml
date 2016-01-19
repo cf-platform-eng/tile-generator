@@ -1,0 +1,21 @@
+---
+name: test-tile
+version: 0.0.0
+apps:
+- name: app1
+  path: resources/app1.jar
+- name: app2
+  path: resources/app2.jar
+brokers:
+- name: broker1
+  path: resources/broker1.jar
+- name: broker2
+  path: resources/broker2.jar
+buildpacks:
+- name: buildpack1
+  path: resources/buildpack1.zip
+- name: buildpack2
+  path: resources/buildpack2.zip
+blobs:
+- name: blob1
+  path: resources/blob1.zip

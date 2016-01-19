@@ -1,0 +1,8 @@
+---
+name: broker2
+
+dependencies: []
+
+files:
+- templates/all_open.json
+- broker2/broker2.jar

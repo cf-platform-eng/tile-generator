@@ -8,28 +8,42 @@ import subprocess
 PATH = os.path.dirname(os.path.realpath(__file__))
 SABHA_PATH = os.path.realpath(os.path.join(PATH, '..', 'bosh-generic-sb-release', 'bin'))
 
-def build(config):
+VERBOSE=False
+
+def build(config, verbose=False):
+	global VERBOSE
+	VERBOSE = verbose
 	with cd('release', clobber=True):
 		release = create_bosh_release(config)
 
-def create_bosh_release(config):
+def create_bosh_release(config, verbose=False):
+	target = os.getcwd()
 	bosh('init', 'release')
 	apps = config.get('apps', [])
 	for app in apps:
-		bash('addApp.sh', os.getcwd(), app['name'], 'true', 'false')
+		bash('addApp.sh', target, app['name'], 'true', 'false')
+		bash('addBlob.sh', target, os.path.join('..', app['path']), app['name'], app['name'])
 	brokers = config.get('brokers', [])
 	for broker in brokers:
-		bash('addApp.sh', os.getcwd(), broker['name'], 'true', 'true')
+		bash('addApp.sh', target, broker['name'], 'true', 'true')
+		bash('addBlob.sh', target, os.path.join('..', broker['path']), broker['name'], broker['name'])
 	buildpacks = config.get('buildpacks', [])
 	for bp in buildpacks:
-		bash('addBuildpack.sh', os.getcwd(), bp['name'])
+		bash('addBuildpack.sh', target, bp['name'])
+		bash('addBlob.sh', target, os.path.join('..', bp['path']), bp['name'], bp['name'])
+	blobs = config.get('blobs', [])
+	for blob in blobs:
+		bash('addBlob.sh', target, os.path.join('..', blob['path']), blob['name'])
 
 def bash(*argv):
 	argv = list(argv)
 	print ' '.join(argv)
 	command = [ os.path.join(SABHA_PATH, argv[0]) ] + argv[1:]
 	try:
-		return subprocess.check_output(command, stderr=subprocess.STDOUT)
+		result = subprocess.check_output(command, stderr=subprocess.STDOUT)
+		if VERBOSE:
+			print '    ' + '\n    '.join(result.split('\n'))
+		return result
 	except subprocess.CalledProcessError as e:
 		print e.output
 		sys.exit(e.returncode)

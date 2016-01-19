@@ -1,0 +1,8 @@
+---
+name: buildpack2
+
+dependencies: []
+
+files:
+- templates/all_open.json
+- buildpack2/buildpack2.zip

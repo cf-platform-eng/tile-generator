@@ -1,0 +1,22 @@
+# abort script on any command that exit with a non zero value
+set -e
+
+
+# Copy over the any templates into the BOSH_INSTALL_TARGET directory
+# It would be copied into the /var/vcap/packages/generic-service-broker folder
+cp -r templates ${BOSH_INSTALL_TARGET}/
+
+# Check for presence of the app bits
+# Modify the archive to be other file extension if its not a jar
+app_archive=`ls app1/app1.jar`
+
+if [  "$app_archive" != "" ] ; then
+  echo "app bits found"
+else
+  echo "app bits not found"
+  exit 1
+fi
+
+mkdir -p ${BOSH_INSTALL_TARGET}/lib
+cp $app_archive ${BOSH_INSTALL_TARGET}/lib/
+

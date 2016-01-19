@@ -32,11 +32,14 @@ def init_cmd(name):
 
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
-def build_cmd(version):
+@click.option('--verbose', is_flag=True)
+@click.option('--dry-run', is_flag=True)
+def build_cmd(version, verbose, dry_run):
 	config = read_config()
 	build.update_version(config, version)
-	build.build(config)
-	write_config(config)
+	build.build(config, verbose)
+	if not dry_run:
+		write_config(config)
 
 def read_config():
 	try:

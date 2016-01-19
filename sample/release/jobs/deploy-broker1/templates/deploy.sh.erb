@@ -1,0 +1,325 @@
+#!/bin/bash
+set -e -x
+
+  <%
+    def grab_app_domain_name
+      app_domains_str = properties.app_domains.to_s
+      array_start = ( app_domains_str =~ /^\[/ )
+      if (array_start == 0)
+        app_domain_entry = app_domains_str.gsub(/^\[/, '').gsub(/\]/,'').gsub(/,.*/, '')
+      else
+        app_domain_entry = app_domains_str
+      end
+      app_domain_entry
+    end
+    app_domain = grab_app_domain_name
+  %>
+
+export PATH="/var/vcap/packages/cf_cli/bin:$PATH"
+
+export SCHEME=https
+export ADMIN_USER=<%= properties.broker1.cf.admin_user %>
+export ADMIN_PASSWORD=<%= properties.broker1.cf.admin_password %>
+export DOMAIN=<%= properties.domain %>
+export APP_DOMAIN=<%="#{app_domain}"%>
+export API_ENDPOINT=$SCHEME://api.${DOMAIN}
+export APP_NAME=<%= properties.broker1.app_name %>
+export APP_VERSION=<%= properties.broker1.app_version %>
+export APP_URI=<%= properties.broker1.app_uri %>
+export ORG=${APP_NAME}-service-org
+export SPACE=${APP_NAME}-service-space
+export QUOTA=${APP_NAME}-service-quota
+export CF_TARGET=$API_ENDPOINT
+export CF_ORG=$ORG
+export CF_SPACE=$SPACE
+export CF_USER=$ADMIN_USER
+export CF_PASSWORD=$ADMIN_PASSWORD
+export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
+export ORG_QUOTA=<%= properties.broker1.app_push.org_quota %>
+export APP_PUSH_TIMEOUT=<%= properties.broker1.app_push.timeout %>
+export APP_PUSH_MEMORY=<%= properties.broker1.app_push.memory %>
+
+# Use this only if app needs additional libraries that need to be downloaded
+#
+# Use these variables only if app needs to persistence store for saving its plans/sevice offerings etc.
+export PERSISTENCE_STORE_TYPE=<%= properties.broker1.persistence_store_type %>
+
+### PERSISTENCE_STORE_BEGIN_MARKER
+export PERSISTENCE_STORE_HOST=<%= properties.broker1.persistence_store.service_addr %>
+export PERSISTENCE_STORE_SID=<%= properties.broker1.persistence_store.service_sid %>
+export PERSISTENCE_STORE_PARAMS=<%= properties.broker1.persistence_store.service_params %>
+export PERSISTENCE_STORE_USER=<%= properties.broker1.persistence_store.persistence_broker_user %>
+export PERSISTENCE_STORE_PASSWD=<%= properties.broker1.persistence_store.persistence_broker_password %>
+### PERSISTENCE_STORE_END_MARKER
+
+# Use these variables only if app needs to know how to connect to a remote target that it brokers
+### TARGET_SERVICE_BEGIN_MARKER
+#export TARGET_HOST=<%= properties.broker1.target_service.service_addr %>
+#export TARGET_SID=<%= properties.broker1.target_service.service_sid %>
+#export TARGET_PARAMS=<%= properties.broker1.target_service.service_params %>
+#export TARGET_ADMIN_USER=<%= properties.broker1.target_service.target_admin_user %>
+#export TARGET_ADMIN_PASSWD=<%= properties.broker1.target_service.target_admin_password %>
+### TARGET_SERVICE_END_MARKER
+
+#export APP_USER=<%= properties.broker1.broker.user %>
+#export APP_PASSWD=<%= properties.broker1.broker.password %>
+export SECURITY_USER_NAME=<%= properties.broker1.user %>
+export SECURITY_USER_PASSWORD=<%= properties.broker1.password %>
+export START_COMMAND=<%= properties.broker1.start_command %>
+export HEALTH_MONITOR=<%= properties.broker1.health_monitor %>
+
+export CREATE_OPEN_SECURITY_GROUP=<%= properties.broker1.create_open_security_group %>
+export DELETE_PREV_APP_INSTANCE=<%= properties.broker1.delete_prev_app_instance %>
+
+export DEFAULT_DB_NAME=${APP_NAME}-${APP_VERSION}-mysql
+export SB_APP_ENV="setupServiceBrokerEnv.sh"
+
+### CUSTOM_VARIABLE_BEGIN_MARKER
+
+### CUSTOM_VARIABLE_END_MARKER
+
+export CF_HOME=`pwd`/home/cf
+mkdir -p $CF_HOME
+
+# Following variables would be replaced based on blobs that get added and are considered as app bits
+TARGET_APP=broker1.jar
+JOB_NAME=deploy-broker1
+PACKAGE_NAME_SUFFIX=broker1
+PACKAGE_PATH=`echo /var/vcap/packages/*${PACKAGE_NAME_SUFFIX}*`
+
+RUN_DIR=/var/vcap/sys/run/$JOB_NAME
+LOG_DIR=/var/vcap/sys/log/$JOB_NAME
+PIDFILE=${RUN_DIR}/pid
+
+export DEBUG_LOG=$LOG_DIR/deploy-service-broker.log
+
+mkdir -p $RUN_DIR $LOG_DIR
+chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+function log_debug() {
+  echo `date` $1 >> $DEBUG_LOG
+}
+
+function authenticate_and_target() {
+  cf api $API_ENDPOINT <% if properties.ssl.skip_cert_verify %>--skip-ssl-validation<% end %>
+  cf auth $ADMIN_USER $ADMIN_PASSWORD
+  cf create-org $ORG
+  cf target -o $ORG
+  cf create-space $SPACE
+  cf target -s $SPACE
+}
+
+function create_quota() {
+  cf create-quota $QUOTA -m ${ORG_QUOTA}m -r 10 -s 10
+  cf update-quota $QUOTA -m ${ORG_QUOTA}m -r 10 -s 10 --disallow-paid-service-plans
+  cf set-quota $ORG $QUOTA
+}
+
+function create_open_security_group() {
+  if [ "${CREATE_OPEN_SECURITY_GROUP}" == "true" ]; then
+    echo "Creating open security group"
+
+    cf create-security-group all_open $PACKAGE_PATH/templates/all_open.json
+    cf bind-running-security-group all_open
+  else
+    echo "Not creating open security group"
+  fi
+}
+
+function provision_and_bind_db() {
+  db_plan=`cf marketplace | grep p-mysql | awk '{ print $2 }' | sed 's/,//g'`
+  if [ "$db_plan" != "" ]; then
+    cf create-service p-mysql $db_plan $DEFAULT_DB_NAME
+    cf bind-service ${APP_NAME}-${APP_VERSION} $DEFAULT_DB_NAME
+  fi
+}
+
+function restart_app() {
+  CF_TRACE=true cf restart ${APP_NAME}-${APP_VERSION}
+  cf logs ${APP_NAME}-${APP_VERSION} --recent
+}
+
+function wait_till_running() {
+  for i in `seq 1  6`
+  do
+    CF_TRACE=true cf app ${APP_NAME}-${APP_VERSION} | grep RUNNING | grep ${APP_NAME}-${APP_VERSION}
+    if [ "$?" -ne "0" ]; then
+      log_debug "App not running yet..."
+      sleep 10
+    else
+      log_debug "App now up and running ..."
+      break
+    fi
+  done
+}
+
+
+function add_env_vars() {
+#  cf set-env ${APP_NAME}-${APP_VERSION} BASIC_AUTH_PASSWORD <%= properties.broker1.broker.password %>
+#  cf set-env ${APP_NAME}-${APP_VERSION} BASIC_AUTH_USERNAME <%= properties.broker1.broker.user %>
+#  cf set-env ${APP_NAME}-${APP_VERSION} ENCRYPTION_KEY <%= properties.broker1.encryption_key %>
+#  cf set-env ${APP_NAME}-${APP_VERSION} UAA_CLIENT_ID generic-sb-service
+#  cf set-env ${APP_NAME}-${APP_VERSION} UAA_CLIENT_SECRET <%= properties.uaa.clients.broker1.secret %>
+  cf set-env ${APP_NAME}-${APP_VERSION} UAA_HOST $SCHEME://uaa.$DOMAIN
+  cf set-env ${APP_NAME}-${APP_VERSION} CC_HOST $API_ENDPOINT
+  cf set-env ${APP_NAME}-${APP_VERSION} LOGIN_HOST $SCHEME://login.$DOMAIN
+  cf set-env ${APP_NAME}-${APP_VERSION} ROOT "\$HOME"
+  cf set-env ${APP_NAME}-${APP_VERSION} SCHEME $SCHEME
+  cf set-env ${APP_NAME}-${APP_VERSION} VERIFY_SSL <%= !properties.ssl.skip_cert_verify %>
+
+  # Adding additional properties that most spring based apps or internal apps seem to be expecting
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_ORG $CF_ORG
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_SPACE $CF_SPACE
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_USER $CF_USER
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_PASSWORD $CF_PASSWORD
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_TARGET $CF_TARGET
+  cf set-env ${APP_NAME}-${APP_VERSION} SECURITY_USER_NAME $SECURITY_USER_NAME
+  cf set-env ${APP_NAME}-${APP_VERSION} SECURITY_USER_PASSWORD $SECURITY_USER_PASSWORD
+
+  cf set-health-check ${APP_NAME}-${APP_VERSION} none <%if !properties.broker1.health_monitor %>
+
+  # CUSTOM_VARIABLE_ENV_BEGIN_MARKER
+  # CUSTOM_VARIABLE_ENV_END_MARKER
+
+  # Add app specific env variables using the setup script definition
+  #add_parameterized_env_vars
+}
+
+#function add_parameterized_env_vars() {
+#  pushd $PACKAGE_PATH
+#
+#    # Source the environment variables before doing a cf set-env using the variable name
+#    source $SB_APP_ENV
+#    cat $SB_APP_ENV | grep -v "^#" | grep "." | while read env_var_entry
+#    do
+#      key=`echo $env_var_entry | sed -e 's/export //;s/=.*//';`
+#      #formatted_key=`echo $key | sed -e 's/__/\./g' `
+#      formatted_env_var=`env | grep "^${key}=" | sed -e 's/^.*=//';`
+#      cf set-env ${APP_NAME}-${APP_VERSION} ${key} ${formatted_env_var}
+#    done
+#  popd
+#}
+
+# Use this only to bind any additional files/libraries or modify app contents
+function modify_app() {
+  cp ${PACKAGE_PATH}/lib/${TARGET_APP}  ${PACKAGE_PATH}/${TARGET_APP}
+}
+
+function delete_prev_app_instance() {
+
+  cf apps | grep ${APP_NAME}-${APP_VERSION}
+  existing_app_check=$?
+
+  if [ "$existing_app_check" == "0" ]; then
+
+    # Look for User-Provided env variables and stop after the first blank line after that
+    cf env ${APP_NAME}-${APP_VERSION} | awk 'f{print}/User-Provided/{f=1};/^ *$/{f=0}' \
+                | grep '.' | awk -F ':' '{print $1}' | while read env_variable_name
+    do
+      cf unset-env $env_variable_name
+    done
+    cf delete -f ${APP_NAME}-${APP_VERSION}  > /dev/null
+  fi
+}
+
+function push_app() {
+  pushd $PACKAGE_PATH
+    mkdir -p /var/vcap/data/tmp
+    export TMPDIR=/var/vcap/data/tmp
+
+    # Cleanup any older version of the app
+    <% if properties.broker1.delete_prev_app_instance%>
+    delete_prev_app_instance
+    <% end %>
+
+    HEALTH_MONITOR=""
+    <%if !properties.broker1.health_monitor %>
+      HEALTH_MONITOR="--no-route"
+    <% end %>
+
+    if [ "$START_COMMAND" != "" ]; then
+      START_COMMAND=" -c $START_COMMAND "
+    fi
+
+    CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $HEALTH_MONITOR $START_COMMMAND
+    cf logs ${APP_NAME}-${APP_VERSION} --recent
+  popd
+}
+
+
+#function register_on_demand_plans() {
+#  pushd $PACKAGE_PATH
+#    mkdir -p /var/vcap/data/tmp
+#    # Sleep for a bit so the app is up
+#    sleep 30
+#    app_endpoint=http://${BROKER_USER}:${BROKER_PASSWD}@${APP_URI}.${APP_DOMAIN}
+#    app_catalog_url=${app_endpoint}/v2/catalog
+#    catalog_output=`curl -X GET ${app_catalog_url} 2>/dev/null`
+#    log_debug "Service Broker App Catalog output : $catalog_output"
+#
+#    service_id=`echo $catalog_output | sed -e 's/"//g'  | sed -e "s/name:/\nname:/g" | grep "id:" | grep services | sed -e "s/^.*id://g;s/,//" `
+#    #plan_id=`echo $catalog_output | sed -e 's/"//g'  | sed -e "s/name:/\nname:/g" | grep "id:" | grep plans | sed -e "s/^.*id://g;s/,//" `
+#    log_debug "Catalog Service Id : $service_id "
+#
+#    <% if properties.broker1.on_demand_service_plans %>
+#      <%  p("broker1.on_demand_service_plans").each do |plan|
+#             plan_name=plan['plan_name']
+#             plan_descrp=plan['plan_description']
+#             plan_details=plan['plan_details'].gsub('\n','')
+#      %>
+#        export PLAN_ID=<%="#{plan_name}"%>
+#        export PLAN_DESCRP=<%="#{plan_descrp}"%>
+#        export PLAN_DETAILS='<%="#{plan_details}"%>'
+#        log_debug "Service plan name ${PLAN_ID}, described as ${PLAN_DESCRP} and details: ${PLAN_DETAILS}"
+#
+#        bullets_name_value_multiline=`echo $PLAN_DETAILS | sed -e "s/;/,/g" | awk -F ":" '{print "\"" $1 "\" : \"" $2 "\", " }' `
+#        bullets_value_descrp_singleline=`echo $PLAN_DETAILS | sed -e "s/;/,\n/g;"  | awk -F ":" '{print "\""$2  $3"\"" }' | sed -e 's/,"/",/g' `
+#
+#        cat > /var/vcap/data/tmp/${PLAN_ID}.service_plan.json << EOF
+#{
+#  "name" : "$PLAN_ID",
+#  "description" : "$PLAN_DESCRP",
+#  "metadata" : {
+#     "name" : "$PLAN_ID",
+#     "displayName" : "$PLAN_ID",
+#     "description" : "$PLAN_DESCRP",
+#     $bullets_name_value_multiline
+#     "bullets" : [
+#        "$PLAN_ID $PLAN_DESCRP",
+#        $bullets_value_descrp_singleline ]
+#   }
+#}
+#EOF
+#
+#         log_debug "Copied over default service plan file template with ${PLAN_ID} and updated it"
+#         new_plan=`cat /var/vcap/data/tmp/${PLAN_ID}.service_plan.json`
+#         log_debug "Contents of the plan: ${new_plan} "
+#         plan_creation_output=`curl ${app_catalog_url}/services/${service_id}/plans -X POST -H "Content-Type:application/json" -d @/var/vcap/data/tmp/${PLAN_ID}.service_plan.json `
+#         log_debug "Service Plan created!!"
+#         log_debug "Service Plan details: ${plan_creation_output}"
+#       <% end %>
+#    <% end %>
+#
+#  popd
+#}
+
+cf -v
+authenticate_and_target
+create_open_security_group
+create_quota
+
+modify_app
+push_app
+add_env_vars
+
+if [ "${PERSISTENCE_STORE_TYPE}" == "mysql" ]; then
+  provision_and_bind_db
+fi
+
+restart_app
+wait_till_running
+
+# Remove register_plans if there are already some internal plans
+#<% if properties.broker1.on_demand_service_plans %>
+#  register_on_demand_plans
+#<% end %>

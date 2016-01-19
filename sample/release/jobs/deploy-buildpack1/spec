@@ -1,0 +1,25 @@
+---
+name: deploy-buildpack1
+templates:
+  deploy.sh.erb: bin/run
+packages:
+- cf_cli
+- buildpack1
+properties:
+  ssl.skip_cert_verify:
+    description: 'Whether to verify SSL certs when making web requests'
+  domain:
+    description: 'CloudFoundry system domain'
+  app_domains:
+    description: 'CloudFoundry application domains'
+  uaa.clients.buildpack1.secret:
+    description: 'UAA Client Secret'
+  buildpack1.name:
+    description: 'Name of the Buildpack'
+  buildpack1.order:
+    description: 'Position of the Buildpack'
+    default: 10
+  buildpack1.cf.admin_user:
+    description: 'Username of the CF admin user'
+  buildpack1.cf.admin_password:
+    description: 'Password of the CF admin user'
