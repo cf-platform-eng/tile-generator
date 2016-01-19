@@ -1,22 +1,4 @@
 ---
-apps:
-- name: app1
-  path: resources/app1.jar
-- name: app2
-  path: resources/app2.jar
-blobs:
-- name: blob1
-  path: resources/blob1.zip
-brokers:
-- name: broker1
-  path: resources/broker1.jar
-- name: broker2
-  path: resources/broker2.jar
-buildpacks:
-- name: buildpack1
-  path: resources/buildpack1.zip
-- name: buildpack2
-  path: resources/buildpack2.zip
 forms:
 - description: Buildpack_properties
   label: Buildpack
@@ -38,16 +20,47 @@ history:
 - 0.0.8
 - 0.0.9
 - 0.0.10
+- 0.0.11
 icon_file: resources/icon.png
 label: A short description
 name: test-tile
+packages:
+- jobs:
+  - type: cf-push
+  name: app1
+  path: resources/app1.jar
+- jobs:
+  - type: cf-push
+  name: app2
+  path: resources/app2.jar
+  push: true
+- name: blob1
+  path: resources/blob1.zip
+- jobs:
+  - type: cf-push
+  - type: create-service-broker
+  name: broker1
+  path: resources/broker1.jar
+- jobs:
+  - type: cf-push
+  - type: create-service-broker
+  name: broker2
+  path: resources/broker2.jar
+- jobs:
+  - type: create-buildpack
+  name: buildpack1
+  path: resources/buildpack1.zip
+- jobs:
+  - type: create-buildpack
+  name: buildpack2
+  path: resources/buildpack2.zip
 release:
-  file: test-tile-0.0.11.tgz
-  manifest: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.11.yml
+  file: test-tile-0.0.12.tgz
+  manifest: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.12.yml
   name: test-tile
-  tarball: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.11.tgz
-  version: 0.0.11
+  tarball: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.12.tgz
+  version: 0.0.12
 stemcell_criteria:
   os: ubuntu_trusty
   version: '3062'
-version: 0.0.11
+version: 0.0.12

@@ -26,21 +26,30 @@ def create_bosh_release(config):
 	template.render('src/templates/all_open.json', 'all_open.json', config)
 	template.render('config/final.yml', 'bosh-final.yml', config)
 	bash('fetch_cf_cli.sh', target)
-	apps = config.get('apps', [])
-	for app in apps:
-		bash('addApp.sh', target, app['name'], 'true', 'false')
-		bash('addBlob.sh', target, os.path.join('..', app['path']), app['name'], app['name'])
-	brokers = config.get('brokers', [])
-	for broker in brokers:
-		bash('addApp.sh', target, broker['name'], 'true', 'true')
-		bash('addBlob.sh', target, os.path.join('..', broker['path']), broker['name'], broker['name'])
-	buildpacks = config.get('buildpacks', [])
-	for bp in buildpacks:
-		bash('addBuildpack.sh', target, bp['name'])
-		bash('addBlob.sh', target, os.path.join('..', bp['path']), bp['name'], bp['name'])
-	blobs = config.get('blobs', [])
-	for blob in blobs:
-		bash('addBlob.sh', target, os.path.join('..', blob['path']), blob['name'])
+	pkgs = config.get('packages', [])
+	for pkg in pkgs:
+		jobs = pkg.get('jobs', [])
+		cf_push = False
+		create_service_broker = False
+		create_buildpack = False
+		for job in jobs:
+			if job.get('type', None) is None:
+				print >>sys.stderr, 'job without type for', pkg.get('name', 'unnamed package')
+				sys.exit(1)
+			if job['type'] == 'cf-push':
+				cf_push = True
+			elif job['type'] == 'create-service-broker':
+				create_service_broker = True
+			elif job['type'] == 'create-buildpack':
+				create_buildpack = True
+			else:
+				print >>sys.stderr, 'unknown job type', job['type'], 'for', pkg.get('name', 'unnamed package')
+				sys.exit(1)
+		if cf_push or create_service_broker:
+			bash('addApp.sh', target, pkg['name'], str(cf_push).lower(), str(create_service_broker).lower())
+		if create_buildpack:
+			bash('addBuildpack.sh', target, pkg['name'])
+		bash('addBlob.sh', target, os.path.join('..', pkg['path']), pkg['name'], pkg['name'])
 #	add_cf_cli(config)
 #	add_buildpacks(config)
 #	add_service_brokers(config)
