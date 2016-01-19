@@ -22,7 +22,7 @@ def create_bosh_release(config):
 		bash('addApp.sh', os.getcwd(), broker['name'], 'true', 'true')
 	buildpacks = config.get('buildpacks', [])
 	for bp in buildpacks:
-		bash('addBuildpack.sh', os.getcwd(), bp['name'], 'true', 'true')
+		bash('addBuildpack.sh', os.getcwd(), bp['name'])
 
 def bash(*argv):
 	argv = list(argv)
