@@ -1,0 +1,103 @@
+---
+name: {{ name }}
+label: {{ label }}
+description: {{ description }}
+icon_image: {{ base64(icon_file) }}
+product_version: {{ version }}
+rank: 1
+serial: true
+
+releases:
+- file: {{ release.file }}
+  name: {{ release.name }}
+  version: {{ release.version }}
+
+stemcell_criteria:
+  os: {{ stemcell.os or 'ubuntu-trusty' }}
+  requires_cpi: false
+  version: {{ stemcell.version }}
+
+property_blueprints:
+- name: encryption_key
+  type: secret
+- name: vm_credentials
+  type: salted_credentials
+  default:
+    identity: vcap
+
+property_blueprints:
+{% for property in form.properties %}
+- name: {{ property.name }}
+  type: {{ property.type }}
+  {% if defined(property.default) %}
+  default: {{ property.default }}
+  {%- endif %}
+  configurable: false
+{%- endfor -%}
+{% for form in forms %}
+{% for property in form.properties %}
+- name: {{ property.name }}
+  type: {{ property.type }}
+  {% if defined(property.default) %}
+  default: {{ property.default }}
+  {%- endif %}
+  configurable: true
+{%- endfor -%}
+{%- endfor -%}
+
+{% for form in forms %}
+form_types:
+- name: {{ form.name }}
+  label: {{ form.label }}
+  description: {{ form.description }}
+  property_inputs:
+  {% for property in form.properties %}
+  - reference: .properties.{{ property.name }}
+  	label: {{ property.label }}
+  	description: {{ property.description }}
+  {%- endfor -%}
+{%- endfor -%}
+
+job_types:
+- name: compilation
+  resource_label: compilation
+  resource_definitions:
+   - name: ram
+     type: integer
+     configurable: true
+     default: 1024
+   - name: ephemeral_disk
+     type: integer
+     configurable: true
+     default: 1024
+   - name: persistent_disk
+     type: integer
+     configurable: true
+     default: 0
+   - name: cpu
+     type: integer
+     configurable: true
+     default: 2
+  static_ip: 0
+  dynamic_ip: 1
+  max_in_flight: 1
+  instance_definitions:
+    - name: instances
+      type: integer
+      default: 1
+{% for job in jobs %}
+- name: ......
+  manifest: |
+    domain: (( ..))
+{%- endfor -%}
+
+update:
+  canaries: 1
+  canary_watch_time: 60000-240000
+  max_in_flight: 1
+  update_watch_time: 60000-240000
+
+requires_product_versions:
+- name: cf
+  version: "~> 1.0"
+provides_product_versions:

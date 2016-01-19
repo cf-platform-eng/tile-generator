@@ -1,0 +1,23 @@
+---
+name: {{ name }}
+icon: path/to/icon.png # TODO
+label: Brief Text for the Tile Icon # TODO
+description: Longer description of the tile's purpose # TODO
+stemcell_criteria:
+  os: ubuntu-trusty
+  requires_cpi: false
+  version: '3062' # TODO
+
+properties: # Not configurable by user, but passed to the errands and apps
+
+forms: # Properties configurable by the user
+- name: buildpack_properties
+  label: Buildpack
+  description: Buildpack_properties
+  properties:
+  - name: buildpack_rank
+    type: integer
+    default: 0
+    label: Buildpack rank for this buildpack_rank
+    description: Ranking of this buildpack relative to others
+

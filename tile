@@ -8,6 +8,7 @@ import yaml
 PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(PATH, 'lib'))
 import build
+import template
 
 CONFIG_FILE = "tile.yml"
 
@@ -38,6 +39,17 @@ def build_cmd(version, verbose, dry_run):
 	config = read_config()
 	build.update_version(config, version)
 	build.build(config, verbose)
+	if not dry_run:
+		write_config(config)
+
+
+@cli.command('template')
+@click.argument('version', 'patch', required=False)
+@click.option('--dry-run', is_flag=True)
+def template_cmd(version, dry_run):
+	config = read_config()
+	build.update_version(config, version)
+	template.template_build(config)
 	if not dry_run:
 		write_config(config)
 
