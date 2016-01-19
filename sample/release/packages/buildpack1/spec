@@ -1,8 +1,0 @@
----
-name: buildpack1
-
-dependencies: []
-
-files:
-- templates/all_open.json
-- buildpack1/buildpack1.zip

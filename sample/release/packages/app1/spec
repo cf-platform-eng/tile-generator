@@ -1,8 +1,0 @@
----
-name: app1
-
-dependencies: []
-
-files:
-- templates/all_open.json
-- app1/app1.jar
