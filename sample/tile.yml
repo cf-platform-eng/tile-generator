@@ -17,20 +17,37 @@ buildpacks:
   path: resources/buildpack1.zip
 - name: buildpack2
   path: resources/buildpack2.zip
-forms: []
+forms:
+- description: Buildpack_properties
+  label: Buildpack
+  name: buildpack_properties
+  properties:
+  - default: 0
+    description: Ranking of this buildpack relative to others
+    label: Buildpack rank for this buildpack_rank
+    name: buildpack_rank
+    type: integer
 history:
 - 0.0.1
 - 0.0.2
+- 0.0.3
+- 0.0.4
+- 0.0.5
+- 0.0.6
+- 0.0.7
+- 0.0.8
+- 0.0.9
+- 0.0.10
 icon_file: resources/icon.png
 label: A short description
 name: test-tile
 release:
-  file: test-tile-0.0.3.tgz
-  manifest: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.3.yml
+  file: test-tile-0.0.11.tgz
+  manifest: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.11.yml
   name: test-tile
-  tarball: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.3.tgz
-  version: 0.0.3
+  tarball: /Users/gwestenberg/git/tile-generator/sample/release/releases/test-tile/test-tile-0.0.11.tgz
+  version: 0.0.11
 stemcell_criteria:
   os: ubuntu_trusty
   version: '3062'
-version: 0.0.3
+version: 0.0.11

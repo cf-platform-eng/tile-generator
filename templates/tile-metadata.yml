@@ -27,21 +27,20 @@ property_blueprints:
 {% for property in properties %}
 - name: {{ property.name }}
   type: {{ property.type }}
-  {% if defined(property.default) %}
+  {% if property.default is defined %}
   default: {{ property.default }}
-  {%- endif %}
-  configurable: false
-{%- endfor -%}
+  {% endif %}
+{% endfor %}
 {% for form in forms %}
 {% for property in form.properties %}
 - name: {{ property.name }}
   type: {{ property.type }}
-  {% if defined(property.default) %}
+  {% if property.default is defined %}
   default: {{ property.default }}
-  {%- endif %}
+  {% endif %}
   configurable: true
-{%- endfor -%}
-{%- endfor -%}
+{% endfor %}
+{% endfor %}
 
 {% for form in forms %}
 form_types:
@@ -53,8 +52,8 @@ form_types:
   - reference: .properties.{{ property.name }}
   	label: {{ property.label }}
   	description: {{ property.description }}
-  {%- endfor -%}
-{%- endfor -%}
+  {% endfor %}
+{% endfor %}
 
 job_types:
 - name: compilation
@@ -87,7 +86,7 @@ job_types:
 - name: ......
   manifest: |
     domain: (( ..))
-{%- endfor -%}
+{% endfor %}
 
 update:
   canaries: 1
