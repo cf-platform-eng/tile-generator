@@ -68,11 +68,11 @@ export DYNAMIC_PLANS=<%="#{dynamic_plans}"%>
 export PERSISTENCE_STORE_TYPE=<%= properties.generic_app.persistence_store_type %>
 
 ### PERSISTENCE_STORE_BEGIN_MARKER
-export PERSISTENCE_STORE_HOST=<%= properties.generic_app.persistence_store.service_addr %>
-export PERSISTENCE_STORE_SID=<%= properties.generic_app.persistence_store.service_sid %>
-export PERSISTENCE_STORE_PARAMS=<%= properties.generic_app.persistence_store.service_params %>
-export PERSISTENCE_STORE_USER=<%= properties.generic_app.persistence_store.persistence_broker_user %>
-export PERSISTENCE_STORE_PASSWD=<%= properties.generic_app.persistence_store.persistence_broker_password %>
+#export PERSISTENCE_STORE_HOST=<%= properties.generic_app.persistence_store.service_addr %>
+#export PERSISTENCE_STORE_SID=<%= properties.generic_app.persistence_store.service_sid %>
+#export PERSISTENCE_STORE_PARAMS=<%= properties.generic_app.persistence_store.service_params %>
+#export PERSISTENCE_STORE_USER=<%= properties.generic_app.persistence_store.persistence_broker_user %>
+#export PERSISTENCE_STORE_PASSWD=<%= properties.generic_app.persistence_store.persistence_broker_password %>
 ### PERSISTENCE_STORE_END_MARKER
 
 # Use these variables only if app needs to know how to connect to a remote target that it brokers
@@ -95,7 +95,35 @@ export CREATE_OPEN_SECURITY_GROUP=<%= properties.generic_app.create_open_securit
 export DELETE_PREV_APP_INSTANCE=<%= properties.generic_app.delete_prev_app_instance %>
 
 export DEFAULT_DB_NAME=${APP_NAME}-${APP_VERSION}-mysql
-export SB_APP_ENV="setupServiceBrokerEnv.sh"
+
+<% if properties.generic_app.on_demand_service_plans %>
+      PLANS="{"
+  <%  p("properties.generic_app.on_demand_service_plans").each do |plan|
+         plan_name=plan['name']
+  %>
+       export PLAN_NAME=<%="#{plan_name}"%>
+       if [[ "$PLANS" == *{ ]]; then
+         export PLANS="${PLANS} \"${PLAN_NAME}\": {"
+      else
+        export PLANS="${PLANS}, \"${PLAN_NAME}\": {"
+      fi
+
+       <% plan.each_pair do | name, value| %>
+          export PLAN_KEY=<%="#{name}"%>
+          export PLAN_VALUE=<%="#{value}"%>
+          if [[ "$PLANS" == *{  ]]; then
+            export PLANS="${PLANS} \"${PLAN_KEY}\" : \"${PLAN_VALUE}\" "
+          else
+            export PLANS="${PLANS}, \"${PLAN_KEY}\" : \"${PLAN_VALUE}\" "
+          fi
+
+       <% end %>
+       export PLANS="${PLANS} }"
+    <% end %>
+    export DYNAMIC_PLANS="${PLANS} }"
+<% end %>
+echo DYNAMIC_PLANS now set to $DYNAMIC_PLANS ....
+
 
 ### CUSTOM_VARIABLE_BEGIN_MARKER
 
@@ -119,7 +147,6 @@ export DEBUG_LOG=$LOG_DIR/deploy-service-broker.log
 mkdir -p $RUN_DIR $LOG_DIR
 chown -R vcap:vcap $RUN_DIR $LOG_DIR
 
-echo  DYNAMIC_PLANS now set to $DYNAMIC_PLANS ....
 
 
 
@@ -184,7 +211,6 @@ function wait_till_running() {
 function add_env_vars() {
 #  cf set-env ${APP_NAME}-${APP_VERSION} BASIC_AUTH_PASSWORD <%= properties.generic_app.broker.password %>
 #  cf set-env ${APP_NAME}-${APP_VERSION} BASIC_AUTH_USERNAME <%= properties.generic_app.broker.user %>
-#  cf set-env ${APP_NAME}-${APP_VERSION} ENCRYPTION_KEY <%= properties.generic_app.encryption_key %>
 #  cf set-env ${APP_NAME}-${APP_VERSION} UAA_CLIENT_ID generic-sb-service
 #  cf set-env ${APP_NAME}-${APP_VERSION} UAA_CLIENT_SECRET <%= properties.uaa.clients.generic_app.secret %>
   cf set-env ${APP_NAME}-${APP_VERSION} UAA_HOST $SCHEME://uaa.$DOMAIN
