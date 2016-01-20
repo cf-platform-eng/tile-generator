@@ -4,6 +4,7 @@ label: {{ label }}
 description: {{ description }}
 icon_image: {{ base64(icon_file) }}
 product_version: {{ version }}
+metadata_version: '1.5'
 rank: 1
 serial: true
 
@@ -18,21 +19,15 @@ stemcell_criteria:
   version: {{ stemcell_criteria.version }}
 
 property_blueprints:
-- name: encryption_key
-  type: secret
-- name: vm_credentials
-  type: salted_credentials
-  default:
-    identity: vcap
 {% for property in properties %}
-- name: {{ property.name }}
+- name: {{ property.name }} # Refer to this elsewhere as (( .property.{{ property.name }} ))
   type: {{ property.type }}
   {% if property.default is defined %}
   default: {{ property.default }}
   {% endif %}
 {% endfor %}
 {% for form in forms %} {% for property in form.properties %}
-- name: {{ property.name }}
+- name: {{ property.name }} # Refer to this elsewhere as (( .property.{{ property.name }} ))
   type: {{ property.type }}
   {% if property.default is defined %}
   default: {{ property.default }}
@@ -80,13 +75,12 @@ job_types:
     - name: instances
       type: integer
       default: 1
-{% for package in packages %} {% for job in package.jobs %}
-{% if job['type'] == 'cf-push' %}
-- name: deploy-{{ package.name }}
-  resource_label: Deploy Application {{ package.name }}
+{% for job in jobs %}
+- name: {{ job.name }}
+  resource_label: {{ job.name }}
   errand: true
   templates:
-  - name: deploy-{{ package.name }}
+  - name: {{ job.name }}
     release: {{ release.name }}
   resource_definitions:
   - name: ram
@@ -140,10 +134,10 @@ job_types:
         org_quota: (( .properties.org_quota.value ))
         timeout: 180
         memory: (( .properties.memory.value ))
-      user: (( .deploy-generic-app.app_credentials.identity ))
-      password: (( .deploy-generic-app.app_credentials.password ))
-      start_command: (( .deploy-generic-app.start_command.value ))
-      health_monitor: (( .deploy-generic-app.health_monitor.value ))
+      user: (( .{{ job.name }}.app_credentials.identity ))
+      password: (( .{{ job.name }}.app_credentials.password ))
+      start_command: (( .{{ job.name }}.start_command.value ))
+      health_monitor: (( .{{ job.name }}.health_monitor.value ))
       # Need to squelch Broker user & password if app is also a broker..
       ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
       ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
@@ -167,8 +161,17 @@ job_types:
         admin_user: (( ..cf.uaa.system_services_credentials.identity ))
         admin_password: (( ..cf.uaa.system_services_credentials.password ))
 
-{% endif %}
-{% endfor %} {% endfor %}
+{% endfor %}
+
+post_deploy_errands:
+{% for errand in post_deploy_errands %}
+- name: {{ errand.name }}
+{% endfor %}
+
+pre_delete_errands:
+{% for errand in pre_delete_errands %}
+- name: {{ errand.name }}
+{% endfor %}
 
 update:
   canaries: 1

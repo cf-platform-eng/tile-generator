@@ -14,30 +14,37 @@ forms:
     type: integer
 packages:
 - name: app1
-  path: resources/app1.jar
+  files:
+  - path: resources/app1.jar
   jobs:
   - cf-push
 - name: app2
-  path: resources/app2.jar
+  files:
+  - path: resources/app2.jar
   jobs:
   - cf-push
 - name: broker1
-  path: resources/broker1.jar
+  files:
+  - path: resources/broker1.jar
   jobs:
   - cf-push
   - cf-create-service-broker
 - name: broker2
-  path: resources/broker2.jar
+  files:
+  - path: resources/broker2.jar
   jobs:
   - cf-push
   - cf-create-service-broker
 - name: buildpack1
-  path: resources/buildpack1.zip
+  files:
+  - path: resources/buildpack1.zip
   jobs:
   - cf-create-buildpack
 - name: buildpack2
-  path: resources/buildpack2.zip
+  files:
+  - path: resources/buildpack2.zip
   jobs:
   - cf-create-buildpack
 - name: blob1
-  path: resources/blob1.zip
+  files:
+  - path: resources/blob1.zip

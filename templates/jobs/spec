@@ -1,10 +1,10 @@
 ---
-name: deploy-generic-app
+name: {{ job_name }}
 templates:
-  deploy.sh.erb: bin/run
+  {{ job_name }}.sh.erb: bin/run
 packages:
 - cf_cli
-- generic_app
+- {{ package.name }}
 properties:
   ssl.skip_cert_verify:
     description: 'Whether to verify SSL certs when making web requests'
@@ -51,15 +51,10 @@ properties:
   generic_app.health_monitor:
     description: 'Change health monitor '
     default: true
-  ### CUSTOM_VARIABLE_BEGIN_MARKER
-
-  ### CUSTOM_VARIABLE_END_MARKER
-
   generic_app.persistence_store_type:
     description: 'Use MySQL or custom DB for persistence store'
     default: none
-
-  ### PERSISTENCE_STORE_BEGIN_MARKER
+{% if package.use_persistent_store %}
   generic_app.persistence_store.service_addr:
     description: 'Host Addr and port of custom persistence store'
   generic_app.persistence_store.service_sid:
@@ -70,9 +65,10 @@ properties:
     description: 'User id for connecting to the store'
   generic_app.persistence_store.persistence_broker_password:
     description: 'Password for connecting to the store'
-  ### PERSISTENCE_STORE_END_MARKER
-
-  ### ON_DEMAND_PLAN_BEGIN_MARKER
+{% endif %}
+{% if package.on_demand_service_plans %}
   generic_app.on_demand_service_plans:
       description: 'Placeholder for an array of Service Plans'
-  ### ON_DEMAND_PLAN_END_MARKER
+{% endif %}
+{% for property in context.properties %}
+{% endfor %}

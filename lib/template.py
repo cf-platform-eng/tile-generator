@@ -23,11 +23,10 @@ def render(target_path, template_file, config):
 	if target_dir != '':
 		mkdir_p(target_dir)
 	with open(target_path, 'wb') as target:
-#		try:
 		target.write(TEMPLATE_ENVIRONMENT.get_template(template_file).render(config))
-#		except exceptions.UndefinedError as e:
-#			print >>sys.stderr, e.message
-#			sys.exit(1)
+
+def exists(template_file):
+	return os.exists(os.path.join(TEMPLATE_PATH, template_file))
 
 def mkdir_p(dir):
    try:
