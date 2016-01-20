@@ -14,9 +14,17 @@ def render_base64(file):
 	with open(os.path.realpath(os.path.join('..', file)), 'rb') as f:
 		return base64.b64encode(f.read())
 
+def render_lowercase_underscores(input):
+	return input.lower().replace('-', '_')
+
+def render_lowercase_dashes(input):
+	return input.lower().replace('_', '-')
+
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
+TEMPLATE_ENVIRONMENT.globals['lowercaseWithUnderscores'] = render_lowercase_underscores
+TEMPLATE_ENVIRONMENT.globals['lowercaseWithDashes'] = render_lowercase_dashes
 
 def render(target_path, template_file, config):
 	target_dir = os.path.dirname(target_path)

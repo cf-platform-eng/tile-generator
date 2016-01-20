@@ -2,7 +2,7 @@
 # The high-level description of your tile.
 # Replace these properties with real values.
 #
-name: {{ name }}
+name: {{ name }} # By convention lowercase with dashes
 icon: resources/icon.png
 label: Brief Text for the Tile Icon
 description: Longer description of the tile's purpose
