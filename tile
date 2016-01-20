@@ -11,6 +11,7 @@ import build
 import template
 
 CONFIG_FILE = "tile.yml"
+HISTORY_FILE = "tile-history.yml"
 
 @click.group()
 def cli():
@@ -34,31 +35,31 @@ def init_cmd(name):
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
 @click.option('--verbose', is_flag=True)
-@click.option('--dry-run', is_flag=True)
-def build_cmd(version, verbose, dry_run):
+def build_cmd(version, verbose):
 	config = read_config()
-	build.update_version(config, version)
+	history = read_history()
+	config['version'] = build.update_version(history, version)
 	build.build(config, verbose)
-	if not dry_run:
-		write_config(config)
-
-def add_defaults(config):
-	config['stemcell_criteria'] = config.get('stemcell_criteria', {})
-	config['forms'] = config.get('forms', [])
+	write_history(history)
 
 def read_config():
 	try:
 		with open(CONFIG_FILE) as config_file:
-			config = read_yaml(config_file)
-			add_defaults(config)
-			return config
+			return read_yaml(config_file)
 	except IOError as e:
 		print >> sys.stderr, 'Not a tile repository. Use "tile init" in the root of your repository to create one.'
 		sys.exit(1)
 
-def write_config(config):
-	with open(CONFIG_FILE, 'wb') as config_file:
-		write_yaml(config_file, config)
+def read_history():
+	try:
+		with open(HISTORY_FILE) as history_file:
+			return read_yaml(history_file)
+	except IOError as e:
+		return {}
+
+def write_history(history):
+	with open(HISTORY_FILE, 'wb') as history_file:
+		write_yaml(history_file, history)
 
 def read_yaml(file):
 	return yaml.safe_load(file)

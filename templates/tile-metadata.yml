@@ -31,16 +31,14 @@ property_blueprints:
   default: {{ property.default }}
   {% endif %}
 {% endfor %}
-{% for form in forms %}
-{% for property in form.properties %}
+{% for form in forms %} {% for property in form.properties %}
 - name: {{ property.name }}
   type: {{ property.type }}
   {% if property.default is defined %}
   default: {{ property.default }}
   {% endif %}
   configurable: true
-{% endfor %}
-{% endfor %}
+{% endfor %} {% endfor %}
 
 {% for form in forms %}
 form_types:
@@ -82,11 +80,95 @@ job_types:
     - name: instances
       type: integer
       default: 1
-{% for job in jobs %}
-- name: ......
+{% for package in packages %} {% for job in package.jobs %}
+{% if job['type'] == 'cf-push' %}
+- name: deploy-{{ package.name }}
+  resource_label: Deploy Application {{ package.name }}
+  errand: true
+  templates:
+  - name: deploy-{{ package.name }}
+    release: {{ release.name }}
+  resource_definitions:
+  - name: ram
+    type: integer
+    configurable: false
+    default: 512
+  - name: ephemeral_disk
+    type: integer
+    configurable: false
+    default: 2048
+  - name: persistent_disk
+    type: integer
+    configurable: false
+    default: 0
+  - name: cpu
+    type: integer
+    configurable: false
+    default: 1
+  static_ip: 0
+  dynamic_ip: 1
+  max_in_flight: 1
+  instance_definitions:
+  - name: instances
+    type: integer
+    configurable: false
+    default: 1
+  property_blueprints:
+  - name: vm_credentials
+    type: salted_credentials
+    default:
+      identity: vcap
+  - name: app_credentials
+    type: salted_credentials
   manifest: |
-    domain: (( ..))
-{% endfor %}
+    domain: (( ..cf.cloud_controller.system_domain.value ))
+    app_domains:
+      - (( ..cf.cloud_controller.apps_domain.value ))
+    ssl:
+      skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
+    uaa:
+      url: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+      clients:
+        generic_broker:
+          secret: test
+    generic_broker:
+      app_name: (( .properties.app_name.value ))
+      app_version: (( .properties.app_version.value ))
+      app_uri: (( .properties.app_uri.value ))
+      create_open_security_group: (( .properties.create_open_security_group.value ))
+      app_push:
+        org_quota: (( .properties.org_quota.value ))
+        timeout: 180
+        memory: (( .properties.memory.value ))
+      user: (( .deploy-generic-app.app_credentials.identity ))
+      password: (( .deploy-generic-app.app_credentials.password ))
+      start_command: (( .deploy-generic-app.start_command.value ))
+      health_monitor: (( .deploy-generic-app.health_monitor.value ))
+      # Need to squelch Broker user & password if app is also a broker..
+      ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
+      ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
+
+      ### ON_DEMAND_PLAN_BEGIN_MARKER
+      on_demand_service_plans: (( .properties.on_demand_service_plans_collection.value ))
+      ### ON_DEMAND_PLAN_END_MARKER
+
+      persistence_store_type: (( .properties.persistence_store_type.value ))
+      ### PERSISTENCE_STORE_BEGIN_MARKER
+      persistence_store:
+        service_addr: (( .properties.persistence_service_addr.value ))
+        service_sid: (( .properties.persistence_service_sid.value ))
+        service_params: (( .properties.persistence_service_params.value ))
+        persistence_broker_user: (( .properties.persistence_sb_user.value ))
+        persistence_broker_password: (( .properties.persistence_sb_password.value ))
+      ### PERSISTENCE_STORE_END_MARKER
+
+      encryption_key: (( .properties.encryption_key.value ))
+      cf:
+        admin_user: (( ..cf.uaa.system_services_credentials.identity ))
+        admin_password: (( ..cf.uaa.system_services_credentials.password ))
+
+{% endif %}
+{% endfor %} {% endfor %}
 
 update:
   canaries: 1

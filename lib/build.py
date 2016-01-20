@@ -13,20 +13,27 @@ SABHA_PATH = os.path.realpath(os.path.join(PATH, '..', 'bosh-generic-sb-release'
 VERBOSE=False
 
 def build(config, verbose=False):
+	context = config.copy()
+	add_defaults(context)
 	global VERBOSE
 	VERBOSE = verbose
 	with cd('release', clobber=True):
-		create_bosh_release(config)
+		create_bosh_release(context)
 	with cd('product', clobber=True):
-		create_tile(config)
+		create_tile(context)
 
-def create_bosh_release(config):
+def add_defaults(context):
+	context['stemcell_criteria'] = context.get('stemcell_criteria', {})
+	context['forms'] = context.get('forms', [])
+	context['packages'] = context.get('packages', [])
+
+def create_bosh_release(context):
 	target = os.getcwd()
 	bosh('init', 'release')
-	template.render('src/templates/all_open.json', 'all_open.json', config)
-	template.render('config/final.yml', 'bosh-final.yml', config)
+	template.render('src/templates/all_open.json', 'all_open.json', context)
+	template.render('config/final.yml', 'bosh-final.yml', context)
 	bash('fetch_cf_cli.sh', target)
-	pkgs = config.get('packages', [])
+	pkgs = context.get('packages', [])
 	for pkg in pkgs:
 		jobs = pkg.get('jobs', [])
 		cf_push = False
@@ -50,11 +57,11 @@ def create_bosh_release(config):
 		if create_buildpack:
 			bash('addBuildpack.sh', target, pkg['name'])
 		bash('addBlob.sh', target, os.path.join('..', pkg['path']), pkg['name'], pkg['name'])
-#	add_cf_cli(config)
-#	add_buildpacks(config)
-#	add_service_brokers(config)
-	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', config['version'])
-	config['release'] = bosh_extract(output, [
+#	add_cf_cli(context)
+#	add_buildpacks(context)
+#	add_service_brokers(context)
+	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', context['version'])
+	context['release'] = bosh_extract(output, [
 		{ 'label': 'name', 'pattern': 'Release name' },
 		{ 'label': 'version', 'pattern': 'Release version' },
 		{ 'label': 'manifest', 'pattern': 'Release manifest' },
@@ -74,17 +81,17 @@ def bash(*argv):
 		print e.output
 		sys.exit(e.returncode)
 
-def create_tile(config):
-	release = config['release']
+def create_tile(context):
+	release = context['release']
 	release['file'] = os.path.basename(release['tarball'])
 #	with cd('releases'):
 #		print 'tile generate release'
 #		shutil.copy(release['tarball'], release['file'])
 	print 'tile generate metadata'
-	template.render('metadata/' + release['name'] + '.yml', 'tile-metadata.yml', config)
+	template.render('metadata/' + release['name'] + '.yml', 'tile-metadata.yml', context)
 #	with cd('content_migrations'):
 #		print 'tile generate content-migrations'
-#		migrations = tile_migrations(config, release)
+#		migrations = tile_migrations(context, release)
 #		with open(release['name'] + '.yml', 'wb') as f:
 #			write_yaml(f, migrations)
 #	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
@@ -129,15 +136,15 @@ def is_semver(version):
 	except:
 		return False
 
-def update_version(config, version):
+def update_version(history, version):
 	if version is None:
 		version = 'patch'
-	prior_version = config.get('version', None)
+	prior_version = history.get('version', None)
 	if prior_version is not None:
-		config['history'] = config.get('history', [])
-		config['history'] += [ prior_version ]
+		history['history'] = history.get('history', [])
+		history['history'] += [ prior_version ]
 	if not is_semver(version):
-		semver = config.get('version', '0.0.0')
+		semver = history.get('version', '0.0.0')
 		if not is_semver(semver):
 			print >>sys.stderr, 'Version must be in semver format (x.y.z), instead found', semver
 		semver = semver.split('.')
@@ -154,8 +161,8 @@ def update_version(config, version):
 			print >>sys.stderr, 'Argument must specify "patch", "minor", "major", or a valid semver version (x.y.z)'
 			sys.exit(1)
 		version = '.'.join(semver)
-	config['version'] = version
-	print 'version:', version
+	history['version'] = version
+	return version
 
 class cd:
     """Context manager for changing the current working directory"""
