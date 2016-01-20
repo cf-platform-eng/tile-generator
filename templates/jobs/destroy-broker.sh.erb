@@ -23,10 +23,10 @@ export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
 export DOMAIN=<%= properties.domain %>
 export API_ENDPOINT=$SCHEME://api.$DOMAIN
 export APP_DOMAIN=<%="#{app_domain}"%>
-export APP_NAME=<%= properties.generic_app.app_name %>
-export APP_VERSION=<%= properties.generic_app.app_version %>
-export APP_URI=<%= properties.generic_app.app_uri %>
-export PERSISTENCE_STORE_TYPE=<%= properties.generic_app.persistence_store_type %>
+export APP_NAME=<%= properties.{{ package.name }}.app_name %>
+export APP_VERSION=<%= properties.{{ package.name }}.app_version %>
+export APP_URI=<%= properties.{{ package.name }}.app_uri %>
+export PERSISTENCE_STORE_TYPE=<%= properties.{{ package.name }}.persistence_store_type %>
 export ORG=${APP_NAME}-service-org
 export SPACE=${APP_NAME}-service-space
 export BROKER_NAME=${APP_NAME}-${APP_VERSION}-service-broker

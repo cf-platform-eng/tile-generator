@@ -22,7 +22,7 @@ export ADMIN_USER=<%= properties.cf.admin_user %>
 export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
 export DOMAIN=<%= properties.domain %>
 export API_ENDPOINT=$SCHEME://api.$DOMAIN
-export BUILDPACK_NAME=<%= properties.generic_buildpack.name %>
+export BUILDPACK_NAME=<%= properties.{{ package.name }}.name %>
 
 function authenticate_and_target() {
   cf api $API_ENDPOINT <% if properties.ssl.skip_cert_verify %>--skip-ssl-validation<% end %>

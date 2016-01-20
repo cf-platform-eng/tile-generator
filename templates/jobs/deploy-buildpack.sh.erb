@@ -22,16 +22,16 @@ export ADMIN_USER=<%= properties.cf.admin_user %>
 export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
 export DOMAIN=<%= properties.domain %>
 export API_ENDPOINT=$SCHEME://api.${DOMAIN}
-export BUILDPACK_NAME=<%= properties.generic_buildpack.name %>
-export BUILDPACK_ORDER=<%= properties.generic_buildpack.order %>
+export BUILDPACK_NAME=<%= properties.{{ package.name }}.name %>
+export BUILDPACK_ORDER=<%= properties.{{ package.name }}.order %>
 
 export CF_HOME=`pwd`/home/cf
 mkdir -p $CF_HOME
 
 # Following variables would be replaced based on blobs that get added and are considered as app bits
-TARGET_BUILDPACK=TEMPLATE_APP_FILE
-JOB_NAME=deploy-generic-buildpack
-PACKAGE_NAME_SUFFIX=generic_buildpack
+TARGET_APP={{ package.files[0].path }}
+JOB_NAME={{ job_name }}
+PACKAGE_NAME_SUFFIX={{ package.name }}
 PACKAGE_PATH=`echo /var/vcap/packages/*${PACKAGE_NAME_SUFFIX}*`
 
 RUN_DIR=/var/vcap/sys/run/$JOB_NAME

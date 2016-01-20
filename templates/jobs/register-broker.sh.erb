@@ -23,19 +23,19 @@ export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
 export DOMAIN=<%= properties.domain %>
 export API_ENDPOINT=$SCHEME://api.$DOMAIN
 export APP_DOMAIN=<%="#{app_domain}" %>
-export APP_NAME=<%= properties.generic_app.app_name %>
-export APP_URI=<%= properties.generic_app.app_uri %>
-export ENABLE_GLOBAL_ACCESS=<%= properties.generic_app.enable_global_access_to_plans %>
+export APP_NAME=<%= properties.{{ package.name }}.app_name %>
+export APP_URI=<%= properties.{{ package.name }}.app_uri %>
+export ENABLE_GLOBAL_ACCESS=<%= properties.{{ package.name }}.enable_global_access_to_plans %>
 export ORG=${APP_NAME}-service-org
 export SPACE=${APP_NAME}-service-space
 export BROKER_NAME=${APP_NAME}-service-broker
-export BROKER_USER=<%= properties.generic_app.broker.user %>
-export BROKER_PASS=<%= properties.generic_app.broker.password %>
+export BROKER_USER=<%= properties.{{ package.name }}.broker.user %>
+export BROKER_PASS=<%= properties.{{ package.name }}.broker.password %>
 export BROKER_HOST=$SCHEME://${APP_URI}.${APP_DOMAIN}
-# export BROKER_URI=<%= properties.generic_app.broker.uri %>
+# export BROKER_URI=<%= properties.{{ package.name }}.broker.uri %>
 
 # Use this only when there are already inbuild services that need to enabled for public
-export BROKER_INTERNAL_SERVICE_NAMES=<%= properties.generic_app.broker.internal_service_names %>
+export BROKER_INTERNAL_SERVICE_NAMES=<%= properties.{{ package.name }}.broker.internal_service_names %>
 
 function authenticate_and_target() {
   cf api $API_ENDPOINT <% if properties.ssl.skip_cert_verify %>--skip-ssl-validation<% end %>
@@ -93,6 +93,6 @@ cf -v
 authenticate_and_target
 register_broker
 
-<% if  properties.generic_app.enable_global_access_to_plans %>
+<% if  properties.{{ package.name }}.enable_global_access_to_plans %>
   publicize_services
 <% end %>

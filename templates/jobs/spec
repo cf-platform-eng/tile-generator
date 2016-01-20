@@ -12,7 +12,7 @@ properties:
     description: 'CloudFoundry system domain'
   app_domains:
     description: 'CloudFoundry application domains'
-  uaa.clients.generic_app.secret:
+  uaa.clients.{{ package.name }}.secret:
     description: 'UAA Client Secret'
   cf.admin_user:
     description: 'Username of the CF admin user'
