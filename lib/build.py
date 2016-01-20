@@ -129,6 +129,7 @@ def add_package(dir, context, package, alternate_template=None):
 			except ValueError: # Invalid URL, assume filename
 				shutil.copy(os.path.join('..', file['path']), target_dir)
 			package_context['files'] += [ filename ]
+			file['name'] = filename
 	template.render(
 		os.path.join(package_dir, 'spec'),
 		os.path.join(template_dir, 'spec'),
