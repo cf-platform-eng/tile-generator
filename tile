@@ -27,10 +27,7 @@ def init_cmd(name):
 		print >>sys.stderr, 'Already initialized.'
 		sys.exit(0)
 	name = os.path.basename(os.getcwd())
-	config = {
-		'name': name
-	}
-	write_config(config)
+	template.render(CONFIG_FILE, CONFIG_FILE, { 'name': name })
 
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
