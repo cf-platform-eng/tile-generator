@@ -27,6 +27,12 @@ property_blueprints:
   type: string
   configurable: true
   default: {{ package.name }}
+{% if 'cf-create-buildpack' in package.jobs %}
+- name: {{ package.name }}_buildpack_order
+  type: integer
+  configurable: true
+  default: 0
+{% else %}
 - name: {{ package.name }}_app_version
   type: string
   configurable: true
@@ -115,6 +121,7 @@ property_blueprints:
   configurable: true
 {% endif %}
 {% endif %}
+{% endif %}
 {% endfor %}
 #
 # Non-configurable properties from the tile.yml file
@@ -144,19 +151,34 @@ form_types:
   label: {{ package.name | replace('_',' ') | title }}
   description: Configuration for {{ package.name | replace('_',' ') | title }}
   property_inputs:
+{% if 'cf-create-buildpack' in package.jobs %}
+  - reference: .properties.{{ package.name }}_app_name
+    label: Buildpack Name
+    description: 'Enter the name of the Buildpack'
+  - reference: .properties.{{ package.name }}_buildpack_order
+    label: Buildpack Order
+    description: 'Enter order for the Buildpack'
+{% elif 'cf-push' not in package.jobs and 'cf-create-service-broker' in package.jobs %}
   - reference: .properties.{{ package.name }}_app_name
     label: Service Broker Application Name
     description: 'Enter the name for the Service Broker App'
   - reference: .properties.{{ package.name }}_app_uri
     label: Service Broker Application URI
     description: 'Enter the uri/endpoint for the Service Broker app (on push to CF)'
+{% elif 'cf-push' in package.jobs %}
+  - reference: .properties.{{ package.name }}_app_name
+    label: Application Name
+    description: 'Enter the name for the App'
+  - reference: .properties.{{ package.name }}_app_uri
+    label: Application URI
+    description: 'Enter the uri/endpoint for the App (on push to CF)'
   - reference: .properties.{{ package.name }}_create_open_security_group
     label: Open up Security Groups
-    description: 'Open up security group on CF for Service Broker to access other apps or CF Cloud Controller'
+    description: 'Open up security group on CF for App to access external endpoints'
 {% if package.persistence_store %}
   - reference: .properties.{{ package.name }}_persistence_store_type
-    label: Persistence using MySQL Service binding (default) or custom database
-    description: "Select MySQL Service Binding or Custom Database for storing broker configurations"
+    label: Persistence using MySQL Service binding (default) or none
+    description: "Select MySQL Service Binding or None for saving state"
 {% endif %}
 {% if package.on_demand_service_plans %}
 - name: {{ package.name }}_on_demand_service_plans
@@ -166,20 +188,17 @@ form_types:
   - reference: .properties.{{ package.name }}_on_demand_service_plans_collection
     label: On-Demand Service Plans
     property_inputs:
-    - reference: plan_name
+    - reference: name
       label: Plan Name
       description: "Name of Plan"
       slug: false
-    - reference: plan_description
-      label: Plan Description
-      description: "Description of Plan"
+{% for field in package.on_demand_service_plans %}
+    - reference: {{ field.name }}
+      label: {{ field.name }}
+      description: {{ field.descrp }}
       slug: false
-    - reference: plan_details
-      label: "Plan Details or bullets (individual line entries, each with Name : Value : Description and ending with ;)"
-      description: |
-        Specify configurations or bullets for the plan. Specify each plan detail or bullet in a separate line with a name, value, description separated by ':' and ending with ';'.
-        Detail1: associated value : description ; <NEWLINE> Detail2: its value : description <NEWLINE>
-      slug: false
+{% endfor %}
+{% endif %}
 {% endif %}
 {% endfor %}
 {% for form in forms %}
@@ -273,38 +292,50 @@ job_types:
           secret: test
     {{ job.package.name }}:
       app_name: (( .properties.{{ job.package.name }}_app_name.value ))
-      app_version: (( .properties.{{ job.package.name }}_app_version.value ))
+{% if 'cf-create-buildpack' in job.package.jobs  %}
+      buildpack_order: (( .properties.{{ job.package.name }}_buildpack_order.value ))
+{% else %}
       app_uri: (( .properties.{{ job.package.name }}_app_uri.value ))
+{% if 'cf-push' in job.package.jobs  %}
+      app_version: (( .properties.{{ job.package.name }}_app_version.value ))
       create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
       app_push:
         org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
         timeout: 180
         memory: (( .properties.{{ job.package.name }}_memory.value ))
-      user: (( .{{ job.name }}.app_credentials.identity ))
-      password: (( .{{ job.name }}.app_credentials.password ))
       start_command: (( .properties.{{ job.package.name }}_start_command.value ))
       health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
-      # Need to squelch Broker user & password if app is also a broker..
-      ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
-      ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
-
+      user: (( .{{ job.name }}.app_credentials.identity ))
+      password: (( .{{ job.name }}.app_credentials.password ))
+      persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
 {% if job.package.on_demand_service_plans is defined %}
       on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
 {% endif %}
-
-      persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
-{% if job.package.on_demand_service_plans is defined %}
-      persistence_store:
-        service_addr: (( .properties.{{ job.package.name }}_persistence_service_addr.value ))
-        service_sid: (( .properties.{{ job.package.name }}_persistence_service_sid.value ))
-        service_params: (( .properties.{{ job.package.name }}_persistence_service_params.value ))
-        persistence_broker_user: (( .properties.{{ job.package.name }}_persistence_sb_user.value ))
-        persistence_broker_password: (( .properties.{{ job.package.name }}_persistence_sb_password.value ))
 {% endif %}
+
+      # Need to squelch Broker user & password if app is also a broker..
+{% if 'cf-create-service-broker' in job.package.jobs %}
+      internal_service_name: (( .properties.{{ job.package.name }}_internal_service_names.value ))
+      enable_global_access_to_plans: (( .properties.{{ job.package.name }}_enable_global_access_to_plans.value ))
+      broker:
+{% if 'cf-push' not in job.package.jobs %}
+        user: (( .properties.{{ job.package.name }}_broker_user.value ))
+        password: (( .properties.{{ job.package.name }}_broker_password.value ))
+{% else %}
+        user: (( .{{ job.name }}.app_credentials.identity ))
+        password: (( .{{ job.name }}.app_credentials.password ))
+{% endif %}
+{% endif %}
+      ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
+      ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
+
+
 
     cf:
       admin_user: (( ..cf.uaa.system_services_credentials.identity ))
       admin_password: (( ..cf.uaa.system_services_credentials.password ))
+
+{% endif %}
 
 {% endfor %}
 

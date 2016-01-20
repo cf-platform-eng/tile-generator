@@ -49,12 +49,15 @@ packages:
   # add additional fields here:
   - name: description
     type: string
+    descrp: "Some Description"
     configurable: true
   - name: key1
     type: integer
+    descrp: "Key 1 of type integer"
     configurable: true
   - name: key2
     type: secret
+    descrp: "Key 2 of type Password"
     configurable: true
 - name: broker3
   uri: http://broker3.example.com

@@ -60,29 +60,12 @@ export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
 export ORG_QUOTA=<%= properties.generic_app.app_push.org_quota %>
 export APP_PUSH_TIMEOUT=<%= properties.generic_app.app_push.timeout %>
 export APP_PUSH_MEMORY=<%= properties.generic_app.app_push.memory %>
-export DYNAMIC_PLANS=<%="#{dynamic_plans}"%>
+
 
 # Use this only if app needs additional libraries that need to be downloaded
 #
 # Use these variables only if app needs to persistence store for saving its plans/sevice offerings etc.
 export PERSISTENCE_STORE_TYPE=<%= properties.generic_app.persistence_store_type %>
-
-### PERSISTENCE_STORE_BEGIN_MARKER
-#export PERSISTENCE_STORE_HOST=<%= properties.generic_app.persistence_store.service_addr %>
-#export PERSISTENCE_STORE_SID=<%= properties.generic_app.persistence_store.service_sid %>
-#export PERSISTENCE_STORE_PARAMS=<%= properties.generic_app.persistence_store.service_params %>
-#export PERSISTENCE_STORE_USER=<%= properties.generic_app.persistence_store.persistence_broker_user %>
-#export PERSISTENCE_STORE_PASSWD=<%= properties.generic_app.persistence_store.persistence_broker_password %>
-### PERSISTENCE_STORE_END_MARKER
-
-# Use these variables only if app needs to know how to connect to a remote target that it brokers
-### TARGET_SERVICE_BEGIN_MARKER
-#export TARGET_HOST=<%= properties.generic_app.target_service.service_addr %>
-#export TARGET_SID=<%= properties.generic_app.target_service.service_sid %>
-#export TARGET_PARAMS=<%= properties.generic_app.target_service.service_params %>
-#export TARGET_ADMIN_USER=<%= properties.generic_app.target_service.target_admin_user %>
-#export TARGET_ADMIN_PASSWD=<%= properties.generic_app.target_service.target_admin_password %>
-### TARGET_SERVICE_END_MARKER
 
 #export APP_USER=<%= properties.generic_app.broker.user %>
 #export APP_PASSWD=<%= properties.generic_app.broker.password %>

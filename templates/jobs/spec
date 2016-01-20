@@ -14,12 +14,22 @@ properties:
     description: 'CloudFoundry application domains'
   uaa.clients.generic_app.secret:
     description: 'UAA Client Secret'
+  cf.admin_user:
+    description: 'Username of the CF admin user'
+  cf.admin_password:
+    description: 'Password of the CF admin user'
+{% if 'cf-create-buildpack' in package.jobs %}
+  {{ package.name }}.buildpack_name:
+    description: 'Name of the Buildpack'
+  {{ package.name }}.buildpack_order:
+    description: 'Order of the Buildpack'
+{% elif 'cf-push' in package.jobs %}
   {{ package.name }}.app_name:
-    description: 'Name of the Service Broker Application'
+    description: 'Name of the Application'
+  {{ package.name }}.app_uri:
+    description: 'Uri of the Application'
   {{ package.name }}.app_version:
     description: 'Version of the Service Broker Application'
-  {{ package.name }}.app_uri:
-    description: 'Uri of the Service Broker Application'
   {{ package.name }}.create_open_security_group:
     description: 'Open security group for the app to access outside'
     default: false
@@ -32,10 +42,6 @@ properties:
   {{ package.name }}.app_push.memory:
     description: 'App Push Memory limit for the Service Broker Application'
     default: 512
-  cf.admin_user:
-    description: 'Username of the CF admin user'
-  cf.admin_password:
-    description: 'Password of the CF admin user'
   {{ package.name }}.user:
     description: 'App basic auth user'
   {{ package.name }}.password:
@@ -52,6 +58,24 @@ properties:
   {{ package.name }}.persistence_store_type:
     description: 'Use MySQL or custom DB for persistence store'
     default: none
+{% if package.on_demand_service_plans is defined %}
+  {{ package.name }}.on_demand_service_plans:
+    description: 'On demand service plans'
+{% endif %}
+{% endif %}
+
+{% if 'cf-create-service-broker' in package.jobs %}
+  {{ package.name }}.internal_service_name:
+    description: 'Internal service name'
+    default: ''
+  {{ package.name }}.enable_global_access_to_plans:
+    description: 'Access to all service plans'
+    default: false
+  {{ package.name }}.broker.user:
+    description: 'Broker auth user'
+  {{ package.name }}.broker.password:
+    description: 'Broker auth password'
+{% endif %}
 {% for property in context.properties %}
   {{ property.name }}:
     description: {{ property.description }}
