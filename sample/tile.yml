@@ -13,32 +13,31 @@ forms:
     name: buildpack_rank
     type: integer
 packages:
-- jobs:
-  - type: cf-push
-  name: app1
+- name: app1
   path: resources/app1.jar
-- jobs:
-  - type: cf-push
-  name: app2
+  jobs:
+  - cf-push
+- name: app2
   path: resources/app2.jar
-  push: true
+  jobs:
+  - cf-push
+- name: broker1
+  path: resources/broker1.jar
+  jobs:
+  - cf-push
+  - cf-create-service-broker
+- name: broker2
+  path: resources/broker2.jar
+  jobs:
+  - cf-push
+  - cf-create-service-broker
+- name: buildpack1
+  path: resources/buildpack1.zip
+  jobs:
+  - cf-create-buildpack
+- name: buildpack2
+  path: resources/buildpack2.zip
+  jobs:
+  - cf-create-buildpack
 - name: blob1
   path: resources/blob1.zip
-- jobs:
-  - type: cf-push
-  - type: create-service-broker
-  name: broker1
-  path: resources/broker1.jar
-- jobs:
-  - type: cf-push
-  - type: create-service-broker
-  name: broker2
-  path: resources/broker2.jar
-- jobs:
-  - type: create-buildpack
-  name: buildpack1
-  path: resources/buildpack1.zip
-- jobs:
-  - type: create-buildpack
-  name: buildpack2
-  path: resources/buildpack2.zip

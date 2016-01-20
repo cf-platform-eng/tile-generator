@@ -1,0 +1,323 @@
+---
+
+property_blueprints:
+- name: encryption_key
+  type: secret
+- name: vm_credentials
+  type: salted_credentials
+  default:
+    identity: vcap
+- name: app_name
+  type: string
+  configurable: true
+  default: generic-app
+- name: app_version
+  type: string
+  configurable: true
+  default: v1
+- name: app_uri
+  type: string
+  configurable: true
+  default: APP_URI
+- name: start_command
+  type: string
+  configurable: false
+  default: ''
+- name: health_monitor
+  type: boolean
+  configurable: false
+  default: true
+- name: create_open_security_group
+  type: boolean
+  configurable: true
+  default: false
+### CUSTOM_VARIABLE_DEFN_BEGIN_MARKER
+### CUSTOM_VARIABLE_DEFN_END_MARKER
+- name: org_quota
+  type: integer
+  configurable: false
+  constraints:
+    min: 512
+    max: 1024
+  default: 1024
+- name: memory
+  type: integer
+  configurable: false
+  constraints:
+    min: 256
+    max: 1024
+  default: 512
+# This for any internal plans prebuilt into the service broker that needs to be registered with CF
+- name: persistence_store_type
+  type: dropdown_select
+  configurable: true
+  options:
+  - name: mysql
+    label: Managed MySQL Service
+    default: true
+  - name: custom
+    label: User specified Persistent Store
+  - name: none
+    label: None
+### PERSISTENCE_STORE_BEGIN_MARKER
+- name: persistence_service_addr
+  type: string
+  configurable: true
+  optional: true
+- name: persistence_service_sid
+  type: string
+  configurable: true
+  optional: true
+- name: persistence_service_params
+  type: text
+  configurable: true
+  optional: true
+- name: persistence_sb_user
+  type: string
+  configurable: true
+  optional: true
+  default: servicebroker
+- name: persistence_sb_password
+  type: secret
+  configurable: true
+  optional: true
+### PERSISTENCE_STORE_END_MARKER
+
+### ON_DEMAND_PLAN_BEGIN_MARKER
+- name: on_demand_service_plans_collection
+  type: collection
+  configurable: true
+
+  # Needs to have its own inner/nested property_blueprints when its a collection
+  property_blueprints:
+  - name: guid
+    type: uuid
+    optional: false
+    unique: true
+  - name: name
+    type: string
+    configurable: true
+  - name: plan_description
+    type: string
+    configurable: true
+  - name: plan_details
+    type: text
+    configurable: true
+
+### ON_DEMAND_PLAN_END_MARKER
+
+form_types:                                                # [8]
+- property_inputs:                                       # [9]
+  - reference: .properties.app_name
+    label: Service Broker Application Name
+    description: 'Enter the name for the Service Broker App'
+  - reference: .properties.app_uri
+    label: Service Broker Application URI
+    description: 'Enter the uri/endpoint for the Service Broker app (on push to CF)'
+  - reference: .properties.create_open_security_group
+    label: Open up Security Groups
+    description: 'Open up security group on CF for Service Broker to access other apps or CF Cloud Controller'
+  ### CUSTOM_VARIABLE_LABEL_BEGIN_MARKER
+  ### CUSTOM_VARIABLE_LABEL_END_MARKER
+  ### DRIVER_DOWNLOAD_BEGIN_MARKER
+  name: generic_app
+  label: Application
+  description: App configuration
+
+  ### PERSISTENCE_STORE_BEGIN_MARKER
+- property_inputs:                                       # [9]
+  - reference: .properties.persistence_store_type
+    label: Persistence using MySQL Service binding (default) or custom database
+    description: "Select MySQL Service Binding or Custom Database for storing broker configurations"
+  - reference: .properties.persistence_service_addr
+    label: Persistence Database Instance Listener Address with Port
+    description: "Enter the address and port for the SB's Persistence Database"
+  - reference: .properties.persistence_service_sid
+    label: Persistence Database instance Service name
+    description: 'Enter the SID or service or database name for the Persistence Database'
+  - reference: .properties.persistence_service_params
+    label: Additional parameters for connecting to db instance
+    description: 'Enter any additional parameters to be used for connecting to the SB Database'
+  - reference: .properties.persistence_sb_user
+    label: Username for Service broker app to use for its persistence (should be valid and have sufficient privileges/tabelespace etc)
+    description: 'Enter a valid name for the Service Broker to connect to the persistence store'
+  - reference: .properties.persistence_sb_password
+    label: Password for Service broker app to use on the persistence
+    description: 'Enter the password for the Service Broker to connect to the persistence store'
+  name: persistence-db
+  label: Persistence for Service Broker
+  description: Persistence store for Service Broker to store its configurations
+  ### PERSISTENCE_STORE_END_MARKER
+
+  ### ON_DEMAND_PLAN_BEGIN_MARKER
+- property_inputs:
+  - reference: .properties.on_demand_service_plans_collection
+    label: On-Demand Service Plans
+    property_inputs:
+    - reference: plan_name
+      label: Plan Name
+      description: "Name of Plan"
+      slug: false
+    - reference: plan_description
+      label: Plan Description
+      description: "Description of Plan"
+      slug: false
+    - reference: plan_details
+      label: "Plan Details or bullets (individual line entries, each with Name : Value : Description and ending with ;)"
+      description: "Specify configurations or bullets for the plan. Specify each plan detail or bullet in a separate line with a name, value, description separated by ':' and ending with ';'.
+      Detail1: associated value : description ; <NEWLINE> Detail2: its value : description <NEWLINE>"
+      slug: false
+  name: on_demand_service_plans
+  label: On-Demand Service Plans
+  description: "An on-demand service plan lets Pivotal CF users create their own Service Plans from the Pivotal CF command line interface or developer console. Use this page to configure the service plan's settings."
+  ### ON_DEMAND_PLAN_END_MARKER
+
+job_types:
+- name: deploy-generic-app
+  resource_label: Deploy Generic App
+  errand: true
+  templates:
+  - name: deploy-generic-app
+    release: generic_release
+  resource_definitions:
+  - name: ram
+    type: integer
+    configurable: false
+    default: 512
+  - name: ephemeral_disk
+    type: integer
+    configurable: false
+    default: 2048
+  - name: persistent_disk
+    type: integer
+    configurable: false
+    default: 0
+  - name: cpu
+    type: integer
+    configurable: false
+    default: 1
+  static_ip: 0
+  dynamic_ip: 1
+  max_in_flight: 1
+  instance_definitions:
+  - name: instances
+    type: integer
+    configurable: false
+    default: 1
+  property_blueprints:
+  - name: vm_credentials
+    type: salted_credentials
+    default:
+      identity: vcap
+  - name: app_credentials
+    type: salted_credentials
+
+  manifest: |
+    domain: (( ..cf.cloud_controller.system_domain.value ))
+    app_domains:
+      - (( ..cf.cloud_controller.apps_domain.value ))
+    ssl:
+      skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
+    uaa:
+      url: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+      clients:
+        generic_broker:
+          secret: test
+    generic_broker:
+      app_name: (( .properties.app_name.value ))
+      app_version: (( .properties.app_version.value ))
+      app_uri: (( .properties.app_uri.value ))
+      create_open_security_group: (( .properties.create_open_security_group.value ))
+      app_push:
+        org_quota: (( .properties.org_quota.value ))
+        timeout: 180
+        memory: (( .properties.memory.value ))
+      user: (( .deploy-generic-app.app_credentials.identity ))
+      password: (( .deploy-generic-app.app_credentials.password ))
+      start_command: (( .deploy-generic-app.start_command.value ))
+      health_monitor: (( .deploy-generic-app.health_monitor.value ))
+      # Need to squelch Broker user & password if app is also a broker..
+      ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
+      ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
+
+      ### ON_DEMAND_PLAN_BEGIN_MARKER
+      on_demand_service_plans: (( .properties.on_demand_service_plans_collection.value ))
+      ### ON_DEMAND_PLAN_END_MARKER
+
+      persistence_store_type: (( .properties.persistence_store_type.value ))
+      ### PERSISTENCE_STORE_BEGIN_MARKER
+      persistence_store:
+        service_addr: (( .properties.persistence_service_addr.value ))
+        service_sid: (( .properties.persistence_service_sid.value ))
+        service_params: (( .properties.persistence_service_params.value ))
+        persistence_broker_user: (( .properties.persistence_sb_user.value ))
+        persistence_broker_password: (( .properties.persistence_sb_password.value ))
+      ### PERSISTENCE_STORE_END_MARKER
+
+      encryption_key: (( .properties.encryption_key.value ))
+      cf:
+        admin_user: (( ..cf.uaa.system_services_credentials.identity ))
+        admin_password: (( ..cf.uaa.system_services_credentials.password ))
+
+- name: delete-generic-app
+  resource_label: Delete App
+  templates:
+  - name: delete-generic-app
+    release: generic_release
+  errand: true
+  resource_definitions:
+  - name: ram
+    type: integer
+    configurable: false
+    default: 512
+  - name: ephemeral_disk
+    type: integer
+    configurable: false
+    default: 1024
+  - name: persistent_disk
+    type: integer
+    configurable: false
+    default: 0
+  - name: cpu
+    type: integer
+    configurable: false
+    default: 1
+  static_ip: 0
+  dynamic_ip: 1
+  max_in_flight: 1
+  instance_definitions:
+  - name: instances
+    type: integer
+    configurable: false
+    default: 1
+  property_blueprints:
+  - name: vm_credentials
+    type: salted_credentials
+    default:
+      identity: vcap
+
+  manifest: |
+    domain: (( ..cf.cloud_controller.system_domain.value ))
+    app_domains:
+      - (( ..cf.cloud_controller.apps_domain.value ))
+    ssl:
+      skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
+    uaa:
+      url: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+      clients:
+        generic_broker:
+          secret: test
+    generic_broker:
+      app_name: (( .properties.app_name.value ))
+      app_version: (( .properties.app_version.value ))
+      app_uri: (( .properties.app_uri.value ))
+      encryption_key: (( .properties.encryption_key.value ))
+      cf:
+        admin_user: (( ..cf.uaa.system_services_credentials.identity ))
+        admin_password: (( ..cf.uaa.system_services_credentials.password ))
+
+post_deploy_errands:
+- name: deploy-generic-app
+pre_delete_errands:
+- name: delete-generic-app
+

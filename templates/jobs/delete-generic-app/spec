@@ -1,0 +1,30 @@
+---
+name: delete-generic-app
+templates:
+  delete.sh.erb: bin/run
+packages:
+- cf_cli
+properties:
+  ssl.skip_cert_verify:
+    description: 'Whether to verify SSL certs when making web requests'
+  domain:
+    description: 'The CF top-level domain'
+  app_domains:
+    description: 'CloudFoundry application domains'
+  generic_app.app_name:
+    description: 'App Name'
+  generic_app.app_version:
+    description: 'Version of the Service Broker Application'
+  generic_app.app_uri:
+    description: 'Uri of the Service Broker Application'
+  generic_app.persistence_store_type:
+    description: 'Type of persistence store'
+    default: none
+  cf.admin_user:
+    description: 'Username of the CF admin user'
+  cf.admin_password:
+    description: 'Password of the CF admin user'
+  generic_app.broker.user:
+    description: 'Broker basic auth user'
+  generic_app.broker.password:
+    description: 'Broker basic auth password'

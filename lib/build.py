@@ -30,31 +30,28 @@ def add_defaults(context):
 def create_bosh_release(context):
 	target = os.getcwd()
 	bosh('init', 'release')
-	template.render('src/templates/all_open.json', 'all_open.json', context)
-	template.render('config/final.yml', 'bosh-final.yml', context)
+	template.render('src/templates/all_open.json', 'src/templates/all_open.json', context)
+	template.render('config/final.yml', 'config/final.yml', context)
 	bash('fetch_cf_cli.sh', target)
 	pkgs = context.get('packages', [])
 	for pkg in pkgs:
 		jobs = pkg.get('jobs', [])
 		cf_push = False
-		create_service_broker = False
-		create_buildpack = False
+		cf_create_service_broker = False
+		cf_create_buildpack = False
 		for job in jobs:
-			if job.get('type', None) is None:
-				print >>sys.stderr, 'job without type for', pkg.get('name', 'unnamed package')
-				sys.exit(1)
-			if job['type'] == 'cf-push':
+			if job == 'cf-push':
 				cf_push = True
-			elif job['type'] == 'create-service-broker':
-				create_service_broker = True
-			elif job['type'] == 'create-buildpack':
-				create_buildpack = True
+			elif job == 'cf-create-service-broker':
+				cf_create_service_broker = True
+			elif job == 'cf-create-buildpack':
+				cf_create_buildpack = True
 			else:
-				print >>sys.stderr, 'unknown job type', job['type'], 'for', pkg.get('name', 'unnamed package')
+				print >>sys.stderr, 'unknown job type', job, 'for', pkg.get('name', 'unnamed package')
 				sys.exit(1)
-		if cf_push or create_service_broker:
-			bash('addApp.sh', target, pkg['name'], str(cf_push).lower(), str(create_service_broker).lower())
-		if create_buildpack:
+		if cf_push or cf_create_service_broker:
+			bash('addApp.sh', target, pkg['name'], str(cf_push).lower(), str(cf_create_service_broker).lower())
+		if cf_create_buildpack:
 			bash('addBuildpack.sh', target, pkg['name'])
 		bash('addBlob.sh', target, os.path.join('..', pkg['path']), pkg['name'], pkg['name'])
 #	add_cf_cli(context)
@@ -88,7 +85,7 @@ def create_tile(context):
 #		print 'tile generate release'
 #		shutil.copy(release['tarball'], release['file'])
 	print 'tile generate metadata'
-	template.render('metadata/' + release['name'] + '.yml', 'tile-metadata.yml', context)
+	template.render('metadata/' + release['name'] + '.yml', 'tile/metadata.yml', context)
 #	with cd('content_migrations'):
 #		print 'tile generate content-migrations'
 #		migrations = tile_migrations(context, release)

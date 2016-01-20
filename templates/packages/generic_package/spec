@@ -1,0 +1,7 @@
+---
+name: generic_package
+
+dependencies: []
+
+files:
+- templates/all_open.json
