@@ -12,6 +12,8 @@ properties:
     description: 'CloudFoundry system domain'
   app_domains:
     description: 'CloudFoundry application domains'
+  uaa.url:
+    description: 'UAA URL '
   uaa.clients.{{ package.name }}.secret:
     description: 'UAA Client Secret'
   cf.admin_user:
@@ -23,11 +25,12 @@ properties:
     description: 'Name of the Buildpack'
   {{ package.name }}.buildpack_order:
     description: 'Order of the Buildpack'
-{% elif 'cf-push' in package.jobs %}
+{% else %}
   {{ package.name }}.app_name:
     description: 'Name of the Application'
   {{ package.name }}.app_uri:
     description: 'Uri of the Application'
+{% if 'cf-push' in package.jobs %}
   {{ package.name }}.app_version:
     description: 'Version of the Service Broker Application'
   {{ package.name }}.create_open_security_group:
@@ -48,7 +51,7 @@ properties:
     description: 'App basic auth password'
   {{ package.name }}.delete_prev_app_instances:
     description: 'Delete prev instances of app'
-    default: ''
+    default: false
   {{ package.name }}.start_command:
     description: 'app start command '
     default: ''
@@ -61,6 +64,7 @@ properties:
 {% if package.on_demand_service_plans is defined %}
   {{ package.name }}.on_demand_service_plans:
     description: 'On demand service plans'
+{% endif %}
 {% endif %}
 {% endif %}
 

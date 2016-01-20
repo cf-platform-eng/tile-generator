@@ -26,8 +26,8 @@ export APP_DOMAIN=<%="#{app_domain}" %>
 export APP_NAME=<%= properties.{{ package.name }}.app_name %>
 export APP_URI=<%= properties.{{ package.name }}.app_uri %>
 export ENABLE_GLOBAL_ACCESS=<%= properties.{{ package.name }}.enable_global_access_to_plans %>
-export ORG=${APP_NAME}-service-org
-export SPACE=${APP_NAME}-service-space
+export ORG=${APP_NAME}-org
+export SPACE=${APP_NAME}-space
 export BROKER_NAME=${APP_NAME}-service-broker
 export BROKER_USER=<%= properties.{{ package.name }}.broker.user %>
 export BROKER_PASS=<%= properties.{{ package.name }}.broker.password %>

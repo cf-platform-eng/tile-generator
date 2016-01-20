@@ -27,8 +27,8 @@ export APP_NAME=<%= properties.{{ package.name }}.app_name %>
 export APP_VERSION=<%= properties.{{ package.name }}.app_version %>
 export APP_URI=<%= properties.{{ package.name }}.app_uri %>
 export PERSISTENCE_STORE_TYPE=<%= properties.{{ package.name }}.persistence_store_type %>
-export ORG=${APP_NAME}-service-org
-export SPACE=${APP_NAME}-service-space
+export ORG=${APP_NAME}-org
+export SPACE=${APP_NAME}-space
 export DB_NAME=${APP_NAME}-${APP_VERSION}-mysql
 
 function authenticate_and_target() {

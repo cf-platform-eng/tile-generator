@@ -29,7 +29,7 @@ export CF_HOME=`pwd`/home/cf
 mkdir -p $CF_HOME
 
 # Following variables would be replaced based on blobs that get added and are considered as app bits
-TARGET_APP={{ package.files[0].path }}
+TARGET_BUILDPACK={{ package.files[0].name }}
 JOB_NAME={{ job_name }}
 PACKAGE_NAME_SUFFIX={{ package.name }}
 PACKAGE_PATH=`echo /var/vcap/packages/*${PACKAGE_NAME_SUFFIX}*`
@@ -53,9 +53,9 @@ function authenticate_and_target() {
 }
 
 # Use this only to bind any additional files/libraries or modify app contents
-function modify_buildpack() {
-  cp ${PACKAGE_PATH}/lib/${TARGET_BUILDPACK}  ${PACKAGE_PATH}/${TARGET_BUILDPACK}
-}
+#function modify_buildpack() {
+#  cp ${PACKAGE_PATH}/lib/${TARGET_BUILDPACK}  ${PACKAGE_PATH}/${TARGET_BUILDPACK}
+#}
 
 function push_buildpack() {
   pushd $PACKAGE_PATH
@@ -84,5 +84,4 @@ function push_buildpack() {
 
 cf -v
 authenticate_and_target
-modify_buildpack
 push_buildpack

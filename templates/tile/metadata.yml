@@ -3,7 +3,7 @@ name: {{ name }}
 label: {{ label }}
 description: {{ description }}
 icon_image: {{ base64(icon_file) }}
-product_version: {{ version }}
+product_version: '{{ version }}'
 metadata_version: '1.5'
 rank: 1
 serial: true

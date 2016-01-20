@@ -24,12 +24,9 @@ export DOMAIN=<%= properties.domain %>
 export API_ENDPOINT=$SCHEME://api.$DOMAIN
 export APP_DOMAIN=<%="#{app_domain}"%>
 export APP_NAME=<%= properties.{{ package.name }}.app_name %>
-export APP_VERSION=<%= properties.{{ package.name }}.app_version %>
-export APP_URI=<%= properties.{{ package.name }}.app_uri %>
-export PERSISTENCE_STORE_TYPE=<%= properties.{{ package.name }}.persistence_store_type %>
-export ORG=${APP_NAME}-service-org
-export SPACE=${APP_NAME}-service-space
-export BROKER_NAME=${APP_NAME}-${APP_VERSION}-service-broker
+export ORG=${APP_NAME}-org
+export SPACE=${APP_NAME}-space
+export BROKER_NAME=${APP_NAME}-service-broker
 
 function authenticate_and_target() {
   cf api $API_ENDPOINT <% if properties.ssl.skip_cert_verify %>--skip-ssl-validation<% end %>
@@ -52,7 +49,7 @@ function purge_service_offering() {
 #    done
 #  fi
 
-    services=`cf service-access | awk "/${BROKER_NAME}/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' `
+    services=`cf service-access | awk "/${BROKER_NAME}/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq `
     for service_name in $services; do
       cf purge-service-offering -f $service_name
     done
@@ -71,5 +68,4 @@ function check_service_offering() {
 cf -v
 authenticate_and_target
 purge_service_offering
-cf purge-service-offering -f $BROKER_NAME
 cf delete-service-broker -f $BROKER_NAME

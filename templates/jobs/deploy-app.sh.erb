@@ -48,9 +48,9 @@ export API_ENDPOINT=$SCHEME://api.${DOMAIN}
 export APP_NAME=<%= properties.{{ package.name }}.app_name %>
 export APP_VERSION=<%= properties.{{ package.name }}.app_version %>
 export APP_URI=<%= properties.{{ package.name }}.app_uri %>
-export ORG=${APP_NAME}-service-org
-export SPACE=${APP_NAME}-service-space
-export QUOTA=${APP_NAME}-service-quota
+export ORG=${APP_NAME}-org
+export SPACE=${APP_NAME}-space
+export QUOTA=${APP_NAME}-quota
 export CF_TARGET=$API_ENDPOINT
 export CF_ORG=$ORG
 export CF_SPACE=$SPACE
@@ -116,8 +116,7 @@ export CF_HOME=`pwd`/home/cf
 mkdir -p $CF_HOME
 
 # Following variables would be replaced based on blobs that get added and are considered as app bits
-#TARGET_APP={{ package.files[0].path.replace("^.*/","") }}
-TARGET_APP={{ package.files[0].path }}
+TARGET_APP={{ package.files[0].name }}
 JOB_NAME={{ job_name }}
 PACKAGE_NAME_SUFFIX={{ package.name }}
 PACKAGE_PATH=`echo /var/vcap/packages/*${PACKAGE_NAME_SUFFIX}*`
@@ -240,9 +239,9 @@ function add_env_vars() {
 #}
 
 # Use this only to bind any additional files/libraries or modify app contents
-function modify_app() {
-  cp ${PACKAGE_PATH}/lib/${TARGET_APP}  ${PACKAGE_PATH}/${TARGET_APP}
-}
+#function modify_app() {
+#  cp ${PACKAGE_PATH}/lib/${TARGET_APP}  ${PACKAGE_PATH}/${TARGET_APP}
+#}
 
 function delete_prev_app_instance() {
 
@@ -347,7 +346,6 @@ authenticate_and_target
 create_open_security_group
 create_quota
 
-modify_app
 push_app
 add_env_vars
 
