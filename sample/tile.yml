@@ -16,6 +16,12 @@ forms:
 
 packages:
 - name: app1
+  uri: app1.example.com
+  start_command: start_here.sh
+  health_monitor: true
+  create_open_security_group: true
+  org_quota: 2000
+  memory: 1500
   files:
   - path: resources/app1.jar
   jobs:
@@ -25,6 +31,7 @@ packages:
   - path: resources/app2.jar
   jobs:
   - cf-push
+  persistence_store: true
 - name: broker1
   files:
   - path: resources/broker1.jar
@@ -37,8 +44,27 @@ packages:
   jobs:
   - cf-push
   - cf-create-service-broker
-  persistence_store: true
-  on_demand_service_plans: true
+  on_demand_service_plans:
+  # name and guid fields are supplied by default
+  # add additional fields here:
+  - name: description
+    type: string
+    configurable: true
+  - name: key1
+    type: integer
+    configurable: true
+  - name: key2
+    type: secret
+    configurable: true
+- name: broker3
+  uri: http://broker3.example.com
+  username: user
+  password: secret
+  internal_service_names: 'service1,service2'
+  files:
+  - path: resources/broker3.jar
+  jobs:
+  - cf-create-service-broker
 - name: buildpack1
   files:
   - path: resources/buildpack1.zip
