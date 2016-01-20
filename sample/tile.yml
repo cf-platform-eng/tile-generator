@@ -2,6 +2,7 @@
 name: test-tile
 label: A short description
 icon_file: resources/icon.png
+
 forms:
 - description: Buildpack_properties
   label: Buildpack
@@ -12,6 +13,7 @@ forms:
     label: Buildpack rank for this buildpack_rank
     name: buildpack_rank
     type: integer
+
 packages:
 - name: app1
   files:
@@ -35,6 +37,8 @@ packages:
   jobs:
   - cf-push
   - cf-create-service-broker
+  persistence_store: true
+  on_demand_service_plans: true
 - name: buildpack1
   files:
   - path: resources/buildpack1.zip
@@ -48,3 +52,4 @@ packages:
 - name: blob1
   files:
   - path: resources/blob1.zip
+

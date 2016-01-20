@@ -1,25 +1,25 @@
 ---
 
 property_blueprints:
-- name: encryption_key
+- name: {{ app.name }}_encryption_key
   type: secret
 - name: vm_credentials
   type: salted_credentials
   default:
     identity: vcap
-- name: app_name
+- name: {{ app.name }}_app_name
   type: string
   configurable: true
   default: generic-app
-- name: app_version
+- name: {{ app.name }}_app_version
   type: string
   configurable: true
   default: v1
-- name: app_uri
+- name: {{ app.name }}_app_uri
   type: string
   configurable: true
   default: APP_URI
-- name: start_command
+- name: {{ app.name }}_start_command
   type: string
   configurable: false
   default: ''

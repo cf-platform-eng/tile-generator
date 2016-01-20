@@ -19,6 +19,117 @@ stemcell_criteria:
   version: {{ stemcell_criteria.version }}
 
 property_blueprints:
+{% for package in packages %}
+#
+# Standard properties for package {{ package.name }}
+#
+- name: {{ package.name }}_encryption_key
+  type: secret
+- name: vm_credentials
+  type: salted_credentials
+  default:
+    identity: vcap
+- name: {{ package.name }}_app_name
+  type: string
+  configurable: true
+  default: generic-app
+- name: {{ package.name }}_app_version
+  type: string
+  configurable: true
+  default: v1
+- name: {{ package.name }}_app_uri
+  type: string
+  configurable: true
+  default: APP_URI
+- name: {{ package.name }}_start_command
+  type: string
+  configurable: false
+  default: ''
+- name: {{ package.name }}_health_monitor
+  type: boolean
+  configurable: false
+  default: true
+- name: {{ package.name }}_create_open_security_group
+  type: boolean
+  configurable: true
+  default: false
+- name: {{ package.name }}_org_quota
+  type: integer
+  configurable: false
+  constraints:
+    min: 512
+    max: 1024
+  default: 1024
+- name: {{ package.name }}_memory
+  type: integer
+  configurable: false
+  constraints:
+    min: 256
+    max: 1024
+  default: 512
+- name: {{ package.name }}_persistence_store_type
+  type: dropdown_select
+  configurable: true
+  options:
+  - name: mysql
+    label: Managed MySQL Service
+    default: true
+  - name: custom
+    label: User specified Persistent Store
+  - name: none
+    label: None
+{% if package.persistence_store %}
+#
+# Properties for persistent store
+#
+- name: {{ package.name }}_persistence_service_addr
+  type: string
+  configurable: true
+  optional: true
+- name: {{ package.name }}_persistence_service_sid
+  type: string
+  configurable: true
+  optional: true
+- name: {{ package.name }}_persistence_service_params
+  type: text
+  configurable: true
+  optional: true
+- name: {{ package.name }}_persistence_sb_user
+  type: string
+  configurable: true
+  optional: true
+  default: servicebroker
+- name: {{ package.name }}_persistence_sb_password
+  type: secret
+  configurable: true
+  optional: true
+{% endif %}
+{% if package.on_demand_service_plans %}
+#
+# Properties for on-demand service plans
+#
+- name: {{ package.name }}_on_demand_service_plans_collection
+  type: collection
+  configurable: true
+  property_blueprints:
+  - name: guid
+    type: uuid
+    optional: false
+    unique: true
+  - name: name
+    type: string
+    configurable: true
+  - name: plan_description
+    type: string
+    configurable: true
+  - name: plan_details
+    type: text
+    configurable: true
+{% endif %}
+{% endfor %}
+#
+# Non-configurable properties from the tile.yml file
+#
 {% for property in properties %}
 - name: {{ property.name }} # Refer to this elsewhere as (( .property.{{ property.name }} ))
   type: {{ property.type }}
@@ -26,6 +137,9 @@ property_blueprints:
   default: {{ property.default }}
   {% endif %}
 {% endfor %}
+#
+# Configurable properties from the forms in the tile.yml file
+#
 {% for form in forms %} {% for property in form.properties %}
 - name: {{ property.name }} # Refer to this elsewhere as (( .property.{{ property.name }} ))
   type: {{ property.type }}
@@ -35,8 +149,70 @@ property_blueprints:
   configurable: true
 {% endfor %} {% endfor %}
 
-{% for form in forms %}
 form_types:
+{% for package in packages %}
+- name: {{ package.name }}
+  label: {{ package.name | replace('_',' ') | title }}
+  description: Configuration for {{ package.name | replace('_',' ') | title }}
+  property_inputs:
+  - reference: .properties.{{ package.name }}_app_name
+    label: Service Broker Application Name
+    description: 'Enter the name for the Service Broker App'
+  - reference: .properties.{{ package.name }}_app_uri
+    label: Service Broker Application URI
+    description: 'Enter the uri/endpoint for the Service Broker app (on push to CF)'
+  - reference: .properties.{{ package.name }}_create_open_security_group
+    label: Open up Security Groups
+    description: 'Open up security group on CF for Service Broker to access other apps or CF Cloud Controller'
+{% if package.persistence_store %}
+- name: {{ package.name }}_persistence
+  label: Persistence Store for {{ package.name | replace('_',' ') | title }}
+  description: Persistence store for {{ package.name | replace('_',' ') | title }} to store its configuration
+  property_inputs:
+  - reference: .properties.{{ package.name }}_persistence_store_type
+    label: Persistence using MySQL Service binding (default) or custom database
+    description: "Select MySQL Service Binding or Custom Database for storing broker configurations"
+  - reference: .properties.{{ package.name }}_persistence_service_addr
+    label: Persistence Database Instance Listener Address with Port
+    description: "Enter the address and port for the SB's Persistence Database"
+  - reference: .properties.{{ package.name }}_persistence_service_sid
+    label: Persistence Database instance Service name
+    description: 'Enter the SID or service or database name for the Persistence Database'
+  - reference: .properties.{{ package.name }}_persistence_service_params
+    label: Additional parameters for connecting to db instance
+    description: 'Enter any additional parameters to be used for connecting to the SB Database'
+  - reference: .properties.{{ package.name }}_persistence_sb_user
+    label: Username for Service broker app to use for its persistence (should be valid and have sufficient privileges/tabelespace etc)
+    description: 'Enter a valid name for the Service Broker to connect to the persistence store'
+  - reference: .properties.{{ package.name }}_persistence_sb_password
+    label: Password for Service broker app to use on the persistence
+    description: 'Enter the password for the Service Broker to connect to the persistence store'
+{% endif %}
+{% if package.on_demand_service_plans %}
+- name: {{ package.name }}_on_demand_service_plans
+  label: On-Demand Service Plans for {{ package.name | replace('_',' ') | title }}
+  description: "An on-demand service plan lets Pivotal CF users create their own Service Plans from the Pivotal CF command line interface or developer console. Use this page to configure the service plan's settings."
+  property_inputs:
+  - reference: .properties.{{ package.name }}_on_demand_service_plans_collection
+    label: On-Demand Service Plans
+    property_inputs:
+    - reference: plan_name
+      label: Plan Name
+      description: "Name of Plan"
+      slug: false
+    - reference: plan_description
+      label: Plan Description
+      description: "Description of Plan"
+      slug: false
+    - reference: plan_details
+      label: "Plan Details or bullets (individual line entries, each with Name : Value : Description and ending with ;)"
+      description: |
+        Specify configurations or bullets for the plan. Specify each plan detail or bullet in a separate line with a name, value, description separated by ':' and ending with ';'.
+        Detail1: associated value : description ; <NEWLINE> Detail2: its value : description <NEWLINE>
+      slug: false
+{% endif %}
+{% endfor %}
+{% for form in forms %}
 - name: {{ form.name }}
   label: {{ form.label }}
   description: {{ form.description }}
@@ -123,43 +299,43 @@ job_types:
     uaa:
       url: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
       clients:
-        generic_broker:
+        {{ job.package.name }}:
           secret: test
-    generic_broker:
-      app_name: (( .properties.app_name.value ))
-      app_version: (( .properties.app_version.value ))
-      app_uri: (( .properties.app_uri.value ))
-      create_open_security_group: (( .properties.create_open_security_group.value ))
+    {{ job.package.name }}:
+      app_name: (( .properties.{{ job.package.name }}_app_name.value ))
+      app_version: (( .properties.{{ job.package.name }}_app_version.value ))
+      app_uri: (( .properties.{{ job.package.name }}_app_uri.value ))
+      create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
       app_push:
-        org_quota: (( .properties.org_quota.value ))
+        org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
         timeout: 180
-        memory: (( .properties.memory.value ))
+        memory: (( .properties.{{ job.package.name }}_memory.value ))
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
-      start_command: (( .{{ job.name }}.start_command.value ))
-      health_monitor: (( .{{ job.name }}.health_monitor.value ))
+      start_command: (( .properties.{{ job.package.name }}_start_command.value ))
+      health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
       # Need to squelch Broker user & password if app is also a broker..
       ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
       ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
 
-      ### ON_DEMAND_PLAN_BEGIN_MARKER
-      on_demand_service_plans: (( .properties.on_demand_service_plans_collection.value ))
-      ### ON_DEMAND_PLAN_END_MARKER
+{% if job.package.on_demand_service_plans is defined %}
+      on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
+{% endif %}
 
-      persistence_store_type: (( .properties.persistence_store_type.value ))
-      ### PERSISTENCE_STORE_BEGIN_MARKER
+      persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
+{% if job.package.on_demand_service_plans is defined %}
       persistence_store:
-        service_addr: (( .properties.persistence_service_addr.value ))
-        service_sid: (( .properties.persistence_service_sid.value ))
-        service_params: (( .properties.persistence_service_params.value ))
-        persistence_broker_user: (( .properties.persistence_sb_user.value ))
-        persistence_broker_password: (( .properties.persistence_sb_password.value ))
-      ### PERSISTENCE_STORE_END_MARKER
+        service_addr: (( .properties.{{ job.package.name }}_persistence_service_addr.value ))
+        service_sid: (( .properties.{{ job.package.name }}_persistence_service_sid.value ))
+        service_params: (( .properties.{{ job.package.name }}_persistence_service_params.value ))
+        persistence_broker_user: (( .properties.{{ job.package.name }}_persistence_sb_user.value ))
+        persistence_broker_password: (( .properties.{{ job.package.name }}_persistence_sb_password.value ))
+{% endif %}
 
-      encryption_key: (( .properties.encryption_key.value ))
-      cf:
-        admin_user: (( ..cf.uaa.system_services_credentials.identity ))
-        admin_password: (( ..cf.uaa.system_services_credentials.password ))
+      encryption_key: (( .properties.{{ job.package.name }}_encryption_key.value ))
+    cf:
+      admin_user: (( ..cf.uaa.system_services_credentials.identity ))
+      admin_password: (( ..cf.uaa.system_services_credentials.password ))
 
 {% endfor %}
 

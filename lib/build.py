@@ -100,7 +100,8 @@ def add_blob_package(context, package, alternate_template=None):
 	add_package('blobs', context, package, alternate_template)
 
 def add_package(dir, context, package, alternate_template=None):
-	name = package['name']
+	name = package['name'].lower().replace('-','_')
+	package['name'] = name
 	bosh('generate', 'package', name)
 	target_dir = os.path.realpath(os.path.join(dir, name))
 	package_dir = os.path.realpath(os.path.join('packages', name))
