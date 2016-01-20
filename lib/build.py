@@ -40,10 +40,12 @@ def create_bosh_release(context):
 		for job in jobs:
 			if job == 'cf-push':
 				requires_cf_cli = True
+				package['is_app'] = True
 				add_bosh_job(context, package, 'deploy-app', post_deploy=True)
 				add_bosh_job(context, package, 'delete-app', pre_delete=True)
 			elif job == 'cf-create-service-broker':
 				requires_cf_cli = True
+				package['is_broker'] = True
 				add_bosh_job(context, package, 'register-broker', post_deploy=True)
 				add_bosh_job(context, package, 'destroy-broker', pre_delete=True)
 			elif job == 'cf-create-buildpack':
@@ -53,8 +55,13 @@ def create_bosh_release(context):
 			else:
 				print >>sys.stderr, 'unknown job type', job, 'for', package.get('name', 'unnamed package')
 				sys.exit(1)
+		if package.get('is_app', False) and package.get('is_broker', False):
+			package['is_broker_app'] = True
+		if package.get('is_broker', False) and not package.get('is_app', False):
+			package['is_external_broker'] = True
 	if requires_cf_cli:
 		add_cf_cli(context)
+	bosh('upload', 'blobs')
 	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', context['version'])
 	context['release'] = bosh_extract(output, [
 		{ 'label': 'name', 'pattern': 'Release name' },
