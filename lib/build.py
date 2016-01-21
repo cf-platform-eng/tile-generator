@@ -83,9 +83,6 @@ def create_bosh_release(context):
 
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
 	job_name = job_type + '-' + package['name']
-	if (job_type == 'docker-bosh'):
-	  return
-
 	bosh('generate', 'job', job_name)
 	job_context = {
 		'job_name': job_name,
