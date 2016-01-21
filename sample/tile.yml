@@ -3,6 +3,41 @@ name: test-tile
 label: A short description
 icon_file: resources/icon.png
 
+properties:
+- name: author
+  type: string
+  label: Author
+  value: Tile Ninja
+
+forms:
+- name: custom-form1
+  label: Test Tile
+  description: Custom Properties for Test Tile
+  properties:
+  - name: customer_name
+    type: string
+    label: Full Name
+  - name: street_address
+    type: string
+    label: Street Address
+    description: Address to use for junk mail
+  - name: city
+    type: string
+    label: City
+  - name: zip_code
+    type: string
+    label: ZIP+4
+    default: '90310'
+  - name: country
+    type: dropdown_select
+    label: Country
+    options:
+    - name: country_us
+      label: US
+      default: true
+    - name: country_elsewhere
+      label: Elsewhere
+
 packages:
 - name: app1
   uri: app1.example.com

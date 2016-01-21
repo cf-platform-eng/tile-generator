@@ -23,6 +23,12 @@ def build(config, verbose=False):
 
 def add_defaults(context):
 	context['stemcell_criteria'] = context.get('stemcell_criteria', {})
+	context['all_properties'] = context.get('properties', [])
+	for form in context.get('forms', []):
+		properties = form.get('properties', [])
+		for property in properties:
+			property['configurable'] = 'true'
+		context['all_properties'] += properties
 
 def create_bosh_release(context):
 	target = os.getcwd()

@@ -122,26 +122,18 @@ property_blueprints:
 {% endif %}
 {% endfor %}
 #
-# Non-configurable properties from the tile.yml file
+# Custom properties from the tile.yml file
 #
-{% for property in properties %}
-- name: {{ property.name }} # Refer to this elsewhere as (( .property.{{ property.name }} ))
+{% for property in all_properties %}
+- name: {{ property.name }} # Refer to this elsewhere as (( .properties.{{ property.name }} ))
   type: {{ property.type }}
-  {% if property.default is defined %}
+  {% if property.value is defined %}
+  default: {{ property.value }}
+  {% elif property.default is defined %}
   default: {{ property.default }}
   {% endif %}
+  configurable: {{ property.configurable or 'false' }}
 {% endfor %}
-#
-# Configurable properties from the forms in the tile.yml file
-#
-{% for form in forms %} {% for property in form.properties %}
-- name: {{ property.name }} # Refer to this elsewhere as (( .property.{{ property.name }} ))
-  type: {{ property.type }}
-  {% if property.default is defined %}
-  default: {{ property.default }}
-  {% endif %}
-  configurable: true
-{% endfor %} {% endfor %}
 
 form_types:
 {% for package in packages %}
@@ -217,12 +209,12 @@ form_types:
 #
 - name: {{ form.name }}
   label: {{ form.label }}
-  description: {{ form.description }}
+  description: {{ form.description or form.label }}
   property_inputs:
   {% for property in form.properties %}
   - reference: .properties.{{ property.name }}
   	label: {{ property.label }}
-  	description: {{ property.description }}
+  	description: {{ property.description or property.label }}
   {% endfor %}
 {% endfor %}
 
@@ -388,8 +380,9 @@ job_types:
         password: (( .{{ job.name }}.app_credentials.password ))
 {% endif %}
 {% endif %}
-      ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
-      ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
+{% for property in all_properties %}
+    {{ property.name }}: (( .properties.{{ property.name }}.value ))
+{% endfor %}
 {% endif %}
 {% endif %}
 {% endfor %}
