@@ -37,6 +37,12 @@ def build_cmd(version, verbose):
 	history = read_history()
 	config['history'] = history
 	config['version'] = build.update_version(history, version)
+	print 'name:', config.get('name', '<unspecified>')
+	print 'icon:', config.get('icon_file', '<unspecified>')
+	print 'label:', config.get('label', '<unspecified>')
+	print 'description:', config.get('description', '<unspecified>')
+	print 'version:', config.get('version', '<unspecified>')
+	print
 	build.build(config, verbose)
 	write_history(history)
 
