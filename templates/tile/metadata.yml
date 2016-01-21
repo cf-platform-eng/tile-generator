@@ -146,6 +146,7 @@ property_blueprints:
 
 form_types:
 {% for package in packages %}
+{% if not package.is_blob %}
 #
 # Standard form for package {{ package.name }}
 #
@@ -218,6 +219,7 @@ form_types:
       description: {{ field.descrp }}
       slug: false
 {% endfor %}
+{% endif %}
 {% endif %}
 {% endif %}
 {% endfor %}
