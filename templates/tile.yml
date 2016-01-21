@@ -1,0 +1,58 @@
+---
+# The high-level description of your tile.
+# Replace these properties with real values.
+#
+name: {{ name }} # By convention lowercase with dashes
+icon: resources/icon.png
+label: Brief Text for the Tile Icon
+description: Longer description of the tile's purpose
+
+# Specify the packages to be included in your tile.
+#
+packages:
+# - name: my-application
+#   files:
+#   - path: resources/my-application-1.0.0.jar
+#   jobs:
+#   # Remove those that are not relevant for your application
+#   - cf-push
+#   - cf-create-service-broker
+#   - cf-create-buildpack
+
+# Include stemcell criteria if you don't want to accept the default.
+# Since this stemcell is only used to run pre and post errands, we
+# strongly recommend you leave this alone so that your tile always
+# runs with the latest stemcell.
+#
+stemcell_criteria:
+#   os: ubuntu-trusty
+#   requires_cpi: false
+#   version: '3062'
+
+# Add properties you want to pass to your applications.
+# Properties specified here will not be configurable by the user.
+#
+properties:
+# - name: example_property
+#   type: string
+#   default: specify a value
+#   label: Label for the field on the GUI
+#   description: Longer description of the field's purpose
+
+# Uncomment this section if you want to display forms with configurable
+# properties in Ops Manager. These properties will be passed to your
+# applications as environment variables. You can also refer to them
+# elsewhere in this template by using:
+#     (( .properties.<property-name> ))
+# 
+forms:
+# - name: buildpack_properties
+#   label: Buildpack
+#   description: Buildpack_properties
+#   properties:
+#   - name: buildpack_rank
+#     type: integer
+#     default: 0
+#     label: Buildpack rank for this buildpack_rank
+#     description: Ranking of this buildpack relative to others
+

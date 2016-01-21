@@ -1,0 +1,4 @@
+[submodule "bosh-generic-sb-release"]
+	path = bosh-generic-sb-release
+	url = https://github.com/cf-platform-eng/bosh-generic-sb-release
+	branch = TileGenerator

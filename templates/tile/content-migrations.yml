@@ -1,0 +1,12 @@
+---
+product: {{ name }}
+installation_version: '1.5'
+to_version: {{ version }}
+migrations:
+{% for prior_version in history.history %}
+- from_version: {{ prior_version }}
+  rules:
+  - type: update
+    selector: product_version
+    to: {{ version }}
+{% endfor %}

@@ -1,0 +1,98 @@
+#!/bin/bash
+set -e -x
+
+
+  <%
+    def grab_app_domain_name
+      app_domains_str = properties.app_domains.to_s
+      array_start = ( app_domains_str =~ /^\[/ )
+      if (array_start == 0)
+        app_domain_entry = app_domains_str.gsub(/^\[/, '').gsub(/\]/,'').gsub(/,.*/, '')
+      else
+        app_domain_entry = app_domains_str
+      end
+      app_domain_entry
+    end
+    app_domain = grab_app_domain_name
+  %>
+
+export SCHEME=https
+export PATH="/var/vcap/packages/cf_cli/bin:$PATH"
+export ADMIN_USER=<%= properties.cf.admin_user %>
+export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
+export DOMAIN=<%= properties.domain %>
+export API_ENDPOINT=$SCHEME://api.$DOMAIN
+export APP_DOMAIN=<%="#{app_domain}" %>
+export APP_NAME=<%= properties.{{ package.name }}.app_name %>
+export APP_URI=<%= properties.{{ package.name }}.app_uri %>
+export ENABLE_GLOBAL_ACCESS=<%= properties.{{ package.name }}.enable_global_access_to_plans %>
+export ORG=${APP_NAME}-org
+export SPACE=${APP_NAME}-space
+export BROKER_NAME=${APP_NAME}-service-broker
+export BROKER_USER=<%= properties.{{ package.name }}.broker.user %>
+export BROKER_PASS=<%= properties.{{ package.name }}.broker.password %>
+export BROKER_HOST=$SCHEME://${APP_URI}.${APP_DOMAIN}
+# export BROKER_URI=<%= properties.{{ package.name }}.broker.uri %>
+
+# Use this only when there are already inbuild services that need to enabled for public
+export BROKER_INTERNAL_SERVICE_NAMES=<%= properties.{{ package.name }}.broker.internal_service_names %>
+
+function authenticate_and_target() {
+  cf api $API_ENDPOINT <% if properties.ssl.skip_cert_verify %>--skip-ssl-validation<% end %>
+  cf auth $ADMIN_USER $ADMIN_PASSWORD
+  cf target -o $ORG -s $SPACE
+}
+
+function register_broker() {
+
+ # BROKER_EFFECTIVE_URL=$BROKER_HOST
+ # if [[! -z "$BROKER_URI" ]]; then
+ #   BROKER_EFFECTIVE_URL=$BROKER_URI
+ # fi
+
+  BROKER_EFFECTIVE_URL=$BROKER_HOST
+  if [[! -z "$APP_URI" ]]; then
+    BROKER_EFFECTIVE_URL=$APP_URI
+  fi
+
+  broker=`cf service-brokers | grep $BROKER_NAME || true`
+  if [[ -z "$broker" ]]; then
+    cf create-service-broker $BROKER_NAME $BROKER_USER $BROKER_PASS $BROKER_EFFECTIVE_URL
+  else
+    cf update-service-broker $BROKER_NAME $BROKER_USER $BROKER_PASS $BROKER_EFFECTIVE_URL
+  fi
+}
+
+function publicize_services() {
+  services_url=`cf curl /v2/services?q=label:$BROKER_NAME | grep service_plans_url | awk '{ print $2 }' | sed 's/[",]//g'`
+  if [ "$services_url" != "" ]; then
+    services=`cf curl $services_url | grep "\"url\"" | awk '{ print $2 }' | sed 's/[",]//g'`
+    for service in $services; do
+      publicize_service $service
+    done
+  elif [ "$BROKER_INTERNAL_SERVICE_NAMES" != "" ] && [ "$BROKER_INTERNAL_SERVICE_NAMES" != "INTERNAL_SERVICE_NAME" ]; then
+    # Rely on the internal plan names if we cannot get it from the /v2/services on the broker
+    for service_name in `echo $BROKER_INTERNAL_SERVICE_NAMES | sed -e 's/,/ /g;s/;/ /g'`
+    do
+      cf enable-service-access $service_name
+    done
+  else
+    services=`cf service-access | awk "/${BROKER_NAME}/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq `
+    for service_name in $services; do
+      cf enable-service-access $service_name
+    done
+  fi
+}
+
+function publicize_service() {
+  service_url=$1
+  cf curl $service_url -X PUT -d '{"public": true}'
+}
+
+cf -v
+authenticate_and_target
+register_broker
+
+<% if  properties.{{ package.name }}.enable_global_access_to_plans %>
+  publicize_services
+<% end %>

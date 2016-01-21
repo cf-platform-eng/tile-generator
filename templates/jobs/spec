@@ -1,0 +1,94 @@
+---
+name: {{ job_name }}
+templates:
+  {{ job_name }}.sh.erb: bin/run
+packages:
+{% if package.requires_cf_cli %}
+- cf_cli
+{% endif %}
+{% if not package.is_docker %}
+- {{ package.name }}
+{% endif %}
+properties:
+  ssl.skip_cert_verify:
+    description: 'Whether to verify SSL certs when making web requests'
+  domain:
+    description: 'CloudFoundry system domain'
+  app_domains:
+    description: 'CloudFoundry application domains'
+  uaa.url:
+    description: 'UAA URL '
+  uaa.clients.{{ package.name }}.secret:
+    description: 'UAA Client Secret'
+  cf.admin_user:
+    description: 'Username of the CF admin user'
+  cf.admin_password:
+    description: 'Password of the CF admin user'
+{% if 'cf-create-buildpack' in package.jobs %}
+  {{ package.name }}.buildpack_name:
+    description: 'Name of the Buildpack'
+  {{ package.name }}.buildpack_order:
+    description: 'Order of the Buildpack'
+{% else %}
+  {{ package.name }}.app_name:
+    description: 'Name of the Application'
+  {{ package.name }}.app_uri:
+    description: 'Uri of the Application'
+{% if 'cf-push' in package.jobs %}
+  {{ package.name }}.app_version:
+    description: 'Version of the Service Broker Application'
+  {{ package.name }}.create_open_security_group:
+    description: 'Open security group for the app to access outside'
+    default: false
+  {{ package.name }}.app_push.org_quota:
+    description: 'Org Memory Quota for the Service Broker Application'
+    default: 1024
+  {{ package.name }}.app_push.timeout:
+    description: 'App Push timeout for the Service Broker Application'
+    default: 180
+  {{ package.name }}.app_push.memory:
+    description: 'App Push Memory limit for the Service Broker Application'
+    default: 512
+  {{ package.name }}.user:
+    description: 'App basic auth user'
+  {{ package.name }}.password:
+    description: 'App basic auth password'
+  {{ package.name }}.delete_prev_app_instances:
+    description: 'Delete prev instances of app'
+    default: false
+  {{ package.name }}.start_command:
+    description: 'app start command '
+    default: ''
+  {{ package.name }}.health_monitor:
+    description: 'Change health monitor '
+    default: true
+  {{ package.name }}.persistence_store_type:
+    description: 'Use MySQL or custom DB for persistence store'
+    default: none
+{% if package.on_demand_service_plans is defined %}
+  {{ package.name }}.on_demand_service_plans:
+    description: 'On demand service plans'
+{% endif %}
+{% endif %}
+{% endif %}
+{% if 'cf-create-service-broker' in package.jobs %}
+  {{ package.name }}.internal_service_name:
+    description: 'Internal service name'
+    default: ''
+  {{ package.name }}.enable_global_access_to_plans:
+    description: 'Access to all service plans'
+    default: false
+  {{ package.name }}.broker.user:
+    description: 'Broker auth user'
+  {{ package.name }}.broker.password:
+    description: 'Broker auth password'
+{% endif %}
+{% if package.is_docker %}
+  {{ package.name }}.docker_image:
+    description: Docker image to run
+    default: {{ package.image }}
+{% endif %}
+{% for property in context.all_properties %}
+  {{ property.name }}:
+    description: {{ property.description or property.name }}
+{% endfor %}

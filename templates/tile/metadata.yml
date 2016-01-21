@@ -1,0 +1,434 @@
+---
+name: {{ name }}
+label: {{ label }}
+description: {{ description }}
+icon_image: {{ base64(icon_file) }}
+product_version: '{{ version }}'
+metadata_version: '1.5'
+rank: 1
+serial: true
+
+releases:
+- file: {{ release.file }}
+  name: {{ release.name }}
+  version: '{{ release.version }}'
+- file: TBD
+  name: docker
+  version: TBD
+
+stemcell_criteria:
+  os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
+  requires_cpi: false
+  version: '{{ stemcell_criteria.version or 3146.5 }}'
+
+property_blueprints:
+{% for package in packages %}
+#
+# Standard properties for package {{ package.name }}
+#
+- name: {{ package.name }}_app_name
+  type: string
+  configurable: true
+  default: {{ package.name }}
+{% if package.is_buildpack %}
+- name: {{ package.name }}_buildpack_order
+  type: integer
+  configurable: true
+  default: 0
+{% else %}
+- name: {{ package.name }}_app_version
+  type: string
+  configurable: true
+  default: {{ version }}
+- name: {{ package.name }}_app_uri
+  type: string
+  configurable: true
+  default: {{ package.uri or package.name }}
+{% if package.is_app %}
+{% if package.is_docker %}
+- name: {{ package.name }}_docker_image
+  type: string
+  configurable: true
+  default: {{ package.image }}
+{% endif %}
+- name: {{ package.name }}_start_command
+  type: string
+  configurable: false
+  default: {{ package.start_command or '' }}
+- name: {{ package.name }}_health_monitor
+  type: boolean
+  configurable: false
+  default: {{ package.health_monitor or false }}
+- name: {{ package.name }}_create_open_security_group
+  type: boolean
+  configurable: true
+  default: {{ package.create_open_security_group or false }}
+- name: {{ package.name }}_org_quota
+  type: integer
+  configurable: false
+  constraints:
+    min: 512
+    max: 1024
+  default: {{ package.org_quota or 1024 }}
+- name: {{ package.name }}_memory
+  type: integer
+  configurable: false
+  constraints:
+    min: 256
+    max: 1024
+  default: {{ package.memory or 512 }}
+- name: {{ package.name }}_persistence_store_type
+  type: dropdown_select
+  configurable: true
+  options:
+  - name: mysql
+    label: Managed MySQL Service
+    default: true
+  - name: none
+    label: None
+{% endif %}
+{% if package.is_broker_app  %}
+{% if package.on_demand_service_plans %}
+#
+# Properties for on-demand service plans
+#
+- name: {{ package.name }}_on_demand_service_plans_collection
+  type: collection
+  configurable: true
+  property_blueprints:
+  - name: guid
+    type: uuid
+    optional: false
+    unique: true
+  - name: name
+    type: string
+    configurable: true
+  {% for field in package.on_demand_service_plans %}
+  - name: {{ field.name }}
+    type: {{ field.type }}
+    configurable: {{ field.configurable }}
+  {% endfor %}
+{% endif %}
+{% endif %}
+{% if package.is_broker  %}
+- name: {{ package.name }}_enable_global_access_to_plans
+  type: boolean
+  configurable: true
+  default: false
+- name: {{ package.name }}_internal_service_names
+  type: string
+  configurable: false
+  default: {{ package.internal_service_names }}
+{% endif %}
+{% if package.is_external_broker %}
+- name: {{ package.name }}_broker_user
+  type: string
+  configurable: true
+- name: {{ package.name }}_broker_password
+  type: secret
+  configurable: true
+{% endif %}
+{% endif %}
+{% endfor %}
+#
+# Custom properties from the tile.yml file
+#
+{% for property in all_properties %}
+- name: {{ property.name }} # Refer to this elsewhere as (( .properties.{{ property.name }} ))
+  type: {{ property.type }}
+  {% if property.value is defined %}
+  default: {{ property.value }}
+  {% elif property.default is defined %}
+  default: {{ property.default }}
+  {% endif %}
+  configurable: {{ property.configurable or 'false' }}
+{% endfor %}
+
+form_types:
+{% for package in packages %}
+#
+# Standard form for package {{ package.name }}
+#
+- name: {{ package.name }}
+  label: {{ package.name | replace('_',' ') | title }}
+  description: Configuration for {{ package.name | replace('_',' ') | title }}
+  property_inputs:
+{% if package.is_buildpack %}
+  - reference: .properties.{{ package.name }}_app_name
+    label: Buildpack Name
+    description: 'Enter the name of the Buildpack'
+  - reference: .properties.{{ package.name }}_buildpack_order
+    label: Buildpack Order
+    description: 'Enter order for the Buildpack'
+{% elif package.is_external_broker %}
+  - reference: .properties.{{ package.name }}_app_name
+    label: Service Broker Application Name
+    description: 'Enter the name for the Service Broker App'
+  - reference: .properties.{{ package.name }}_app_uri
+    label: Service Broker Application URI
+    description: 'Enter the External uri/endpoint (with http or https protocol) for the Service Broker'
+  - reference: .properties.{{ package.name }}_broker_user
+    label: Service Broker Username
+    description: 'Enter the username for accessing the Service Broker'
+  - reference: .properties.{{ package.name }}_broker_password
+    label: Service Broker Password
+    description: 'Enter the password for accessing the Service Broker'
+  - reference: .properties.{{ package.name }}_enable_global_access_to_plans
+    label: Enable global access to plans
+    description: "Enable global access to plans in the marketplace"
+{% elif package.is_app %}
+  - reference: .properties.{{ package.name }}_app_name
+    label: Application Name
+    description: 'Enter the name for the App'
+  - reference: .properties.{{ package.name }}_app_uri
+    label: Application URI
+    description: 'Enter the uri/endpoint for the App (on push to CF)'
+{% if package.is_docker %}
+  - reference: .properties.{{ package.name }}_docker_image
+    label: Docker Image
+    description: 'Docker image to push to CF'
+{% endif %}
+  - reference: .properties.{{ package.name }}_create_open_security_group
+    label: Open up Security Groups
+    description: 'Open up security group on CF for App to access external endpoints'
+{% if package.persistence_store %}
+  - reference: .properties.{{ package.name }}_persistence_store_type
+    label: Persistence using MySQL Service binding (default) or none
+    description: "Select MySQL Service Binding or None for saving state"
+{% endif %}
+{% if package.is_broker %}
+  - reference: .properties.{{ package.name }}_enable_global_access_to_plans
+    label: Enable global access to plans
+    description: "Enable global access to plans in the marketplace"
+{% endif %}
+{% if package.on_demand_service_plans %}
+#
+# On demand service plan form for package {{ package.name }}
+#
+  - reference: .properties.{{ package.name }}_on_demand_service_plans_collection
+    label: On-Demand Service Plans
+    property_inputs:
+    - reference: name
+      label: Plan Name
+      description: "Name of Plan"
+      slug: false
+{% for field in package.on_demand_service_plans %}
+    - reference: {{ field.name }}
+      label: {{ field.name }}
+      description: {{ field.descrp }}
+      slug: false
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% for form in forms %}
+#
+# Custom form {{ form.name}} from the tile.yml file
+#
+- name: {{ form.name }}
+  label: {{ form.label }}
+  description: {{ form.description or form.label }}
+  property_inputs:
+  {% for property in form.properties %}
+  - reference: .properties.{{ property.name }}
+    label: {{ property.label }}
+    description: {{ property.description or property.label }}
+  {% endfor %}
+{% endfor %}
+
+job_types:
+#
+# Default compilation job
+#
+- name: compilation
+  resource_label: compilation
+  resource_definitions:
+   - name: ram
+     type: integer
+     configurable: true
+     default: 1024
+   - name: ephemeral_disk
+     type: integer
+     configurable: true
+     default: 1024
+   - name: persistent_disk
+     type: integer
+     configurable: true
+     default: 0
+   - name: cpu
+     type: integer
+     configurable: true
+     default: 2
+  static_ip: 0
+  dynamic_ip: 1
+  max_in_flight: 1
+  instance_definitions:
+    - name: instances
+      type: integer
+      default: 1
+{% for job in jobs %}
+#
+# {{ job.type }} job for {{ job.package.name }}
+#
+{% if job.package.is_docker_bosh %}
+- name: {{ job.name }}
+  resource_label: {{ job.name }}
+  errand: false
+  templates:
+  - name: containers
+    release: docker
+  - name: docker
+    release: docker
+  resource_definitions:
+  - name: ram
+    type: integer
+    configurable: false
+    default: {{ job.package.memory }}
+  - name: ephemeral_disk
+    type: integer
+    configurable: false
+    default: {{ job.package.ephemeral_disk }}
+  - name: persistent_disk
+    type: integer
+    configurable: false
+    default: {{ job.package.persistent_disk }}
+  - name: cpu
+    type: integer
+    configurable: false
+    default: {{ job.package.cpu }}
+  static_ip: 1
+  dynamic_ip: 0
+  max_in_flight: 1
+  instance_definitions:
+  - name: instances
+    type: integer
+    configurable: true
+    default: {{ job.package.instances }}
+  property_blueprints:
+  - name: vm_credentials
+    type: salted_credentials
+    default:
+      identity: vcap
+  - name: app_credentials
+    type: salted_credentials
+  manifest: |
+    {{ job.package.manifest | indent }}
+{% else %}
+- name: {{ job.name }}
+  resource_label: {{ job.name }}
+  errand: true
+  templates:
+  - name: {{ job.name }}
+    release: {{ release.name }}
+  resource_definitions:
+  - name: ram
+    type: integer
+    configurable: false
+    default: 512
+  - name: ephemeral_disk
+    type: integer
+    configurable: false
+    default: 2048
+  - name: persistent_disk
+    type: integer
+    configurable: false
+    default: 0
+  - name: cpu
+    type: integer
+    configurable: false
+    default: 1
+  static_ip: 0
+  dynamic_ip: 1
+  max_in_flight: 1
+  instance_definitions:
+  - name: instances
+    type: integer
+    configurable: false
+    default: 1
+  property_blueprints:
+  - name: vm_credentials
+    type: salted_credentials
+    default:
+      identity: vcap
+  - name: app_credentials
+    type: salted_credentials
+  manifest: |
+    domain: (( ..cf.cloud_controller.system_domain.value ))
+    app_domains:
+      - (( ..cf.cloud_controller.apps_domain.value ))
+    ssl:
+      skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
+    cf:
+      admin_user: (( ..cf.uaa.system_services_credentials.identity ))
+      admin_password: (( ..cf.uaa.system_services_credentials.password ))
+    uaa:
+      url: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+      clients:
+        {{ job.package.name }}:
+          secret: test
+    {{ job.package.name }}:
+      app_name: (( .properties.{{ job.package.name }}_app_name.value ))
+{% if job.package.is_buildpack  %}
+      buildpack_order: (( .properties.{{ job.package.name }}_buildpack_order.value ))
+{% else %}
+      app_uri: (( .properties.{{ job.package.name }}_app_uri.value ))
+{% if job.package.is_app  %}
+      app_version: (( .properties.{{ job.package.name }}_app_version.value ))
+      create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
+      app_push:
+        org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
+        timeout: 180
+        memory: (( .properties.{{ job.package.name }}_memory.value ))
+{% if job.package.is_docker %}
+      docker_image: (( .properties.{{ job.package.name }}_docker_image.value ))
+{% endif %}
+      start_command: (( .properties.{{ job.package.name }}_start_command.value ))
+      health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
+      user: (( .{{ job.name }}.app_credentials.identity ))
+      password: (( .{{ job.name }}.app_credentials.password ))
+      persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
+{% if job.package.on_demand_service_plans is defined %}
+      on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
+{% endif %}
+{% endif %}
+{% if job.package.is_broker %}
+      internal_service_name: (( .properties.{{ job.package.name }}_internal_service_names.value ))
+      enable_global_access_to_plans: (( .properties.{{ job.package.name }}_enable_global_access_to_plans.value ))
+      broker:
+{% if job.package.is_external_broker %}
+        user: (( .properties.{{ job.package.name }}_broker_user.value ))
+        password: (( .properties.{{ job.package.name }}_broker_password.value ))
+{% else %}
+        user: (( .{{ job.name }}.app_credentials.identity ))
+        password: (( .{{ job.name }}.app_credentials.password ))
+{% endif %}
+{% endif %}
+{% for property in all_properties %}
+    {{ property.name }}: (( .properties.{{ property.name }}.value ))
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+post_deploy_errands:
+{% for errand in post_deploy_errands %}
+- name: {{ errand.name }}
+{% endfor %}
+
+pre_delete_errands:
+{% for errand in pre_delete_errands %}
+- name: {{ errand.name }}
+{% endfor %}
+
+update:
+  canaries: 1
+  canary_watch_time: 60000-240000
+  max_in_flight: 1
+  update_watch_time: 60000-240000
+
+requires_product_versions:
+- name: cf
+  version: "~> 1.5"
+provides_product_versions:
+- name: {{ name }}
+  version: '{{ version }}'

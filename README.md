@@ -1,26 +1,23 @@
 # PCF Tile Generator
 
-This is a start of a tile generation utility for PCF tiles. Tiles are the
+This is a tile generation utility for PCF tiles. Tiles are the
 installation package format used by Pivotal's Ops Manager to deploy add-on
 software such as services and their brokers, buildpacks, or anything else
 that needs to be installable in both public and private cloud deployments.
 
-The current release of the generator will only generate tiles that install
-buildpacks (as that is the use case that drove the creation of this utility).
-But the framework is easily extensible to support other types of packages,
-like service brokers (with or without persistent storage) and docker images.
+The current release of the tile generator supports tiles that have any
+combination of the following package types:
+- Cloud Foundry Applications
+- Cloud Foundry Buildpacks
+- Cloud Foundry Service Brokers (both inside and outside the Elastic Runtime)
+- Docker images (both inside and outside the Elastic Runtime)
 
 ## How to Use
 
 1. Create a repository for your tile (preferably git, but this is not required)
 2. Initialize it as a tile repo using `tile init`
-3. Configure the required properties as indicated by `tile status`
-  - `tile set-icon <image>` (the icon image shown on the tile)
-  - `tile set-label <label>` (the short label shown on the tile)
-  - `tile set-description <description>` (the longer description of the tile's purpose)
-4. Add each of the packages you want to install (current only buildpacks)
-  - `tile add-buildpack <name> <zipfile> <rank>`
-5. Build your tile using `tile build`
+3. Edit the 'tile.yml' file to describe your tile
+4. Build your tile using `tile build`
 
 The generator will first create a BOSH release (in the `release` subdirectory),
 then wrap that release into a Pivotal tile (in the `product` subdirectory).
@@ -72,17 +69,5 @@ to build including the CF CLI download and the BOSH release generation.
 
 ```
 init [<tile-name>]
-status
 build [patch|minor|major|<version>]
-clean
-clobber
-set-name <name>
-set-icon <image-file>
-set-label <label>
-set-description <description>
-update-stemcell [<os>] <version>
-add-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]
-update-buildpack <buildpack-name> <buildpack-zipfile> [<default-rank>]
-delete-buildpack <buildpack-name>
-help
 ```

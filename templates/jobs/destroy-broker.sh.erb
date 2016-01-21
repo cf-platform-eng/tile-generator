@@ -1,0 +1,71 @@
+#! /bin/bash
+set -e -x
+
+
+  <%
+    def grab_app_domain_name
+      app_domains_str = properties.app_domains.to_s
+      array_start = ( app_domains_str =~ /^\[/ )
+      if (array_start == 0)
+        app_domain_entry = app_domains_str.gsub(/^\[/, '').gsub(/\]/,'').gsub(/,.*/, '')
+      else
+        app_domain_entry = app_domains_str
+      end
+      app_domain_entry
+    end
+    app_domain = grab_app_domain_name
+  %>
+
+export SCHEME=https
+export PATH="/var/vcap/packages/cf_cli/bin:$PATH"
+export ADMIN_USER=<%= properties.cf.admin_user %>
+export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
+export DOMAIN=<%= properties.domain %>
+export API_ENDPOINT=$SCHEME://api.$DOMAIN
+export APP_DOMAIN=<%="#{app_domain}"%>
+export APP_NAME=<%= properties.{{ package.name }}.app_name %>
+export ORG=${APP_NAME}-org
+export SPACE=${APP_NAME}-space
+export BROKER_NAME=${APP_NAME}-service-broker
+
+function authenticate_and_target() {
+  cf api $API_ENDPOINT <% if properties.ssl.skip_cert_verify %>--skip-ssl-validation<% end %>
+  cf auth $ADMIN_USER $ADMIN_PASSWORD
+  cf target -o $ORG -s $SPACE
+}
+
+function purge_service_offering() {
+#  services_url=`cf curl /v2/services?q=label:$BROKER_NAME | grep "\"url\"" | grep -v "null" | awk '{ print $2 }' | sed 's/[",]//g'`
+#  if [ "$services_url" != "" ]; then
+#    services=`cf curl $services_url | grep label | awk '{ print $2 }' | sed 's/"//g;s/,//g'`
+#    for service in $services; do
+#      cf purge-service-offering -f $service
+#    done
+#  else
+#    # Rely on the internal plan names if we cannot get it from the /v2/services on the broker
+#    for service_name in `echo $BROKER_INTERNAL_SERVICE_NAMES | sed -e 's/,/ /g' `
+#    do
+#      cf purge-service-offering -f $service_name
+#    done
+#  fi
+
+    services=`cf service-access | awk "/${BROKER_NAME}/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq `
+    for service_name in $services; do
+      cf purge-service-offering -f $service_name
+    done
+}
+
+# Need to test if we can get the service plan name directly from broker app
+function check_service_offering() {
+    app_endpoint=http://${APP_URI}.${APP_DOMAIN}
+    app_catalog_url=${app_endpoint}/v2/catalog
+    catalog_output=`curl -X GET ${app_catalog_url} 2>/dev/null`
+
+    service_id=`echo $catalog_output | sed -e 's/"//g'  | sed -e "s/name:/\nname:/g" | grep "id:" | grep services | sed -e "s/^.*id://g;s/,//" `
+    #plan_id=`echo $catalog_output | sed -e 's/"//g'  | sed -e "s/name:/\nname:/g" | grep "id:" | grep plans | sed -e "s/^.*id://g;s/,//" `
+}
+
+cf -v
+authenticate_and_target
+purge_service_offering
+cf delete-service-broker -f $BROKER_NAME
