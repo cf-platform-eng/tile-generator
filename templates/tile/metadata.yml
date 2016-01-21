@@ -285,6 +285,9 @@ job_types:
       - (( ..cf.cloud_controller.apps_domain.value ))
     ssl:
       skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
+    cf:
+      admin_user: (( ..cf.uaa.system_services_credentials.identity ))
+      admin_password: (( ..cf.uaa.system_services_credentials.password ))
     uaa:
       url: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
       clients:
@@ -312,8 +315,6 @@ job_types:
       on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
 {% endif %}
 {% endif %}
-
-      # Need to squelch Broker user & password if app is also a broker..
 {% if 'cf-create-service-broker' in job.package.jobs %}
       internal_service_name: (( .properties.{{ job.package.name }}_internal_service_names.value ))
       enable_global_access_to_plans: (( .properties.{{ job.package.name }}_enable_global_access_to_plans.value ))
@@ -328,15 +329,7 @@ job_types:
 {% endif %}
       ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
       ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
-
-
-
-    cf:
-      admin_user: (( ..cf.uaa.system_services_credentials.identity ))
-      admin_password: (( ..cf.uaa.system_services_credentials.password ))
-
 {% endif %}
-
 {% endfor %}
 
 post_deploy_errands:
