@@ -77,6 +77,7 @@ property_blueprints:
     default: true
   - name: none
     label: None
+{% endif %}
 {% if package.is_broker_app  %}
 {% if package.on_demand_service_plans %}
 #
@@ -93,12 +94,11 @@ property_blueprints:
   - name: name
     type: string
     configurable: true
-{% for field in package.on_demand_service_plans %}
+  {% for field in package.on_demand_service_plans %}
   - name: {{ field.name }}
     type: {{ field.type }}
     configurable: {{ field.configurable }}
-{% endfor %}
-{% endif %}
+  {% endfor %}
 {% endif %}
 {% endif %}
 {% if package.is_broker  %}
@@ -110,6 +110,7 @@ property_blueprints:
   type: string
   configurable: false
   default: {{ package.internal_service_names }}
+{% endif %}
 {% if package.is_external_broker %}
 - name: {{ package.name }}_broker_user
   type: string
@@ -117,7 +118,6 @@ property_blueprints:
 - name: {{ package.name }}_broker_password
   type: secret
   configurable: true
-{% endif %}
 {% endif %}
 {% endif %}
 {% endfor %}
@@ -289,8 +289,6 @@ job_types:
     type: salted_credentials
   manifest: |
     {{ job.manifest }}
-{% endif %}
-
 # END OF DOCKER_BOSH RELEASE
 {% else %}
 # BEGIN OF NORMAL CF TYPES
