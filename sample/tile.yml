@@ -3,17 +3,6 @@ name: test-tile
 label: A short description
 icon_file: resources/icon.png
 
-forms:
-- description: Buildpack_properties
-  label: Buildpack
-  name: buildpack_properties
-  properties:
-  - default: 0
-    description: Ranking of this buildpack relative to others
-    label: Buildpack rank for this buildpack_rank
-    name: buildpack_rank
-    type: integer
-
 packages:
 - name: app1
   uri: app1.example.com
