@@ -33,6 +33,8 @@ def add_defaults(context):
 		property['name'] = property['name'].lower().replace('-','_')
 
 package_types = [
+	# A + at the start of the job type indicates it is a post-deploy errand
+	# A - at the start of the job type indicates it is a pre-deploy errand
 	{
 		'typename': 'app',
 		'flags': [ 'requires_cf_cli', 'is_app' ],
@@ -56,7 +58,7 @@ package_types = [
 	{
 		'typename': 'docker-bosh',
 		'flags': [ 'is_docker_bosh' ],
-		'jobs':  [ '+docker-bosh' ],
+		'jobs':  [ 'docker-bosh' ],
 	},
 	{
 		'typename': 'blob',
