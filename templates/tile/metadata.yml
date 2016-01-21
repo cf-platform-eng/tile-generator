@@ -11,7 +11,10 @@ serial: true
 releases:
 - file: {{ release.file }}
   name: {{ release.name }}
-  version: {{ release.version }}
+  version: '{{ release.version }}'
+- file: {{ docker_release.file }}
+  name: {{ docker_release.name }}
+  version: '{{ docker_release.version }}'
 
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
@@ -164,6 +167,9 @@ form_types:
   - reference: .properties.{{ package.name }}_broker_password
     label: Service Broker Password
     description: 'Enter the password for accessing the Service Broker'
+  - reference: .properties.{{ package.name }}_enable_global_access_to_plans
+    label: Enable global access to plans
+    description: "Enable global access to plans in the marketplace"
 {% elif package.is_app %}
   - reference: .properties.{{ package.name }}_app_name
     label: Application Name
@@ -179,14 +185,15 @@ form_types:
     label: Persistence using MySQL Service binding (default) or none
     description: "Select MySQL Service Binding or None for saving state"
 {% endif %}
+{% if package.is_broker %}
+  - reference: .properties.{{ package.name }}_enable_global_access_to_plans
+    label: Enable global access to plans
+    description: "Enable global access to plans in the marketplace"
+{% endif %}
 {% if package.on_demand_service_plans %}
 #
 # On demand service plan form for package {{ package.name }}
 #
-- name: {{ package.name }}_on_demand_service_plans
-  label: On-Demand Service Plans for {{ package.name | replace('_',' ') | title }}
-  description: "An on-demand service plan lets Pivotal CF users create their own Service Plans from the Pivotal CF command line interface or developer console. Use this page to configure the service plan's settings."
-  property_inputs:
   - reference: .properties.{{ package.name }}_on_demand_service_plans_collection
     label: On-Demand Service Plans
     property_inputs:
@@ -257,25 +264,27 @@ job_types:
   resource_label: {{ job.name }}
   errand: false
   templates:
-  - name: {{ job.name }}
+  - name: containers
+    release: docker
+  - name: docker
     release: docker
   resource_definitions:
   - name: ram
     type: integer
     configurable: false
-    default: {{ job.memory }}
+    default: {{ job.package.memory }}
   - name: ephemeral_disk
     type: integer
     configurable: false
-    default: {{ job.ephemeral_disk }}
+    default: {{ job.package.ephemeral_disk }}
   - name: persistent_disk
     type: integer
     configurable: false
-    default: {{ job.persistent_disk }}
+    default: {{ job.package.persistent_disk }}
   - name: cpu
     type: integer
     configurable: false
-    default: {{ job.cpu }}
+    default: {{ job.package.cpu }}
   static_ip: 1
   dynamic_ip: 0
   max_in_flight: 1
@@ -283,7 +292,7 @@ job_types:
   - name: instances
     type: integer
     configurable: true
-    default: {{ job.instances }}
+    default: {{ job.package.instances }}
   property_blueprints:
   - name: vm_credentials
     type: salted_credentials
@@ -292,7 +301,7 @@ job_types:
   - name: app_credentials
     type: salted_credentials
   manifest: |
-    {{ job.manifest }}
+    {{ job.package.manifest | indent }}
 {% else %}
 - name: {{ job.name }}
   resource_label: {{ job.name }}
@@ -405,7 +414,7 @@ update:
 
 requires_product_versions:
 - name: cf
-  version: "~> 1.0"
+  version: "~> 1.5"
 provides_product_versions:
 - name: {{ name }}
   version: '{{ version }}'

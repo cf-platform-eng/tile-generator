@@ -102,11 +102,44 @@ packages:
   persistent_disk: 2048
   instances: 1
   manifest: |
-     test-key1: testValue1
-     test-key2: testValue2
-     test-key3: testValue3
-     test-key4: testValue4
+    test-key1: testValue1
+    test-key2: testValue2
+    test-key3: testValue3
+    test-key4: testValue4
+    containers:
+    - name: redis
+      image: "redis"
+      command: "--dir /var/lib/redis/ --appendonly yes"
+      bind_ports:
+      - "6379:6379"
+      bind_volumes:
+      - "/var/lib/redis"
+      entrypoint: "redis-server"
+      memory: "256m"
+      env_vars:
+      - "EXAMPLE_VAR=1"
+    - name: mysql
+      image: "google/mysql"
+      bind_ports:
+      - "3306:3306"
+      bind_volumes:
+      - "/mysql"
+    - name: elasticsearch
+      image: "bosh/elasticsearch"
+      links:
+      - mysql:db
+      depends_on:
+      - mysql
+      bind_ports:
+      - "9200:9200"
 - name: blob1
   type: blob
   files:
   - path: resources/blob1.zip
+
+docker_release:
+  file: something.tgz
+  name: docker
+  version: something
+
+
