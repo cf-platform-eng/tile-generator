@@ -8,16 +8,24 @@ label: Brief Text for the Tile Icon
 description: Longer description of the tile's purpose
 
 # Specify the packages to be included in your tile.
-#
+# The format of the section to include depends on the type
+# of package you are describing.
 packages:
+
+# For a straight CF application (in any language), use:
 # - name: my-application
+#   type: app
+#   uri: app.example.com
 #   files:
 #   - path: resources/my-application-1.0.0.jar
-#   jobs:
-#   # Remove those that are not relevant for your application
-#   - cf-push
-#   - cf-create-service-broker
-#   - cf-create-buildpack
+#
+# You may optionally add:
+#   start_command: start_here.sh
+#   health_monitor: true
+#   create_open_security_group: true
+#   org_quota: 2048
+#   memory: 1024
+#   persistence_store: true
 
 # Include stemcell criteria if you don't want to accept the default.
 # Since this stemcell is only used to run pre and post errands, we

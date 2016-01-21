@@ -16,13 +16,38 @@ combination of the following package types:
 
 1. Create a repository for your tile (preferably git, but this is not required)
 2. Initialize it as a tile repo using `tile init`
-3. Edit the 'tile.yml' file to describe your tile
+3. Edit the `tile.yml` file to describe your tile (more detail below)
 4. Build your tile using `tile build`
 
 The generator will first create a BOSH release (in the `release` subdirectory),
 then wrap that release into a Pivotal tile (in the `product` subdirectory).
 If required for the installation, it will automatically pull down the latest
 release version of the Cloud Foundry CLI.
+
+## Describing your Tile
+
+All required configuration for your tile is in the file called `tile.yml`.
+`tile init` will create an initial version for you that can serve as a template.
+The first section in the file describes the general properties of your tile:
+
+```
+name: tile-name # By convention lowercase with dashes
+icon: resources/icon.png
+label: Brief Text for the Tile Icon
+description: Longer description of the tile's purpose
+```
+
+The `icon` should be a 128x128 pixel image that will appear on your tile in
+the Ops Manager GUI. By convention, any resources used by the tile should be
+placed in the `resources` sub-directory of your repo, although this is not
+mandatory. The `label` test will appear on the tile under your icon.
+
+### Packages
+
+Next you can specify the packages to be included in your tile. There is a large
+number of supported package types, that each carry their own configuration
+properties.
+
 
 ## Versioning
 
@@ -71,3 +96,9 @@ to build including the CF CLI download and the BOSH release generation.
 init [<tile-name>]
 build [patch|minor|major|<version>]
 ```
+
+## Credits
+
+- [sparameswaran](https://github.com/sparameswaran) supplied most of the actual template content, originally built as part of [cf-platform-eng/bosh-generic-sb-release](https://github.com/cf-platform-eng/bosh-generic-sb-release.git), except
+- [frodenas](https://github.com/frodenas) contributed most of the docker content through [cloudfoundry-community/docker-boshrelease](https://github.com/cloudfoundry-community/docker-boshrelease.git)
+- [joshuamckenty](https://github.com/joshuamckenty) suggested the jinja template approach he employed in [opencontrol](https://github.com/opencontrol)

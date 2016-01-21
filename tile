@@ -64,7 +64,7 @@ def read_yaml(file):
 
 def write_yaml(file, data):
 	file.write('---\n')
-	file.write(yaml.dump(data, default_flow_style=False))
+	file.write(yaml.safe_dump(data, default_flow_style=False))
 
 if __name__ == "__main__":
 	cli()

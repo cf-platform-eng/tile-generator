@@ -142,10 +142,24 @@ property_blueprints:
   default: {{ property.default }}
   {% endif %}
   configurable: {{ property.configurable or 'false' }}
+  {% if property.options is defined %}
+  options:
+  {% for option in property.options %}
+  - name: {{ option.name }}
+    label: {{ option.label }}
+    {% if option.default is defined %}
+    default: {{ option.default }}
+    {% endif %}
+    {% if option.slug is defined %}
+    slug: {{ option.slug }}
+    {% endif %}
+  {% endfor %}
+  {% endif %}
 {% endfor %}
 
 form_types:
 {% for package in packages %}
+{% if not package.is_blob %}
 #
 # Standard form for package {{ package.name }}
 #
@@ -218,6 +232,7 @@ form_types:
       description: {{ field.descrp }}
       slug: false
 {% endfor %}
+{% endif %}
 {% endif %}
 {% endif %}
 {% endfor %}
