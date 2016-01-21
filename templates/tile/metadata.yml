@@ -12,9 +12,9 @@ releases:
 - file: {{ release.file }}
   name: {{ release.name }}
   version: '{{ release.version }}'
-- file: {{ docker_release.file }}
-  name: {{ docker_release.name }}
-  version: '{{ docker_release.version }}'
+- file: TBD
+  name: docker
+  version: TBD
 
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
@@ -45,6 +45,12 @@ property_blueprints:
   configurable: true
   default: {{ package.uri or package.name }}
 {% if package.is_app %}
+{% if package.is_docker %}
+- name: {{ package.name }}_docker_image
+  type: string
+  configurable: true
+  default: {{ package.image }}
+{% endif %}
 - name: {{ package.name }}_start_command
   type: string
   configurable: false
@@ -177,6 +183,11 @@ form_types:
   - reference: .properties.{{ package.name }}_app_uri
     label: Application URI
     description: 'Enter the uri/endpoint for the App (on push to CF)'
+{% if package.is_docker %}
+  - reference: .properties.{{ package.name }}_docker_image
+    label: Docker Image
+    description: 'Docker image to push to CF'
+{% endif %}
   - reference: .properties.{{ package.name }}_create_open_security_group
     label: Open up Security Groups
     description: 'Open up security group on CF for App to access external endpoints'
@@ -368,6 +379,9 @@ job_types:
         org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
         timeout: 180
         memory: (( .properties.{{ job.package.name }}_memory.value ))
+{% if job.package.is_docker %}
+      docker_image: (( .properties.{{ job.package.name }}_docker_image.value ))
+{% endif %}
       start_command: (( .properties.{{ job.package.name }}_start_command.value ))
       health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
       user: (( .{{ job.name }}.app_credentials.identity ))

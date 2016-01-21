@@ -6,7 +6,9 @@ packages:
 {% if package.requires_cf_cli %}
 - cf_cli
 {% endif %}
+{% if not package.is_docker %}
 - {{ package.name }}
+{% endif %}
 properties:
   ssl.skip_cert_verify:
     description: 'Whether to verify SSL certs when making web requests'
@@ -80,6 +82,11 @@ properties:
     description: 'Broker auth user'
   {{ package.name }}.broker.password:
     description: 'Broker auth password'
+{% endif %}
+{% if package.is_docker %}
+  {{ package.name }}.docker_image:
+    description: Docker image to run
+    default: {{ package.image }}
 {% endif %}
 {% for property in context.all_properties %}
   {{ property.name }}:

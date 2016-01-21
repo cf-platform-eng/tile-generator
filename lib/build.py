@@ -57,8 +57,18 @@ package_types = [
 	},
 	{
 		'typename': 'docker-bosh',
-		'flags': [ 'is_docker_bosh' ],
+		'flags': [ 'is_docker_bosh', 'is_docker' ],
 		'jobs':  [ 'docker-bosh' ],
+	},
+	{
+		'typename': 'docker-app',
+		'flags': [ 'requires_cf_cli', 'is_app', 'is_docker_app', 'is_docker' ],
+		'jobs':  [ '+deploy-app', '-delete-app' ],
+	},
+	{
+		'typename': 'docker-app-broker',
+		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app', 'is_docker_app', 'is_docker' ],
+		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
 	},
 	{
 		'typename': 'blob',
@@ -75,7 +85,6 @@ def create_bosh_release(context):
 	packages = context.get('packages', [])
 	requires_cf_cli = False
 	for package in packages:
-		add_blob_package(context, package)
 		typename = package.get('type', None)
 		if typename is None:
 			print >>sys.stderr, 'Package', package['name'], 'does not have a type'
@@ -85,6 +94,8 @@ def create_bosh_release(context):
 			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
 			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
 			sys.exit(1)
+		if 'is_docker' not in typedef['flags']:
+			add_blob_package(context, package)
 		for flag in typedef['flags']:
 			package[flag] = True
 		for job in typedef['jobs']:

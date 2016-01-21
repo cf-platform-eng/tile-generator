@@ -112,10 +112,14 @@ export CF_HOME=`pwd`/home/cf
 mkdir -p $CF_HOME
 
 # Following variables would be replaced based on blobs that get added and are considered as app bits
+{% if package.is_docker %}
+DOCKER_IMAGE=<%= properties.{{ package.name }}.docker_image %>
+{% else %}
 TARGET_APP={{ package.files[0].name }}
-JOB_NAME={{ job_name }}
 PACKAGE_NAME_SUFFIX={{ package.name }}
 PACKAGE_PATH=`echo /var/vcap/packages/*${PACKAGE_NAME_SUFFIX}*`
+{% endif %}
+JOB_NAME={{ job_name }}
 
 RUN_DIR=/var/vcap/sys/run/$JOB_NAME
 LOG_DIR=/var/vcap/sys/log/$JOB_NAME
@@ -259,7 +263,6 @@ function delete_prev_app_instance() {
 }
 
 function push_app() {
-  pushd $PACKAGE_PATH
     mkdir -p /var/vcap/data/tmp
     export TMPDIR=/var/vcap/data/tmp
 
@@ -277,9 +280,12 @@ function push_app() {
       START_COMMAND=" -c $START_COMMAND "
     fi
 
+{% if package.is_docker %}
+    CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} --docker-image ${DOCKER_IMAGE} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $HEALTH_MONITOR $START_COMMMAND
+{% else %}
     CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $HEALTH_MONITOR $START_COMMMAND
+{% endif %}
     cf logs ${APP_NAME}-${APP_VERSION} --recent
-  popd
 }
 
 
