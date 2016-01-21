@@ -252,7 +252,7 @@ job_types:
 #
 # {{ job.type }} job for {{ job.package.name }}
 #
-{% if job.is_docker_bosh %}
+{% if job.package.is_docker_bosh %}
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: false
