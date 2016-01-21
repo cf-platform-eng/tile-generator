@@ -44,9 +44,40 @@ mandatory. The `label` test will appear on the tile under your icon.
 
 ### Packages
 
-Next you can specify the packages to be included in your tile. There is a large
-number of supported package types, that each carry their own configuration
-properties.
+Next you can specify the packages to be included in your tile. The format of
+the package entry depends on the type of package you are adding.
+
+For a standard Cloud Foundry application (that is being 'cf push'ed into the
+Elastic Runtime), use the following format:
+
+<pre>
+- name: my-application
+  type: app                            <i># or app-broker (see below)</i>
+  uri: app.example.com
+  files:
+  - path: resources/app1.jar
+  start_command: start_here.sh         <i># optional</i>
+  health_monitor: true                 <i># optional</i>
+  create_open_security_group: true     <i># optional</i>
+  org_quota: 2000                      <i># optional</i>
+  memory: 1500                         <i># optional</i>
+  persistence_store: true              <i># optional</i>
+</pre>
+
+If your application is also a service broker, use `app-broker` as the type
+instead of just `app`. `persistence_store: true` results in the user being
+able to select a backing service for data persistence.
+
+For an external service broker, use:
+
+<pre>
+- name: my-application
+  type: external-broker
+  uri: http://broker3.example.com
+  username: user
+  password: <i>secret</i>
+  internal_service_names: 'service1,service2'
+</pre>
 
 
 ## Versioning
