@@ -3,7 +3,7 @@ name: {{ job_name }}
 templates:
   {{ job_name }}.sh.erb: bin/run
 packages:
-{% if package.is_app or package.is_buildpack %}
+{% if package.requires_cf_cli %}
 - cf_cli
 {% endif %}
 - {{ package.name }}
