@@ -59,7 +59,16 @@ the build command, e.g. `tile build 3.4.5`.
 
 No-op content migration rules are generated for every prior release to the
 current release, so that Ops Manager will allow tile upgrades from any
-version to any newer version.
+version to any newer version. This depends on the existence of the file
+`tile-history.yml`. In a pinch, if you need to be able to upgrade from a
+random old version to a new one, you can edit that file, or do:
+
+```
+tile build <old-version>
+tile build <new-version>
+```
+
+The new tile will then support upgrades from `old-version`.
 
 ## Example
 
