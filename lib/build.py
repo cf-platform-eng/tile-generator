@@ -50,6 +50,7 @@ def create_bosh_release(context):
 				add_bosh_job(context, package, 'destroy-broker', pre_delete=True)
 			elif job == 'cf-create-buildpack':
 				requires_cf_cli = True
+				package['is_buildpack'] = True
 				add_bosh_job(context, package, 'deploy-buildpack', post_deploy=True)
 				add_bosh_job(context, package, 'delete-buildpack', pre_delete=True)
 			else:
