@@ -54,7 +54,6 @@ def create_bosh_release(context):
 				add_bosh_job(context, package, 'deploy-buildpack', post_deploy=True)
 				add_bosh_job(context, package, 'delete-buildpack', pre_delete=True)
 			elif job == 'docker-bosh':
-				requires_cf_cli = False
 				package['is_docker_bosh'] = True
 				add_bosh_job(context, package, 'docker-bosh', post_deploy=True)
 			elif job == 'docker-cf':
