@@ -32,6 +32,39 @@ def add_defaults(context):
 	for property in context['all_properties']:
 		property['name'] = property['name'].lower().replace('-','_')
 
+package_types = [
+	{
+		'typename': 'app',
+		'flags': [ 'requires_cf_cli', 'is_app' ],
+		'jobs':  [ '+deploy-app', '-delete-app' ],
+	},
+	{
+		'typename': 'app-broker',
+		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app' ],
+		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
+	},
+	{
+		'typename': 'external-broker',
+		'flags': [ 'is_broker', 'is_external_broker' ],
+		'jobs':  [ '+register-broker', '-destroy-broker' ],
+	},
+	{
+		'typename': 'buildpack',
+		'flags': [ 'requires_cf_cli', 'is_buildpack' ],
+		'jobs':  [ '+deploy-buildpack', '-delete-buildpack' ],
+	},
+	{
+		'typename': 'docker-bosh',
+		'flags': [ 'is_docker_bosh' ],
+		'jobs':  [ '+docker-bosh' ],
+	},
+	{
+		'typename': 'blob',
+		'flags': [ 'is_blob' ],
+		'jobs':  [],
+	},
+]
+
 def create_bosh_release(context):
 	target = os.getcwd()
 	bosh('init', 'release')
@@ -41,42 +74,26 @@ def create_bosh_release(context):
 	requires_cf_cli = False
 	for package in packages:
 		add_blob_package(context, package)
-		jobs = package.get('jobs', [])
-		cf_push = False
-		cf_create_service_broker = False
-		cf_create_buildpack = False
-		for job in jobs:
-			if job == 'cf-push':
-				requires_cf_cli = True
-				package['is_app'] = True
-				add_bosh_job(context, package, 'deploy-app', post_deploy=True)
-				add_bosh_job(context, package, 'delete-app', pre_delete=True)
-			elif job == 'cf-create-service-broker':
-				requires_cf_cli = True
-				package['is_broker'] = True
-				add_bosh_job(context, package, 'register-broker', post_deploy=True)
-				add_bosh_job(context, package, 'destroy-broker', pre_delete=True)
-			elif job == 'cf-create-buildpack':
-				requires_cf_cli = True
-				package['is_buildpack'] = True
-				add_bosh_job(context, package, 'deploy-buildpack', post_deploy=True)
-				add_bosh_job(context, package, 'delete-buildpack', pre_delete=True)
-			elif job == 'docker-bosh':
-				package['is_docker_bosh'] = True
-				add_bosh_job(context, package, 'docker-bosh', post_deploy=True)
-			elif job == 'docker-cf':
-				requires_cf_cli = True
-				package['is_app'] = True
-				package['is_docker_push'] = True
-				add_bosh_job(context, package, 'deploy-app', post_deploy=True)
-				add_bosh_job(context, package, 'delete-app', pre_delete=True)
-			else:
-				print >>sys.stderr, 'unknown job type', job, 'for', package.get('name', 'unnamed package')
-				sys.exit(1)
-		if package.get('is_app', False) and package.get('is_broker', False):
-			package['is_broker_app'] = True
-		if package.get('is_broker', False) and not package.get('is_app', False):
-			package['is_external_broker'] = True
+		typename = package.get('type', None)
+		if typename is None:
+			print >>sys.stderr, 'Package', package['name'], 'does not have a type'
+			sys.exit(1)
+		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
+		if typedef is None:
+			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
+			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
+			sys.exit(1)
+		for flag in typedef['flags']:
+			package[flag] = True
+		for job in typedef['jobs']:
+			add_bosh_job(
+				context,
+				package,
+				job.lstrip('+-'),
+				post_deploy=job.startswith('+'),
+				pre_delete=job.startswith('-')
+			)
+		requires_cf_cli |= package.get('requires_cf_cli', False)
 	if requires_cf_cli:
 		add_cf_cli(context)
 	bosh('upload', 'blobs')

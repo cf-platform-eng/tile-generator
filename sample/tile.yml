@@ -40,6 +40,7 @@ forms:
 
 packages:
 - name: app1
+  type: app
   uri: app1.example.com
   start_command: start_here.sh
   health_monitor: true
@@ -48,26 +49,19 @@ packages:
   memory: 1500
   files:
   - path: resources/app1.jar
-  jobs:
-  - cf-push
 - name: app2
+  type: app
   files:
   - path: resources/app2.jar
-  jobs:
-  - cf-push
   persistence_store: true
 - name: broker1
+  type: app-broker
   files:
   - path: resources/broker1.jar
-  jobs:
-  - cf-push
-  - cf-create-service-broker
 - name: broker2
+  type: app-broker
   files:
   - path: resources/broker2.jar
-  jobs:
-  - cf-push
-  - cf-create-service-broker
   on_demand_service_plans:
   # name and guid fields are supplied by default
   # add additional fields here:
@@ -84,39 +78,35 @@ packages:
     descrp: "Key 2 of type Password"
     configurable: true
 - name: broker3
+  type: external-broker
   uri: http://broker3.example.com
   username: user
   password: secret
   internal_service_names: 'service1,service2'
   files:
   - path: resources/broker3.jar
-  jobs:
-  - cf-create-service-broker
 - name: buildpack1
+  type: buildpack
   files:
   - path: resources/buildpack1.zip
-  jobs:
-  - cf-create-buildpack
 - name: buildpack2
+  type: buildpack
   files:
   - path: resources/buildpack2.zip
-  jobs:
-  - cf-create-buildpack
 - name: docker-bosh1
+  type: docker-bosh
   image: test/dockerimage
   cpu: 5
   memory: 4096
   ephemeral_disk: 4096
   persistent_disk: 2048
   instances: 1
-  jobs:
-  - docker-bosh
   manifest: |
      test-key1: testValue1
      test-key2: testValue2
      test-key3: testValue3
      test-key4: testValue4
 - name: blob1
+  type: blob
   files:
   - path: resources/blob1.zip
-
