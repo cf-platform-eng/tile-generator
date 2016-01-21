@@ -16,7 +16,7 @@ releases:
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
   requires_cpi: false
-  version: {{ stemcell_criteria.version }}
+  version: {{ stemcell_criteria.version or '3146.5' }}
 
 property_blueprints:
 {% for package in packages %}
@@ -213,8 +213,8 @@ form_types:
   property_inputs:
   {% for property in form.properties %}
   - reference: .properties.{{ property.name }}
-  	label: {{ property.label }}
-  	description: {{ property.description or property.label }}
+    label: {{ property.label }}
+    description: {{ property.description or property.label }}
   {% endfor %}
 {% endfor %}
 
@@ -407,3 +407,5 @@ requires_product_versions:
 - name: cf
   version: "~> 1.0"
 provides_product_versions:
+- name: {{ name }}
+  version: {{ version }}
