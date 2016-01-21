@@ -20,7 +20,7 @@ def render_lowercase_underscores(input):
 def render_lowercase_dashes(input):
 	return input.lower().replace('_', '-')
 
-TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True)
+TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
 TEMPLATE_ENVIRONMENT.globals['lowercaseWithUnderscores'] = render_lowercase_underscores
