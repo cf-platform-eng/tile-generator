@@ -1,14 +1,16 @@
 # PCF Tile Generator
 
-This is a start of a tile generation utility for PCF tiles. Tiles are the
+This is a tile generation utility for PCF tiles. Tiles are the
 installation package format used by Pivotal's Ops Manager to deploy add-on
 software such as services and their brokers, buildpacks, or anything else
 that needs to be installable in both public and private cloud deployments.
 
-The current release of the generator will only generate tiles that install
-buildpacks (as that is the use case that drove the creation of this utility).
-But the framework is easily extensible to support other types of packages,
-like service brokers (with or without persistent storage) and docker images.
+The current release of the tile generator supports tiles that have any
+combination of the following package types:
+- Cloud Foundry Applications
+- Cloud Foundry Buildpacks
+- Cloud Foundry Service Brokers (both inside and outside the Elastic Runtime)
+- Docker images (both inside and outside the Elastic Runtime)
 
 ## How to Use
 
