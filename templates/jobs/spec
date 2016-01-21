@@ -3,7 +3,9 @@ name: {{ job_name }}
 templates:
   {{ job_name }}.sh.erb: bin/run
 packages:
+{% if package.is_app or package.is_buildpack %}
 - cf_cli
+{% endif %}
 - {{ package.name }}
 properties:
   ssl.skip_cert_verify:
@@ -67,7 +69,6 @@ properties:
 {% endif %}
 {% endif %}
 {% endif %}
-
 {% if 'cf-create-service-broker' in package.jobs %}
   {{ package.name }}.internal_service_name:
     description: 'Internal service name'
@@ -80,10 +81,7 @@ properties:
   {{ package.name }}.broker.password:
     description: 'Broker auth password'
 {% endif %}
-{% for property in context.properties %}
+{% for property in context.all_properties %}
   {{ property.name }}:
-    description: {{ property.description }}
-    {% if property.default is defined %}
-    default: {{ property.default }}
-    {% endif %}
+    description: {{ property.description or property.name }}
 {% endfor %}

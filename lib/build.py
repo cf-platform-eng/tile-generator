@@ -29,6 +29,8 @@ def add_defaults(context):
 		for property in properties:
 			property['configurable'] = 'true'
 		context['all_properties'] += properties
+	for property in context['all_properties']:
+		property['name'] = property['name'].lower().replace('-','_')
 
 def create_bosh_release(context):
 	target = os.getcwd()

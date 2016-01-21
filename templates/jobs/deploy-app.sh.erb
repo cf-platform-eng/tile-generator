@@ -108,10 +108,6 @@ export DEFAULT_DB_NAME=${APP_NAME}-${APP_VERSION}-mysql
 echo DYNAMIC_PLANS now set to $DYNAMIC_PLANS ....
 
 
-### CUSTOM_VARIABLE_BEGIN_MARKER
-
-### CUSTOM_VARIABLE_END_MARKER
-
 export CF_HOME=`pwd`/home/cf
 mkdir -p $CF_HOME
 
@@ -216,8 +212,10 @@ function add_env_vars() {
 
   cf set-env ${APP_NAME}-${APP_VERSION} PLANS $DYNAMIC_PLANS
 
-  # CUSTOM_VARIABLE_ENV_BEGIN_MARKER
-  # CUSTOM_VARIABLE_ENV_END_MARKER
+  # Custom variables from tile.yml
+{% for property in context.all_properties %}
+  cf set-env ${APP_NAME}-${APP_VERSION} {{ property.name | upper }} <%= properties.{{ property.name }} %>
+{% endfor %}
 
   # Add app specific env variables using the setup script definition
   #add_parameterized_env_vars
