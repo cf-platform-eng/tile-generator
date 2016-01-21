@@ -145,6 +145,9 @@ property_blueprints:
 
 form_types:
 {% for package in packages %}
+#
+# Standard form for package {{ package.name }}
+#
 - name: {{ package.name }}
   label: {{ package.name | replace('_',' ') | title }}
   description: Configuration for {{ package.name | replace('_',' ') | title }}
@@ -185,6 +188,9 @@ form_types:
     description: "Select MySQL Service Binding or None for saving state"
 {% endif %}
 {% if package.on_demand_service_plans %}
+#
+# On demand service plan form for package {{ package.name }}
+#
 - name: {{ package.name }}_on_demand_service_plans
   label: On-Demand Service Plans for {{ package.name | replace('_',' ') | title }}
   description: "An on-demand service plan lets Pivotal CF users create their own Service Plans from the Pivotal CF command line interface or developer console. Use this page to configure the service plan's settings."
@@ -206,6 +212,9 @@ form_types:
 {% endif %}
 {% endfor %}
 {% for form in forms %}
+#
+# Custom form {{ form.name}} from the tile.yml file
+#
 - name: {{ form.name }}
   label: {{ form.label }}
   description: {{ form.description }}
@@ -218,6 +227,9 @@ form_types:
 {% endfor %}
 
 job_types:
+#
+# Default compilation job
+#
 - name: compilation
   resource_label: compilation
   resource_definitions:
@@ -245,10 +257,10 @@ job_types:
       type: integer
       default: 1
 {% for job in jobs %}
-
-
+#
+# {{ job.type }} job for {{ job.package.name }}
+#
 {% if job.is_docker_bosh %}
-# BEGIN OF DOCKER BOSH RELEASE
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: false
@@ -289,9 +301,7 @@ job_types:
     type: salted_credentials
   manifest: |
     {{ job.manifest }}
-# END OF DOCKER_BOSH RELEASE
 {% else %}
-# BEGIN OF NORMAL CF TYPES
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: true
@@ -381,10 +391,7 @@ job_types:
       ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
       ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
 {% endif %}
-
-# END OF NORMAL CF TYPES
 {% endif %}
-
 {% endfor %}
 
 post_deploy_errands:
