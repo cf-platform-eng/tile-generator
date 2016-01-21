@@ -16,7 +16,7 @@ releases:
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
   requires_cpi: false
-  version: {{ stemcell_criteria.version or '3146.5' }}
+  version: '{{ stemcell_criteria.version or 3146.5 }}'
 
 property_blueprints:
 {% for package in packages %}
@@ -408,4 +408,4 @@ requires_product_versions:
   version: "~> 1.0"
 provides_product_versions:
 - name: {{ name }}
-  version: {{ version }}
+  version: '{{ version }}'
