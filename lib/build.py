@@ -53,6 +53,16 @@ def create_bosh_release(context):
 				package['is_buildpack'] = True
 				add_bosh_job(context, package, 'deploy-buildpack', post_deploy=True)
 				add_bosh_job(context, package, 'delete-buildpack', pre_delete=True)
+			elif job == 'docker-bosh':
+				requires_cf_cli = False
+				package['is_docker_bosh'] = True
+				add_bosh_job(context, package, 'docker-bosh', post_deploy=True)
+			elif job == 'docker-cf':
+				requires_cf_cli = True
+				package['is_app'] = True
+				package['is_docker_push'] = True
+				add_bosh_job(context, package, 'deploy-app', post_deploy=True)
+				add_bosh_job(context, package, 'delete-app', pre_delete=True)
 			else:
 				print >>sys.stderr, 'unknown job type', job, 'for', package.get('name', 'unnamed package')
 				sys.exit(1)
@@ -74,6 +84,9 @@ def create_bosh_release(context):
 
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
 	job_name = job_type + '-' + package['name']
+	if (job_type == 'docker-bosh'):
+	  return
+
 	bosh('generate', 'job', job_name)
 	job_context = {
 		'job_name': job_name,

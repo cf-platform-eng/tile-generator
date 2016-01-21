@@ -27,7 +27,7 @@ property_blueprints:
   type: string
   configurable: true
   default: {{ package.name }}
-{% if 'cf-create-buildpack' in package.jobs %}
+{% if package.is_buildpack %}
 - name: {{ package.name }}_buildpack_order
   type: integer
   configurable: true
@@ -41,7 +41,7 @@ property_blueprints:
   type: string
   configurable: true
   default: {{ package.uri or package.name }}
-{% if 'cf-push' in package.jobs %}
+{% if package.is_app %}
 - name: {{ package.name }}_start_command
   type: string
   configurable: false
@@ -75,11 +75,9 @@ property_blueprints:
   - name: mysql
     label: Managed MySQL Service
     default: true
-  - name: custom
-    label: User specified Persistent Store
   - name: none
     label: None
-{% if 'cf-create-service-broker' in package.jobs %}
+{% if package.is_broker_app  %}
 {% if package.on_demand_service_plans %}
 #
 # Properties for on-demand service plans
@@ -103,7 +101,7 @@ property_blueprints:
 {% endif %}
 {% endif %}
 {% endif %}
-{% if 'cf-create-service-broker' in package.jobs %}
+{% if package.is_broker  %}
 - name: {{ package.name }}_enable_global_access_to_plans
   type: boolean
   configurable: true
@@ -112,7 +110,7 @@ property_blueprints:
   type: string
   configurable: false
   default: {{ package.internal_service_names }}
-{% if 'cf-push' not in package.jobs %}
+{% if package.is_external_broker %}
 - name: {{ package.name }}_broker_user
   type: string
   configurable: true
@@ -151,21 +149,27 @@ form_types:
   label: {{ package.name | replace('_',' ') | title }}
   description: Configuration for {{ package.name | replace('_',' ') | title }}
   property_inputs:
-{% if 'cf-create-buildpack' in package.jobs %}
+{% if package.is_buildpack %}
   - reference: .properties.{{ package.name }}_app_name
     label: Buildpack Name
     description: 'Enter the name of the Buildpack'
   - reference: .properties.{{ package.name }}_buildpack_order
     label: Buildpack Order
     description: 'Enter order for the Buildpack'
-{% elif 'cf-push' not in package.jobs and 'cf-create-service-broker' in package.jobs %}
+{% elif package.is_external_broker %}
   - reference: .properties.{{ package.name }}_app_name
     label: Service Broker Application Name
     description: 'Enter the name for the Service Broker App'
   - reference: .properties.{{ package.name }}_app_uri
     label: Service Broker Application URI
-    description: 'Enter the uri/endpoint for the Service Broker app (on push to CF)'
-{% elif 'cf-push' in package.jobs %}
+    description: 'Enter the External uri/endpoint (with http or https protocol) for the Service Broker'
+  - reference: .properties.{{ package.name }}_broker_user
+    label: Service Broker Username
+    description: 'Enter the username for accessing the Service Broker'
+  - reference: .properties.{{ package.name }}_broker_password
+    label: Service Broker Password
+    description: 'Enter the password for accessing the Service Broker'
+{% elif package.is_app %}
   - reference: .properties.{{ package.name }}_app_name
     label: Application Name
     description: 'Enter the name for the App'
@@ -241,6 +245,55 @@ job_types:
       type: integer
       default: 1
 {% for job in jobs %}
+
+
+{% if job.is_docker_bosh %}
+# BEGIN OF DOCKER BOSH RELEASE
+- name: {{ job.name }}
+  resource_label: {{ job.name }}
+  errand: false
+  templates:
+  - name: {{ job.name }}
+    release: docker
+  resource_definitions:
+  - name: ram
+    type: integer
+    configurable: false
+    default: {{ job.memory }}
+  - name: ephemeral_disk
+    type: integer
+    configurable: false
+    default: {{ job.ephemeral_disk }}
+  - name: persistent_disk
+    type: integer
+    configurable: false
+    default: {{ job.persistent_disk }}
+  - name: cpu
+    type: integer
+    configurable: false
+    default: {{ job.cpu }}
+  static_ip: 1
+  dynamic_ip: 0
+  max_in_flight: 1
+  instance_definitions:
+  - name: instances
+    type: integer
+    configurable: true
+    default: {{ job.instances }}
+  property_blueprints:
+  - name: vm_credentials
+    type: salted_credentials
+    default:
+      identity: vcap
+  - name: app_credentials
+    type: salted_credentials
+  manifest: |
+    {{ job.manifest }}
+{% endif %}
+
+# END OF DOCKER_BOSH RELEASE
+{% else %}
+# BEGIN OF NORMAL CF TYPES
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: true
@@ -295,11 +348,11 @@ job_types:
           secret: test
     {{ job.package.name }}:
       app_name: (( .properties.{{ job.package.name }}_app_name.value ))
-{% if 'cf-create-buildpack' in job.package.jobs  %}
+{% if job.package.is_buildpack  %}
       buildpack_order: (( .properties.{{ job.package.name }}_buildpack_order.value ))
 {% else %}
       app_uri: (( .properties.{{ job.package.name }}_app_uri.value ))
-{% if 'cf-push' in job.package.jobs  %}
+{% if job.package.is_app  %}
       app_version: (( .properties.{{ job.package.name }}_app_version.value ))
       create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
       app_push:
@@ -315,11 +368,11 @@ job_types:
       on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
 {% endif %}
 {% endif %}
-{% if 'cf-create-service-broker' in job.package.jobs %}
+{% if job.package.is_broker %}
       internal_service_name: (( .properties.{{ job.package.name }}_internal_service_names.value ))
       enable_global_access_to_plans: (( .properties.{{ job.package.name }}_enable_global_access_to_plans.value ))
       broker:
-{% if 'cf-push' not in job.package.jobs %}
+{% if job.package.is_external_broker %}
         user: (( .properties.{{ job.package.name }}_broker_user.value ))
         password: (( .properties.{{ job.package.name }}_broker_password.value ))
 {% else %}
@@ -330,6 +383,10 @@ job_types:
       ### CUSTOM_VARIABLE_MANIFEST_BEGIN_MARKER
       ### CUSTOM_VARIABLE_MANIFEST_END_MARKER
 {% endif %}
+
+# END OF NORMAL CF TYPES
+{% endif %}
+
 {% endfor %}
 
 post_deploy_errands:

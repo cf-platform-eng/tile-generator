@@ -67,6 +67,20 @@ packages:
   - path: resources/buildpack2.zip
   jobs:
   - cf-create-buildpack
+- name: docker-bosh1
+  image: test/dockerimage
+  cpu: 5
+  memory: 4096
+  ephemeral_disk: 4096
+  persistent_disk: 2048
+  instances: 1
+  jobs:
+  - docker-bosh
+  manifest: |
+     test-key1: testValue1
+     test-key2: testValue2
+     test-key3: testValue3
+     test-key4: testValue4
 - name: blob1
   files:
   - path: resources/blob1.zip
