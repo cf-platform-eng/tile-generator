@@ -137,8 +137,25 @@ init [<tile-name>]
 build [patch|minor|major|<version>]
 ```
 
+## Gotchas
+
+If you include a docker-bosh package type, your tile will have a dependency on
+[cloudfoundry-community/docker-boshrelease](https://github.com/cloudfoundry-community/docker-boshrelease.git). Tile Generator will automatically attempt to build and include a release of
+that software in your tile. Unfortunately, that build has a lot of Ruby dependencies
+and is not likely to succeed on first attempt. The best way to resolve build issues
+in this area is to do it manually:
+
+```
+cd docker-boshrelease
+./update
+bosh create release
+```
+
+After that succeeds, tile-generator should be able to build its release file without
+further issues.
+
 ## Credits
 
-- [sparameswaran](https://github.com/sparameswaran) supplied most of the actual template content, originally built as part of [cf-platform-eng/bosh-generic-sb-release](https://github.com/cf-platform-eng/bosh-generic-sb-release.git), except
+- [sparameswaran](https://github.com/sparameswaran) supplied most of the actual template content, originally built as part of [cf-platform-eng/bosh-generic-sb-release](https://github.com/cf-platform-eng/bosh-generic-sb-release.git)
 - [frodenas](https://github.com/frodenas) contributed most of the docker content through [cloudfoundry-community/docker-boshrelease](https://github.com/cloudfoundry-community/docker-boshrelease.git)
 - [joshuamckenty](https://github.com/joshuamckenty) suggested the jinja template approach he employed in [opencontrol](https://github.com/opencontrol)

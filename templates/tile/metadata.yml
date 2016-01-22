@@ -12,9 +12,11 @@ releases:
 - file: {{ release.file }}
   name: {{ release.name }}
   version: '{{ release.version }}'
-- file: TBD
-  name: docker
-  version: TBD
+{% if requires_docker_bosh %}
+- file: {{ docker_release.file }}
+  name: {{ docker_release.name }}
+  version: '{{ docker_release.version }}'
+{% endif %}
 
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}

@@ -1,0 +1,3 @@
+[submodule "docker-boshrelease"]
+	path = docker-boshrelease
+	url = https://github.com/cloudfoundry-community/docker-boshrelease.git

@@ -9,8 +9,10 @@ import template
 import urllib
 import zipfile
 
-PATH = os.path.dirname(os.path.realpath(__file__))
-SABHA_PATH = os.path.realpath(os.path.join(PATH, '..', 'bosh-generic-sb-release', 'bin'))
+LIB_PATH = os.path.dirname(os.path.realpath(__file__))
+REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
+DOCKER_REPO_PATH = os.path.join(REPO_PATH, 'docker-boshrelease')
+DOCKER_RELEASE_PATH = os.path.join(DOCKER_REPO_PATH, 'dev_releases', 'docker')
 
 def build(config, verbose=False):
 	context = config.copy()
@@ -57,7 +59,7 @@ package_types = [
 	},
 	{
 		'typename': 'docker-bosh',
-		'flags': [ 'is_docker_bosh', 'is_docker' ],
+		'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ],
 		'jobs':  [ 'docker-bosh' ],
 	},
 	{
@@ -84,6 +86,7 @@ def create_bosh_release(context):
 	template.render('config/final.yml', 'config/final.yml', context)
 	packages = context.get('packages', [])
 	requires_cf_cli = False
+	requires_docker_bosh = False
 	for package in packages:
 		typename = package.get('type', None)
 		if typename is None:
@@ -107,6 +110,7 @@ def create_bosh_release(context):
 				pre_delete=job.startswith('-')
 			)
 		requires_cf_cli |= package.get('requires_cf_cli', False)
+		requires_docker_bosh |= package.get('requires_docker_bosh', False)
 	if requires_cf_cli:
 		add_cf_cli(context)
 	bosh('upload', 'blobs')
@@ -117,6 +121,7 @@ def create_bosh_release(context):
 		{ 'label': 'manifest', 'pattern': 'Release manifest' },
 		{ 'label': 'tarball', 'pattern': 'Release tarball' },
 	])
+	context['requires_docker_bosh'] = requires_docker_bosh;
 	print
 
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
@@ -201,30 +206,22 @@ def add_cf_cli(context):
 		alternate_template='cf_cli'
 	)
 
-def bash(*argv):
-	argv = list(argv)
-	print ' '.join(argv)
-	command = [ os.path.join(SABHA_PATH, argv[0]) ] + argv[1:]
-	try:
-		result = subprocess.check_output(command, stderr=subprocess.STDOUT)
-		if VERBOSE:
-			print '    ' + '\n    '.join(result.split('\n'))
-		return result
-	except subprocess.CalledProcessError as e:
-		print e.output
-		sys.exit(e.returncode)
-
 def create_tile(context):
 	release = context['release']
 	release['file'] = os.path.basename(release['tarball'])
 	with cd('releases'):
-		print 'tile generate release'
+		print 'tile import release', release['name']
 		shutil.copy(release['tarball'], release['file'])
+		if context.get('requires_docker_bosh', False):
+			print 'tile import release docker'
+			docker_release = build_docker_release()
+			context['docker_release'] = docker_release
+			shutil.copy(docker_release['tarball'], release['file'])
 	print 'tile generate metadata'
 	template.render('metadata/' + release['name'] + '.yml', 'tile/metadata.yml', context)
 	print 'tile generate content-migrations'
 	template.render('content_migrations/' + release['name'] + '.yml', 'tile/content-migrations.yml', context)
-	print 'tile package'
+	print 'tile generate package'
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		f.write(os.path.join('releases', release['file']))
@@ -232,6 +229,23 @@ def create_tile(context):
 		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
 	print
 	print 'created tile', pivotal_file
+
+def build_docker_release():
+	release_name = 'docker'
+	release_version = '23'
+	release_file = release_name + '-' + release_version + '.tgz'
+	release_tarball = os.path.join(DOCKER_RELEASE_PATH, release_file)
+	if not os.path.isfile(release_tarball):
+		print 'tile build docker release'
+		with cd(DOCKER_REPO_PATH):
+			bash('./update')
+			bosh('create', 'release', '--with-tarball', '--name', release_name, '--version', release_version)
+	return {
+		'tarball': release_tarball,
+		'name': release_name,
+		'version': release_version,
+		'file': release_file,
+	}
 
 def bosh_extract(output, properties):
 	result = {}
@@ -252,6 +266,15 @@ def bosh(*argv):
 			return e.output
 		if argv[0] == 'generate' and 'already exists' in e.output:
 			return e.output
+		print e.output
+		sys.exit(e.returncode)
+
+def bash(*argv):
+	argv = list(argv)
+	try:
+		return subprocess.check_output(argv, stderr=subprocess.STDOUT)
+	except subprocess.CalledProcessError as e:
+		print ' '.join(argv), 'failed'
 		print e.output
 		sys.exit(e.returncode)
 
