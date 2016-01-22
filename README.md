@@ -32,12 +32,12 @@ The first section in the file describes the general properties of your tile:
 
 ```
 name: tile-name # By convention lowercase with dashes
-icon: resources/icon.png
+icon_file: resources/icon.png
 label: Brief Text for the Tile Icon
 description: Longer description of the tile's purpose
 ```
 
-The `icon` should be a 128x128 pixel image that will appear on your tile in
+The `icon_file` should be a 128x128 pixel image that will appear on your tile in
 the Ops Manager GUI. By convention, any resources used by the tile should be
 placed in the `resources` sub-directory of your repo, although this is not
 mandatory. The `label` test will appear on the tile under your icon.
@@ -79,6 +79,15 @@ For an external service broker, use:
   internal_service_names: 'service1,service2'
 </pre>
 
+...
+
+### Custom Forms and Properties
+
+...
+
+### Stemcells
+
+...
 
 ## Versioning
 
