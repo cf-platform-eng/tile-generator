@@ -160,6 +160,20 @@ property_blueprints:
 {% endfor %}
 
 form_types:
+{% for form in forms %}
+#
+# Custom form {{ form.name}} from the tile.yml file
+#
+- name: {{ form.name }}
+  label: {{ form.label }}
+  description: {{ form.description or form.label }}
+  property_inputs:
+  {% for property in form.properties %}
+  - reference: .properties.{{ property.name }}
+    label: {{ property.label }}
+    description: {{ property.description or property.label }}
+  {% endfor %}
+{% endfor %}
 {% for package in packages %}
 {% if not package.is_blob %}
 #
@@ -237,20 +251,6 @@ form_types:
 {% endif %}
 {% endif %}
 {% endif %}
-{% endfor %}
-{% for form in forms %}
-#
-# Custom form {{ form.name}} from the tile.yml file
-#
-- name: {{ form.name }}
-  label: {{ form.label }}
-  description: {{ form.description or form.label }}
-  property_inputs:
-  {% for property in form.properties %}
-  - reference: .properties.{{ property.name }}
-    label: {{ property.label }}
-    description: {{ property.description or property.label }}
-  {% endfor %}
 {% endfor %}
 
 job_types:
