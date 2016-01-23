@@ -12,6 +12,11 @@ combination of the following package types:
 - Cloud Foundry Service Brokers (both inside and outside the Elastic Runtime)
 - Docker images (both inside and outside the Elastic Runtime)
 
+## Screencast
+
+For a 7-minute introduction into what it is and does, see [this screencast]
+(https://www.youtube.com/watch?v=_WeJbqNJWzQ).
+
 ## How to Use
 
 1. Create a repository for your tile (preferably git, but this is not required)
