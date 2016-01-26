@@ -56,10 +56,6 @@ for service in `cf services | grep ${APP_NAME}-${APP_VERSION} | grep "." | awk '
 cf -v
 authenticate_and_target
 
-#if [ "${PERSISTENCE_STORE_TYPE}" == "mysql" ]; then
-#  unbind_and_unprovision_db
-#fi
-
 unbind_services
 cf delete -f ${APP_NAME}-${APP_VERSION}
 cf delete-space -f $SPACE

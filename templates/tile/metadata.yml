@@ -341,11 +341,11 @@ job_types:
   - name: ram
     type: integer
     configurable: false
-    default: 512
+    default: 1024
   - name: ephemeral_disk
     type: integer
     configurable: false
-    default: 2048
+    default: 4096
   - name: persistent_disk
     type: integer
     configurable: false
@@ -401,8 +401,8 @@ job_types:
 {% endif %}
       start_command: (( .properties.{{ job.package.name }}_start_command.value ))
       health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
-      user: (( .{{ job.name }}.app_credentials.identity ))
-      password: (( .{{ job.name }}.app_credentials.password ))
+      user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
+      password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))
       persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
 {% if job.package.on_demand_service_plans is defined %}
       on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
@@ -416,8 +416,8 @@ job_types:
         user: (( .properties.{{ job.package.name }}_broker_user.value ))
         password: (( .properties.{{ job.package.name }}_broker_password.value ))
 {% else %}
-        user: (( .{{ job.name }}.app_credentials.identity ))
-        password: (( .{{ job.name }}.app_credentials.password ))
+        user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
+        password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))
 {% endif %}
 {% endif %}
 {% for property in all_properties %}

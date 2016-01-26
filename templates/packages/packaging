@@ -1,6 +1,8 @@
 # abort script on any command that exit with a non zero value
 set -e
 
+cp -r templates ${BOSH_INSTALL_TARGET}
+
 {% for file in files %}
 cp {{ package.name }}/{{ file }} ${BOSH_INSTALL_TARGET}
 {% endfor %}

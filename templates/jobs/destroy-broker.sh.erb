@@ -35,20 +35,6 @@ function authenticate_and_target() {
 }
 
 function purge_service_offering() {
-#  services_url=`cf curl /v2/services?q=label:$BROKER_NAME | grep "\"url\"" | grep -v "null" | awk '{ print $2 }' | sed 's/[",]//g'`
-#  if [ "$services_url" != "" ]; then
-#    services=`cf curl $services_url | grep label | awk '{ print $2 }' | sed 's/"//g;s/,//g'`
-#    for service in $services; do
-#      cf purge-service-offering -f $service
-#    done
-#  else
-#    # Rely on the internal plan names if we cannot get it from the /v2/services on the broker
-#    for service_name in `echo $BROKER_INTERNAL_SERVICE_NAMES | sed -e 's/,/ /g' `
-#    do
-#      cf purge-service-offering -f $service_name
-#    done
-#  fi
-
     services=`cf service-access | awk "/${BROKER_NAME}/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq `
     for service_name in $services; do
       cf purge-service-offering -f $service_name

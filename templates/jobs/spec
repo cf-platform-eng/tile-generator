@@ -24,7 +24,7 @@ properties:
     description: 'Username of the CF admin user'
   cf.admin_password:
     description: 'Password of the CF admin user'
-{% if 'cf-create-buildpack' in package.jobs %}
+{% if package.is_buildpack %}
   {{ package.name }}.buildpack_name:
     description: 'Name of the Buildpack'
   {{ package.name }}.buildpack_order:
@@ -34,7 +34,10 @@ properties:
     description: 'Name of the Application'
   {{ package.name }}.app_uri:
     description: 'Uri of the Application'
-{% if 'cf-push' in package.jobs %}
+  {{ package.name }}.is_external_broker:
+    description: 'Is an external broker'
+    default: {{ package.is_external_broker }}
+{% if package.is_app %}
   {{ package.name }}.app_version:
     description: 'Version of the Service Broker Application'
   {{ package.name }}.create_open_security_group:
@@ -71,7 +74,7 @@ properties:
 {% endif %}
 {% endif %}
 {% endif %}
-{% if 'cf-create-service-broker' in package.jobs %}
+{% if package.is_broker %}
   {{ package.name }}.internal_service_name:
     description: 'Internal service name'
     default: ''

@@ -52,11 +52,6 @@ function authenticate_and_target() {
   cf auth $ADMIN_USER $ADMIN_PASSWORD
 }
 
-# Use this only to bind any additional files/libraries or modify app contents
-#function modify_buildpack() {
-#  cp ${PACKAGE_PATH}/lib/${TARGET_BUILDPACK}  ${PACKAGE_PATH}/${TARGET_BUILDPACK}
-#}
-
 function push_buildpack() {
   pushd $PACKAGE_PATH
     mkdir -p /var/vcap/data/tmp

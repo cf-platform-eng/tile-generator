@@ -25,6 +25,7 @@ export API_ENDPOINT=$SCHEME://api.$DOMAIN
 export APP_DOMAIN=<%="#{app_domain}" %>
 export APP_NAME=<%= properties.{{ package.name }}.app_name %>
 export APP_URI=<%= properties.{{ package.name }}.app_uri %>
+export IS_EXTERNAL_BROKER=<%= properties.{{ package.name }}.is_external_broker %>
 export ENABLE_GLOBAL_ACCESS=<%= properties.{{ package.name }}.enable_global_access_to_plans %>
 export ORG=${APP_NAME}-org
 export SPACE=${APP_NAME}-space
@@ -32,7 +33,6 @@ export BROKER_NAME=${APP_NAME}-service-broker
 export BROKER_USER=<%= properties.{{ package.name }}.broker.user %>
 export BROKER_PASS=<%= properties.{{ package.name }}.broker.password %>
 export BROKER_HOST=$SCHEME://${APP_URI}.${APP_DOMAIN}
-# export BROKER_URI=<%= properties.{{ package.name }}.broker.uri %>
 
 # Use this only when there are already inbuild services that need to enabled for public
 export BROKER_INTERNAL_SERVICE_NAMES=<%= properties.{{ package.name }}.broker.internal_service_names %>
@@ -45,13 +45,8 @@ function authenticate_and_target() {
 
 function register_broker() {
 
- # BROKER_EFFECTIVE_URL=$BROKER_HOST
- # if [[! -z "$BROKER_URI" ]]; then
- #   BROKER_EFFECTIVE_URL=$BROKER_URI
- # fi
-
   BROKER_EFFECTIVE_URL=$BROKER_HOST
-  if [[! -z "$APP_URI" ]]; then
+  if [[ ! -z "$IS_EXTERNAL_BROKER" ]]; then
     BROKER_EFFECTIVE_URL=$APP_URI
   fi
 

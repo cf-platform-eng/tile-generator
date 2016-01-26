@@ -18,18 +18,20 @@ set -e -x
   <%
     def grab_dynamic_plans
       plansJson = '{ '
-      properties.{{ package.name }}.on_demand_service_plans['on_demand_service_plans'].each do | plan|
+      if properties.{{ package.name }}.on_demand_service_plans
+        properties.{{ package.name }}.on_demand_service_plans['on_demand_service_plans'].each do | plan|
 
-        planName = plan['name']
-        plansJson << " \"#{planName}\" : { "
-        plan.each_pair do | name, value|
-          if name == planName
-            continue
+          planName = plan['name']
+          plansJson << " \"#{planName}\" : { "
+          plan.each_pair do | name, value|
+            if name == planName
+              continue
+            end
+            plansJson <<  " \"#{name}\" : \"#{value}\" ,"
           end
-          plansJson <<  " \"#{name}\" : \"#{value}\" ,"
-        end
         plansJson = plansJson.chomp(",")
         plansJson << ' },'
+        end
       end
       plansJson = plansJson.chomp(",") + ' }'
       plansJson
@@ -62,13 +64,9 @@ export APP_PUSH_TIMEOUT=<%= properties.{{ package.name }}.app_push.timeout %>
 export APP_PUSH_MEMORY=<%= properties.{{ package.name }}.app_push.memory %>
 
 
-# Use this only if app needs additional libraries that need to be downloaded
-#
 # Use these variables only if app needs to persistence store for saving its plans/sevice offerings etc.
 export PERSISTENCE_STORE_TYPE=<%= properties.{{ package.name }}.persistence_store_type %>
 
-#export APP_USER=<%= properties.{{ package.name }}.broker.user %>
-#export APP_PASSWD=<%= properties.{{ package.name }}.broker.password %>
 export SECURITY_USER_NAME=<%= properties.{{ package.name }}.user %>
 export SECURITY_USER_PASSWORD=<%= properties.{{ package.name }}.password %>
 export START_COMMAND=<%= properties.{{ package.name }}.start_command %>
@@ -192,10 +190,6 @@ function wait_till_running() {
 
 
 function add_env_vars() {
-#  cf set-env ${APP_NAME}-${APP_VERSION} BASIC_AUTH_PASSWORD <%= properties.{{ package.name }}.broker.password %>
-#  cf set-env ${APP_NAME}-${APP_VERSION} BASIC_AUTH_USERNAME <%= properties.{{ package.name }}.broker.user %>
-#  cf set-env ${APP_NAME}-${APP_VERSION} UAA_CLIENT_ID generic-sb-service
-#  cf set-env ${APP_NAME}-${APP_VERSION} UAA_CLIENT_SECRET <%= properties.uaa.clients.{{ package.name }}.secret %>
   cf set-env ${APP_NAME}-${APP_VERSION} UAA_HOST $SCHEME://uaa.$DOMAIN
   cf set-env ${APP_NAME}-${APP_VERSION} CC_HOST $API_ENDPOINT
   cf set-env ${APP_NAME}-${APP_VERSION} LOGIN_HOST $SCHEME://login.$DOMAIN
@@ -206,44 +200,26 @@ function add_env_vars() {
   # Adding additional properties that most spring based apps or internal apps seem to be expecting
   cf set-env ${APP_NAME}-${APP_VERSION} CF_ORG $CF_ORG
   cf set-env ${APP_NAME}-${APP_VERSION} CF_SPACE $CF_SPACE
-  cf set-env ${APP_NAME}-${APP_VERSION} CF_USER $CF_USER
-  cf set-env ${APP_NAME}-${APP_VERSION} CF_PASSWORD $CF_PASSWORD
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USER $CF_USER
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USERNAME $CF_USER
+  cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_PASSWORD $CF_PASSWORD
   cf set-env ${APP_NAME}-${APP_VERSION} CF_TARGET $CF_TARGET
   cf set-env ${APP_NAME}-${APP_VERSION} SECURITY_USER_NAME $SECURITY_USER_NAME
   cf set-env ${APP_NAME}-${APP_VERSION} SECURITY_USER_PASSWORD $SECURITY_USER_PASSWORD
 
-  cf set-health-check ${APP_NAME}-${APP_VERSION} none <%if !properties.{{ package.name }}.health_monitor %>
+  <%if !properties.{{ package.name }}.health_monitor %>
+  cf set-health-check ${APP_NAME}-${APP_VERSION} none
+  <% end %>
 
-  cf set-env ${APP_NAME}-${APP_VERSION} PLANS $DYNAMIC_PLANS
+  if [ "$DYNAMIC_PLANS" != "" ]; then
+    cf set-env ${APP_NAME}-${APP_VERSION} PLANS $DYNAMIC_PLANS
+  fi
 
   # Custom variables from tile.yml
 {% for property in context.all_properties %}
-  cf set-env ${APP_NAME}-${APP_VERSION} {{ property.name | upper }} <%= properties.{{ property.name }} %>
+  cf set-env ${APP_NAME}-${APP_VERSION} {{ property.name | upper }} "<%= properties.{{ property.name }} %>"
 {% endfor %}
-
-  # Add app specific env variables using the setup script definition
-  #add_parameterized_env_vars
 }
-
-#function add_parameterized_env_vars() {
-#  pushd $PACKAGE_PATH
-#
-#    # Source the environment variables before doing a cf set-env using the variable name
-#    source $SB_APP_ENV
-#    cat $SB_APP_ENV | grep -v "^#" | grep "." | while read env_var_entry
-#    do
-#      key=`echo $env_var_entry | sed -e 's/export //;s/=.*//';`
-#      #formatted_key=`echo $key | sed -e 's/__/\./g' `
-#      formatted_env_var=`env | grep "^${key}=" | sed -e 's/^.*=//';`
-#      cf set-env ${APP_NAME}-${APP_VERSION} ${key} ${formatted_env_var}
-#    done
-#  popd
-#}
-
-# Use this only to bind any additional files/libraries or modify app contents
-#function modify_app() {
-#  cp ${PACKAGE_PATH}/lib/${TARGET_APP}  ${PACKAGE_PATH}/${TARGET_APP}
-#}
 
 function delete_prev_app_instance() {
 
@@ -289,62 +265,6 @@ function push_app() {
 }
 
 
-#function register_on_demand_plans() {
-#  pushd $PACKAGE_PATH
-#    mkdir -p /var/vcap/data/tmp
-#    # Sleep for a bit so the app is up
-#    sleep 30
-#    app_endpoint=http://${BROKER_USER}:${BROKER_PASSWD}@${APP_URI}.${APP_DOMAIN}
-#    app_catalog_url=${app_endpoint}/v2/catalog
-#    catalog_output=`curl -X GET ${app_catalog_url} 2>/dev/null`
-#    log_debug "Service Broker App Catalog output : $catalog_output"
-#
-#    service_id=`echo $catalog_output | sed -e 's/"//g'  | sed -e "s/name:/\nname:/g" | grep "id:" | grep services | sed -e "s/^.*id://g;s/,//" `
-#    #plan_id=`echo $catalog_output | sed -e 's/"//g'  | sed -e "s/name:/\nname:/g" | grep "id:" | grep plans | sed -e "s/^.*id://g;s/,//" `
-#    log_debug "Catalog Service Id : $service_id "
-#
-#    <% if properties.{{ package.name }}.on_demand_service_plans %>
-#      <%  p("{{ package.name }}.on_demand_service_plans").each do |plan|
-#             plan_name=plan['plan_name']
-#             plan_descrp=plan['plan_description']
-#             plan_details=plan['plan_details'].gsub('\n','')
-#      %>
-#        export PLAN_ID=<%="#{plan_name}"%>
-#        export PLAN_DESCRP=<%="#{plan_descrp}"%>
-#        export PLAN_DETAILS='<%="#{plan_details}"%>'
-#        log_debug "Service plan name ${PLAN_ID}, described as ${PLAN_DESCRP} and details: ${PLAN_DETAILS}"
-#
-#        bullets_name_value_multiline=`echo $PLAN_DETAILS | sed -e "s/;/,/g" | awk -F ":" '{print "\"" $1 "\" : \"" $2 "\", " }' `
-#        bullets_value_descrp_singleline=`echo $PLAN_DETAILS | sed -e "s/;/,\n/g;"  | awk -F ":" '{print "\""$2  $3"\"" }' | sed -e 's/,"/",/g' `
-#
-#        cat > /var/vcap/data/tmp/${PLAN_ID}.service_plan.json << EOF
-#{
-#  "name" : "$PLAN_ID",
-#  "description" : "$PLAN_DESCRP",
-#  "metadata" : {
-#     "name" : "$PLAN_ID",
-#     "displayName" : "$PLAN_ID",
-#     "description" : "$PLAN_DESCRP",
-#     $bullets_name_value_multiline
-#     "bullets" : [
-#        "$PLAN_ID $PLAN_DESCRP",
-#        $bullets_value_descrp_singleline ]
-#   }
-#}
-#EOF
-#
-#         log_debug "Copied over default service plan file template with ${PLAN_ID} and updated it"
-#         new_plan=`cat /var/vcap/data/tmp/${PLAN_ID}.service_plan.json`
-#         log_debug "Contents of the plan: ${new_plan} "
-#         plan_creation_output=`curl ${app_catalog_url}/services/${service_id}/plans -X POST -H "Content-Type:application/json" -d @/var/vcap/data/tmp/${PLAN_ID}.service_plan.json `
-#         log_debug "Service Plan created!!"
-#         log_debug "Service Plan details: ${plan_creation_output}"
-#       <% end %>
-#    <% end %>
-#
-#  popd
-#}
-
 cf -v
 authenticate_and_target
 create_open_security_group
@@ -359,8 +279,3 @@ fi
 
 restart_app
 wait_till_running
-
-# Remove register_plans if there are already some internal plans
-#<% if properties.{{ package.name }}.on_demand_service_plans %>
-#  register_on_demand_plans
-#<% end %>
