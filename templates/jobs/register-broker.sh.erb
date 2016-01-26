@@ -46,7 +46,7 @@ function authenticate_and_target() {
 function register_broker() {
 
   BROKER_EFFECTIVE_URL=$BROKER_HOST
-  if [[ ! -z "$IS_EXTERNAL_BROKER" ]]; then
+  if [ "$IS_EXTERNAL_BROKER" == "true" ]; then
     BROKER_EFFECTIVE_URL=$APP_URI
   fi
 

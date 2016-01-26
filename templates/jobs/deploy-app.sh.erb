@@ -212,7 +212,7 @@ function add_env_vars() {
   <% end %>
 
   if [ "$DYNAMIC_PLANS" != "" ]; then
-    cf set-env ${APP_NAME}-${APP_VERSION} PLANS $DYNAMIC_PLANS
+    cf set-env ${APP_NAME}-${APP_VERSION} PLANS "$DYNAMIC_PLANS"
   fi
 
   # Custom variables from tile.yml
@@ -249,7 +249,7 @@ function push_app() {
 
     HEALTH_MONITOR=""
     <%if !properties.{{ package.name }}.health_monitor %>
-      HEALTH_MONITOR="--no-route"
+      HEALTH_MONITOR=" --no-route "
     <% end %>
 
     if [ "$START_COMMAND" != "" ]; then

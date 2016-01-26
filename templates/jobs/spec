@@ -36,7 +36,11 @@ properties:
     description: 'Uri of the Application'
   {{ package.name }}.is_external_broker:
     description: 'Is an external broker'
-    default: {{ package.is_external_broker }}
+{% if package.is_external_broker %}
+    default: true
+{% else %}
+    default: false
+{% endif %}
 {% if package.is_app %}
   {{ package.name }}.app_version:
     description: 'Version of the Service Broker Application'
