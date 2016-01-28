@@ -1,0 +1,5 @@
+check process {{ package.name }}
+  with pidfile /var/vcap/sys/run/{{ package.name }}/{{ package.name }}.pid
+  start program "/var/vcap/jobs/{{ package.name }}/bin/docker_uploader_ctl start'"
+  stop program "/var/vcap/jobs/{{ package.name }}/bin/docker_uploader_ctl stop'"
+        group vcap

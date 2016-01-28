@@ -1,7 +1,11 @@
 ---
 name: {{ job_name }}
 templates:
+{% if not package.is_docker %}
   {{ job_name }}.sh.erb: bin/run
+{% else %}
+  {{ job_name }}.sh.erb: bin/docker_uploader_ctl
+{% endif %}
 packages:
 {% if package.requires_cf_cli %}
 - cf_cli
