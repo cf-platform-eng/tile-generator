@@ -60,7 +60,7 @@ package_types = [
 	{
 		'typename': 'docker-bosh',
 		'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ],
-		'jobs':  [ 'docker-bosh' ],
+		'jobs':  [ 'docker-image-uploader' ],
 	},
 	{
 		'typename': 'docker-app',
@@ -97,8 +97,8 @@ def create_bosh_release(context):
 			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
 			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
 			sys.exit(1)
-		if 'is_docker' not in typedef['flags']:
-			add_blob_package(context, package)
+		#if 'is_docker1' not in typedef['flags']:
+		add_blob_package(context, package)
 		for flag in typedef['flags']:
 			package[flag] = True
 		for job in typedef['jobs']:
@@ -113,6 +113,9 @@ def create_bosh_release(context):
 		requires_docker_bosh |= package.get('requires_docker_bosh', False)
 	if requires_cf_cli:
 		add_cf_cli(context)
+	# FIX ME - need to download and save it in the DOCKER_RELEASE_PATH LOCATION
+	if requires_docker_bosh:
+		add_docker_boshrelease(context)	
 	bosh('upload', 'blobs')
 	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', context['version'])
 	context['release'] = bosh_extract(output, [
@@ -143,6 +146,13 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 		os.path.join('jobs', job_type + '.sh.erb'),
 		job_context
 	)
+	
+	if job_type == 'docker-image-uploader':
+		template.render(
+		  os.path.join('jobs', job_name, 'monit'),
+		  os.path.join('jobs', job_type + '.monit'),
+		  job_context)
+
 	context['jobs'] = context.get('jobs', []) + [{
 		'name': job_name,
 		'type': job_type,
@@ -206,6 +216,18 @@ def add_cf_cli(context):
 		alternate_template='cf_cli'
 	)
 
+def add_docker_boshrelease(context):
+	add_blob_package(context,
+		{
+			'name': 'docker_boshrelease',
+			'files': [{
+				'name': 'docker-boshrelease-23.tgz',
+				'path': 'http://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=23'
+			}]
+		},
+		alternate_template='docker_boshrelease'
+	)
+
 def create_tile(context):
 	release = context['release']
 	release['file'] = os.path.basename(release['tarball'])
@@ -214,6 +236,8 @@ def create_tile(context):
 		shutil.copy(release['tarball'], release['file'])
 		if context.get('requires_docker_bosh', False):
 			print 'tile import release docker'
+			# FIX ME
+			# Copy from the bosh.io repo the readymade tarball.
 			docker_release = build_docker_release()
 			context['docker_release'] = docker_release
 			shutil.copy(docker_release['tarball'], release['file'])
@@ -233,13 +257,13 @@ def create_tile(context):
 def build_docker_release():
 	release_name = 'docker'
 	release_version = '23'
-	release_file = release_name + '-' + release_version + '.tgz'
+	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
 	release_tarball = os.path.join(DOCKER_RELEASE_PATH, release_file)
 	if not os.path.isfile(release_tarball):
 		print 'tile build docker release'
-		with cd(DOCKER_REPO_PATH):
-			bash('./update')
-			bosh('create', 'release', '--with-tarball', '--name', release_name, '--version', release_version)
+		#with cd(DOCKER_REPO_PATH):
+	#		bash('./update')
+	#		bosh('create', 'release', '--with-tarball', '--name', release_name, '--version', release_version)
 	return {
 		'tarball': release_tarball,
 		'name': release_name,
