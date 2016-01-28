@@ -28,7 +28,10 @@ The generator will first create a BOSH release (in the `release` subdirectory),
 then wrap that release into a Pivotal tile (in the `product` subdirectory).
 If required for the installation, it will automatically pull down the latest
 release version of the Cloud Foundry CLI.
-
+## Install Dependencies
+```
+pip install -r requirements.txt
+```
 ## Describing your Tile
 
 All required configuration for your tile is in the file called `tile.yml`.
