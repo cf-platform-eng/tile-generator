@@ -60,7 +60,7 @@ package_types = [
 	{
 		'typename': 'docker-bosh',
 		'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ],
-		'jobs':  [ 'docker-bosh' ],
+		'jobs':  [ 'docker-image-uploader' ],
 	},
 	{
 		'typename': 'docker-app',
@@ -97,8 +97,8 @@ def create_bosh_release(context):
 			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
 			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
 			sys.exit(1)
-		if 'is_docker' not in typedef['flags']:
-			add_blob_package(context, package)
+		#if 'is_docker1' not in typedef['flags']:
+		add_blob_package(context, package)
 		for flag in typedef['flags']:
 			package[flag] = True
 		for job in typedef['jobs']:
@@ -143,6 +143,12 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 		os.path.join('jobs', job_type + '.sh.erb'),
 		job_context
 	)
+	
+	template.render(
+	  os.path.join('jobs', job_name, 'monit'),
+	  os.path.join('jobs', 'monit'),
+	  job_context)
+
 	context['jobs'] = context.get('jobs', []) + [{
 		'name': job_name,
 		'type': job_type,
@@ -214,9 +220,8 @@ def create_tile(context):
 		shutil.copy(release['tarball'], release['file'])
 		if context.get('requires_docker_bosh', False):
 			print 'tile import release docker'
-			docker_release = build_docker_release()
+			docker_release = download_docker_release()
 			context['docker_release'] = docker_release
-			shutil.copy(docker_release['tarball'], release['file'])
 	print 'tile generate metadata'
 	template.render('metadata/' + release['name'] + '.yml', 'tile/metadata.yml', context)
 	print 'tile generate content-migrations'
@@ -230,16 +235,14 @@ def create_tile(context):
 	print
 	print 'created tile', pivotal_file
 
-def build_docker_release():
+def download_docker_release():
 	release_name = 'docker'
 	release_version = '23'
-	release_file = release_name + '-' + release_version + '.tgz'
-	release_tarball = os.path.join(DOCKER_RELEASE_PATH, release_file)
+	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
+	release_tarball = release_file
 	if not os.path.isfile(release_tarball):
-		print 'tile build docker release'
-		with cd(DOCKER_REPO_PATH):
-			bash('./update')
-			bosh('create', 'release', '--with-tarball', '--name', release_name, '--version', release_version)
+		url = 'http://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
+		urllib.urlretrieve(url, release_tarball)
 	return {
 		'tarball': release_tarball,
 		'name': release_name,
