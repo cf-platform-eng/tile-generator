@@ -203,7 +203,17 @@ using the `docker-bosh` type:
 
 ### Stemcells
 
-...
+The tile generator will default to a recent stemcell supported by Ops Manager.
+In most cases the default will be fine, as the stemcell is only used to execute
+CF command lines and/or the docker daemon. But if you have specific stemcell
+requirements, you can override the defaults in your `tile.yml` file by including
+a `stemcell-criteria` section and replacing the appopriate values:
+
+<pre>
+stemcell_criteria:
+  os: 'ubunty-trusty'
+  version: '3146.5'     <i>NOTE: Your must quote the version to force the type to be string</i>
+</pre>
 
 ## Versioning
 
