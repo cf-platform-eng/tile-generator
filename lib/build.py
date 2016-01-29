@@ -113,9 +113,6 @@ def create_bosh_release(context):
 		requires_docker_bosh |= package.get('requires_docker_bosh', False)
 	if requires_cf_cli:
 		add_cf_cli(context)
-	# FIX ME - need to download and save it in the DOCKER_RELEASE_PATH LOCATION
-	if requires_docker_bosh:
-		add_docker_boshrelease(context)	
 	bosh('upload', 'blobs')
 	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', context['version'])
 	context['release'] = bosh_extract(output, [
@@ -147,11 +144,10 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 		job_context
 	)
 	
-	if job_type == 'docker-image-uploader':
-		template.render(
-		  os.path.join('jobs', job_name, 'monit'),
-		  os.path.join('jobs', job_type + '.monit'),
-		  job_context)
+	template.render(
+	  os.path.join('jobs', job_name, 'monit'),
+	  os.path.join('jobs', 'monit'),
+	  job_context)
 
 	context['jobs'] = context.get('jobs', []) + [{
 		'name': job_name,
@@ -216,18 +212,6 @@ def add_cf_cli(context):
 		alternate_template='cf_cli'
 	)
 
-def add_docker_boshrelease(context):
-	add_blob_package(context,
-		{
-			'name': 'docker_boshrelease',
-			'files': [{
-				'name': 'docker-boshrelease-23.tgz',
-				'path': 'http://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=23'
-			}]
-		},
-		alternate_template='docker_boshrelease'
-	)
-
 def create_tile(context):
 	release = context['release']
 	release['file'] = os.path.basename(release['tarball'])
@@ -236,11 +220,8 @@ def create_tile(context):
 		shutil.copy(release['tarball'], release['file'])
 		if context.get('requires_docker_bosh', False):
 			print 'tile import release docker'
-			# FIX ME
-			# Copy from the bosh.io repo the readymade tarball.
-			docker_release = build_docker_release()
+			docker_release = download_docker_release()
 			context['docker_release'] = docker_release
-			shutil.copy(docker_release['tarball'], release['file'])
 	print 'tile generate metadata'
 	template.render('metadata/' + release['name'] + '.yml', 'tile/metadata.yml', context)
 	print 'tile generate content-migrations'
@@ -254,16 +235,14 @@ def create_tile(context):
 	print
 	print 'created tile', pivotal_file
 
-def build_docker_release():
+def download_docker_release():
 	release_name = 'docker'
 	release_version = '23'
 	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
-	release_tarball = os.path.join(DOCKER_RELEASE_PATH, release_file)
+	release_tarball = release_file
 	if not os.path.isfile(release_tarball):
-		print 'tile build docker release'
-		#with cd(DOCKER_REPO_PATH):
-	#		bash('./update')
-	#		bosh('create', 'release', '--with-tarball', '--name', release_name, '--version', release_version)
+		url = 'http://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
+		urllib.urlretrieve(url, release_tarball)
 	return {
 		'tarball': release_tarball,
 		'name': release_name,

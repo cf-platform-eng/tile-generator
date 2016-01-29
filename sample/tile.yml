@@ -107,7 +107,7 @@ packages:
   manifest: |
     containers:
     - name: test-ubuntu-docker
-      image: ubuntu
+      image: ubuntu # should match the docker image name
       command: "--dir /var/lib/test --appendonly yes"
       bind_ports:
       - "9200:9200"
@@ -116,6 +116,7 @@ packages:
       env-vars:
       - test-key1: testValue1
       - test-key2: testValue2
+      # Must add custom properties below
       - custom-variable-name: (( .properties.customer_name.value ))
       - custom-variable-city: (( .properties.city.value ))
 - name: docker-app
