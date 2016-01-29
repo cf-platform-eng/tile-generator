@@ -1,0 +1,31 @@
+---
+resources:
+- name: git-tile-generator-master
+  type: git
+  source:
+    branch: pipeline
+    uri: git@github.com:cf-platform-eng/tile-generator.git
+
+- name: generated-tile
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: git-tile-generator-master/sample/product/*.pivotal
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+jobs:
+- name: build-sample-tile
+  plan:
+  - aggregate:
+    - get: git-tile-generator-master
+      trigger: true
+  - task: build-sample-tile
+    inputs: name: git-tile-generator-master
+    config:
+      platform: linux
+      image: "docker:///ubuntu"
+      run:
+        path: git-tile-generator-master/ci/scripts/tile-build.sh
+        args: ["git-tile-generator-master/sample"]
+
