@@ -36,7 +36,7 @@ def add_defaults(context):
 
 package_types = [
 	# A + at the start of the job type indicates it is a post-deploy errand
-	# A - at the start of the job type indicates it is a pre-deploy errand
+	# A - at the start of the job type indicates it is a pre-delete errand
 	{
 		'typename': 'app',
 		'flags': [ 'requires_cf_cli', 'is_app' ],
