@@ -199,7 +199,56 @@ using the `docker-bosh` type:
 
 ### Custom Forms and Properties
 
-...
+You can pass custom properties to all applications deployed by your tile by adding
+the to the properties section of `tile.yml`:
+
+```
+properties:
+- name: author
+  type: string
+  label: Author
+  value: Tile Ninja
+```
+
+If you want the properties to be configurable by the tile installer, place them on
+a custom for instead:
+
+```
+forms:
+- name: custom-form1
+  label: Test Tile
+  description: Custom Properties for Test Tile
+  properties:
+  - name: customer_name
+    type: string
+    label: Full Name
+  - name: street_address
+    type: string
+    label: Street Address
+    description: Address to use for junk mail
+  - name: city
+    type: string
+    label: City
+  - name: zip_code
+    type: string
+    label: ZIP+4
+    default: '90310'
+  - name: country
+    type: dropdown_select
+    label: Country
+    options:
+    - name: country_us
+      label: US
+      default: true
+    - name: country_elsewhere
+      label: Elsewhere
+```
+
+Properties defined in either section will be passed to all pushed applications
+as environment variables (the name of the environment variable will be the same
+as the property name but in ALL_CAPS). They can also be referenced in other parts
+of the configuration file by using `(( .properties.<property-name> ))` instead
+of a hardcoded value.
 
 ### Stemcells
 
