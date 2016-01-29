@@ -1,6 +1,8 @@
 ---
+
 resources:
-- name: git-tile-generator-master
+
+- name: git-tile-generator-repo
   type: git
   source:
     branch: pipeline
@@ -10,22 +12,44 @@ resources:
   type: s3
   source:
     bucket: {{s3-bucket}}
-    regexp: git-tile-generator-master/sample/product/*.pivotal
+    regexp: git-tile-generator-repo/sample/product/*.pivotal
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
+- name: base-ci-docker-image
+  type: docker-image
+  source:
+    repository: guidowb/tile-pipeline
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
 jobs:
+
 - name: build-sample-tile
   plan:
-  - get: git-tile-generator-master
-    trigger: true
+  - aggregate:
+    - get: git-tile-generator-repo
+      trigger: true
+    - get: base-ci-docker-image
+      trigger: true
   - task: build-sample-tile
     config:
       platform: linux
       image: "docker:///ubuntu"
       inputs:
-      - name: git-tile-generator-master
+      - name: git-tile-generator-repo
       run:
-        path: git-tile-generator-master/ci/scripts/tile-build.sh
-        args: ["git-tile-generator-master/sample"]
+        path: git-tile-generator-repo/ci/scripts/tile-build.sh
+        args: ["git-tile-generator-repo/sample"]
+
+- name: build-ci-docker-image
+  public: true
+  serial: true
+  plan:
+  - get: git-tile-generator-repo
+    trigger: true
+  - put: base-ci-docker-image
+    params:
+      build: git-tile-generator-repo/ci
 
