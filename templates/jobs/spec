@@ -10,9 +10,10 @@ packages:
 {% if package.requires_cf_cli %}
 - cf_cli
 {% endif %}
-{% if not package.is_docker %}
+{% if not package.is_docker_app %}
 - {{ package.name }}
 {% endif %}
+{% if not package.is_docker_bosh %}
 properties:
   ssl.skip_cert_verify:
     description: 'Whether to verify SSL certs when making web requests'
@@ -103,3 +104,4 @@ properties:
   {{ property.name }}:
     description: {{ property.description or property.name }}
 {% endfor %}
+{% endif %}
