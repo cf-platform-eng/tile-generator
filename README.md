@@ -28,10 +28,13 @@ The generator will first create a BOSH release (in the `release` subdirectory),
 then wrap that release into a Pivotal tile (in the `product` subdirectory).
 If required for the installation, it will automatically pull down the latest
 release version of the Cloud Foundry CLI.
+
 ## Install Dependencies
+
 ```
 pip install -r requirements.txt
 ```
+
 ## Describing your Tile
 
 All required configuration for your tile is in the file called `tile.yml`.
@@ -55,6 +58,8 @@ mandatory. The `label` test will appear on the tile under your icon.
 Next you can specify the packages to be included in your tile. The format of
 the package entry depends on the type of package you are adding.
 
+#### Pushed Application
+
 For a standard Cloud Foundry application (that is being 'cf push'ed into the
 Elastic Runtime), use the following format:
 
@@ -63,7 +68,7 @@ Elastic Runtime), use the following format:
   type: app                            <i># or app-broker (see below)</i>
   uri: app.example.com
   files:
-  - path: resources/app1.jar
+  - path: resources/my-application.jar
   start_command: start_here.sh         <i># optional</i>
   health_monitor: true                 <i># optional</i>
   create_open_security_group: true     <i># optional</i>
@@ -76,6 +81,35 @@ If your application is also a service broker, use `app-broker` as the type
 instead of just `app`. `persistence_store: true` results in the user being
 able to select a backing service for data persistence.
 
+#### Service Brokers
+
+Most modern service brokers are pushed into the Elastic Runtime as normal
+CF applications. For these types of brokers, use the Pushed Application format
+specified above, but set the type to `app-broker` instead of just `app`.
+
+Some service brokers support operator-defined service plans, for isntance when
+the plans reflect customer license keys. To allow operators to add plans from
+the tile configuration, add the following section to the service broker definition:
+
+<pre>
+  on_demand_service_plans:
+  - name: description
+    type: string
+    descrp: "Some Description"
+    configurable: true
+  - name: key1
+    type: integer
+    descrp: "Key 1 of type integer"
+    configurable: true
+  - name: key2
+    type: secret
+    descrp: "Key 2 of type Password"
+    configurable: true
+</pre>
+
+Name and GUID fields will be supplied by default for each plan, but all other fields
+are optional and customizable.
+
 For an external service broker, use:
 
 <pre>
@@ -87,7 +121,81 @@ For an external service broker, use:
   internal_service_names: 'service1,service2'
 </pre>
 
-...
+#### Buildpacks
+
+<pre>
+- name: my-buildpack
+  type: buildpack
+  files:
+  - path: resources/buildpack.zip
+</pre>
+
+#### Docker Images
+
+Applications packages as docker images can be deployed inside or outside the Elastic
+Runtime. To push a docker image as a CF application, use the `docker-app` type:
+
+<pre>
+- name: docker-app
+  type: docker-app
+  image: test/dockerimage
+  uri: docker-app1.example.com
+  start_command: start_here.sh
+  health_monitor: true
+  create_open_security_group: true
+  org_quota: 2000
+  memory: 1500
+</pre>
+
+If this app is also a service broker, use `docker-app-broker` instead of just
+`docker-app`. This option is appropriate for docker-wrapper 12-factor apps that
+delegate their persistence to bound services.
+
+Docker applications that require persistent storage can not be deployed into the
+Elastic Runtime. These can be deployed to separate BOSH-managed VMs instead by
+using the `docker-bosh` type:
+
+<pre>
+- name: docker-bosh1
+  type: docker-bosh
+  image: test/dockerimage
+  cpu: 5
+  memory: 4096
+  ephemeral_disk: 4096
+  persistent_disk: 2048
+  instances: 1
+  manifest: |
+    test-key1: testValue1
+    test-key2: testValue2
+    test-key3: testValue3
+    test-key4: testValue4
+    containers:
+    - name: redis
+      image: "redis"
+      command: "--dir /var/lib/redis/ --appendonly yes"
+      bind_ports:
+      - "6379:6379"
+      bind_volumes:
+      - "/var/lib/redis"
+      entrypoint: "redis-server"
+      memory: "256m"
+      env_vars:
+      - "EXAMPLE_VAR=1"
+    - name: mysql
+      image: "google/mysql"
+      bind_ports:
+      - "3306:3306"
+      bind_volumes:
+      - "/mysql"
+    - name: elasticsearch
+      image: "bosh/elasticsearch"
+      links:
+      - mysql:db
+      depends_on:
+      - mysql
+      bind_ports:
+      - "9200:9200"
+</pre>
 
 ### Custom Forms and Properties
 
