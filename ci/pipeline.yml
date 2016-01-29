@@ -36,7 +36,7 @@ jobs:
   - task: build-sample-tile
     config:
       platform: linux
-      image: "docker:///ubuntu"
+      image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: git-tile-generator-repo
       run:

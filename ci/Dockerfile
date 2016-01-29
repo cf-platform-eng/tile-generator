@@ -1,4 +1,4 @@
-FROM python
+FROM python:2.7
 
 ADD requirements.txt .
 RUN apt-get update
