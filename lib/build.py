@@ -11,6 +11,7 @@ import zipfile
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
+DOCKER_BOSHRELEASE_VERSION = '23'
 
 def build(config, verbose=False):
 	context = config.copy()
@@ -239,7 +240,7 @@ def create_tile(context):
 
 def download_docker_release():
 	release_name = 'docker'
-	release_version = '23'
+	release_version = DOCKER_BOSHRELEASE_VERSION
 	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
 	release_tarball = release_file
 	if not os.path.isfile(release_tarball):
