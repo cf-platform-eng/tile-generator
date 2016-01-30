@@ -82,6 +82,7 @@ def create_bosh_release(context):
 	target = os.getcwd()
 	bosh('init', 'release')
 	template.render('src/templates/all_open.json', 'src/templates/all_open.json', context)
+	template.render('src/common/utils.sh', 'src/common/utils.sh', context)
 	template.render('config/final.yml', 'config/final.yml', context)
 	packages = context.get('packages', [])
 	requires_cf_cli = False
@@ -111,6 +112,7 @@ def create_bosh_release(context):
 		requires_docker_bosh |= package.get('requires_docker_bosh', False)
 	if requires_cf_cli:
 		add_cf_cli(context)
+	add_common_utils(context)
 	bosh('upload', 'blobs')
 	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', context['version'])
 	context['release'] = bosh_extract(output, [
@@ -213,6 +215,15 @@ def add_cf_cli(context):
 			}]
 		},
 		alternate_template='cf_cli'
+	)
+
+def add_common_utils(context):
+	add_src_package(context,
+		{
+			'name': 'common',
+			'files': []
+		},
+		alternate_template='common'
 	)
 
 def create_tile(context):
