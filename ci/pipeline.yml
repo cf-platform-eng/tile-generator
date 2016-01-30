@@ -47,9 +47,6 @@ jobs:
       trigger: true
     - get: git-tile-generator-repo
       trigger: true
-  - put: generated-tile
-    params:
-      from: generated-tile/(.*).pivotal
   - task: build-sample-tile
     config:
       platform: linux
