@@ -14,5 +14,5 @@ if [ -f "${HISTORY_DIR}/tile-history.yml" ]; then
 	cp ${HISTORY_DIR}/tile-history.yml ${SOURCE_DIR}
 fi
 (cd ${SOURCE_DIR}; ${REPO_DIR}/tile build)
-cp $${SOURCE_DIR}/product/*.pivotal ${TARGET_DIR}
+cp ${SOURCE_DIR}/product/*.pivotal ${TARGET_DIR}
 cp ${SOURCE_DIR}/tile-history.yml ${HISTORY_DIR}
