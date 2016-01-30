@@ -18,7 +18,7 @@ resources:
   type: s3
   source:
     bucket: {{s3-bucket}}
-    regexp: *.pivotal
+    regexp: (.*).pivotal
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
@@ -48,6 +48,8 @@ jobs:
     - get: git-tile-generator-repo
       trigger: true
   - put: generated-tile
+    params:
+      from: generated-tile/(.*).pivotal
   - task: build-sample-tile
     config:
       platform: linux
