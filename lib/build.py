@@ -95,7 +95,6 @@ def create_bosh_release(context):
 			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
 			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
 			sys.exit(1)
-		#if 'is_docker1' not in typedef['flags']:
 		add_blob_package(context, package)
 		for flag in typedef['flags']:
 			package[flag] = True
