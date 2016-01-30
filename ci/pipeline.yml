@@ -2,6 +2,12 @@
 
 resources:
 
+- name: git-tile-generator-ci-repo
+  type: git
+  source:
+    branch: pipeline
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
 - name: git-tile-generator-repo
   type: git
   source:
@@ -26,12 +32,20 @@ resources:
 
 jobs:
 
+- name: build-ci-docker-image
+  plan:
+  - get: git-tile-generator-ci-repo
+    trigger: true
+  - put: base-ci-docker-image
+    params:
+      build: git-tile-generator-ci-repo/ci
+
 - name: build-sample-tile
   plan:
   - aggregate:
-    - get: git-tile-generator-repo
-      trigger: true
     - get: base-ci-docker-image
+      trigger: true
+    - get: git-tile-generator-repo
       trigger: true
   - task: build-sample-tile
     config:
@@ -42,14 +56,4 @@ jobs:
       run:
         path: git-tile-generator-repo/ci/scripts/tile-build.sh
         args: ["git-tile-generator-repo/sample"]
-
-- name: build-ci-docker-image
-  public: true
-  serial: true
-  plan:
-  - get: git-tile-generator-repo
-    trigger: true
-  - put: base-ci-docker-image
-    params:
-      build: git-tile-generator-repo/ci
 
