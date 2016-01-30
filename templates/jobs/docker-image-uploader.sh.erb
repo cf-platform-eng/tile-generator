@@ -10,6 +10,8 @@ PACKAGES_DIR=/var/vcap/packages/{{package.name}}
 
 PIDFILE=$RUN_DIR/{{package.name}}.pid
 
+source /var/vcap/packages/common/utils.sh
+
 case $1 in
 
   start)

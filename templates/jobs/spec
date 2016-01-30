@@ -13,6 +13,9 @@ packages:
 {% if not package.is_docker_app %}
 - {{ package.name }}
 {% endif %}
+{% if not errand %}
+- common
+{% endif %}
 {% if not package.is_docker_bosh %}
 properties:
   ssl.skip_cert_verify:
