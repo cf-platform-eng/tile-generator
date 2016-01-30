@@ -44,6 +44,7 @@ jobs:
   plan:
   - aggregate:
     - get: base-ci-docker-image
+      passed: [build-ci-docker-image]
       trigger: true
     - get: git-tile-generator-repo
       trigger: true
