@@ -3,28 +3,33 @@
 set -e # exit immediately if a simple command exits with a non-zero status
 set -u # report the usage of uninitialized variables
 
-# Setup env vars and folders for the webapp_ctl script
+# Setup env vars and folders
+RUN_DIR=/var/vcap/sys/run/{{package.name}}
+LOG_DIR=/var/vcap/sys/log/{{package.name}}
+PACKAGES_DIR=/var/vcap/packages/{{package.name}}
 
-export PORT=${PORT}
-export LANG=en_US.UTF-8
+PIDFILE=$RUN_DIR/{{package.name}}.pid
 
 case $1 in
 
   start)
-    pid_guard $PIDFILE $JOB_NAME
+    pid_guard $PIDFILE {{package.name}}
 
-    # store pid in $PIDFILE
+    mkdir -p $RUN_DIR
+    mkdir -p $LOG_DIR
+
+    chown vcap:vcap $RUN_DIR
+    chown -R vcap:vcap $LOG_DIR
+
     echo $$ > $PIDFILE
+    chown vcap:vcap $PIDFILE
 
-    docker_host=unix:///var/vcap/sys/run/docker/docker.sock
-
-    set -x # print commands
-    for image in /var/vcap/packages/{{package.name}}/*.tgz; do
-      echo "Loading docker image {{ package.image }}" >>$LOG_DIR/{{package.name}}.stdout.log
-      docker --host $docker_host \
-           load -i $image \
-             >>$LOG_DIR/{{package.name}}.stdout.log \
-             2>>$LOG_DIR/{{package.name}}.stderr.log
+    for image in $PACKAGES_DIR/*.tgz; do
+      /var/vcap/packages/docker/bin/docker \
+        --host unix:///var/vcap/sys/run/docker/docker.sock \
+        load -i $image \
+        >>$LOG_DIR/{{package.name}}.stdout.log \
+        2>>$LOG_DIR/{{package.name}}.stderr.log
     done
 
     # do nothing forever
@@ -36,7 +41,7 @@ case $1 in
 
     ;;
   *)
-    echo "Usage: install_ctl {start|stop}"
+    echo "Usage: {{package.name}}_ctl {start|stop}"
 
     ;;
 
