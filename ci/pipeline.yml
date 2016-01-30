@@ -55,5 +55,7 @@ jobs:
       - name: git-tile-generator-repo
       run:
         path: git-tile-generator-repo/ci/scripts/tile-build.sh
-        args: ["git-tile-generator-repo/sample"]
+        args: [ "git-tile-generator-repo/sample" ]
+ #       path: git-tile-generator-repo/ci/scripts/tile-build.sh
+ #       args: ["git-tile-generator-repo/sample"]
 
