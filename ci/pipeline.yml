@@ -18,7 +18,7 @@ resources:
   type: s3
   source:
     bucket: {{s3-bucket}}
-    regexp: (.*).pivotal
+    regexp: .*\.pivotal
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
@@ -47,9 +47,6 @@ jobs:
       trigger: true
     - get: git-tile-generator-repo
       trigger: true
-  - put: generated-tile
-    params:
-      from: generated-tile/(.*).pivotal
   - task: build-sample-tile
     config:
       platform: linux
@@ -58,6 +55,11 @@ jobs:
       - name: git-tile-generator-repo
       outputs:
       - name: generated-tile
+      - name: git-tile-generator-repo
+        path: git-tile-generator-repo-out
       run:
         path: git-tile-generator-repo/ci/scripts/tile-build.sh
         args: [ "git-tile-generator-repo/sample", "generated-tile" ]
+  - put: generated-tile
+    params:
+      from: generated\-tile/.*\.pivotal
