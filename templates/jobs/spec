@@ -1,7 +1,7 @@
 ---
 name: {{ job_name }}
 templates:
-{% if not package.is_docker %}
+{% if errand %}
   {{ job_name }}.sh.erb: bin/run
 {% else %}
   {{ job_name }}.sh.erb: bin/{{ package.name }}_ctl
