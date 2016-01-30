@@ -11,8 +11,6 @@ import zipfile
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
-DOCKER_REPO_PATH = os.path.join(REPO_PATH, 'docker-boshrelease')
-DOCKER_RELEASE_PATH = os.path.join(DOCKER_REPO_PATH, 'dev_releases', 'docker')
 
 def build(config, verbose=False):
 	context = config.copy()
@@ -143,7 +141,7 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 		os.path.join('jobs', job_type + '.sh.erb'),
 		job_context
 	)
-	
+
 	template.render(
 	  os.path.join('jobs', job_name, 'monit'),
 	  os.path.join('jobs', 'monit'),
