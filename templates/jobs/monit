@@ -1,4 +1,4 @@
-{% if job_type == 'docker-image-uploader' %}
+{% if not errand %}
 check process {{ package.name }}
   with pidfile /var/vcap/sys/run/{{ package.name }}/{{ package.name }}.pid
   start program "/var/vcap/jobs/{{ package.name }}/bin/docker_uploader_ctl start'"

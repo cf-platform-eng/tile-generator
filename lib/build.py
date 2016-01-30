@@ -122,13 +122,18 @@ def create_bosh_release(context):
 	print
 
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
+	errand = False
+	if post_deploy or pre_delete:
+		errand = True
 	job_name = job_type + '-' + package['name']
+
 	bosh('generate', 'job', job_name)
 	job_context = {
 		'job_name': job_name,
 		'job_type': job_type,
 		'context': context,
 		'package': package,
+		'errand': errand,
 	}
 	template.render(
 		os.path.join('jobs', job_name, 'spec'),
