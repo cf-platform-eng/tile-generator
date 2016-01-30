@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 SOURCE_DIR=$1
 HISTORY_DIR=$2
