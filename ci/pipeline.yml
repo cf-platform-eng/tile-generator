@@ -2,24 +2,24 @@
 
 resources:
 
-- name: git-tile-generator-ci-repo
+- name: git-tile-repo
   type: git
   source:
-    paths: [ "ci" ]
+    paths: [ "sample" ]
     branch: pipeline
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: git-tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "ci", "sample" ]
+    ignore_paths: [ "sample" ]
     branch: pipeline
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
-- name: git-tile-repo
+- name: git-tile-generator-ci-repo
   type: git
   source:
-    paths: [ "sample" ]
+    paths: [ "ci" ]
     branch: pipeline
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -35,7 +35,7 @@ resources:
   type: s3
   source:
     bucket: {{s3-bucket}}
-    regexp: tile\-history\.yml
+    regexp: tile\-history-(?P<version>.*)\.yml
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
@@ -75,15 +75,16 @@ jobs:
       image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: git-tile-generator-repo
+      - name: git-tile-repo
       - name: tile-history
       outputs:
       - name: generated-tile
       run:
         path: git-tile-generator-repo/ci/scripts/tile-build.sh
         args: [ "git-tile-repo/sample", "tile-history", "generated-tile" ]
+  - put: tile-history
+    params:
+      from: generated\-tile/tile\-history\-.*\.yml
   - put: generated-tile
     params:
       from: generated\-tile/.*\.pivotal
-  - put: tile-history
-    params:
-      from: generated\-tile/tile-history.yml
