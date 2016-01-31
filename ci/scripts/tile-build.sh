@@ -12,7 +12,6 @@ cd ${BASE_DIR}
 
 HISTORY=`ls ${HISTORY_DIR}/tile-history-*.yml`
 if [ -n "${HISTORY}" ]; then
-	echo "using history ${HISTORY}"
 	cp ${HISTORY} ${SOURCE_DIR}/tile-history.yml
 fi
 
@@ -20,7 +19,6 @@ fi
 
 VERSION=`grep '^version:' ${SOURCE_DIR}/tile-history.yml | sed 's/^version: //'`
 HISTORY="tile-history-${VERSION}.yml"
-echo "saving history ${HISTORY}"
 
 cp ${SOURCE_DIR}/product/*.pivotal ${TARGET_DIR}
 cp ${SOURCE_DIR}/tile-history.yml ${TARGET_DIR}/tile-history-${VERSION}.yml
