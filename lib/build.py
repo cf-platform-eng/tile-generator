@@ -247,6 +247,9 @@ def create_tile(context):
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		f.write(os.path.join('releases', release['file']))
+		if context.get('requires_docker_bosh', False):
+			docker_release = context['docker_release']
+			f.write(os.path.join('releases', docker_release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
 		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
 	print
