@@ -19,7 +19,7 @@ resources:
 - name: git-tile-generator-ci-repo
   type: git
   source:
-    paths: [ "ci" ]
+    paths: [ "ci/Dockerfile" ]
     branch: pipeline
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
