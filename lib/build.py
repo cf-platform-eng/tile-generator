@@ -3,6 +3,7 @@
 import os
 import sys
 import errno
+import requests
 import shutil
 import subprocess
 import template
@@ -261,8 +262,8 @@ def download_docker_release():
 	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
 	release_tarball = release_file
 	if not os.path.isfile(release_tarball):
-		url = 'http://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
-		urllib.urlretrieve(url, release_tarball)
+		url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
+		download(url, release_tarball)
 	return {
 		'tarball': release_tarball,
 		'name': release_name,
@@ -374,3 +375,10 @@ def mkdir_p(dir):
    except os.error, e:
       if e.errno != errno.EEXIST:
          raise
+
+def download(url, filename):
+	response = requests.get(url, stream=True)
+	with open(filename, 'wb') as file:
+		for chunk in response.iter_content(chunk_size=1024):
+			if chunk:
+				file.write(chunk)
