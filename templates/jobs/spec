@@ -1,10 +1,10 @@
 ---
 name: {{ job_name }}
 templates:
-{% if not package.is_docker %}
+{% if errand %}
   {{ job_name }}.sh.erb: bin/run
 {% else %}
-  {{ job_name }}.sh.erb: bin/docker_uploader_ctl
+  {{ job_name }}.sh.erb: bin/{{ job_name }}_ctl
 {% endif %}
 packages:
 {% if package.requires_cf_cli %}
@@ -13,7 +13,12 @@ packages:
 {% if not package.is_docker_app %}
 - {{ package.name }}
 {% endif %}
-{% if not package.is_docker_bosh %}
+{% if not errand %}
+- common
+{% endif %}
+{% if package.is_docker_bosh %}
+properties: {}
+{% else %}
 properties:
   ssl.skip_cert_verify:
     description: 'Whether to verify SSL certs when making web requests'

@@ -1,7 +1,7 @@
-{% if job_type == 'docker-image-uploader' %}
-check process {{ package.name }}
-  with pidfile /var/vcap/sys/run/{{ package.name }}/{{ package.name }}.pid
-  start program "/var/vcap/jobs/{{ package.name }}/bin/docker_uploader_ctl start'"
-  stop program "/var/vcap/jobs/{{ package.name }}/bin/docker_uploader_ctl stop'"
-        group vcap
+{% if not errand %}
+check process {{ job_name }}
+  with pidfile /var/vcap/sys/run/{{ job_name }}/{{ job_name }}.pid
+  start program "/var/vcap/jobs/{{ job_name }}/bin/{{ job_name }}_ctl start"
+  stop program "/var/vcap/jobs/{{ job_name }}/bin/{{ job_name }}_ctl stop"
+  group vcap
 {% endif %}
