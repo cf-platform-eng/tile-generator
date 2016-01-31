@@ -2,21 +2,21 @@
 
 resources:
 
-- name: git-tile-repo
+- name: sample-tile-repo
   type: git
   source:
     paths: [ "sample" ]
     branch: pipeline
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
-- name: git-tile-generator-repo
+- name: tile-generator-repo
   type: git
   source:
     ignore_paths: [ "sample" ]
     branch: pipeline
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
-- name: git-tile-generator-ci-repo
+- name: dockerfile-repo
   type: git
   source:
     paths: [ "ci/Dockerfile" ]
@@ -39,7 +39,7 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
-- name: base-ci-docker-image
+- name: ci-docker-image
   type: docker-image
   source:
     repository: guidowb/tile-pipeline
@@ -51,21 +51,21 @@ jobs:
 
 - name: build-ci-docker-image
   plan:
-  - get: git-tile-generator-ci-repo
+  - get: dockerfile-repo
     trigger: true
-  - put: base-ci-docker-image
+  - put: ci-docker-image
     params:
-      build: git-tile-generator-ci-repo/ci
+      build: dockerfile-repo/ci
 
 - name: build-sample-tile
   plan:
   - aggregate:
-    - get: base-ci-docker-image
+    - get: ci-docker-image
       passed: [build-ci-docker-image]
       trigger: true
-    - get: git-tile-generator-repo
+    - get: tile-generator-repo
       trigger: true
-    - get: git-tile-repo
+    - get: sample-tile-repo
       trigger: true
     - get: tile-history
       trigger: false
@@ -74,14 +74,14 @@ jobs:
       platform: linux
       image: "docker:///guidowb/tile-pipeline"
       inputs:
-      - name: git-tile-generator-repo
-      - name: git-tile-repo
+      - name: tile-generator-repo
+      - name: sample-tile-repo
       - name: tile-history
       outputs:
       - name: generated-tile
       run:
-        path: git-tile-generator-repo/ci/scripts/tile-build.sh
-        args: [ "git-tile-repo/sample", "tile-history", "generated-tile" ]
+        path: tile-generator-repo/ci/scripts/tile-build.sh
+        args: [ "sample-tile-repo/sample", "tile-history", "generated-tile" ]
   - put: tile-history
     params:
       from: generated\-tile/tile\-history\-.*\.yml
