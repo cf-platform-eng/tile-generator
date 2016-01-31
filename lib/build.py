@@ -60,7 +60,7 @@ package_types = [
 	{
 		'typename': 'docker-bosh',
 		'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ],
-		'jobs':  [ 'docker-image-uploader' ],
+		'jobs':  [ 'docker-bosh' ],
 	},
 	{
 		'typename': 'docker-app',
