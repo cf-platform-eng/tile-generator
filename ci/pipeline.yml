@@ -6,21 +6,21 @@ resources:
   type: git
   source:
     paths: [ "sample" ]
-    branch: pipeline
+    branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-repo
   type: git
   source:
     ignore_paths: [ "sample" ]
-    branch: pipeline
+    branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: dockerfile-repo
   type: git
   source:
-    paths: [ "ci/Dockerfile" ]
-    branch: pipeline
+    paths: [ "ci/Dockerfile", "ci/requirements.txt" ]
+    branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: generated-tile
