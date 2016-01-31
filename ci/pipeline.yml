@@ -1,0 +1,109 @@
+---
+
+resources:
+
+- name: sample-tile-repo
+  type: git
+  source:
+    paths: [ "sample" ]
+    branch: master
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-repo
+  type: git
+  source:
+    ignore_paths: [ "sample" ]
+    branch: master
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/Dockerfile", "ci/requirements.txt" ]
+    branch: master
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: generated-tile
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: .*-(?P<version>.*)\.pivotal
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: tile-history
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: tile\-history-(?P<version>.*)\.yml
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: ci-docker-image
+  type: docker-image
+  source:
+    repository: guidowb/tile-pipeline
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+jobs:
+
+- name: docker-build
+  plan:
+  - get: dockerfile-repo
+    trigger: true
+  - put: ci-docker-image
+    params:
+      build: dockerfile-repo/ci
+
+- name: unit-test
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ docker-build ]
+      trigger: true
+    - get: tile-generator-repo
+      trigger: true
+  - task: run-unit-tests
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      run:
+        path: echo
+        args: [ "hello world" ]
+
+- name: tile-build
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ unit-test ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ unit-test ]
+      trigger: true
+    - get: sample-tile-repo
+      trigger: true
+    - get: tile-history
+      trigger: false
+  - task: build-sample-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: sample-tile-repo
+      - name: tile-history
+      outputs:
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/tile-build.sh
+        args: [ "sample-tile-repo/sample", "tile-history", "generated-tile" ]
+  - put: tile-history
+    params:
+      from: generated-tile/tile-history-.*\.yml
+  - put: generated-tile
+    params:
+      from: generated-tile/.*\.pivotal
