@@ -3,6 +3,7 @@
 import os
 import sys
 import errno
+import requests
 import shutil
 import subprocess
 import template
@@ -11,8 +12,7 @@ import zipfile
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
-DOCKER_REPO_PATH = os.path.join(REPO_PATH, 'docker-boshrelease')
-DOCKER_RELEASE_PATH = os.path.join(DOCKER_REPO_PATH, 'dev_releases', 'docker')
+DOCKER_BOSHRELEASE_VERSION = '23'
 
 def build(config, verbose=False):
 	context = config.copy()
@@ -60,7 +60,7 @@ package_types = [
 	{
 		'typename': 'docker-bosh',
 		'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ],
-		'jobs':  [ 'docker-image-uploader' ],
+		'jobs':  [ 'docker-bosh' ],
 	},
 	{
 		'typename': 'docker-app',
@@ -83,6 +83,7 @@ def create_bosh_release(context):
 	target = os.getcwd()
 	bosh('init', 'release')
 	template.render('src/templates/all_open.json', 'src/templates/all_open.json', context)
+	template.render('src/common/utils.sh', 'src/common/utils.sh', context)
 	template.render('config/final.yml', 'config/final.yml', context)
 	packages = context.get('packages', [])
 	requires_cf_cli = False
@@ -97,7 +98,6 @@ def create_bosh_release(context):
 			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
 			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
 			sys.exit(1)
-		#if 'is_docker1' not in typedef['flags']:
 		add_blob_package(context, package)
 		for flag in typedef['flags']:
 			package[flag] = True
@@ -113,6 +113,7 @@ def create_bosh_release(context):
 		requires_docker_bosh |= package.get('requires_docker_bosh', False)
 	if requires_cf_cli:
 		add_cf_cli(context)
+	add_common_utils(context)
 	bosh('upload', 'blobs')
 	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', context['version'])
 	context['release'] = bosh_extract(output, [
@@ -125,13 +126,18 @@ def create_bosh_release(context):
 	print
 
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
+	errand = False
+	if post_deploy or pre_delete:
+		errand = True
 	job_name = job_type + '-' + package['name']
+
 	bosh('generate', 'job', job_name)
 	job_context = {
 		'job_name': job_name,
 		'job_type': job_type,
 		'context': context,
 		'package': package,
+		'errand': errand,
 	}
 	template.render(
 		os.path.join('jobs', job_name, 'spec'),
@@ -143,11 +149,11 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 		os.path.join('jobs', job_type + '.sh.erb'),
 		job_context
 	)
-	
 	template.render(
-	  os.path.join('jobs', job_name, 'monit'),
-	  os.path.join('jobs', 'monit'),
-	  job_context)
+		os.path.join('jobs', job_name, 'monit'),
+		os.path.join('jobs', 'monit'),
+		job_context
+	)
 
 	context['jobs'] = context.get('jobs', []) + [{
 		'name': job_name,
@@ -188,7 +194,10 @@ def add_package(dir, context, package, alternate_template=None):
 			except ValueError: # Invalid URL, assume filename
 				shutil.copy(os.path.join('..', file['path']), target_dir)
 			package_context['files'] += [ filename ]
-			file['name'] = filename
+		for docker_image in package.get('docker_images', []):
+			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
+			download_docker_image(docker_image, os.path.join(target_dir, filename))
+			package_context['files'] += [ filename ]
 	template.render(
 		os.path.join(package_dir, 'spec'),
 		os.path.join(template_dir, 'spec'),
@@ -212,6 +221,15 @@ def add_cf_cli(context):
 		alternate_template='cf_cli'
 	)
 
+def add_common_utils(context):
+	add_src_package(context,
+		{
+			'name': 'common',
+			'files': []
+		},
+		alternate_template='common'
+	)
+
 def create_tile(context):
 	release = context['release']
 	release['file'] = os.path.basename(release['tarball'])
@@ -230,6 +248,9 @@ def create_tile(context):
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		f.write(os.path.join('releases', release['file']))
+		if context.get('requires_docker_bosh', False):
+			docker_release = context['docker_release']
+			f.write(os.path.join('releases', docker_release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
 		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
 	print
@@ -237,18 +258,29 @@ def create_tile(context):
 
 def download_docker_release():
 	release_name = 'docker'
-	release_version = '23'
+	release_version = DOCKER_BOSHRELEASE_VERSION
 	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
 	release_tarball = release_file
 	if not os.path.isfile(release_tarball):
-		url = 'http://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
-		urllib.urlretrieve(url, release_tarball)
+		url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
+		download(url, release_tarball)
 	return {
 		'tarball': release_tarball,
 		'name': release_name,
 		'version': release_version,
 		'file': release_file,
 	}
+
+def download_docker_image(docker_image, target_file):
+	from docker.client import Client
+	from docker.utils import kwargs_from_env
+	kwargs = kwargs_from_env()
+	kwargs['tls'].assert_hostname = False
+	docker_cli = Client(**kwargs)
+	image = docker_cli.get_image(docker_image)
+	image_tar = open(target_file,'w')
+	image_tar.write(image.data)
+	image_tar.close()
 
 def bosh_extract(output, properties):
 	result = {}
@@ -343,3 +375,10 @@ def mkdir_p(dir):
    except os.error, e:
       if e.errno != errno.EEXIST:
          raise
+
+def download(url, filename):
+	response = requests.get(url, stream=True)
+	with open(filename, 'wb') as file:
+		for chunk in response.iter_content(chunk_size=1024):
+			if chunk:
+				file.write(chunk)
