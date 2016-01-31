@@ -16,7 +16,9 @@ packages:
 {% if not errand %}
 - common
 {% endif %}
-{% if not package.is_docker_bosh %}
+{% if package.is_docker_bosh %}
+properties: {}
+{% else %}
 properties:
   ssl.skip_cert_verify:
     description: 'Whether to verify SSL certs when making web requests'
