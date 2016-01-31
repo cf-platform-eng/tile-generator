@@ -49,7 +49,7 @@ resources:
 
 jobs:
 
-- name: build-ci-docker-image
+- name: docker-build
   plan:
   - get: dockerfile-repo
     trigger: true
@@ -57,13 +57,32 @@ jobs:
     params:
       build: dockerfile-repo/ci
 
-- name: build-sample-tile
+- name: unit-test
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [build-ci-docker-image]
+      passed: [ docker-build ]
       trigger: true
     - get: tile-generator-repo
+      trigger: true
+  - task: run-unit-tests
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      run:
+        path: echo
+        args: [ "hello world" ]
+
+- name: tile-build
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ unit-test ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ unit-test ]
       trigger: true
     - get: sample-tile-repo
       trigger: true
