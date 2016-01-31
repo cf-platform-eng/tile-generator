@@ -84,7 +84,7 @@ jobs:
         args: [ "sample-tile-repo/sample", "tile-history", "generated-tile" ]
   - put: tile-history
     params:
-      from: generated\-tile/tile\-history\-.*\.yml
+      from: generated-tile/tile-history-.*\.yml
   - put: generated-tile
     params:
-      from: generated\-tile/.*\.pivotal
+      from: generated-tile/.*\.pivotal
