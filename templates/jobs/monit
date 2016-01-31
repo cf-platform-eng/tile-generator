@@ -1,7 +1,7 @@
 {% if not errand %}
-check process {{ package.name }}
-  with pidfile /var/vcap/sys/run/{{ package.name }}/{{ package.name }}.pid
-  start program "/var/vcap/jobs/{{ package.name }}/bin/{{ package.name }}_ctl start'"
-  stop program "/var/vcap/jobs/{{ package.name }}/bin/{{ package.name }}_ctl stop'"
+check process {{ job_name }}
+  with pidfile /var/vcap/sys/run/{{ job_name }}/{{ job_name }}.pid
+  start program "/var/vcap/jobs/{{ job_name }}/bin/{{ job_name }}_ctl start'"
+  stop program "/var/vcap/jobs/{{ job_name }}/bin/{{ job_name }}_ctl stop'"
   group vcap
 {% endif %}

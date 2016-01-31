@@ -4,7 +4,7 @@ templates:
 {% if errand %}
   {{ job_name }}.sh.erb: bin/run
 {% else %}
-  {{ job_name }}.sh.erb: bin/{{ package.name }}_ctl
+  {{ job_name }}.sh.erb: bin/{{ job_name }}_ctl
 {% endif %}
 packages:
 {% if package.requires_cf_cli %}

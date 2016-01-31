@@ -4,18 +4,18 @@ set -e # exit immediately if a simple command exits with a non-zero status
 set -u # report the usage of uninitialized variables
 
 # Setup env vars and folders
-RUN_DIR=/var/vcap/sys/run/{{package.name}}
-LOG_DIR=/var/vcap/sys/log/{{package.name}}
+RUN_DIR=/var/vcap/sys/run/{{ job_name }}
+LOG_DIR=/var/vcap/sys/log/{{ job_name }}
 PACKAGES_DIR=/var/vcap/packages/{{package.name}}
 
-PIDFILE=$RUN_DIR/{{package.name}}.pid
+PIDFILE=$RUN_DIR/{{ job_name }}.pid
 
 source /var/vcap/packages/common/utils.sh
 
 case $1 in
 
   start)
-    pid_guard $PIDFILE {{package.name}}
+    pid_guard $PIDFILE {{ job_name }}
 
     mkdir -p $RUN_DIR
     mkdir -p $LOG_DIR
@@ -30,8 +30,8 @@ case $1 in
       /var/vcap/packages/docker/bin/docker \
         --host unix:///var/vcap/sys/run/docker/docker.sock \
         load -i $image \
-        >>$LOG_DIR/{{package.name}}.stdout.log \
-        2>>$LOG_DIR/{{package.name}}.stderr.log
+        >>$LOG_DIR/{{ job_name }}.stdout.log \
+        2>>$LOG_DIR/{{ job_name }}.stderr.log
     done
 
     # do nothing forever
@@ -43,7 +43,7 @@ case $1 in
 
     ;;
   *)
-    echo "Usage: {{package.name}}_ctl {start|stop}"
+    echo "Usage: {{ job_name }}_ctl {start|stop}"
 
     ;;
 
