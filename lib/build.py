@@ -148,11 +148,11 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 		os.path.join('jobs', job_type + '.sh.erb'),
 		job_context
 	)
-
 	template.render(
-	  os.path.join('jobs', job_name, 'monit'),
-	  os.path.join('jobs', 'monit'),
-	  job_context)
+		os.path.join('jobs', job_name, 'monit'),
+		os.path.join('jobs', 'monit'),
+		job_context
+	)
 
 	context['jobs'] = context.get('jobs', []) + [{
 		'name': job_name,
@@ -193,7 +193,10 @@ def add_package(dir, context, package, alternate_template=None):
 			except ValueError: # Invalid URL, assume filename
 				shutil.copy(os.path.join('..', file['path']), target_dir)
 			package_context['files'] += [ filename ]
-			file['name'] = filename
+		for docker_image in package.get('docker_images', []):
+			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
+			download_docker_image(docker_image, os.path.join(target_dir, filename))
+			package_context['files'] += [ filename ]
 	template.render(
 		os.path.join(package_dir, 'spec'),
 		os.path.join(template_dir, 'spec'),
@@ -263,6 +266,17 @@ def download_docker_release():
 		'version': release_version,
 		'file': release_file,
 	}
+
+def download_docker_image(docker_image, target_file):
+	from docker.client import Client
+	from docker.utils import kwargs_from_env
+	kwargs = kwargs_from_env()
+	kwargs['tls'].assert_hostname = False
+	docker_cli = Client(**kwargs)
+	image = docker_cli.get_image(docker_image)
+	image_tar = open(target_file,'w')
+	image_tar.write(image.data)
+	image_tar.close()
 
 def bosh_extract(output, properties):
 	result = {}
