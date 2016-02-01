@@ -73,7 +73,7 @@ jobs:
       - name: tile-generator-repo
       run:
         path: python
-        args: [ "-m", "unittest", "discover", "-s", "tile-generator-repo/lib", "-p", "*_unittest.py" ]
+        args: [ "-m", "unittest", "discover", "-v", "-s", "tile-generator-repo/lib", "-p", "*_unittest.py" ]
 
 - name: tile-build
   plan:
