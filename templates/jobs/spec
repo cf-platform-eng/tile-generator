@@ -53,18 +53,24 @@ properties:
 {% endif %}
 {% if package.is_app %}
   {{ package.name }}.app_version:
-    description: 'Version of the Service Broker Application'
+    description: 'Version of the Application'
   {{ package.name }}.create_open_security_group:
     description: 'Open security group for the app to access outside'
     default: false
+  {{ package.name }}.app_push.org:
+    description: 'Org for the Application'
+    default: ''
+  {{ package.name }}.app_push.space:
+    description: 'Space for the Application'
+    default: ''
   {{ package.name }}.app_push.org_quota:
-    description: 'Org Memory Quota for the Service Broker Application'
+    description: 'Org Memory Quota for the Application'
     default: 1024
   {{ package.name }}.app_push.timeout:
-    description: 'App Push timeout for the Service Broker Application'
+    description: 'App Push timeout for the Application'
     default: 180
   {{ package.name }}.app_push.memory:
-    description: 'App Push Memory limit for the Service Broker Application'
+    description: 'App Push Memory limit for the Application'
     default: 512
   {{ package.name }}.user:
     description: 'App basic auth user'
@@ -77,11 +83,17 @@ properties:
     description: 'app start command '
     default: ''
   {{ package.name }}.health_monitor:
-    description: 'Change health monitor '
+    description: 'Turn on or off health monitor '
     default: true
+  {{ package.name }}.need_cf_creds:
+    description: 'App needs cf creds'
+    default: false
   {{ package.name }}.persistence_store_type:
-    description: 'Use MySQL or custom DB for persistence store'
+    description: 'Use MySQL or Mongo for persistence store'
     default: none
+  {{ package.name }}.bind_to_service:
+    description: 'Bind to some service'
+    default: none  
 {% if package.on_demand_service_plans is defined %}
   {{ package.name }}.on_demand_service_plans:
     description: 'On demand service plans'

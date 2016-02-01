@@ -15,30 +15,6 @@ set -e -x
     app_domain = grab_app_domain_name
   %>
 
-  <%
-    def grab_dynamic_plans
-      plansJson = '{ '
-      if properties.{{ package.name }}.on_demand_service_plans
-        properties.{{ package.name }}.on_demand_service_plans['on_demand_service_plans'].each do | plan|
-
-          planName = plan['name']
-          plansJson << " \"#{planName}\" : { "
-          plan.each_pair do | name, value|
-            if name == planName
-              continue
-            end
-            plansJson <<  " \"#{name}\" : \"#{value}\" ,"
-          end
-        plansJson = plansJson.chomp(",")
-        plansJson << ' },'
-        end
-      end
-      plansJson = plansJson.chomp(",") + ' }'
-      plansJson
-    end
-    dynamic_plans = grab_dynamic_plans
-  %>
-
 export PATH="/var/vcap/packages/cf_cli/bin:$PATH"
 
 export SCHEME=https
@@ -50,36 +26,32 @@ export API_ENDPOINT=$SCHEME://api.${DOMAIN}
 export APP_NAME=<%= properties.{{ package.name }}.app_name %>
 export APP_VERSION=<%= properties.{{ package.name }}.app_version %>
 export APP_URI=<%= properties.{{ package.name }}.app_uri %>
-export ORG=${APP_NAME}-org
-export SPACE=${APP_NAME}-space
-export QUOTA=${APP_NAME}-quota
 export CF_TARGET=$API_ENDPOINT
-export CF_ORG=$ORG
-export CF_SPACE=$SPACE
 export CF_USER=$ADMIN_USER
 export CF_PASSWORD=$ADMIN_PASSWORD
 export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
+export ORG=<%= properties.{{ package.name }}.app_push.org %>
+export SPACE=<%= properties.{{ package.name }}.app_push.space %>
 export ORG_QUOTA=<%= properties.{{ package.name }}.app_push.org_quota %>
 export APP_PUSH_TIMEOUT=<%= properties.{{ package.name }}.app_push.timeout %>
 export APP_PUSH_MEMORY=<%= properties.{{ package.name }}.app_push.memory %>
 
-
 # Use these variables only if app needs to persistence store for saving its plans/sevice offerings etc.
-export PERSISTENCE_STORE_TYPE=<%= properties.{{ package.name }}.persistence_store_type %>
+export PERSISTENCE_STORE_TYPE="<%= properties.{{ package.name }}.persistence_store_type %>"
+export BIND_TO_SERVICE="<%= properties.{{ package.name }}.bind_to_service %>"
 
 export SECURITY_USER_NAME=<%= properties.{{ package.name }}.user %>
 export SECURITY_USER_PASSWORD=<%= properties.{{ package.name }}.password %>
-export START_COMMAND=<%= properties.{{ package.name }}.start_command %>
+export START_COMMAND="<%= properties.{{ package.name }}.start_command %>"
 export HEALTH_MONITOR=<%= properties.{{ package.name }}.health_monitor %>
-
+export NEED_CF_CREDENTIALS=<%= properties.{{ package.name }}.need_cf_creds %>
 export CREATE_OPEN_SECURITY_GROUP=<%= properties.{{ package.name }}.create_open_security_group %>
 export DELETE_PREV_APP_INSTANCE=<%= properties.{{ package.name }}.delete_prev_app_instance %>
 
-export DEFAULT_DB_NAME=${APP_NAME}-${APP_VERSION}-mysql
 
 <% if properties.{{ package.name }}.on_demand_service_plans %>
       PLANS="{"
-  <%  p("properties.{{ package.name }}.on_demand_service_plans").each do |plan|
+  <%  p("{{ package.name }}.on_demand_service_plans").each do |plan|
          plan_name=plan['name']
   %>
        export PLAN_NAME=<%="#{plan_name}"%>
@@ -128,20 +100,34 @@ export DEBUG_LOG=$LOG_DIR/deploy-service-broker.log
 mkdir -p $RUN_DIR $LOG_DIR
 chown -R vcap:vcap $RUN_DIR $LOG_DIR
 
-
-
-
 function log_debug() {
   echo `date` $1 >> $DEBUG_LOG
 }
 
-function authenticate_and_target() {
+function authenticate() {
   cf api $API_ENDPOINT <% if properties.ssl.skip_cert_verify %>--skip-ssl-validation<% end %>
   cf auth $ADMIN_USER $ADMIN_PASSWORD
-  cf create-org $ORG
+}
+
+function target() {
+  if [ "$ORG" == "" ]; then
+    export ORG=${APP_NAME}-org
+    export QUOTA=${APP_NAME}-quota
+    cf create-org $ORG
+    create_quota 
+  fi
+  
   cf target -o $ORG
-  cf create-space $SPACE
+
+  if [ "$SPACE" == "" ]; then
+    export SPACE=${APP_NAME}-space
+    cf create-space $SPACE
+  fi
+  
   cf target -s $SPACE
+
+  export CF_ORG=$ORG
+  export CF_SPACE=$SPACE
 }
 
 function create_quota() {
@@ -161,11 +147,80 @@ function create_open_security_group() {
   fi
 }
 
-function provision_and_bind_db() {
+function provision_and_bind_data() {
+  if [ "${PERSISTENCE_STORE_TYPE}" == "mysql" ]; then
+    provision_and_bind_mysql
+  elif [ "${PERSISTENCE_STORE_TYPE}" == "mongo" ]; then
+    provision_and_bind_mongo  
+  fi
+}
+
+function provision_and_bind_mysql() {
   db_plan=`cf marketplace | grep p-mysql | awk '{ print $2 }' | sed 's/,//g'`
   if [ "$db_plan" != "" ]; then
-    cf create-service p-mysql $db_plan $DEFAULT_DB_NAME
-    cf bind-service ${APP_NAME}-${APP_VERSION} $DEFAULT_DB_NAME
+    cf create-service p-mysql $db_plan ${APP_NAME}-${APP_VERSION}-mysql
+    cf bind-service ${APP_NAME}-${APP_VERSION} ${APP_NAME}-${APP_VERSION}-mysql
+  fi
+}
+
+function provision_and_bind_mongo() {
+  db_plan=`cf marketplace | grep p-mongodb | awk '{ print $2 }' | sed 's/,//g'`
+  if [ "$db_plan" != "" ]; then
+    cf create-service p-mongodb $db_plan ${APP_NAME}-${APP_VERSION}-mongo
+    cf bind-service ${APP_NAME}-${APP_VERSION} ${APP_NAME}-${APP_VERSION}-mongo
+  fi
+}
+
+function bind_to_existing_service() {
+  if [ "$BIND_TO_SERVICE" == "none" -o "$BIND_TO_SERVICE" == "" ]; then
+    return
+  fi
+
+  for serviceName in `echo $BIND_TO_SERVICE | sed -e 's/,/ /g' `
+  do
+    serviceAvailable=`cf services | grep $serviceName > /dev/null; echo $?`
+    if [ "$serviceAvailable" == "0" ]; then
+      cf bind-service ${APP_NAME}-${APP_VERSION} $serviceName
+    fi
+  done
+}
+
+# This is not supported, we bind to pre-provisioned services only
+function provision_and_bind_to_service() {
+  if [[ "${BIND_TO_SERVICE}" == *abbitmq* ]]; then
+    provision_and_bind_rabbitmq
+  fi
+
+  if [[ "${BIND_TO_SERVICE}" == *edis* ]]; then
+    provision_and_bind_redis
+  fi
+
+  if [[ "${BIND_TO_SERVICE}" == *iakcs* ]]; then
+    provision_and_bind_riak
+  fi
+}
+
+function provision_and_bind_rabbitmq() {
+  rabbitmq_plan=`cf marketplace | grep p-rabbitmq | awk '{ print $2 }' | sed 's/,//g'`
+  if [ "$rabbitmq_plan" != "" ]; then
+    cf create-service p-rabbitmq $rabbitmq_plan ${APP_NAME}-${APP_VERSION}-rabbitmq
+    cf bind-service ${APP_NAME}-${APP_VERSION} ${APP_NAME}-${APP_VERSION}-rabbitmq
+  fi
+}
+
+function provision_and_bind_redis() {
+  redis_plan=`cf marketplace | grep p-redis | awk '{ print $2 }' | sed 's/,//g'`
+  if [ "$redis_plan" != "" ]; then
+    cf create-service p-redis $redis_plan ${APP_NAME}-${APP_VERSION}-redis
+    cf bind-service ${APP_NAME}-${APP_VERSION} ${APP_NAME}-${APP_VERSION}-redis
+  fi
+}
+
+function provision_and_bind_riak() {
+  riak_plan=`cf marketplace | grep p-riakcs | awk '{ print $2 }' | sed 's/,//g'`
+  if [ "$riak_plan" != "" ]; then
+    cf create-service p-riakcs $riak_plan ${APP_NAME}-${APP_VERSION}-riak
+    cf bind-service ${APP_NAME}-${APP_VERSION} ${APP_NAME}-${APP_VERSION}-riak
   fi
 }
 
@@ -200,16 +255,20 @@ function add_env_vars() {
   # Adding additional properties that most spring based apps or internal apps seem to be expecting
   cf set-env ${APP_NAME}-${APP_VERSION} CF_ORG $CF_ORG
   cf set-env ${APP_NAME}-${APP_VERSION} CF_SPACE $CF_SPACE
-  cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USER $CF_USER
-  cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USERNAME $CF_USER
-  cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_PASSWORD $CF_PASSWORD
+  
+  if [ "$NEED_CF_CREDENTIALS" == "true" ]; then
+    cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USER $CF_USER
+    cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USERNAME $CF_USER
+    cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_PASSWORD $CF_PASSWORD
+  fi
+
   cf set-env ${APP_NAME}-${APP_VERSION} CF_TARGET $CF_TARGET
   cf set-env ${APP_NAME}-${APP_VERSION} SECURITY_USER_NAME $SECURITY_USER_NAME
   cf set-env ${APP_NAME}-${APP_VERSION} SECURITY_USER_PASSWORD $SECURITY_USER_PASSWORD
 
-  <%if !properties.{{ package.name }}.health_monitor %>
-  cf set-health-check ${APP_NAME}-${APP_VERSION} none
-  <% end %>
+  if [ "$HEALTH_MONITOR" == "false" ]; then
+    cf set-health-check ${APP_NAME}-${APP_VERSION} none
+  fi
 
   if [ "$DYNAMIC_PLANS" != "" ]; then
     cf set-env ${APP_NAME}-${APP_VERSION} PLANS "$DYNAMIC_PLANS"
@@ -247,35 +306,39 @@ function push_app() {
     delete_prev_app_instance
     <% end %>
 
-    HEALTH_MONITOR=""
-    <%if !properties.{{ package.name }}.health_monitor %>
-      HEALTH_MONITOR=" --no-route "
-    <% end %>
-
-    if [ "$START_COMMAND" != "" ]; then
-      START_COMMAND=" -c $START_COMMAND "
+    SET_HEALTH_MONITOR=" "
+    if [ "$HEALTH_MONITOR" == "false" ]; then
+      SET_HEALTH_MONITOR=" --no-route "
     fi
 
-{% if package.is_docker %}
-    CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} --docker-image ${DOCKER_IMAGE} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $HEALTH_MONITOR $START_COMMMAND
-{% else %}
-    CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $HEALTH_MONITOR $START_COMMMAND
+{% if package.is_docker %}    
+    if [ "$START_COMMAND" != "" ]; then
+      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} --docker-image "${DOCKER_IMAGE}" -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR -c "$START_COMMAND"
+    else
+      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} --docker-image "${DOCKER_IMAGE}" -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR 
+    fi
+{% else %}    
+    if [ "$START_COMMAND" != "" ]; then
+      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR -c "$START_COMMAND"
+    else
+      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR 
+    fi
 {% endif %}
+
     cf logs ${APP_NAME}-${APP_VERSION} --recent
 }
 
 
 cf -v
-authenticate_and_target
+authenticate
+target
 create_open_security_group
-create_quota
 
 push_app
 add_env_vars
 
-if [ "${PERSISTENCE_STORE_TYPE}" == "mysql" ]; then
-  provision_and_bind_db
-fi
+provision_and_bind_data
+bind_to_existing_service
 
 restart_app
 wait_till_running

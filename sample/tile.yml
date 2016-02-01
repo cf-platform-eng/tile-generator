@@ -42,21 +42,29 @@ forms:
 packages:
 - name: app1
   type: app
-  uri: app1.example.com
-  start_command: start_here.sh
-  health_monitor: true
+  uri: app1                          # Provide only host/route name, app domain would be automatically added to host during deploy
+  start_command: start_here.sh       # Custom start command
   create_open_security_group: true
-  org_quota: 2000
-  memory: 1500
+  # Following three entries (org, space, bind_to_service) need to be defined together
+  # in order to look a pre-existing service in a specified target org/space
+  org: dev-org
+  space: dev-space
+  # Provide names of pre-provisioned service  (comma separated)
+  bind_to_service: "mysql-service,TestService"
+  # org_quota only applicable if a new org is being created fresh
+  org_quota: 1024
+  memory: 500
   files:
   - path: resources/app1.jar
 - name: app2
   type: app
+  health_monitor: false              # Turn off health monitoring, default: true
   files:
   - path: resources/app2.jar
-  persistence_store: true
+  persistence_store: true            # Users will be allowed to select between MySQL, Mongo or none
 - name: broker1
   type: app-broker
+  need_cf_creds: true                # Allow CF Admin credentials as App env variables (CF_ADMIN_USER/CF_ADMIN_PASSWORD)
   files:
   - path: resources/broker1.jar
 - name: broker2
@@ -75,8 +83,8 @@ packages:
     descrp: "Key 1 of type integer"
     configurable: true
   - name: key2
-    type: secret
-    descrp: "Key 2 of type Password"
+    type: string
+    descrp: "Key 2 of type string"
     configurable: true
 - name: broker3
   type: external-broker
@@ -84,8 +92,6 @@ packages:
   username: user
   password: secret
   internal_service_names: 'service1,service2'
-  files:
-  - path: resources/broker3.jar
 - name: buildpack1
   type: buildpack
   files:
@@ -96,7 +102,7 @@ packages:
   - path: resources/buildpack2.zip
 - name: docker-bosh1
   type: docker-bosh
-  image_name: ubuntu
+  image_name: ubuntu # Needs to match `image` specified in manifest
   files:
   - path: resources/ubuntu_image.tgz
   cpu: 5
@@ -130,8 +136,8 @@ packages:
   memory: 1500
 - name: docker-app-broker
   type: docker-app-broker
-  image: test/dockerimage
-  uri: docker-app2.example.com
+  image: test/dockerimage            # Docker image on public docker registry
+  uri: docker-app2                   # Provide only host/route name, app domain would be automatically added to host during deploy
   start_command: start_here.sh
   health_monitor: true
   create_open_security_group: true

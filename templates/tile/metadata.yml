@@ -60,24 +60,36 @@ property_blueprints:
 - name: {{ package.name }}_health_monitor
   type: boolean
   configurable: false
-  default: {{ package.health_monitor or false }}
+  default: {{ package.health_monitor or true }}
+- name: {{ package.name }}_need_cf_creds
+  type: boolean
+  configurable: false
+  default: {{ package.need_cf_creds or false }}
 - name: {{ package.name }}_create_open_security_group
   type: boolean
   configurable: true
   default: {{ package.create_open_security_group or false }}
+- name: {{ package.name }}_org
+  type: string
+  configurable: true
+  default: {{ package.org or '' }}
+- name: {{ package.name }}_space
+  type: string
+  configurable: true
+  default: {{ package.space or '' }}
 - name: {{ package.name }}_org_quota
   type: integer
   configurable: false
   constraints:
     min: 512
-    max: 1024
+    max: 4096
   default: {{ package.org_quota or 1024 }}
 - name: {{ package.name }}_memory
   type: integer
   configurable: false
   constraints:
     min: 256
-    max: 1024
+    max: 2048
   default: {{ package.memory or 512 }}
 - name: {{ package.name }}_persistence_store_type
   type: dropdown_select
@@ -85,9 +97,16 @@ property_blueprints:
   options:
   - name: mysql
     label: Managed MySQL Service
-    default: true
+  - name: mongo
+    label: Managed Mongo Service
   - name: none
     label: None
+    default: true
+- name: {{ package.name }}_bind_to_service
+  type: string
+  configurable: true
+  default: {{ package.bind_to_service or none }}
+
 {% endif %}
 {% if package.is_broker_app  %}
 {% if package.on_demand_service_plans %}
@@ -164,8 +183,8 @@ form_types:
 #
 # Custom form {{ form.name}} from the tile.yml file
 #
-- name: {{ form.name }}
-  label: {{ form.label }}
+- name: {{ form.name }} Global Configuration
+  label: {{ form.label }} 
   description: {{ form.description or form.label }}
   property_inputs:
   {% for property in form.properties %}
@@ -218,13 +237,28 @@ form_types:
     label: Docker Image
     description: 'Docker image to push to CF'
 {% endif %}
+{% if package.org %}
+  - reference: .properties.{{ package.name }}_org
+    label: Target Org to deploy
+    description: "Specify name of target Org"
+{% endif %}
+{% if package.space %}
+  - reference: .properties.{{ package.name }}_space
+    label: Target Space to deploy
+    description: "Specify name of target Space"
+{% endif %}
+{% if package.bind_to_service %}
+  - reference: .properties.{{ package.name }}_bind_to_service
+    label: Bind to Pre-provisioned Services
+    description: "Specify comma separated list of pre-provisioned Services in the Target Org/Space"
+{% endif %}
   - reference: .properties.{{ package.name }}_create_open_security_group
     label: Open up Security Groups
     description: 'Open up security group on CF for App to access external endpoints'
 {% if package.persistence_store %}
   - reference: .properties.{{ package.name }}_persistence_store_type
-    label: Persistence using MySQL Service binding (default) or none
-    description: "Select MySQL Service Binding or None for saving state"
+    label: Persistence using MySQL or Mongo Service binding or none
+    description: "Select MySQL or Mongo Service Binding or None for saving state"
 {% endif %}
 {% if package.is_broker %}
   - reference: .properties.{{ package.name }}_enable_global_access_to_plans
@@ -426,6 +460,8 @@ job_types:
       app_version: (( .properties.{{ job.package.name }}_app_version.value ))
       create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
       app_push:
+        org: (( .properties.{{ job.package.name }}_org.value ))
+        space: (( .properties.{{ job.package.name }}_space.value ))
         org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
         timeout: 180
         memory: (( .properties.{{ job.package.name }}_memory.value ))
@@ -434,9 +470,12 @@ job_types:
 {% endif %}
       start_command: (( .properties.{{ job.package.name }}_start_command.value ))
       health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
+      need_cf_creds: (( .properties.{{ job.package.name }}_need_cf_creds.value ))
+      persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
+      bind_to_service: (( .properties.{{ job.package.name }}_bind_to_service.value ))
       user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
       password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))
-      persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
+      
 {% if job.package.on_demand_service_plans is defined %}
       on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
 {% endif %}

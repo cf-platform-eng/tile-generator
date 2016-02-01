@@ -75,11 +75,16 @@ Elastic Runtime), use the following format:
   org_quota: 2000                      <i># optional</i>
   memory: 1500                         <i># optional</i>
   persistence_store: true              <i># optional</i>
+  org: test-org                        <i># optional</i>
+  space: test-space                    <i># optional</i>
+  bind_to_service: mysql-service1,redis-service <i># optional</i>
 </pre>
 
 If your application is also a service broker, use `app-broker` as the type
 instead of just `app`. `persistence_store: true` results in the user being
 able to select a backing service for data persistence.
+
+Also, refer to [apps](docs/app.md) for more details.
 
 #### Service Brokers
 
@@ -120,6 +125,8 @@ For an external service broker, use:
   password: <i>secret</i>
   internal_service_names: 'service1,service2'
 </pre>
+
+Also, refer to [brokers](docs/broker.md) for more details.
 
 #### Buildpacks
 
@@ -196,6 +203,40 @@ using the `docker-bosh` type:
       bind_ports:
       - "9200:9200"
 </pre>
+If a docker image cannot be downloaded by BOSH dynamically, its better to provide a ready made docker image and package it as part of the BOSH release. In that case, specify the image as a local file.
+<pre>
+- name: docker-bosh2
+  type: docker-bosh
+  image: test/dockerimage # This should match the `image` entry within manifest
+  files:
+  - path: resources/dockerimage.tgz
+  cpu: 5
+  memory: 4096
+  ephemeral_disk: 4096
+  persistent_disk: 2048
+  instances: 1
+  manifest: |
+    test-key1: testValue1
+    test-key2: testValue2
+    test-key3: testValue3
+    test-key4: testValue4
+    containers:
+    - name: test-docker-image
+      image: "test/dockerimage" # This should match the `image_name` specified in the package
+      command: "--dir /var/lib/redis/ --appendonly yes"
+      bind_ports:
+      - "6379:6379"
+      bind_volumes:
+      - "/var/lib/redis"
+      entrypoint: "redis-server"
+      memory: "256m"
+      env_vars:
+      - "EXAMPLE_VAR=1"
+      # See below on custom forms/variables and binding it to the docker env variable
+      - custom-variable-name: ((.properties.customer_name.value))
+</pre>
+
+Also, refer to [docker-bosh](docs/docker-bosh.md) for more details.
 
 ### Custom Forms and Properties
 
