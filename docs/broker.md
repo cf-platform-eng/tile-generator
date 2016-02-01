@@ -8,7 +8,7 @@ The package can be an application pushed to CF and also working as a Service Bro
 Various properties can be specified to control/configure the app. The format is
 
 <table>
-  <tr>
+  <tr align="left">
     <th> Field </th>
     <th> Required </th>
     <th> Type </th>
@@ -16,53 +16,53 @@ Various properties can be specified to control/configure the app. The format is
     <th> Default </th>
   </tr>
   <tr>
-    <th> name </th>
-    <th> Y </th>
-    <th> string </th>
-    <th> Name of Service Broker </th>
-    <th>  </th>
+    <td> name </td>
+    <td> Y </td>
+    <td> string </td>
+    <td> Name of Service Broker </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> type </th>
-    <th> Y </th>
-    <th> string </th>
-    <th> denotes its an app type </th>
-    <th> can be `external-broker` or `app-broker` or `docker-app-broker`</th>
+    <td> type </td>
+    <td> Y </td>
+    <td> string </td>
+    <td> denotes its an app type </td>
+    <td> can be `external-broker` or `app-broker` or `docker-app-broker`</td>
   </tr>
   <tr>
-    <th> uri </th>
-    <th> Y  </th>
-    <th> string </th>
-    <th> Relative Uri/Route for the app on CF if its also an app or fully qualified domain for external broker </th>
-    <th> </th>
+    <td> uri </td>
+    <td> Y  </td>
+    <td> string </td>
+    <td> Relative Uri/Route for the app on CF if its also an app or fully qualified domain for external broker </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> on_demand_service_plans </th>
-    <th> N  </th>
-    <th> string </th>
-    <th> List of attributes that can be used to generate plans on the fly under one service type (like license keys, some remote host/endpoint, attributes required for the plan in the service broker) in case of broker being pushed to CF </th>
-    <th> </th>
+    <td> on_demand_service_plans </td>
+    <td> N  </td>
+    <td> string </td>
+    <td> List of attributes that can be used to generate plans on the fly under one service type (like license keys, some remote host/endpoint, attributes required for the plan in the service broker) in case of broker being pushed to CF </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> username </th>
-    <th> Y only for external broker </th>
-    <th> string </th>
-    <th> Username to authenticate the broker </th>
-    <th>  </th>
+    <td> username </td>
+    <td> Y only for external broker </td>
+    <td> string </td>
+    <td> Username to authenticate the broker </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> password </th>
-    <th> Y only for external broker </th>
-    <th> string </th>
-    <th> Password to authenticate the broker </th>
-    <th>  </th>
+    <td> password </td>
+    <td> Y only for external broker </td>
+    <td> string </td>
+    <td> Password to authenticate the broker </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> internal_service_names </th>
-    <th> N </th>
-    <th> comma separated string </th>
-    <th> Comma separate list of service names to enable access on marketplace</th>
-    <th>  </th>
+    <td> internal_service_names </td>
+    <td> N </td>
+    <td> comma separated string </td>
+    <td> Comma separate list of service names to enable access on marketplace</td>
+    <td>  </td>
   </tr>
 </table>
 

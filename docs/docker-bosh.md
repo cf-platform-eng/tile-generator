@@ -6,7 +6,7 @@ The tile-generator can be used to manage and run docker images using Bosh Jobs (
 Various properties can be specified to control/configure the app. The format is
 
 <table>
-  <tr>
+  <tr align="left">
     <th> Field </th>
     <th> Required </th>
     <th> Type </th>
@@ -14,74 +14,74 @@ Various properties can be specified to control/configure the app. The format is
     <th> Default </th>
   </tr>
   <tr>
-    <th> name </th>
-    <th> Y </th>
-    <th> string </th>
-    <th> Name of Docker Job </th>
-    <th>  </th>
+    <td> name </td>
+    <td> Y </td>
+    <td> string </td>
+    <td> Name of Docker Job </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> type </th>
-    <th> Y </th>
-    <th> string </th>
-    <th> denotes its a docker bosh type </th>
-    <th> docker-bosh </th>
+    <td> type </td>
+    <td> Y </td>
+    <td> string </td>
+    <td> denotes its a docker bosh type </td>
+    <td> docker-bosh </td>
   </tr>
   <tr>
-    <th> files </th>
-    <th> Y  </th>
-    <th> string </th>
-    <th> Relative path to a docker image in form of zipped tar ball (tgz) </th>
-    <th> </th>
+    <td> files </td>
+    <td> Y  </td>
+    <td> string </td>
+    <td> Relative path to a docker image in form of zipped tar ball (tgz) </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> image_name </th>
-    <th> Y  </th>
-    <th> string </th>
-    <th> name of the docker image </th>
-    <th> </th>
+    <td> image_name </td>
+    <td> Y  </td>
+    <td> string </td>
+    <td> name of the docker image </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> cpu </th>
-    <th> Y  </th>
-    <th> integer </th>
-    <th> number of virtual cpus to allot for running the docker image </th>
-    <th> </th>
+    <td> cpu </td>
+    <td> Y  </td>
+    <td> integer </td>
+    <td> number of virtual cpus to allot for running the docker image </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> memory </th>
-    <th> Y  </th>
-    <th> integer </th>
-    <th> memory for the docker image in MB</th>
-    <th> </th>
+    <td> memory </td>
+    <td> Y  </td>
+    <td> integer </td>
+    <td> memory for the docker image in MB</td>
+    <td> </td>
   </tr>
   <tr>
-    <th> ephemeral_disk </th>
-    <th> Y  </th>
-    <th> integer </th>
-    <th> size of ephemeral (non-persistent) disk for the docker image </th>
-    <th> </th>
+    <td> ephemeral_disk </td>
+    <td> Y  </td>
+    <td> integer </td>
+    <td> size of ephemeral (non-persistent) disk for the docker image </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> persistent_disk </th>
-    <th> Y  </th>
-    <th> integer </th>
-    <th> size of persistent disk for the docker image </th>
-    <th> </th>
+    <td> persistent_disk </td>
+    <td> Y  </td>
+    <td> integer </td>
+    <td> size of persistent disk for the docker image </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> instances </th>
-    <th> Y  </th>
-    <th> integer </th>
-    <th> number of vm instances to run the docker image </th>
-    <th> 1 </th>
+    <td> instances </td>
+    <td> Y  </td>
+    <td> integer </td>
+    <td> number of vm instances to run the docker image </td>
+    <td> 1 </td>
   </tr>
   <tr>
-    <th> manifest </th>
-    <th> Y </th>
-    <th> yaml </th>
-    <th> docker-boshrelease yaml manifest for running the container; Also, requires specifying env variables to be passed onto the docker image along with the `image` name that matches the `image_name`.
-    <th>  </th>
+    <td> manifest </td>
+    <td> Y </td>
+    <td> yaml </td>
+    <td> docker-boshrelease yaml manifest for running the container; Also, requires specifying env variables to be passed onto the docker image along with the `image` name that matches the `image_name`.
+    <td>  </td>
   </tr>
 </table>
 

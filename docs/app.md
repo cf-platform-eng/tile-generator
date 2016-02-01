@@ -8,7 +8,7 @@ The package would be treated as an application type with the deploy and delete a
 Various properties can be specified to control/configure the app. The format is
 
 <table>
-  <tr>
+  <tr align="left">
     <th> Field </th>
     <th> Required </th>
     <th> Type </th>
@@ -16,102 +16,102 @@ Various properties can be specified to control/configure the app. The format is
     <th> Default </th>
   </tr>
   <tr>
-    <th> name </th>
-    <th> Y </th>
-    <th> string </th>
-    <th> name of application </th>
-    <th>  </th>
+    <td> name </td>
+    <td> Y </td>
+    <td> string </td>
+    <td> name of application </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> type </th>
-    <th> Y </th>
-    <th> string </th>
-    <th> denotes its an app type </th>
-    <th> can be `app` or `app-broker` or `docker-app` </th>
+    <td> type </td>
+    <td> Y </td>
+    <td> string </td>
+    <td> denotes its an app type </td>
+    <td> can be `app` or `app-broker` or `docker-app` </td>
   </tr>
   <tr>
-    <th> uri </th>
-    <th> Y </th>
-    <th> string </th>
-    <th> Uri/Route for the app on CF </th>
-    <th> </th>
+    <td> uri </td>
+    <td> Y </td>
+    <td> string </td>
+    <td> Uri/Route for the app on CF </td>
+    <td> </td>
   </tr>
   <tr>
-    <th> start_command </th>
-    <th> N </th>
-    <th> string </th>
-    <th> custom start command </th>
-    <th> Go with the docker or buildpack generated start command as default </th>
+    <td> start_command </td>
+    <td> N </td>
+    <td> string </td>
+    <td> custom start command </td>
+    <td> Go with the docker or buildpack generated start command as default </td>
   </tr>
   <tr>
-    <th> health_monitor </th>
-    <th> N </th>
-    <th> boolean </th>
-    <th> Turn off health monitoring of apps on CF </th>
-    <th> true </th>
+    <td> health_monitor </td>
+    <td> N </td>
+    <td> boolean </td>
+    <td> Turn off health monitoring of apps on CF </td>
+    <td> true </td>
   </tr>
   <tr>
-    <th> org </th>
-    <th> N </th>
-    <th> string </th>
-    <th> target org to deploy; if not specified, new org would be created </th>
-    <th>  </th>
+    <td> org </td>
+    <td> N </td>
+    <td> string </td>
+    <td> target org to deploy; if not specified, new org would be created </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> space </th>
-    <th> N </th>
-    <th> string </th>
-    <th> target space to deploy; if not specified, new space would be created </th>
-    <th>  </th>
+    <td> space </td>
+    <td> N </td>
+    <td> string </td>
+    <td> target space to deploy; if not specified, new space would be created </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> org_quota </th>
-    <th> N </th>
-    <th> integer </th>
-    <th> size of org quota (if we are creating brand new org) in MB  </th>
-    <th> 1024 </th>
+    <td> org_quota </td>
+    <td> N </td>
+    <td> integer </td>
+    <td> size of org quota (if we are creating brand new org) in MB  </td>
+    <td> 1024 </td>
   </tr>
   <tr>
-    <th> bind_to_service </th>
-    <th> N </th>
-    <th> comma separated set of strings </th>
-    <th> List of pre-provisioned Services to bind the app in the given org/space; needs org & space to be specified  </th>
-    <th> 'none' </th>
+    <td> bind_to_service </td>
+    <td> N </td>
+    <td> comma separated set of strings </td>
+    <td> List of pre-provisioned Services to bind the app in the given org/space; needs org & space to be specified  </td>
+    <td> 'none' </td>
   </tr>
   <tr>
-    <th> memory </th>
-    <th> N </th>
-    <th> integer </th>
-    <th> size of memory (in MB) for app </th>
-    <th> 512 </th>
+    <td> memory </td>
+    <td> N </td>
+    <td> integer </td>
+    <td> size of memory (in MB) for app </td>
+    <td> 512 </td>
   </tr>
   <tr>
-    <th> create_open_security_group </th>
-    <th> N </th>
-    <th> boolean </th>
-    <th> Open up app security group for outbound access </th>
-    <th> false </th>
+    <td> create_open_security_group </td>
+    <td> N </td>
+    <td> boolean </td>
+    <td> Open up app security group for outbound access </td>
+    <td> false </td>
   </tr>
   <tr>
-    <th> persistence_store </th>
-    <th> N </th>
-    <th> boolean </th>
-    <th> App needs to bind to MySQL or Mongo service; Drop down UI option would be generated if set to true </th>
-    <th> 'none' </th>
+    <td> persistence_store </td>
+    <td> N </td>
+    <td> boolean </td>
+    <td> App needs to bind to MySQL or Mongo service; Drop down UI option would be generated if set to true </td>
+    <td> 'none' </td>
   </tr>
   <tr>
-    <th> files </th>
-    <th> Y if app or app-broker </th>
-    <th> string </th>
-    <th> Relative path to file containing the app bits  </th>
-    <th>  </th>
+    <td> files </td>
+    <td> Y if app or app-broker </td>
+    <td> string </td>
+    <td> Relative path to file containing the app bits  </td>
+    <td>  </td>
   </tr>
   <tr>
-    <th> image </th>
-    <th> Y if docker-app or docker-app-broker </th>
-    <th> string </th>
-    <th> docker image uri on public docker registry  </th>
-    <th>  </th>
+    <td> image </td>
+    <td> Y if docker-app or docker-app-broker </td>
+    <td> string </td>
+    <td> docker image uri on public docker registry  </td>
+    <td>  </td>
   </tr>
 </table>
 
