@@ -13,7 +13,7 @@ resources:
   type: git
   source:
     ignore_paths: [ "sample" ]
-    branch: master
+    branch: unit-tests
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: dockerfile-repo
@@ -72,8 +72,8 @@ jobs:
       inputs:
       - name: tile-generator-repo
       run:
-        path: echo
-        args: [ "hello world" ]
+        path: python
+        args: [ "-m", "unittest", "discover", "-s", "lib", "-p", "*_unittest.py" ]
 
 - name: tile-build
   plan:
