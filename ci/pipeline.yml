@@ -120,9 +120,9 @@ jobs:
     - get: generated-tile
       passed: [tile-build]
       trigger: true
-    - task: run-acceptance-tests
-      config:
-        platform: linux
+  - task: run-acceptance-tests
+    config:
+      platform: linux
       image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: tile-generator-repo
