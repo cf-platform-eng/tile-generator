@@ -57,7 +57,7 @@ jobs:
     params:
       build: dockerfile-repo/ci
 
-- name: unit-test
+- name: unit-tests
   plan:
   - aggregate:
     - get: ci-docker-image
@@ -79,10 +79,10 @@ jobs:
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [ unit-test ]
+      passed: [ unit-tests ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ unit-test ]
+      passed: [ unit-tests ]
       trigger: true
     - get: sample-tile-repo
       trigger: true
@@ -108,17 +108,17 @@ jobs:
     params:
       from: generated-tile/.*\.pivotal
 
-- name: acceptance-test
+- name: acceptance-tests
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [tile-build]
+      passed: [ tile-build ]
       trigger: true
     - get: tile-generator-repo
-      passed: [tile-build]
+      passed: [ tile-build ]
       trigger: true
     - get: generated-tile
-      passed: [tile-build]
+      passed: [ tile-build ]
       trigger: true
   - task: run-acceptance-tests
     config:
