@@ -13,7 +13,7 @@ resources:
   type: git
   source:
     ignore_paths: [ "sample" ]
-    branch: unit-tests
+    branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: dockerfile-repo
