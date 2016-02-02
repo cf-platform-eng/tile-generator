@@ -49,7 +49,7 @@ package_types = [
 	},
 	{
 		'typename': 'external-broker',
-		'flags': [ 'is_broker', 'is_external_broker' ],
+		'flags': [ 'requires_cf_cli', 'is_broker', 'is_external_broker' ],
 		'jobs':  [ '+register-broker', '-destroy-broker' ],
 	},
 	{
