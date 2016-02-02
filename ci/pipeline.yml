@@ -13,7 +13,7 @@ resources:
   type: git
   source:
     ignore_paths: [ "sample" ]
-    branch: master
+    branch: acceptance-tests
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: dockerfile-repo
@@ -107,3 +107,25 @@ jobs:
   - put: generated-tile
     params:
       from: generated-tile/.*\.pivotal
+
+- name: acceptance-tests
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [tile-build]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [tile-build]
+      trigger: true
+    - get: generated-tile
+      trigger: true
+    - task: run-acceptance-tests
+      config:
+        platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-acceptancetests.sh
+        args: [ "generated-tile" ]
