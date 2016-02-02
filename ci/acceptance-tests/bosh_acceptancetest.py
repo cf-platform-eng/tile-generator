@@ -1,7 +1,6 @@
 import unittest
 import sys
 import os
-import zipfile
 
 class VerifyBoshRelease(unittest.TestCase):
 

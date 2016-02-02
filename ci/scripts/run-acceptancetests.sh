@@ -28,9 +28,10 @@ mkdir release && (cd release && tar xvf "../${BOSH_FILE}")
 for TGZ_FILE in release/*/*.tgz
 do
 	TGZ_DIR=`echo "${TGZ_FILE}" | sed "s/\.tgz\$//"`
+	TAR_FILE="${TGZ_DIR}.tar"
 	mkdir -p "${TGZ_DIR}"
-	(cd "${TGZ_DIR}"; tar xvf "../../../${TGZ_FILE}")
-	rm "${TGZ_FILE}"
+	(cd "${TGZ_DIR}"; gunzip "../../../${TGZ_FILE}"; tar xvf "../../../${TAR_FILE}")
+	rm "${TAR_FILE}"
 done
 
 python -m unittest discover -v -s ${TEST_DIR} -p '*_acceptancetest.py'
