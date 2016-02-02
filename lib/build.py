@@ -336,6 +336,7 @@ def update_version(history, version):
 		semver = history.get('version', '0.0.0')
 		if not is_semver(semver):
 			print >>sys.stderr, 'Version must be in semver format (x.y.z), instead found', semver
+			sys.exit(1)
 		semver = semver.split('.')
 		if version == 'patch':
 			semver[2] = str(int(semver[2]) + 1)

@@ -72,8 +72,8 @@ jobs:
       inputs:
       - name: tile-generator-repo
       run:
-        path: echo
-        args: [ "hello world" ]
+        path: tile-generator-repo/ci/scripts/run-unittests.sh
+        args: [ "tile-generator-repo/lib" ]
 
 - name: tile-build
   plan:
