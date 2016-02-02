@@ -15,7 +15,7 @@ if [ -z "${TILE_FILE}" ]; then
 	exit 1
 fi
 
-mkdir product && (cd product && unzip "../${TILE_FILE}")
+mkdir product && ( cd product && unzip "../${TILE_FILE}" )
 
 BOSH_FILE=`ls product/releases/test-tile-*.tgz`
 if [ -z "${BOSH_FILE}" ]; then
@@ -23,15 +23,14 @@ if [ -z "${BOSH_FILE}" ]; then
 	exit 1
 fi
 
-mkdir release && (cd release && tar xvf "../${BOSH_FILE}")
+mkdir release && ( cd release && gunzip --stdout "../${BOSH_FILE}"  | tar xvf - )
 
 for TGZ_FILE in release/*/*.tgz
 do
 	TGZ_DIR=`echo "${TGZ_FILE}" | sed "s/\.tgz\$//"`
-	TAR_FILE="${TGZ_DIR}.tar"
 	mkdir -p "${TGZ_DIR}"
-	(cd "${TGZ_DIR}"; gunzip "../../../${TGZ_FILE}"; tar xvf "../../../${TAR_FILE}")
-	rm "${TAR_FILE}"
+	( cd "${TGZ_DIR}"; gunzip --stdout "../../../${TGZ_FILE}" | tar xvf - )
+	rm "${TGZ_FILE}"
 done
 
 python -m unittest discover -v -s ${TEST_DIR} -p '*_acceptancetest.py'
