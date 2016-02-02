@@ -23,13 +23,13 @@ if [ -z "${BOSH_FILE}" ]; then
 	exit 1
 fi
 
-mkdir release && ( cd release && gunzip -c "../${BOSH_FILE}"  | tar xvf - )
+mkdir release && ( cd release && gunzip -c "../${BOSH_FILE}"  | tar xf - )
 
 for TGZ_FILE in release/*/*.tgz
 do
 	TGZ_DIR=`echo "${TGZ_FILE}" | sed "s/\.tgz\$//"`
 	mkdir -p "${TGZ_DIR}"
-	( cd "${TGZ_DIR}"; gunzip -c "../../../${TGZ_FILE}" | tar xvf - )
+	( cd "${TGZ_DIR}"; gunzip -c "../../../${TGZ_FILE}" | tar xf - )
 	rm "${TGZ_FILE}"
 done
 
