@@ -363,37 +363,6 @@ job_types:
     default:
       identity: vcap
   - name: app_credentials
-  resource_definitions:
-  - name: ram
-    type: integer
-    configurable: false
-    default: {{ job.package.memory }}
-  - name: ephemeral_disk
-    type: integer
-    configurable: false
-    default: {{ job.package.ephemeral_disk }}
-  - name: persistent_disk
-    type: integer
-    configurable: false
-    default: {{ job.package.persistent_disk }}
-  - name: cpu
-    type: integer
-    configurable: false
-    default: {{ job.package.cpu }}
-  static_ip: 1
-  dynamic_ip: 0
-  max_in_flight: 1
-  instance_definitions:
-  - name: instances
-    type: integer
-    configurable: true
-    default: {{ job.package.instances }}
-  property_blueprints:
-  - name: vm_credentials
-    type: salted_credentials
-    default:
-      identity: vcap
-  - name: app_credentials
     type: salted_credentials
   manifest: |
     {{ job.package.manifest | indent }}
