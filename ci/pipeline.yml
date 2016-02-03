@@ -181,15 +181,6 @@ jobs:
       params:
         acquire: true
 
-- name: release-pcf-manual
-  plan:
-  - aggregate:
-    - get: pcf-environment
-      passed: [ claim-pcf ]
-    - put: pcf-environment
-      params:
-        release: pcf-environment
-
 - name: release-pcf
   plan:
   - get: generated-tile
