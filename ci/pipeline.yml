@@ -145,6 +145,9 @@ jobs:
     - get: ci-docker-image
       passed: [ claim-pcf ]
       trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-pcf ]
+      trigger: true
     - get: generated-tile
       passed: [ claim-pcf ]
       trigger: true
@@ -158,13 +161,16 @@ jobs:
       - name: pcf-environment
       - name: generated-tile
       run:
-        path: ls
-        args: [ "-lR", "pcf-environment" ]
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
+        args: [ "generated-tile", "pcf-environment" ]
 
 - name: claim-pcf
   plan:
   - aggregate:
     - get: ci-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-repo
       passed: [ acceptance-tests ]
       trigger: true
     - get: generated-tile
