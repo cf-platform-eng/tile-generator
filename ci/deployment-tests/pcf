@@ -39,7 +39,18 @@ def opsmgr_get(url):
 	username = creds.get('opsmgr').get('username')
 	password = creds.get('opsmgr').get('password')
 	headers = { 'Accept': 'application/json' }
-	return requests.get(url, auth=(username, password), verify=False, headers=headers)
+	response = requests.get(url, auth=(username, password), verify=False, headers=headers)
+	opsmgr_check_response(response)
+	return response
+
+def opsmgr_post(url, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	response = requests.post(url, auth=(username, password), verify=False, data=payload)
+	opsmgr_check_response(response)
+	return response
 
 def opsmgr_upload(url, filename):
 	creds = get_credentials()
@@ -47,7 +58,28 @@ def opsmgr_upload(url, filename):
 	username = creds.get('opsmgr').get('username')
 	password = creds.get('opsmgr').get('password')
 	files = { 'product[file]': open(filename, 'rb') }
-	return requests.post(url, auth=(username, password), verify=False, files=files, allow_redirects=False)
+	response = requests.post(url, auth=(username, password), verify=False, files=files)
+	opsmgr_check_response(response)
+	return response
+
+def opsmgr_delete(url):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	response = requests.delete(url, auth=(username, password), verify=False)
+	opsmgr_check_response(response)
+	return response
+
+def opsmgr_check_response(response):
+	if response.status_code != requests.codes.ok:
+		print >> sys.stderr, '-', response.status_code
+		try:
+			errors = response.json()["errors"]
+			print >> sys.stderr, '- '+('\n- '.join(errors))
+		except:
+			print >> sys.stderr, response.text
+		sys.exit(1)
 
 @click.group()
 def cli():
@@ -76,7 +108,21 @@ def products_cmd():
 @cli.command('import')
 @click.argument('zipfile')
 def import_cmd(zipfile):
-	print opsmgr_upload('/api/products', zipfile).text
+	opsmgr_upload('/api/products', zipfile)
+
+@cli.command('install')
+@click.argument('product')
+@click.argument('version')
+def install_cmd(product, version):
+	payload = {
+		'name': product,
+		'product_version': version,
+	}
+	opsmgr_post('/api/installation_settings/products', payload)
+
+@cli.command('delete-unused-products')
+def delete_unused_products_cmd():
+	opsmgr_delete('/api/products')
 
 if __name__ == "__main__":
 	cli()
