@@ -14,4 +14,4 @@ cat $2/name
 echo
 echo "metadata:"
 echo
-cat $/metadata
+cat $2/metadata
