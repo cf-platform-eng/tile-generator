@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+import sys
+import click
+import yaml
+import json
+import requests
+
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+
+# This function assumes that we are executing from within a concourse
+# pool-resource repository, where the claimed PCF instance metadata
+# is available in a file named './metadata'
+#
+def get_credentials():
+	try:
+		with open('metadata') as cred_file:
+			creds = yaml.safe_load(cred_file)
+			creds['opsmgr']
+			creds['opsmgr']['url']
+			creds['opsmgr']['username']
+			creds['opsmgr']['password']
+			creds['cf']
+			creds['cf']['url']
+			creds['cf']['username']
+			creds['cf']['password']
+	except KeyError as e:
+		print >> sys.stderr, 'metadata file is missing a value:', e.message
+		sys.exit(1)
+	except IOError as e:
+		print >> sys.stderr, 'Not a Concourse PCF pool resource.'
+		print >> sys.stderr, 'Execute this from within the pool repository root, after a successful claim/acquire.'
+		sys.exit(1)
+	return creds
+
+def opsmgr_get(url):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	headers = { 'Accept': 'application/json' }
+	return requests.get(url, auth=(username, password), verify=False, headers=headers)
+
+@click.group()
+def cli():
+	pass
+
+@cli.command('products')
+def products_cmd():
+	available_products = opsmgr_get('/api/products').json()
+	installed_products = opsmgr_get('/api/installation_settings').json()['products']
+	installed_products = [
+		{
+			"guid": p["guid"],
+			"name": p["identifier"],
+			"product_version": p["product_version"]
+		}
+		for p in installed_products
+	]
+	for ap in available_products:
+		installed = [ ip for ip in installed_products if ip["name"] == ap["name"]]
+		if len(installed) > 0 and installed[0]["product_version"] == ap["product_version"]:
+			ap["installed"] = "(installed)"
+		else:
+			ap["installed"] = ""
+		print "-", ap["name"], ap["product_version"], ap["installed"]
+
+if __name__ == "__main__":
+	cli()

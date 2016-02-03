@@ -158,6 +158,7 @@ jobs:
       platform: linux
       image: "docker:///guidowb/tile-pipeline"
       inputs:
+      - name: tile-generator-repo
       - name: pcf-environment
       - name: generated-tile
       run:
