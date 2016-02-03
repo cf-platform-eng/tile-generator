@@ -47,6 +47,14 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
 
+- name: pcf-environment
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool
+    branch: master
+    pool: pcf
+    private_key: {{github-pool-private-key}}
+
 jobs:
 
 - name: docker-build
@@ -130,3 +138,59 @@ jobs:
       run:
         path: tile-generator-repo/ci/scripts/run-acceptancetests.sh
         args: [ "generated-tile" ]
+
+- name: deployment-tests
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ claim-pcf ]
+  - task: run-deployment-tests
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: ls
+        args: [ "-lR", "pcf-environment" ]
+
+- name: claim-pcf
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ acceptance-tests ]
+      trigger: true
+    - put: pcf-environment
+      params:
+        acquire: true
+
+- name: release-pcf-manual
+  plan:
+  - aggregate:
+    - get: pcf-environment
+      passed: [ claim-pcf ]
+    - put: pcf-environment
+      params:
+        release: pcf-environment
+
+- name: release-pcf
+  plan:
+  - get: generated-tile
+    passed: [ deployment-tests ]
+    trigger: true
+  - get: pcf-environment
+    passed: [ deployment-tests ]
+    trigger: true
+  - put: pcf-environment
+    params:
+      release: pcf-environment
