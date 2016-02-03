@@ -41,6 +41,14 @@ def opsmgr_get(url):
 	headers = { 'Accept': 'application/json' }
 	return requests.get(url, auth=(username, password), verify=False, headers=headers)
 
+def opsmgr_upload(url, filename):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	files = { 'product[file]': open(filename, 'rb') }
+	return requests.post(url, auth=(username, password), verify=False, files=files, allow_redirects=False)
+
 @click.group()
 def cli():
 	pass
@@ -64,6 +72,11 @@ def products_cmd():
 		else:
 			ap["installed"] = ""
 		print "-", ap["name"], ap["product_version"], ap["installed"]
+
+@cli.command('import')
+@click.argument('zipfile')
+def import_cmd(zipfile):
+	print opsmgr_upload('/api/products', zipfile).text
 
 if __name__ == "__main__":
 	cli()
