@@ -91,6 +91,7 @@ property_blueprints:
     min: 256
     max: 2048
   default: {{ package.memory or 512 }}
+{% if package.persistence_store %}
 - name: {{ package.name }}_persistence_store_type
   type: dropdown_select
   configurable: true
@@ -102,6 +103,7 @@ property_blueprints:
   - name: none
     label: None
     default: true
+{% endif %}
 - name: {{ package.name }}_bind_to_service
   type: string
   configurable: true
