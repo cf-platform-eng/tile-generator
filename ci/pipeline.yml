@@ -21,7 +21,7 @@ resources:
   type: git
   source:
     paths: [ "sample" ]
-    branch: master
+    branch: acceptance
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-repo
@@ -234,17 +234,17 @@ jobs:
       trigger: true
     - get: pcf-backup
       passed: [ deployment-tests ]
-  - task: restore-settings
-    config:
-      platform: linux
-      image: "docker:///guidowb/tile-pipeline"
-      inputs:
-      - name: tile-generator-repo
-      - name: pcf-environment
-      - name: pcf-backup
-      run:
-        path: tile-generator-repo/ci/scripts/pcf-restore.sh
-        args: [ "pcf-environment", "pcf-backup" ]
+#  - task: restore-settings
+#    config:
+#      platform: linux
+#      image: "docker:///guidowb/tile-pipeline"
+#      inputs:
+#      - name: tile-generator-repo
+#      - name: pcf-environment
+#      - name: pcf-backup
+#      run:
+#        path: tile-generator-repo/ci/scripts/pcf-restore.sh
+#        args: [ "pcf-environment", "pcf-backup" ]
   - put: pcf-environment
     params:
       release: pcf-environment

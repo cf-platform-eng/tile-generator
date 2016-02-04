@@ -1,0 +1,8 @@
+---
+app2_org: tile-generator-org
+app2_space: test-space
+app2_persistence_store_type: mysql
+customer_name: Jimmy's Johnies
+street_address: Cartaway Alley
+city: New Jersey
+country: USA

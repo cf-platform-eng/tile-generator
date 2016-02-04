@@ -43,7 +43,7 @@ python "${TEST_DIR}/pcf" is-installed "${PRODUCT}" "${VERSION}"
 echo
 
 echo "Configuring product ${PRODUCT}"
-python "${TEST_DIR}/pcf" configure "${PRODUCT}" "${TEST_DIR}/properties.yml"
+python "${TEST_DIR}/pcf" configure "${PRODUCT}" "${REPO_DIR}/sample/missing-properties.yml"
 echo
 
 echo "Applying Changes"
