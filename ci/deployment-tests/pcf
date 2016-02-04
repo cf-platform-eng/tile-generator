@@ -52,6 +52,16 @@ def opsmgr_post(url, payload):
 	opsmgr_check_response(response)
 	return response
 
+def opsmgr_post_yaml(url, filename, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	files = { filename: yaml.safe_dump(payload) }
+	response = requests.post(url, auth=(username, password), verify=False, files=files)
+	opsmgr_check_response(response)
+	return response
+
 def opsmgr_upload(url, filename):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
@@ -89,6 +99,25 @@ def opsmgr_get_products():
 		product['installed'] = len(installed) > 0
 	return available_products
 
+def opsmgr_configure(settings, product, properties):
+	infrastructure = settings['infrastructure']
+	product_settings = [ p for p in settings['products'] if p['identifier'] == product ][0]
+	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
+	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
+	missing_properties = []
+	for p in product_settings['properties']:
+		key = p['identifier']
+		value = properties.get(key, None)
+		if value is not None:
+			p['value'] = value
+		else:
+			if p.get('value', None) is None:
+				missing_properties += [ key ]
+	if len(missing_properties) > 0:
+		print >> sys.stderr, 'Input file is missing required properties:'
+		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
+		sys.exit(1)
+
 @click.group()
 def cli():
 	pass
@@ -118,6 +147,31 @@ def is_installed_cmd(product, version):
 	if len(matches) < 1:
 		print >> sys.stderr, 'Product', product, 'version', version, 'is not installed'
 		sys.exit(1)
+	if len(matches) > 1:
+		print >> sys.stderr, 'Product', product, 'has multiple versions installed'
+		sys.exit(1)
+
+@cli.command('configure')
+@click.argument('product')
+@click.argument('properties_file')
+def configure_cmd(product, properties_file):
+	with open(properties_file) as f:
+		properties = yaml.safe_load(f)
+	settings = opsmgr_get('/api/installation_settings').json()
+	opsmgr_configure(settings, product, properties)
+	opsmgr_post_yaml('/api/installation_settings', 'installation[file]', settings)
+
+@cli.command('settings')
+@click.argument('product', None, required=False)
+def settings_cmd(product):
+	settings = opsmgr_get('/api/installation_settings').json()
+	if product is not None:
+		settings = [ p for p in settings['products'] if p['identifier'] == product ]
+		if len(settings) < 1:
+			print >> sys.stderr, 'No settings found for product', product
+			sys.exit(1)
+		settings = settings[0]
+	print json.dumps(settings, indent=4)
 
 @cli.command('import')
 @click.argument('zipfile')
