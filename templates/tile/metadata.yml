@@ -479,7 +479,6 @@ job_types:
       bind_to_service: (( .properties.{{ job.package.name }}_bind_to_service.value ))
       user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
       password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))
-      
 {% if job.package.on_demand_service_plans is defined %}
       on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
 {% endif %}
