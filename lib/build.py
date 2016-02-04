@@ -189,6 +189,7 @@ def add_package(dir, context, package, alternate_template=None):
 	with cd('..'):
 		for file in package.get('files', []):
 			filename = file.get('name', os.path.basename(file['path']))
+			file['name'] = filename
 			try:
 				urllib.urlretrieve(file['path'], os.path.join(target_dir, filename))
 			except ValueError: # Invalid URL, assume filename
