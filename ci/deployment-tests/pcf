@@ -5,6 +5,7 @@ import click
 import yaml
 import json
 import requests
+import time
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -225,5 +226,20 @@ def restore_cmd(backup_file):
 		settings = yaml.safe_load(f)
 	opsmgr_post_yaml('/api/installation_settings', 'installation[file]', settings)
 
-if __name__ == "__main__":
+@cli.command('apply-changes')
+def apply_changes_cmd():
+	install = opsmgr_post('/api/installation', { 'ignore_warnings': 'true' }).json()['install']
+	lines_shown = 0
+	while True:
+		log_lines = opsmgr_get('/api/installation/' + str(install['id']) + '/logs').json()['logs'].splitlines()
+		for line in log_lines[lines_shown:]:
+			if not line.startswith('{'):
+				print ' ', line
+		lines_shown = len(log_lines)
+		install_status = opsmgr_get('/api/installation/' + str(install['id'])).json()['status']
+		if not install_status == 'running':
+			break
+		time.sleep(1)
+
+if __name__ == '__main__':
 	cli()

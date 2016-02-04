@@ -473,7 +473,9 @@ job_types:
       start_command: (( .properties.{{ job.package.name }}_start_command.value ))
       health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
       need_cf_creds: (( .properties.{{ job.package.name }}_need_cf_creds.value ))
+{% if job.package.persistence_store %}
       persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
+{% endif %}
       bind_to_service: (( .properties.{{ job.package.name }}_bind_to_service.value ))
       user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
       password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))

@@ -45,3 +45,7 @@ echo
 echo "Configuring product ${PRODUCT}"
 python "${TEST_DIR}/pcf" configure "${PRODUCT}" "${TEST_DIR}/properties.yml"
 echo
+
+echo "Applying Changes"
+python "${TEST_DIR}/pcf" apply-changes
+echo
