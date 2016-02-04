@@ -16,6 +16,8 @@ fi
 
 BACKUP_FILE="pcf-backup-${PCF_NAME}-0.0.0.yml"
 
+cd "${POOL_DIR}"
+
 echo "Saving settings into ${BACKUP_FILE}"
 python "${TEST_DIR}/pcf" backup "${BACKUP_DIR}/${BACKUP_FILE}"
 echo

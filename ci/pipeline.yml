@@ -209,7 +209,7 @@ jobs:
       image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: tile-generator-repo
-      - name: generated-tile
+      - name: pcf-environment
       outputs:
       - name: pcf-backup
       run:
