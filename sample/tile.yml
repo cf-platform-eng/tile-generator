@@ -44,12 +44,7 @@ packages:
   type: app
   start_command: python app.py
   create_open_security_group: true
-  org: tile-generator-org
-  space: test-space
-  bind_to_service: "mysql-service,test-service"
-  # org_quota only applicable if a new org is being created fresh
-  org_quota: 1024
-  memory: 500
+  memory: 512
   files:
   - path: resources/app.zip
 - name: app2
