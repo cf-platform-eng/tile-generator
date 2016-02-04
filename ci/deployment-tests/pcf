@@ -211,5 +211,19 @@ def install_cmd(product, version):
 def delete_unused_products_cmd():
 	opsmgr_delete('/api/products')
 
+@cli.command('backup')
+@click.argument('backup_file')
+def backup_cmd(backup_file):
+	settings = opsmgr_get('/api/installation_settings').json()
+	with open(backup_file, 'wb') as f:
+		f.write(yaml.safe_dump(settings))
+
+@cli.command('restore')
+@click.argument('backup_file')
+def restore_cmd(backup_file):
+	with open(backup_file, 'rb') as f:
+		settings = yaml.safe_load(f)
+	opsmgr_post_yaml('/api/installation_settings', 'installation[file]', settings)
+
 if __name__ == "__main__":
 	cli()

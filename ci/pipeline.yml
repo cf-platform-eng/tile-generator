@@ -54,6 +54,14 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
+- name: pcf-backup
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: pcf-backup-.*-(?P<version>.*)\.yml
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
 - name: ci-docker-image
   type: docker-image
   source:
@@ -195,6 +203,21 @@ jobs:
     - put: pcf-environment
       params:
         acquire: true
+  - task: backup-settings
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: generated-tile
+      outputs:
+      - name: pcf-backup
+      run:
+        path: tile-generator-repo/ci/scripts/pcf-backup.sh
+        args: [ "pcf-environment", "pcf-backup" ]
+  - put: pcf-backup
+    params:
+      from: pcf-backup/.*\.yml
 
 - name: release-pcf
   plan:
