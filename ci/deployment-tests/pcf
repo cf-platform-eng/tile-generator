@@ -73,17 +73,17 @@ def opsmgr_upload(url, filename):
 	opsmgr_check_response(response)
 	return response
 
-def opsmgr_delete(url):
+def opsmgr_delete(url, check_response=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	username = creds.get('opsmgr').get('username')
 	password = creds.get('opsmgr').get('password')
 	response = requests.delete(url, auth=(username, password), verify=False)
-	opsmgr_check_response(response)
+	opsmgr_check_response(response, check_response=check_response)
 	return response
 
-def opsmgr_check_response(response):
-	if response.status_code != requests.codes.ok:
+def opsmgr_check_response(response, check_response=True):
+	if check_response and response.status_code != requests.codes.ok:
 		print >> sys.stderr, '-', response.status_code
 		try:
 			errors = response.json()["errors"]
@@ -122,7 +122,7 @@ def opsmgr_configure(settings, product, properties):
 	print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
 	product_settings['stemcell'] = stemcell
 	#
-	# Insert suuplied properties
+	# Insert supplied properties
 	#
 	missing_properties = []
 	for p in product_settings['properties']:
@@ -166,9 +166,6 @@ def is_installed_cmd(product, version):
 	matches = [ p for p in products if p['name'] == product and p['product_version'] == version and p['installed'] ]
 	if len(matches) < 1:
 		print >> sys.stderr, 'Product', product, 'version', version, 'is not installed'
-		sys.exit(1)
-	if len(matches) > 1:
-		print >> sys.stderr, 'Product', product, 'has multiple versions installed'
 		sys.exit(1)
 
 @cli.command('configure')
@@ -215,16 +212,33 @@ def delete_unused_products_cmd():
 @cli.command('backup')
 @click.argument('backup_file')
 def backup_cmd(backup_file):
-	settings = opsmgr_get('/api/installation_settings').json()
+	response = opsmgr_get('/api/installation_asset_collection')
 	with open(backup_file, 'wb') as f:
-		f.write(yaml.safe_dump(settings))
+		f.write(response.raw)
 
 @cli.command('restore')
 @click.argument('backup_file')
 def restore_cmd(backup_file):
 	with open(backup_file, 'rb') as f:
-		settings = yaml.safe_load(f)
-	opsmgr_post_yaml('/api/installation_settings', 'installation[file]', settings)
+		payload = { 'installation[file]': f }
+		opsmgr_post('/api/installation_asset_collection', f)
+
+@cli.command('uninstall')
+@click.argument('product')
+def cleanup_cmd(product):
+	products = opsmgr_get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	print json.dumps(products, indent=4)
+	sys.exit(0)
+	if len(matches) < 1:
+		sys.exit(0)
+	if len(matches) > 1:
+		print >> sys.stderr, 'More than one product matches', product
+		sys.exit(1)
+	install = matches[0]
+	opsmgr_delete('/api/installation_settings/products/' + install['guid'])
+	apply_changes_cmd()
+	opsmgr_delete('/api/products')
 
 @cli.command('apply-changes')
 def apply_changes_cmd():
