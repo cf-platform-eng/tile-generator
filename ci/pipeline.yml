@@ -229,6 +229,9 @@ jobs:
     - get: pcf-environment
       passed: [ deployment-tests ]
       trigger: true
+    - get: tile-generator-repo
+      passed: [ deployment-tests ]
+      trigger: true
     - get: pcf-backup
       passed: [ deployment-tests ]
   - task: restore-settings

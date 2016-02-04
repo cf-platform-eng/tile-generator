@@ -22,7 +22,7 @@ echo "Available products:"
 python "${TEST_DIR}/pcf" products
 echo
 
-echo "Saving settings into ${BACKUP_FILE}"
+echo "Restoring settings from ${BACKUP_FILE}"
 python "${TEST_DIR}/pcf" restore "${BACKUP_DIR}/${BACKUP_FILE}"
 echo
 
