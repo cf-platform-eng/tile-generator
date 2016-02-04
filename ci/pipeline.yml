@@ -1,5 +1,20 @@
 ---
 
+groups:
+
+- name: build
+  jobs:
+  - build-docker
+  - unit-tests
+  - build-tile
+  - acceptance-tests
+
+- name: deploy
+  jobs:
+  - claim-pcf
+  - deployment-tests
+  - release-pcf
+
 resources:
 
 - name: sample-tile-repo
@@ -57,7 +72,7 @@ resources:
 
 jobs:
 
-- name: docker-build
+- name: build-docker
   plan:
   - get: dockerfile-repo
     trigger: true
@@ -69,7 +84,7 @@ jobs:
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [ docker-build ]
+      passed: [ build-docker ]
       trigger: true
     - get: tile-generator-repo
       trigger: true
@@ -83,7 +98,7 @@ jobs:
         path: tile-generator-repo/ci/scripts/run-unittests.sh
         args: [ "tile-generator-repo/lib" ]
 
-- name: tile-build
+- name: build-tile
   plan:
   - aggregate:
     - get: ci-docker-image
@@ -120,13 +135,13 @@ jobs:
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [ tile-build ]
+      passed: [ build-tile ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ tile-build ]
+      passed: [ build-tile ]
       trigger: true
     - get: generated-tile
-      passed: [ tile-build ]
+      passed: [ build-tile ]
       trigger: true
   - task: run-acceptance-tests
     config:
