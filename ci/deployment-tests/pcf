@@ -100,10 +100,29 @@ def opsmgr_get_products():
 	return available_products
 
 def opsmgr_configure(settings, product, properties):
+	#
+	# Use the first availability zone
+	#
 	infrastructure = settings['infrastructure']
 	product_settings = [ p for p in settings['products'] if p['identifier'] == product ][0]
 	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
 	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
+	#
+	# Make sure Elastic Runtime tile is installed
+	#
+	cf = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
+	if len(cf) < 1:
+		print >> sys.stderr, 'Required product Elastic Runtime is missing'
+		sys.exit(1)
+	#
+	# Use the Elastic Runtime stemcell
+	#
+	stemcell = cf[0]['stemcell']
+	print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
+	product_settings['stemcell'] = stemcell
+	#
+	# Insert suuplied properties
+	#
 	missing_properties = []
 	for p in product_settings['properties']:
 		key = p['identifier']

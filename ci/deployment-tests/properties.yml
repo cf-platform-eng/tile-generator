@@ -1,2 +1,30 @@
 ---
-blah: blah
+app1_persistence_store_type: 
+app2_start_command: blah
+app2_org: dev-org
+app2_space: dev-space
+app2_persistence_store_type: mysql
+broker1_start_command: blah
+broker1_org: broker-org
+broker1_space: broker-space
+broker1_internal_service_names: none
+broker2_start_command: blah
+broker2_org: broker-org
+broker2_space: broker-space
+broker2_on_demand_service_plans_collection:
+- "name": Plan 1
+  "description": First Plan
+  "key1": 1
+  "key2": key2
+broker2_internal_service_names: none
+broker3_broker_user: user
+broker3_broker_password: { 'secret': password }
+docker_app_org: dev-org
+docker_app_space: dev-space
+docker_app_broker_org: broker-org
+docker_app_broker_space: broker-space
+docker_app_broker_internal_service_names: none
+customer_name: Jimmy's Johnies
+street_address: Cartaway Alley
+city: New Jersey
+country: USA

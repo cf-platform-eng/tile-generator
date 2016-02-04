@@ -41,3 +41,7 @@ echo "Available products:"
 python "${TEST_DIR}/pcf" products
 python "${TEST_DIR}/pcf" is-installed "${PRODUCT}" "${VERSION}"
 echo
+
+echo "Configuring product ${PRODUCT}"
+python "${TEST_DIR}/pcf" configure "${PRODUCT}" "${TEST_DIR}/properties.yml"
+echo
