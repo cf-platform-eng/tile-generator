@@ -28,5 +28,16 @@ echo "Uploading ${TILE_FILE}"
 python "${TEST_DIR}/pcf" import "${TILE_DIR}/${TILE_FILE}"
 echo
 
+echo "Available products:"
+python "${TEST_DIR}/pcf" products
+python "${TEST_DIR}/pcf" is-available "${PRODUCT}" "${VERSION}"
+echo
+
 echo "Installing product ${PRODUCT} version ${VERSION}"
 python "${TEST_DIR}/pcf" install "${PRODUCT}" "${VERSION}"
+echo
+
+echo "Available products:"
+python "${TEST_DIR}/pcf" products
+python "${TEST_DIR}/pcf" is-installed "${PRODUCT}" "${VERSION}"
+echo

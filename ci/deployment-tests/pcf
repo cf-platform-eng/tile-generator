@@ -81,29 +81,43 @@ def opsmgr_check_response(response):
 			print >> sys.stderr, response.text
 		sys.exit(1)
 
+def opsmgr_get_products():
+	available_products = opsmgr_get('/api/products').json()
+	installed_products = opsmgr_get('/api/installation_settings').json()['products']
+	for product in available_products:
+		installed = [ p for p in installed_products if p['identifier'] == product['name'] and p['product_version'] == product['product_version'] ]
+		product['installed'] = len(installed) > 0
+	return available_products
+
 @click.group()
 def cli():
 	pass
 
 @cli.command('products')
 def products_cmd():
-	available_products = opsmgr_get('/api/products').json()
-	installed_products = opsmgr_get('/api/installation_settings').json()['products']
-	installed_products = [
-		{
-			"guid": p["guid"],
-			"name": p["identifier"],
-			"product_version": p["product_version"]
-		}
-		for p in installed_products
-	]
-	for ap in available_products:
-		installed = [ ip for ip in installed_products if ip["name"] == ap["name"]]
-		if len(installed) > 0 and installed[0]["product_version"] == ap["product_version"]:
-			ap["installed"] = "(installed)"
-		else:
-			ap["installed"] = ""
-		print "-", ap["name"], ap["product_version"], ap["installed"]
+	products = opsmgr_get_products()
+	for product in products:
+		print "-", product["name"], product["product_version"], "(installed)" if product["installed"] else ""
+
+@cli.command('is-available')
+@click.argument('product')
+@click.argument('version')
+def is_available_cmd(product, version):
+	products = opsmgr_get_products()
+	matches = [ p for p in products if p['name'] == product and p['product_version'] == version ]
+	if len(matches) < 1:
+		print >> sys.stderr, 'No match found for product', product, 'version', version
+		sys.exit(1)
+
+@cli.command('is-installed')
+@click.argument('product')
+@click.argument('version')
+def is_installed_cmd(product, version):
+	products = opsmgr_get_products()
+	matches = [ p for p in products if p['name'] == product and p['product_version'] == version and p['installed'] ]
+	if len(matches) < 1:
+		print >> sys.stderr, 'Product', product, 'version', version, 'is not installed'
+		sys.exit(1)
 
 @cli.command('import')
 @click.argument('zipfile')
