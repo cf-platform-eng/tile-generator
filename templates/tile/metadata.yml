@@ -69,14 +69,18 @@ property_blueprints:
   type: boolean
   configurable: true
   default: {{ package.create_open_security_group or false }}
+{% if package.org %}
 - name: {{ package.name }}_org
   type: string
   configurable: true
   default: {{ package.org or '' }}
+{% endif %}
+{% if package.space %}
 - name: {{ package.name }}_space
   type: string
   configurable: true
   default: {{ package.space or '' }}
+{% endif %}
 - name: {{ package.name }}_org_quota
   type: integer
   configurable: false
@@ -462,8 +466,12 @@ job_types:
       app_version: (( .properties.{{ job.package.name }}_app_version.value ))
       create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
       app_push:
+{% if job.package.org %}
         org: (( .properties.{{ job.package.name }}_org.value ))
+{% endif %}
+{% if job.package.space %}
         space: (( .properties.{{ job.package.name }}_space.value ))
+{% endif %}
         org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
         timeout: 180
         memory: (( .properties.{{ job.package.name }}_memory.value ))
@@ -514,9 +522,9 @@ pre_delete_errands:
 
 update:
   canaries: 1
-  canary_watch_time: 60000-240000
+  canary_watch_time: 10000-100000
   max_in_flight: 1
-  update_watch_time: 60000-240000
+  update_watch_time: 10000-100000
 
 requires_product_versions:
 - name: cf
