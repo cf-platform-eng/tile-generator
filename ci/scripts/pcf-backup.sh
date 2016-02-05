@@ -14,10 +14,24 @@ if [ -z "${PCF_NAME}" ]; then
 	exit 1
 fi
 
-BACKUP_FILE="pcf-backup-${PCF_NAME}-0.0.0.yml"
+FLAG_FILE="pcf-backup-${PCF_NAME}-0.0.0.yml"
+BACKUP_FILE="pcf-backup-${PCF_NAME}-0.0.1.yml"
 
 cd "${POOL_DIR}"
 
-echo "Saving settings into ${BACKUP_FILE}"
+if [ "$3" -eq "init" ]; then
+	echo "Initializing ${PCF_NAME} for backup"
+	touch "${BACKUP_DIR}/${FLAG_FILE}"
+	echo
+	exit 0
+fi
+
+if [ -f "${BACKUP_DIR}/${BACKUP_FILE}" ]; then
+	echo "Backup ${BACKUP_FILE} already exists"
+	echo
+	exit 0
+fi
+
+echo "Backing up to ${BACKUP_FILE}"
 python "${TEST_DIR}/pcf" backup "${BACKUP_DIR}/${BACKUP_FILE}"
 echo

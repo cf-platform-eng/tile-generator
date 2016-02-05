@@ -150,20 +150,20 @@ def products_cmd():
 
 @cli.command('is-available')
 @click.argument('product')
-@click.argument('version')
+@click.argument('version', None, required=False)
 def is_available_cmd(product, version):
 	products = opsmgr_get_products()
-	matches = [ p for p in products if p['name'] == product and p['product_version'] == version ]
+	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) ]
 	if len(matches) < 1:
 		print >> sys.stderr, 'No match found for product', product, 'version', version
 		sys.exit(1)
 
 @cli.command('is-installed')
 @click.argument('product')
-@click.argument('version')
+@click.argument('version', None, required=False)
 def is_installed_cmd(product, version):
 	products = opsmgr_get_products()
-	matches = [ p for p in products if p['name'] == product and p['product_version'] == version and p['installed'] ]
+	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) and p['installed'] ]
 	if len(matches) < 1:
 		print >> sys.stderr, 'Product', product, 'version', version, 'is not installed'
 		sys.exit(1)
@@ -220,8 +220,9 @@ def backup_cmd(backup_file):
 @cli.command('restore')
 @click.argument('backup_file')
 def restore_cmd(backup_file):
+	creds = get_credentials()
 	with open(backup_file, 'rb') as f:
-		payload = { 'installation[file]': f }
+		payload = { 'installation[file]': f, 'password': creds['opsmgr']['password'] }
 		opsmgr_post('/api/installation_asset_collection', f)
 
 @cli.command('cleanup')
