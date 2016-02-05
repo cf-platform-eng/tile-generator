@@ -223,22 +223,53 @@ def restore_cmd(backup_file):
 		payload = { 'installation[file]': f }
 		opsmgr_post('/api/installation_asset_collection', f)
 
-@cli.command('uninstall')
+@cli.command('cleanup')
 @click.argument('product')
 def cleanup_cmd(product):
+	#
+	# Attempt 1 - Delete any uninstalled versions
+	#
 	products = opsmgr_get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
-	print json.dumps(products, indent=4)
-	sys.exit(0)
+	for match in matches:
+		print >> sys.stderr, '- attempting to delete', match['name']
+		opsmgr_delete('/api/installation_settings/products/' + match['guid'])
+		opsmgr_delete('/api/products')
+	products = opsmgr_get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
 	if len(matches) < 1:
 		sys.exit(0)
 	if len(matches) > 1:
-		print >> sys.stderr, 'More than one product matches', product
+		print >> sys.stderr, '- more than one match remains installed'
 		sys.exit(1)
-	install = matches[0]
-	opsmgr_delete('/api/installation_settings/products/' + install['guid'])
+	#
+	# Attempt 2 - Uninstall deployed version
+	#
+	match = matches[0]
+	print >> sys.stderr, '- product was deployed, applying changes to uninstall it'
 	apply_changes_cmd()
 	opsmgr_delete('/api/products')
+	products = opsmgr_get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	if len(matches) < 1:
+		sys.exit(0)
+	#
+	# Attempt 3 - Re-deploy with errands disabled, then uninstall
+	#
+	match = matches[0]
+	print >> sys.stderr, '- uninstall appears to have failed'
+	print >> sys.stderr, '- re-deploying with disabled errands'
+	opsmgr_disable_errands(product)
+	apply_changes_cmd()
+	print >> sys.stderr, '- uninstalling with disabled errands'
+	opsmgr_delete('/api/installation_settings/products/' + match['guid'])
+	apply_changes_cmd()
+	opsmgr_delete('/api/products')
+	products = opsmgr_get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	if len(matches) > 0:
+		print >> sys.stderr, '- failed to uninstall'
+		sys.exit(1)
 
 @cli.command('apply-changes')
 def apply_changes_cmd():
