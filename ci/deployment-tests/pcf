@@ -34,13 +34,13 @@ def get_credentials():
 		sys.exit(1)
 	return creds
 
-def opsmgr_get(url):
+def opsmgr_get(url, stream=False):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	username = creds.get('opsmgr').get('username')
 	password = creds.get('opsmgr').get('password')
 	headers = { 'Accept': 'application/json' }
-	response = requests.get(url, auth=(username, password), verify=False, headers=headers)
+	response = requests.get(url, auth=(username, password), verify=False, headers=headers, stream=stream)
 	opsmgr_check_response(response)
 	return response
 
@@ -212,9 +212,10 @@ def delete_unused_products_cmd():
 @cli.command('backup')
 @click.argument('backup_file')
 def backup_cmd(backup_file):
-	response = opsmgr_get('/api/installation_asset_collection')
+	response = opsmgr_get('/api/installation_asset_collection', stream=True)
 	with open(backup_file, 'wb') as f:
-		f.write(response.raw)
+		for chunk in response.iter_content(1024):
+			f.write(chunk)
 
 @cli.command('restore')
 @click.argument('backup_file')
