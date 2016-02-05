@@ -12,9 +12,7 @@ groups:
 - name: deploy
   jobs:
   - claim-pcf
-  - backup-pcf
   - deployment-tests
-  - restore-pcf
   - release-pcf
   - release-pcf-manually
 
@@ -54,14 +52,6 @@ resources:
   source:
     bucket: {{s3-bucket}}
     regexp: tile\-history-(?P<version>.*)\.yml
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
-
-- name: pcf-backup
-  type: s3
-  source:
-    bucket: {{s3-bucket}}
-    regexp: pcf-backup-.*-(?P<version>.*)\.yml
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
@@ -180,21 +170,6 @@ jobs:
     - put: pcf-environment
       params:
         acquire: true
-  - task:
-    config:
-      platform: linux
-      image: "docker:///guidowb/tile-pipeline"
-      inputs:
-      - name: tile-generator-repo
-      - name: pcf-environment
-      outputs:
-      - name: pcf-backup
-      run:
-        path: tile-generator-repo/ci/scripts/pcf-backup.sh
-        args: [ "pcf-environment", "pcf-backup", "init" ]
-  - put: pcf-backup
-    params:
-      from: pcf-backup/.*\.yml
 
 - name: release-pcf-manually
   plan:
@@ -204,52 +179,20 @@ jobs:
     params:
       release: pcf-environment
 
-- name: backup-pcf
-  plan:
-  - aggregate:
-    - get: ci-docker-image
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: tile-generator-repo
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: generated-tile
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: pcf-environment
-      passed: [ claim-pcf ]
-    - get: pcf-backup
-      passed: [ claim-pcf ]
-  - task: run-backup
-    config:
-      platform: linux
-      image: "docker:///guidowb/tile-pipeline"
-      inputs:
-      - name: tile-generator-repo
-      - name: pcf-environment
-      outputs:
-      - name: pcf-backup
-      run:
-        path: tile-generator-repo/ci/scripts/pcf-backup.sh
-        args: [ "pcf-environment", "pcf-backup" ]
-  - put: pcf-backup
-    params:
-      from: pcf-backup/.*\.yml
-
 - name: deployment-tests
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [ backup-pcf ]
+      passed: [ claim-pcf ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ backup-pcf ]
+      passed: [ claim-pcf ]
       trigger: true
     - get: generated-tile
-      passed: [ backup-pcf ]
+      passed: [ claim-pcf ]
       trigger: true
     - get: pcf-environment
-      passed: [ backup-pcf ]
+      passed: [ claim-pcf ]
   - task: run-deployment-tests
     config:
       platform: linux
@@ -262,38 +205,10 @@ jobs:
         path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
         args: [ "generated-tile", "pcf-environment" ]
 
-- name: restore-pcf
-  plan:
-  - aggregate:
-    - get: ci-docker-image
-      passed: [ deployment-tests ]
-      trigger: true
-    - get: tile-generator-repo
-      passed: [ deployment-tests ]
-      trigger: true
-    - get: generated-tile
-      passed: [ deployment-tests ]
-      trigger: true
-     - get: pcf-environment
-      passed: [ deployment-tests ]
-    - get: pcf-backup
-      passed: [ backup-pcf ]
-  - task: run-backup
-    config:
-      platform: linux
-      image: "docker:///guidowb/tile-pipeline"
-      inputs:
-      - name: tile-generator-repo
-      - name: pcf-environment
-      - name: pcf-backup
-      run:
-        path: tile-generator-repo/ci/scripts/pcf-restore.sh
-        args: [ "generated-tile", "pcf-environment", "pcf-backup" ]
-
 - name: release-pcf
   plan:
   - get: pcf-environment
-    passed: [ restore-pcf ]
+    passed: [ deployment-tests ]
     trigger: true
   - put: pcf-environment
     params:
