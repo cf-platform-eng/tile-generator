@@ -457,10 +457,11 @@ job_types:
         {{ job.package.name }}:
           secret: test
     {{ job.package.name }}:
-      app_name: (( .properties.{{ job.package.name }}_app_name.value ))
 {% if job.package.is_buildpack  %}
+      buildpack_name: (( .properties.{{ job.package.name }}_app_name.value ))
       buildpack_order: (( .properties.{{ job.package.name }}_buildpack_order.value ))
 {% else %}
+      app_name: (( .properties.{{ job.package.name }}_app_name.value ))
       app_uri: (( .properties.{{ job.package.name }}_app_uri.value ))
 {% if job.package.is_app  %}
       app_version: (( .properties.{{ job.package.name }}_app_version.value ))

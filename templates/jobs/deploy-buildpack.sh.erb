@@ -22,7 +22,7 @@ export ADMIN_USER=<%= properties.cf.admin_user %>
 export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
 export DOMAIN=<%= properties.domain %>
 export API_ENDPOINT=$SCHEME://api.${DOMAIN}
-export BUILDPACK_NAME=<%= properties.{{ package.name }}.app_name %>
+export BUILDPACK_NAME=<%= properties.{{ package.name }}.buildpack_name %>
 export BUILDPACK_ORDER=<%= properties.{{ package.name }}.buildpack_order %>
 
 export CF_HOME=`pwd`/home/cf
