@@ -190,6 +190,25 @@ def settings_cmd(product):
 		settings = settings[0]
 	print json.dumps(settings, indent=4)
 
+@cli.command('cf-info')
+def cf_info_cmd():
+	settings = opsmgr_get('/api/installation_settings').json()
+	settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
+	if len(settings) < 1:
+		print >> sys.stderr, 'Elastic Runtime is not installed'
+		sys.exit(1)
+	settings = settings[0]
+	jobs = settings['jobs']
+	cc_properties = [ j for j in jobs if j['identifier'] == 'cloud_controller' ][0]['properties']
+	system_domain = [ p for p in cc_properties if p['identifier'] == 'system_domain' ][0]['value']
+	apps_domain = [ p for p in cc_properties if p['identifier'] == 'apps_domain' ][0]['value']
+	uaa_properties = [ j for j in jobs if j['identifier'] == 'uaa' ][0]['properties']
+	admin_credentials = [ c for c in uaa_properties if c['identifier'] == 'admin_credentials' ][0]['value']
+	print '- system_domain:', system_domain
+	print '- apps_domain:', apps_domain
+	print '- admin_username:', admin_credentials['identity']
+	print '- admin_password:', admin_credentials['password']
+
 @cli.command('import')
 @click.argument('zipfile')
 def import_cmd(zipfile):
@@ -295,6 +314,9 @@ def apply_changes_cmd():
 		if not install_status == 'running':
 			break
 		time.sleep(1)
+	if not install_status == 'success':
+		print >> sys.stderr, '- install finished with status:', install_status
+		sys.exit(1)
 
 if __name__ == '__main__':
 	cli()
