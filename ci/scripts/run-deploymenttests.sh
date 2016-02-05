@@ -24,14 +24,6 @@ echo "Available products:"
 python "${TEST_DIR}/pcf" products
 echo
 
-echo "Cleaning up prior versions of ${PRODUCT}"
-python "${TEST_DIR}/pcf" cleanup "${PRODUCT}"
-echo
-
-echo "Available products:"
-python "${TEST_DIR}/pcf" products
-echo
-
 echo "Uploading ${TILE_FILE}"
 python "${TEST_DIR}/pcf" import "${TILE_DIR}/${TILE_FILE}"
 echo
