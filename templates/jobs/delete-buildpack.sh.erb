@@ -31,4 +31,4 @@ function authenticate_and_target() {
 
 cf -v
 authenticate_and_target
-cf delete-buildpack ${BUILDPACK_NAME}
+cf delete-buildpack -f ${BUILDPACK_NAME}
