@@ -12,7 +12,9 @@ groups:
 - name: deploy
   jobs:
   - claim-pcf
+  - deploy-tile
   - deployment-tests
+  - remove-tile
   - release-pcf
   - release-pcf-manually
 
@@ -179,7 +181,7 @@ jobs:
     params:
       release: pcf-environment
 
-- name: deployment-tests
+- name: deploy-tile
   plan:
   - aggregate:
     - get: ci-docker-image
@@ -193,6 +195,32 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ claim-pcf ]
+  - task: run-deploy-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
+        args: [ "generated-tile", "pcf-environment" ]
+
+- name: deployment-tests
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ deploy-tile ]
   - task: run-deployment-tests
     config:
       platform: linux
@@ -205,10 +233,36 @@ jobs:
         path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
         args: [ "generated-tile", "pcf-environment" ]
 
+- name: remove-tile
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ deployment-tests ]
+  - task: run-deployment-tests
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment" ]
+
 - name: release-pcf
   plan:
   - get: pcf-environment
-    passed: [ deployment-tests ]
+    passed: [ remove-tile ]
     trigger: true
   - put: pcf-environment
     params:
