@@ -7,4 +7,4 @@ RUN apk add --no-cache python && \
 
 ADD app/app.py .
 ADD app/requirements.txt .
-RUN pip install -r app/requirements.txt
+RUN pip install -r requirements.txt
