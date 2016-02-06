@@ -49,7 +49,7 @@ package_types = [
 	},
 	{
 		'typename': 'external-broker',
-		'flags': [ 'is_broker', 'is_external_broker' ],
+		'flags': [ 'requires_cf_cli', 'is_broker', 'is_external_broker' ],
 		'jobs':  [ '+register-broker', '-destroy-broker' ],
 	},
 	{
@@ -189,6 +189,7 @@ def add_package(dir, context, package, alternate_template=None):
 	with cd('..'):
 		for file in package.get('files', []):
 			filename = file.get('name', os.path.basename(file['path']))
+			file['name'] = filename
 			try:
 				urllib.urlretrieve(file['path'], os.path.join(target_dir, filename))
 			except ValueError: # Invalid URL, assume filename

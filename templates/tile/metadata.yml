@@ -69,14 +69,18 @@ property_blueprints:
   type: boolean
   configurable: true
   default: {{ package.create_open_security_group or false }}
+{% if package.org %}
 - name: {{ package.name }}_org
   type: string
   configurable: true
   default: {{ package.org or '' }}
+{% endif %}
+{% if package.space %}
 - name: {{ package.name }}_space
   type: string
   configurable: true
   default: {{ package.space or '' }}
+{% endif %}
 - name: {{ package.name }}_org_quota
   type: integer
   configurable: false
@@ -91,6 +95,7 @@ property_blueprints:
     min: 256
     max: 2048
   default: {{ package.memory or 512 }}
+{% if package.persistence_store %}
 - name: {{ package.name }}_persistence_store_type
   type: dropdown_select
   configurable: true
@@ -102,6 +107,7 @@ property_blueprints:
   - name: none
     label: None
     default: true
+{% endif %}
 - name: {{ package.name }}_bind_to_service
   type: string
   configurable: true
@@ -420,17 +426,22 @@ job_types:
         {{ job.package.name }}:
           secret: test
     {{ job.package.name }}:
-      app_name: (( .properties.{{ job.package.name }}_app_name.value ))
 {% if job.package.is_buildpack  %}
+      buildpack_name: (( .properties.{{ job.package.name }}_app_name.value ))
       buildpack_order: (( .properties.{{ job.package.name }}_buildpack_order.value ))
 {% else %}
+      app_name: (( .properties.{{ job.package.name }}_app_name.value ))
       app_uri: (( .properties.{{ job.package.name }}_app_uri.value ))
 {% if job.package.is_app  %}
       app_version: (( .properties.{{ job.package.name }}_app_version.value ))
       create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
       app_push:
+{% if job.package.org %}
         org: (( .properties.{{ job.package.name }}_org.value ))
+{% endif %}
+{% if job.package.space %}
         space: (( .properties.{{ job.package.name }}_space.value ))
+{% endif %}
         org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
         timeout: 180
         memory: (( .properties.{{ job.package.name }}_memory.value ))
@@ -440,11 +451,12 @@ job_types:
       start_command: (( .properties.{{ job.package.name }}_start_command.value ))
       health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
       need_cf_creds: (( .properties.{{ job.package.name }}_need_cf_creds.value ))
+{% if job.package.persistence_store %}
       persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
+{% endif %}
       bind_to_service: (( .properties.{{ job.package.name }}_bind_to_service.value ))
       user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
       password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))
-      
 {% if job.package.on_demand_service_plans is defined %}
       on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
 {% endif %}
@@ -480,9 +492,9 @@ pre_delete_errands:
 
 update:
   canaries: 1
-  canary_watch_time: 60000-240000
+  canary_watch_time: 10000-100000
   max_in_flight: 1
-  update_watch_time: 60000-240000
+  update_watch_time: 10000-100000
 
 requires_product_versions:
 - name: cf
