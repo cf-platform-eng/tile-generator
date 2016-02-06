@@ -59,18 +59,18 @@ function push_buildpack() {
 
     BUILDPACK_EXISTS=`cf buildpacks | grep ${BUILDPACK_NAME} >/dev/null; echo $?`
     if [ "$BUILDPACK_EXISTS" == "0" ]; then
-      if [ "$BUILDPACK_ORDER" -gt 5 ]; then
-        # Let it go to the last position
-        CF_TRACE=true cf create-buildpack ${BUILDPACK_NAME} ${PACKAGE_PATH}/${TARGET_BUILDPACK} --enable
-      else
-        CF_TRACE=true cf create-buildpack ${BUILDPACK_NAME} ${PACKAGE_PATH}/${TARGET_BUILDPACK} $BUILDPACK_ORDER --enable
-      fi
-    else
-      if [ "$BUILDPACK_ORDER" -gt 5 ]; then
+      if [ "$BUILDPACK_ORDER" -ge 99 ]; then
         # Leave it at the same position
         CF_TRACE=true cf update-buildpack ${BUILDPACK_NAME} -p ${PACKAGE_PATH}/${TARGET_BUILDPACK} --enable
       else
         CF_TRACE=true cf update-buildpack ${BUILDPACK_NAME} -p ${PACKAGE_PATH}/${TARGET_BUILDPACK} -i $BUILDPACK_ORDER --enable
+      fi
+    else
+      if [ "$BUILDPACK_ORDER" -ge 99 ]; then
+        # Let it go to the last position
+        CF_TRACE=true cf create-buildpack ${BUILDPACK_NAME} ${PACKAGE_PATH}/${TARGET_BUILDPACK} --enable
+      else
+        CF_TRACE=true cf create-buildpack ${BUILDPACK_NAME} ${PACKAGE_PATH}/${TARGET_BUILDPACK} $BUILDPACK_ORDER --enable
       fi
     fi
   popd
