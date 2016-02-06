@@ -263,7 +263,6 @@ def cleanup_cmd(product):
 	for match in matches:
 		print >> sys.stderr, '- attempting to delete', match['name']
 		opsmgr_delete('/api/installation_settings/products/' + match['guid'])
-		opsmgr_delete('/api/products')
 	products = opsmgr_get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	if len(matches) < 1:

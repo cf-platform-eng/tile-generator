@@ -41,15 +41,17 @@ if python "${TEST_DIR}/pcf" is-installed "${PRODUCT}" ; then
 	exit 1
 fi
 
-echo "Deleting unused products"
-python "${TEST_DIR}/pcf" delete-unused-products
-echo
+exit 0 # We do not want to remove unused products other than our own
 
-echo "Available products:"
-python "${TEST_DIR}/pcf" products
-echo
+# echo "Deleting unused products"
+# python "${TEST_DIR}/pcf" delete-unused-products
+# echo
 
-if python "${TEST_DIR}/pcf" is-available "${PRODUCT}" ; then
-	echo "${PRODUCT} remains available - remove failed"
-	exit 1
-fi
+# echo "Available products:"
+# python "${TEST_DIR}/pcf" products
+# echo
+
+# if python "${TEST_DIR}/pcf" is-available "${PRODUCT}" ; then
+# 	echo "${PRODUCT} remains available - remove failed"
+# 	exit 1
+# fi
