@@ -68,13 +68,13 @@ def upload(url, filename):
 	check_response(response)
 	return response
 
-def delete(url, check_response=True):
+def delete(url, checke=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	username = creds.get('opsmgr').get('username')
 	password = creds.get('opsmgr').get('password')
 	response = requests.delete(url, auth=(username, password), verify=False)
-	check_response(response, check_response=check_response)
+	check_response(response, check=check)
 	return response
 
 def check_response(response, check=True):
