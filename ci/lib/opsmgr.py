@@ -77,8 +77,8 @@ def delete(url, check_response=True):
 	check_response(response, check_response=check_response)
 	return response
 
-def check_response(response, check_response=True):
-	if check_response and response.status_code != requests.codes.ok:
+def check_response(response, check=True):
+	if check and response.status_code != requests.codes.ok:
 		print >> sys.stderr, '-', response.status_code
 		try:
 			errors = response.json()["errors"]
