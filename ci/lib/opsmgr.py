@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+
+import sys
+import yaml
+import json
+import requests
+import time
+
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+
+# This function assumes that we are executing from within a concourse
+# pool-resource repository, where the claimed PCF instance metadata
+# is available in a file named './metadata'
+#
+def get_credentials():
+	try:
+		with open('metadata') as cred_file:
+			creds = yaml.safe_load(cred_file)
+			creds['opsmgr']
+			creds['opsmgr']['url']
+			creds['opsmgr']['username']
+			creds['opsmgr']['password']
+	except KeyError as e:
+		print >> sys.stderr, 'metadata file is missing a value:', e.message
+		sys.exit(1)
+	except IOError as e:
+		print >> sys.stderr, 'Not a Concourse PCF pool resource.'
+		print >> sys.stderr, 'Execute this from within the pool repository root, after a successful claim/acquire.'
+		sys.exit(1)
+	return creds
+
+def get(url, stream=False):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	headers = { 'Accept': 'application/json' }
+	response = requests.get(url, auth=(username, password), verify=False, headers=headers, stream=stream)
+	check_response(response)
+	return response
+
+def post(url, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	response = requests.post(url, auth=(username, password), verify=False, data=payload)
+	check_response(response)
+	return response
+
+def post_yaml(url, filename, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	files = { filename: yaml.safe_dump(payload) }
+	response = requests.post(url, auth=(username, password), verify=False, files=files)
+	check_response(response)
+	return response
+
+def upload(url, filename):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	files = { 'product[file]': open(filename, 'rb') }
+	response = requests.post(url, auth=(username, password), verify=False, files=files)
+	check_response(response)
+	return response
+
+def delete(url, check_response=True):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	username = creds.get('opsmgr').get('username')
+	password = creds.get('opsmgr').get('password')
+	response = requests.delete(url, auth=(username, password), verify=False)
+	check_response(response, check_response=check_response)
+	return response
+
+def check_response(response, check_response=True):
+	if check_response and response.status_code != requests.codes.ok:
+		print >> sys.stderr, '-', response.status_code
+		try:
+			errors = response.json()["errors"]
+			print >> sys.stderr, '- '+('\n- '.join(errors))
+		except:
+			print >> sys.stderr, response.text
+		sys.exit(1)
+
+def get_products():
+	available_products = get('/api/products').json()
+	installed_products = get('/api/installation_settings').json()['products']
+	for product in available_products:
+		installed = [ p for p in installed_products if p['identifier'] == product['name'] and p['product_version'] == product['product_version'] ]
+		product['installed'] = len(installed) > 0
+	return available_products
+
+def configure(settings, product, properties):
+	#
+	# Use the first availability zone
+	#
+	infrastructure = settings['infrastructure']
+	product_settings = [ p for p in settings['products'] if p['identifier'] == product ][0]
+	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
+	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
+	#
+	# Make sure Elastic Runtime tile is installed
+	#
+	cf = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
+	if len(cf) < 1:
+		print >> sys.stderr, 'Required product Elastic Runtime is missing'
+		sys.exit(1)
+	#
+	# Use the Elastic Runtime stemcell
+	#
+	stemcell = cf[0]['stemcell']
+	print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
+	product_settings['stemcell'] = stemcell
+	#
+	# Insert supplied properties
+	#
+	missing_properties = []
+	for p in product_settings['properties']:
+		key = p['identifier']
+		value = properties.get(key, None)
+		if value is not None:
+			p['value'] = value
+		else:
+			if p.get('value', None) is None:
+				missing_properties += [ key ]
+	if len(missing_properties) > 0:
+		print >> sys.stderr, 'Input file is missing required properties:'
+		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
+		sys.exit(1)
+
+def get_cfinfo():
+	settings = get('/api/installation_settings').json()
+	settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
+	if len(settings) < 1:
+		print >> sys.stderr, 'Elastic Runtime is not installed'
+		sys.exit(1)
+	settings = settings[0]
+	jobs = settings['jobs']
+	cc_properties = [ j for j in jobs if j['identifier'] == 'cloud_controller' ][0]['properties']
+	system_domain = [ p for p in cc_properties if p['identifier'] == 'system_domain' ][0]['value']
+	apps_domain = [ p for p in cc_properties if p['identifier'] == 'apps_domain' ][0]['value']
+	uaa_properties = [ j for j in jobs if j['identifier'] == 'uaa' ][0]['properties']
+	admin_credentials = [ c for c in uaa_properties if c['identifier'] == 'admin_credentials' ][0]['value']
+	return {
+		'system_domain': system_domain,
+		'apps_domain': apps_domain,
+		'admin_username': admin_credentials['identity'],
+		'admin_password': admin_credentials['password'],
+	}
