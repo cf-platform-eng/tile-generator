@@ -303,13 +303,10 @@ jobs:
   - aggregate:
     - get: ci-docker-image
       passed: [ claim-pcf ]
-      trigger: true
     - get: tile-generator-repo
       passed: [ claim-pcf ]
-      trigger: true
     - get: generated-tile
       passed: [ claim-pcf ]
-      trigger: true
     - get: pcf-environment
       passed: [ claim-pcf ]
   - task: remove-tile
