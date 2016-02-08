@@ -87,7 +87,7 @@ def install_cmd(product, version):
 @cli.command('uninstall')
 @click.argument('product')
 def install_cmd(product):
-	products = opsmgr_get('/api/installation_settings/products').json()
+	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	for match in matches:
 		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
@@ -122,7 +122,7 @@ def cleanup_cmd(product):
 	matches = [ p for p in products if p['type'] == product ]
 	for match in matches:
 		print >> sys.stderr, '- attempting to delete', match['name']
-		opsmgr_delete('/api/installation_settings/products/' + match['guid'])
+		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	if len(matches) < 1:
