@@ -15,9 +15,9 @@ class VerifyApp1(unittest.TestCase):
 		self.hostname = 'app1.' + self.cfinfo['apps_domain']
 		self.url = 'http://' + self.hostname
 
-	def test_responds_to_env(self):
+	def test_responds_to_hello(self):
 		headers = { 'Accept': 'application/json' }
-		response = requests.get(self.url + '/env', headers=headers)
+		response = requests.get(self.url + '/hello', headers=headers)
 		response.raise_for_status()
 		env = response.json()
 		print json.dumps(env, indent=4)
