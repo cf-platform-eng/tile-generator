@@ -24,6 +24,11 @@ echo "Available products:"
 python "${LIB_DIR}/pcf" products
 echo
 
+if ! python "${LIB_DIR}/pcf" is-installed "${PRODUCT}" ; then
+	echo "${PRODUCT} not installed - skipping removal"
+	exit 0
+fi
+
 echo "Uninstalling ${PRODUCT}"
 python "${LIB_DIR}/pcf" uninstall "${PRODUCT}"
 echo

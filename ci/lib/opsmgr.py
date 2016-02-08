@@ -68,7 +68,7 @@ def upload(url, filename):
 	check_response(response)
 	return response
 
-def delete(url, checke=True):
+def delete(url, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	username = creds.get('opsmgr').get('username')

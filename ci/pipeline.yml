@@ -13,7 +13,6 @@ groups:
   - deployment-tests
   - remove-tile
   - release-pcf
-  - release-pcf-manually
 
 - name: build
   jobs:
@@ -29,7 +28,11 @@ groups:
   - deployment-tests
   - remove-tile
   - release-pcf
-  - release-pcf-manually
+
+- name: manual
+  jobs:
+  - claim-pcf
+  - manual-cleanup-and-release
 
 resources:
 
@@ -208,14 +211,6 @@ jobs:
       params:
         acquire: true
 
-- name: release-pcf-manually
-  plan:
-  - get: pcf-environment
-    passed: [ claim-pcf ]
-  - put: pcf-environment
-    params:
-      release: pcf-environment
-
 - name: deploy-tile
   plan:
   - aggregate:
@@ -282,7 +277,7 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ deployment-tests ]
-  - task: run-deployment-tests
+  - task: remove-tile
     config:
       platform: linux
       image: "docker:///guidowb/tile-pipeline"
@@ -302,3 +297,33 @@ jobs:
   - put: pcf-environment
     params:
       release: pcf-environment
+
+- name: manual-cleanup-and-release
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ claim-pcf ]
+  - task: remove-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment" ]
+  - put: pcf-environment
+    params:
+      release: pcf-environment
+
