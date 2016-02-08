@@ -2,6 +2,19 @@
 
 groups:
 
+- name: all
+  jobs:
+  - build-docker
+  - unit-tests
+  - build-tile
+  - acceptance-tests
+  - claim-pcf
+  - deploy-tile
+  - deployment-tests
+  - remove-tile
+  - release-pcf
+  - release-pcf-manually
+
 - name: build
   jobs:
   - build-docker
