@@ -7,7 +7,7 @@ BACKUP_DIR="$( cd "$3" && pwd )"
 MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
 REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
-TEST_DIR="$( cd "${REPO_DIR}/ci/deployment-tests" && pwd )"
+LIB_DIR="$( cd "${REPO_DIR}/ci/lib" && pwd )"
 
 PCF_NAME=`cat "${POOL_DIR}/name"`
 if [ -z "${PCF_NAME}" ]; then
@@ -33,26 +33,26 @@ echo "Available products:"
 python "${TEST_DIR}/pcf" products
 echo
 
-if python "${TEST_DIR}/pcf" is-available "${PRODUCT}" ; then
+if python "${LIB_DIR}/pcf" is-available "${PRODUCT}" ; then
 	echo "Deleting unused products"
-	python "${TEST_DIR}/pcf" delete-unused-products
+	python "${LIB_DIR}/pcf" delete-unused-products
 	echo
 
 	echo "Available products:"
-	python "${TEST_DIR}/pcf" products
+	python "${LIB_DIR}/pcf" products
 	echo
 fi
 
-if ! python "${TEST_DIR}/pcf" is-installed "${PRODUCT}" ; then
+if ! python "${LIB_DIR}/pcf" is-installed "${PRODUCT}" ; then
 	echo "It appears that ${PRODUCT} was successfully removed - skipping restore"
 	echo
 	exit 0
 fi
 
 echo "Restoring from ${BACKUP_FILE}"
-python "${TEST_DIR}/pcf" restore "${BACKUP_DIR}/${BACKUP_FILE}"
+python "${LIB_DIR}/pcf" restore "${BACKUP_DIR}/${BACKUP_FILE}"
 echo
 
 echo "Available products:"
-python "${TEST_DIR}/pcf" products
+python "${LIB_DIR}/pcf" products
 echo
