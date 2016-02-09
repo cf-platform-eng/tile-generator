@@ -95,18 +95,18 @@ packages:
   image: guidowb/sample-cf-app
   start_command: python app.py
 
-- name: app4
-  type: docker-bosh
-  docker/images:
-  - guidowb/sample-cf-app
-  cpu: 2
-  memory: 1024
-  ephemeral_disk: 4096
-  persistent_disk: 2048
-  instances: 1
-  manifest: |
-    containers:
-    - name: broker3
-      image: guidowb/sample-cf-app
-      bind_ports:
-      - '8080:8080'
+# - name: app4
+#   type: docker-bosh
+#   docker/images:
+#   - guidowb/sample-cf-app
+#   cpu: 2
+#   memory: 1024
+#   ephemeral_disk: 4096
+#   persistent_disk: 2048
+#   instances: 1
+#   manifest: |
+#     containers:
+#     - name: broker3
+#       image: guidowb/sample-cf-app
+#       bind_ports:
+#       - '8080:8080'
