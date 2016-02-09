@@ -103,7 +103,7 @@ Elastic Runtime), use the following format.
 Note: for applications that are normally pushed as multiple files (node.js for example) you should zip up the project files plus all dependencies into a single zip file, then edit tile.yml to point to the zipped file: 
 ```bash
 cd <your project dir>
-tar -zcvf resources/<your project name>.tgz
+tar -zcvf resources/<your project name>.tgz .
 ```
 
 If your application is also a service broker, use `app-broker` as the type
