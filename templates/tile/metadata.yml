@@ -463,7 +463,9 @@ job_types:
 {% endif %}
 {% endif %}
 {% if job.package.is_broker %}
+{% if job.package.internal_service_names %}
       internal_service_name: (( .properties.{{ job.package.name }}_internal_service_names.value ))
+{% endif %}
       enable_global_access_to_plans: (( .properties.{{ job.package.name }}_enable_global_access_to_plans.value ))
       broker:
 {% if job.package.is_external_broker %}
