@@ -106,7 +106,7 @@ packages:
   instances: 1
   manifest: |
     containers:
-    - name broker3
+    - name: broker3
       image: guidowb/sample-cf-app
       bind_ports:
       - '8080:8080'
