@@ -8,11 +8,11 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(os.path.join(PATH, '..'), 'lib'))
 import opsmgr
 
-class VerifyApp1(unittest.TestCase):
+class VerifyApp2(unittest.TestCase):
 
 	def setUp(self):
 		self.cfinfo = opsmgr.get_cfinfo()
-		self.hostname = 'app1.' + self.cfinfo['apps_domain']
+		self.hostname = 'app2-hostname.' + self.cfinfo['apps_domain']
 		self.url = 'http://' + self.hostname
 
 	def test_responds_to_hello(self):
@@ -38,6 +38,7 @@ class VerifyApp1(unittest.TestCase):
 		response.raise_for_status()
 		env = response.json()
 		vcap_services = json.loads(env.get('VCAP_SERVICES'))
+		print json.dumps(vcap_services, indent=4)
 
 	def test_has_versioned_name(self):
 		headers = { 'Accept': 'application/json' }
@@ -46,7 +47,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		name = vcap_application.get('application_name')
-		self.assertTrue(name.startswith('app1-'))
+		self.assertTrue(name.startswith('app2-'))
 
 	def test_is_in_correct_space(self):
 		headers = { 'Accept': 'application/json' }
@@ -55,7 +56,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		space= vcap_application.get('space_name')
-		self.assertEquals(space, 'app1-space')
+		self.assertEquals(space, 'app2-space')
 
 if __name__ == '__main__':
 	unittest.main()
