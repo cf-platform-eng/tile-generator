@@ -10,22 +10,22 @@ class VerifyBoshRelease(unittest.TestCase):
 		self.assertTrue(os.path.exists('release/release.MF'))
 
 	def test_has_correct_number_of_jobs(self):
-		self.assertEqual(len(glob.glob('release/jobs/*')), 6)
+		self.assertEqual(len(glob.glob('release/jobs/*')), 17)
 
 	def test_has_correct_number_of_app_jobs(self):
-		self.assertEqual(len(glob.glob('release/jobs/deploy-app-*')), 2)
-		self.assertEqual(len(glob.glob('release/jobs/delete-app-*')), 2)
+		self.assertEqual(len(glob.glob('release/jobs/deploy-app-*')), 5)
+		self.assertEqual(len(glob.glob('release/jobs/delete-app-*')), 5)
 
 	def test_has_correct_number_of_broker_jobs(self):
-		self.assertEqual(len(glob.glob('release/jobs/register-broker-*')), 0)
-		self.assertEqual(len(glob.glob('release/jobs/destroy-broker-*')), 0)
+		self.assertEqual(len(glob.glob('release/jobs/register-broker-*')), 2)
+		self.assertEqual(len(glob.glob('release/jobs/destroy-broker-*')), 2)
 
 	def test_has_correct_number_of_buildpack_jobs(self):
 		self.assertEqual(len(glob.glob('release/jobs/deploy-buildpack-*')), 1)
 		self.assertEqual(len(glob.glob('release/jobs/delete-buildpack-*')), 1)
 
 	def test_has_correct_number_of_docker_jobs(self):
-		self.assertEqual(len(glob.glob('release/jobs/docker-bosh-*')), 0)
+		self.assertEqual(len(glob.glob('release/jobs/docker-bosh-*')), 1)
 
 	def test_all_jobs_have_monit(self):
 		self.assertEqual(len(glob.glob('release/jobs/*/monit')), len(glob.glob('release/jobs/*')))
@@ -59,7 +59,7 @@ class VerifyBoshRelease(unittest.TestCase):
 		self.assertEqual(len(glob.glob('release/jobs/*/templates/*.sh.erb')), len(glob.glob('release/jobs/*')))
 
 	def test_has_correct_number_of_packages(self):
-		self.assertEqual(len(glob.glob('release/packages/*')), 5)
+		self.assertEqual(len(glob.glob('release/packages/*')), 9)
 
 	def test_has_complete_cf_cli_package(self):
 		self.assertEqual(len(glob.glob('release/packages/cf_cli')), 1)
