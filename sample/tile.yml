@@ -80,7 +80,7 @@ packages:
     configurable: true
     descrp: A String Field
   - name: int_field
-    type: int
+    type: integer
     configurable: true
     descrp: A Integer Field
 

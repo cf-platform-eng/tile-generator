@@ -112,7 +112,6 @@ property_blueprints:
   type: string
   configurable: true
   default: {{ package.bind_to_service or none }}
-
 {% endif %}
 {% if package.is_broker_app  %}
 {% if package.on_demand_service_plans %}
@@ -142,10 +141,12 @@ property_blueprints:
   type: boolean
   configurable: true
   default: {{ package.enable_global_access_to_plans or false }}
+{% if package.internal_service_names %}
 - name: {{ package.name }}_internal_service_names
   type: string
   configurable: false
-  default: {{ package.internal_service_names }}
+  default: {{ package.internal_service_names or none }}
+{% endif %}
 {% endif %}
 {% if package.is_external_broker %}
 - name: {{ package.name }}_broker_user
