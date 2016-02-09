@@ -141,7 +141,7 @@ property_blueprints:
 - name: {{ package.name }}_enable_global_access_to_plans
   type: boolean
   configurable: true
-  default: false
+  default: {{ package.enable_global_access_to_plans or false }}
 - name: {{ package.name }}_internal_service_names
   type: string
   configurable: false

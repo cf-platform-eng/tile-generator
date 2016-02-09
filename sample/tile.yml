@@ -40,22 +40,73 @@ forms:
       label: Elsewhere
 
 packages:
-- name: app1
+
+- name: app1                          # App with minimal configuration, i.e. all default values
   type: app
+  start_command: python app.py        # This is required for python, optional for many other languages
+  files:
+  - path: resources/app.zip
+
+- name: broker1                       # Broker with minimal configuration, i.e. all default values
+  type: app-broker
+  start_command: python app.py        # This is required for python, optional for many other languages
+  enable_global_access_to_plans: true
+  files:
+  - path: resources/app.zip
+
+- name: app2                          # App showing configurable values
+  type: app
+  uri: app2-hostname                  # Override hostname, default: app name
+  org_quota: 2048                     # Override org quota for newly created orgs, default: 1024
+  memory: 1024                        # Override memory, default: 512
+  start_command: python app.py        # Custom start command
+  health_monitor: false               # Turn off health monitoring, default: true
+  need_cf_creds: true                 # Pass CF creds to the app, default: false
+  create_open_security_group: true    # Apply open security group, default: false
+  persistence_store: true             # Users will be allowed to select between MySQL, Mongo or none, default: false
+  files:
+  - path: resources/app.zip
+  bind_to_service: broker1-service    # Bind to existing service, default: none (if service is in this tile, it must be listed before this package)
+
+- name: broker2                       # Broker showing additional configurable values
+  type: app-broker
   start_command: python app.py
-  create_open_security_group: true
-  memory: 512
   files:
   - path: resources/app.zip
-- name: app2
-  type: app
-  uri: app2-hostname
-  start_command: python app.py       # Custom start command
-  health_monitor: false              # Turn off health monitoring, default: true
-  files:
-  - path: resources/app.zip
-  persistence_store: true            # Users will be allowed to select between MySQL, Mongo or none
-- name: no-op-buildpack
+  internal_service_names: "svc1,svc2"
+  on_demand_service_plans:
+  - name: string_field
+    type: string
+    configurable: true
+    descrp: A String Field
+  - name: int_field
+    type: int
+    configurable: true
+    descrp: A Integer Field
+
+- name: no-op-buildpack               # A buildpack
   type: buildpack
+  buildpack_order: 99                 # 99 (or higher) means go to the end of the list
   files:
   - path: resources/buildpack.zip
+
+- name: app3
+  type: docker-app
+  image: guidowb/sample-cf-app
+  start_command: python app.py
+
+- name: app4
+  type: docker-bosh
+  docker/images:
+  - guidowb/sample-cf-app
+  cpu: 2
+  memory: 1024
+  ephemeral_disk: 4096
+  persistent_disk: 2048
+  instances: 1
+  manifest: |
+    containers:
+    - name broker3
+      image: guidowb/sample-cf-app
+      bind_ports:
+      - '8080:8080'
