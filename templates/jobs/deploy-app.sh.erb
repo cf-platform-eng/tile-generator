@@ -48,35 +48,20 @@ export NEED_CF_CREDENTIALS=<%= properties.{{ package.name }}.need_cf_creds %>
 export CREATE_OPEN_SECURITY_GROUP=<%= properties.{{ package.name }}.create_open_security_group %>
 export DELETE_PREV_APP_INSTANCE=<%= properties.{{ package.name }}.delete_prev_app_instance %>
 
+{% if package.on_demand_service_plans is defined %}
+<%
+  plans = { }
+  if properties.{{ package.name }}.on_demand_service_plans
 
-<% if properties.{{ package.name }}.on_demand_service_plans %>
-      PLANS="{"
-  <%  p("{{ package.name }}.on_demand_service_plans").each do |plan|
-         plan_name=plan['name']
-  %>
-       export PLAN_NAME=<%="#{plan_name}"%>
-       if [[ "$PLANS" == *{ ]]; then
-         export PLANS="${PLANS} \"${PLAN_NAME}\": {"
-      else
-        export PLANS="${PLANS}, \"${PLAN_NAME}\": {"
-      fi
-
-       <% plan.each_pair do | name, value| %>
-          export PLAN_KEY=<%="#{name}"%>
-          export PLAN_VALUE=<%="#{value}"%>
-          if [[ "$PLANS" == *{  ]]; then
-            export PLANS="${PLANS} \"${PLAN_KEY}\" : \"${PLAN_VALUE}\" "
-          else
-            export PLANS="${PLANS}, \"${PLAN_KEY}\" : \"${PLAN_VALUE}\" "
-          fi
-
-       <% end %>
-       export PLANS="${PLANS} }"
-    <% end %>
-    export DYNAMIC_PLANS="${PLANS} }"
-<% end %>
-echo DYNAMIC_PLANS now set to $DYNAMIC_PLANS ....
-
+      p("{{ package.name }}.on_demand_service_plans").each do |plan|
+        plan_name = plan['name']
+        plans[plan_name] = plan
+      end
+  end
+%>
+export DYNAMIC_PLANS='<%= JSON.dump(plans) %>'
+echo DYNAMIC_PLANS now set to "$DYNAMIC_PLANS" ....
+{% endif %}
 
 export CF_HOME=`pwd`/home/cf
 mkdir -p $CF_HOME
@@ -114,16 +99,16 @@ function target() {
     export ORG=${APP_NAME}-org
     export QUOTA=${APP_NAME}-quota
     cf create-org $ORG
-    create_quota 
+    create_quota
   fi
-  
+
   cf target -o $ORG
 
   if [ "$SPACE" == "" ]; then
     export SPACE=${APP_NAME}-space
     cf create-space $SPACE
   fi
-  
+
   cf target -s $SPACE
 
   export CF_ORG=$ORG
@@ -151,7 +136,7 @@ function provision_and_bind_data() {
   if [ "${PERSISTENCE_STORE_TYPE}" == "mysql" ]; then
     provision_and_bind_mysql
   elif [ "${PERSISTENCE_STORE_TYPE}" == "mongo" ]; then
-    provision_and_bind_mongo  
+    provision_and_bind_mongo
   fi
 }
 
@@ -255,7 +240,7 @@ function add_env_vars() {
   # Adding additional properties that most spring based apps or internal apps seem to be expecting
   cf set-env ${APP_NAME}-${APP_VERSION} CF_ORG $CF_ORG
   cf set-env ${APP_NAME}-${APP_VERSION} CF_SPACE $CF_SPACE
-  
+
   if [ "$NEED_CF_CREDENTIALS" == "true" ]; then
     cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USER $CF_USER
     cf set-env ${APP_NAME}-${APP_VERSION} CF_ADMIN_USERNAME $CF_USER
@@ -311,17 +296,17 @@ function push_app() {
       SET_HEALTH_MONITOR=" --no-route "
     fi
 
-{% if package.is_docker %}    
+{% if package.is_docker %}
     if [ "$START_COMMAND" != "" ]; then
       CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} --docker-image "${DOCKER_IMAGE}" -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR -c "$START_COMMAND"
     else
-      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} --docker-image "${DOCKER_IMAGE}" -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR 
+      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} --docker-image "${DOCKER_IMAGE}" -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR
     fi
-{% else %}    
+{% else %}
     if [ "$START_COMMAND" != "" ]; then
       CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR -c "$START_COMMAND"
     else
-      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR 
+      CF_TRACE=true cf push ${APP_NAME}-${APP_VERSION} -p ${PACKAGE_PATH}/${TARGET_APP} -n ${APP_URI} -d ${APP_DOMAIN} -t ${APP_PUSH_TIMEOUT} -m ${APP_PUSH_MEMORY}m --no-start $SET_HEALTH_MONITOR
     fi
 {% endif %}
 
