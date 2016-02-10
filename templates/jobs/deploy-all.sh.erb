@@ -1,0 +1,170 @@
+#!/bin/bash
+
+set -e
+
+function cf() {
+	CF=`which cf`
+	if [ "$1" == "--output" ]; then
+		shift
+		echo cf "$@"
+		$CF "$@"
+		result=$?
+	else
+		echo cf "$@"
+		output=`$CF "$@" 2>&1`
+		result=$?
+		if [ "$result" -ne "0" ]; then
+			echo "$output"
+		fi
+	fi
+	return $result
+}
+
+function import_opsmgr_variables() {
+	export SCHEME=https
+	export ADMIN_USER=<%= properties.cf.admin_user %>
+	export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
+	export DOMAIN=<%= properties.domain %>
+	export APP_DOMAIN=<%= properties.app_domains[0] %>
+	export CF_ORG=<%= properties.org %>
+	export CF_ORG_QUOTA=<%= properties.org_quota %>
+	export CF_SPACE=<%= properties.space %>
+	export CF_TARGET=$SCHEME://api.${DOMAIN}
+	export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
+	export SECURITY_USER_NAME=<%= properties.security.user %>
+	export SECURITY_USER_PASSWORD=<%= properties.security.password %>
+{% for property in context.all_properties %}
+	export {{ property.name | upper }}="<%= properties.{{ property.name }} %>"
+{% endfor %}
+}
+
+function prepare_cf_cli {
+	export PATH="/var/vcap/packages/cf_cli/bin:$PATH"
+	export CF_HOME=`pwd`/home/cf
+	mkdir -p $CF_HOME
+}
+
+function authenticate() {
+	cf --output --version
+	if [ "$CF_SKIP_SSL" == "true" -o "$CF_SKIP_SSL" == "True" ]; then
+		cf api $CF_TARGET --skip-ssl-validation
+	else
+		cf api $CF_TARGET
+	fi
+	cf auth $ADMIN_USER $ADMIN_PASSWORD
+}
+
+function setup_target_org() {
+	if [ -z "$CF_ORG" ]; then
+		CF_ORG={{ context.name }}-org
+	fi
+	if ! cf org $CF_ORG >/dev/null; then
+		cf create-org $CF_ORG
+	fi
+	cf target -o $CF_ORG
+}
+
+function setup_org_quota() {
+	if [ -n "$CF_ORG_QUOTA" ]; then
+		export CF_QUOTA=${CF_ORG}-quota
+		if ! cf quota $CF_QUOTA >/dev/null; then
+			cf create-quota $CF_QUOTA -m ${CF_ORG_QUOTA}m -r 10 -s 10
+		fi
+		cf update-quota $CF_QUOTA -m ${CF_ORG_QUOTA}m -r 10 -s 10 --disallow-paid-service-plans
+		cf set-quota $CF_ORG $CF_QUOTA
+	fi
+}
+
+function setup_target_space() {
+	if [ -z "$CF_SPACE" ]; then
+		CF_SPACE={{ context.name }}-space
+	fi
+	if ! cf space $CF_SPACE >/dev/null; then
+		cf create-space $CF_SPACE
+	fi
+	cf target -s $CF_SPACE
+}
+
+function setup_package_path() {
+	if [ -z "$PACKAGE_PATH" ]; then
+		export PACKAGE_PATH=/var/vcap/packages
+	fi
+}
+
+function apply_open_security_group() {
+	if ! cf security-group all_open >/dev/null; then
+		cf create-security-group all_open $PACKAGE_PATH/templates/all_open.json
+	fi
+	cf bind-running-security-group all_open
+}
+
+function add_env_vars() {
+	cf set-env $1 UAA_HOST "$SCHEME://uaa.$DOMAIN"
+	cf set-env $1 CC_HOST "$CF_TARGET"
+	cf set-env $1 LOGIN_HOST "$SCHEME://login.$DOMAIN"
+	cf set-env $1 ROOT "\$HOME"
+	cf set-env $1 SCHEME "$SCHEME"
+	cf set-env $1 VERIFY_SSL "$CF_SKIP_SSL"
+
+	# Adding additional properties that most spring based apps or internal apps seem to be expecting
+	cf set-env $1 CF_ORG "$CF_ORG"
+	cf set-env $1 CF_SPACE "$CF_SPACE"
+	cf set-env $1 CF_TARGET "$CF_TARGET"
+	cf set-env $1 SECURITY_USER_NAME "$SECURITY_USER_NAME"
+	cf set-env $1 SECURITY_USER_PASSWORD "$SECURITY_USER_PASSWORD"
+
+	# Custom variables from tile.yml
+	{% for property in context.all_properties %}
+	cf set-env $1 {{ property.name | upper }} "${{ property.name | upper }}"
+	{% endfor %}
+}
+
+function add_cf_credentials() {
+	cf set-env $1 CF_ADMIN_USER "$ADMIN_USER"
+	cf set-env $1 CF_ADMIN_USERNAME "$ADMIN_USER"
+	cf set-env $1 CF_ADMIN_PASSWORD "$ADMIN_PASSWORD"
+}
+
+function add_dynamic_plans() {
+	TBD
+}
+
+function delete_older_versions() {
+	cf --output apps | grep "$1" | grep -v "$2" | while read app rest; do
+		cf delete -f $app
+	done
+}
+
+import_opsmgr_variables
+prepare_cf_cli
+authenticate
+setup_target_org
+setup_org_quota
+setup_target_space
+setup_package_path
+{% if context.apply_open_security_group %}
+apply_open_security_group
+{% endif %}
+
+{% for package in context.packages %}
+# Deploy package {{ package.name }}
+#
+{% if package.is_app %}
+export APP_NAME={{ package.name }}-{{ context.version }}
+export APP_HOST={{ (package.manifest and package.manifest.host) or package.name }}
+cf --output push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} -f $PACKAGE_PATH/{{ package.name }}/manifest.yml --no-start
+add_env_vars ${APP_NAME}
+{% if package.needs_cf_credentials %}
+add_cf_credentials ${APP_NAME}
+{% endif %}
+cf --output restart ${APP_NAME}
+delete_older_versions {{ package.name }} ${APP_NAME}
+{% elif package.is_buildpack %}
+{% endif %}
+{% if package.is_broker %}
+{% if package.has_dynamic_plans %}
+add_dynamic_plans ${APP_NAME}
+{% endif %}
+{% endif %}
+
+{% endfor %}

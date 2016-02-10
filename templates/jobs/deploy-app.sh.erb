@@ -63,7 +63,7 @@ export DELETE_PREV_APP_INSTANCE=<%= properties.{{ package.name }}.delete_prev_ap
 
        <% plan.each_pair do | name, value| %>
           export PLAN_KEY=<%="#{name}"%>
-          export PLAN_VALUE=<%="#{value}"%>
+          export PLAN_VALUE="<%="#{value}"%>"
           if [[ "$PLANS" == *{  ]]; then
             export PLANS="${PLANS} \"${PLAN_KEY}\" : \"${PLAN_VALUE}\" "
           else

@@ -9,6 +9,7 @@ import subprocess
 import template
 import urllib
 import zipfile
+import yaml
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
@@ -40,22 +41,22 @@ package_types = [
 	{
 		'typename': 'app',
 		'flags': [ 'requires_cf_cli', 'is_app' ],
-		'jobs':  [ '+deploy-app', '-delete-app' ],
+#		'jobs':  [ '+deploy-app', '-delete-app' ],
 	},
 	{
 		'typename': 'app-broker',
 		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app' ],
-		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
+#		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
 	},
 	{
 		'typename': 'external-broker',
 		'flags': [ 'requires_cf_cli', 'is_broker', 'is_external_broker' ],
-		'jobs':  [ '+register-broker', '-destroy-broker' ],
+#		'jobs':  [ '+register-broker', '-destroy-broker' ],
 	},
 	{
 		'typename': 'buildpack',
 		'flags': [ 'requires_cf_cli', 'is_buildpack' ],
-		'jobs':  [ '+deploy-buildpack', '-delete-buildpack' ],
+#		'jobs':  [ '+deploy-buildpack', '-delete-buildpack' ],
 	},
 	{
 		'typename': 'docker-bosh',
@@ -65,17 +66,17 @@ package_types = [
 	{
 		'typename': 'docker-app',
 		'flags': [ 'requires_cf_cli', 'is_app', 'is_docker_app', 'is_docker' ],
-		'jobs':  [ '+deploy-app', '-delete-app' ],
+#		'jobs':  [ '+deploy-app', '-delete-app' ],
 	},
 	{
 		'typename': 'docker-app-broker',
 		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app', 'is_docker_app', 'is_docker' ],
-		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
+#		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
 	},
 	{
 		'typename': 'blob',
 		'flags': [ 'is_blob' ],
-		'jobs':  [],
+#		'jobs':  [],
 	},
 ]
 
@@ -98,10 +99,10 @@ def create_bosh_release(context):
 			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
 			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
 			sys.exit(1)
-		add_blob_package(context, package)
 		for flag in typedef['flags']:
 			package[flag] = True
-		for job in typedef['jobs']:
+		add_blob_package(context, package)
+		for job in typedef.get('jobs', []):
 			add_bosh_job(
 				context,
 				package,
@@ -113,6 +114,8 @@ def create_bosh_release(context):
 		requires_docker_bosh |= package.get('requires_docker_bosh', False)
 	if requires_cf_cli:
 		add_cf_cli(context)
+		add_bosh_job(context, None, 'deploy-all', post_deploy=True)
+		add_bosh_job(context, None, 'delete-all', pre_delete=True)
 	add_common_utils(context)
 	bosh('upload', 'blobs')
 	output = bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', context['version'])
@@ -129,7 +132,9 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 	errand = False
 	if post_deploy or pre_delete:
 		errand = True
-	job_name = job_type + '-' + package['name']
+	job_name = job_type
+	if package is not None:
+		job_name += '-' + package['name']
 
 	bosh('generate', 'job', job_name)
 	job_context = {
@@ -187,18 +192,26 @@ def add_package(dir, context, package, alternate_template=None):
 		'files': []
 	}
 	with cd('..'):
-		for file in package.get('files', []):
+		files = package.get('files', [])
+		manifest_path = package.get('manifest', {}).get('path', None)
+		if manifest_path is not None:
+			files += [ { 'path': manifest_path } ]
+			package['manifest']['path'] = os.path.basename(manifest_path)
+		for file in files:
 			filename = file.get('name', os.path.basename(file['path']))
 			file['name'] = filename
-			try:
-				urllib.urlretrieve(file['path'], os.path.join(target_dir, filename))
-			except ValueError: # Invalid URL, assume filename
-				shutil.copy(os.path.join('..', file['path']), target_dir)
+			urllib.urlretrieve(file['path'], os.path.join(target_dir, filename))
 			package_context['files'] += [ filename ]
 		for docker_image in package.get('docker_images', []):
 			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
 			download_docker_image(docker_image, os.path.join(target_dir, filename))
 			package_context['files'] += [ filename ]
+	if package.get('is_app', False):
+		manifest = os.path.join(target_dir, 'manifest.yml')
+		with open(manifest, 'wb') as f:
+			f.write('---\n')
+			f.write(yaml.safe_dump(package.get('manifest', { 'name': name }), default_flow_style=False))
+		package_context['files'] += [ 'manifest.yml' ]
 	template.render(
 		os.path.join(package_dir, 'spec'),
 		os.path.join(template_dir, 'spec'),

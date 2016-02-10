@@ -6,10 +6,14 @@ import yaml
 import json
 import time
 import click
+import subprocess
+import random
+import string
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(PATH)
 import opsmgr
+import erb
 
 @click.group()
 def cli():
@@ -176,6 +180,50 @@ def apply_changes_cmd():
 	if not install_status == 'success':
 		print >> sys.stderr, '- install finished with status:', install_status
 		sys.exit(1)
+
+@cli.command('test-errand')
+@click.argument('tile_repo')
+@click.argument('errand_name')
+def test_errand_cmd(tile_repo, errand_name):
+	config_file = os.path.join(tile_repo, 'tile.yml')
+	properties_file = os.path.join(tile_repo, 'missing-properties.yml')
+	errand_file = os.path.join(tile_repo, 'release/jobs', errand_name, 'templates', errand_name + '.sh.erb')
+	try:
+		with open(config_file) as f:
+			config = yaml.safe_load(f)
+	except IOError as e:
+		print >> sys.stderr, tile_repo, 'is not a tile repository'
+		sys.exit(1)
+	try:
+		with open(properties_file) as f:
+			properties = yaml.safe_load(f)
+	except IOError as e:
+		print >> sys.stderr, 'no file named', properties_file
+		sys.exit(1)
+	cf = opsmgr.get_cfinfo()
+	properties['cf'] = {
+		'admin_user': cf['admin_username'],
+		'admin_password': cf['admin_password'],
+	}
+	properties.update(config)
+	for p in config.get('properties', []):
+		properties[p['name']] = p.get('value', p.get('default', properties.get(p['name'])))
+	for form in config.get('forms', []):
+		for p in form.get('properties', []):
+			properties[p['name']] = p.get('value', p.get('default', properties.get(p['name'])))
+	properties['domain'] = cf['system_domain']
+	properties['app_domains'] = [ cf['apps_domain'] ]
+	properties['ssl'] = { 'skip_cert_verify': True }
+	properties['security'] = {
+		'user': 'admin',
+		'password': ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(12))
+	}
+	context = { 'properties': properties }
+	rendered_errand = errand_name + '.sh'
+	erb.render(rendered_errand, errand_file, context)
+	env = os.environ
+	env['PACKAGE_PATH'] = os.path.join(tile_repo, 'release/blobs')
+	subprocess.call([ 'bash', rendered_errand ], env=env)
 
 if __name__ == '__main__':
 	cli()

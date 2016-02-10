@@ -7,6 +7,12 @@ templates:
   {{ job_name }}.sh.erb: bin/{{ job_name }}_ctl
 {% endif %}
 packages:
+{% if not package %}
+- cf_cli
+{% for package in context.packages %}
+- {{ package.name }}
+{% endfor %}
+{% else %}
 {% if package.requires_cf_cli %}
 - cf_cli
 {% endif %}
@@ -15,6 +21,7 @@ packages:
 {% endif %}
 {% if not errand %}
 - common
+{% endif %}
 {% endif %}
 {% if package.is_docker_bosh %}
 properties: {}
