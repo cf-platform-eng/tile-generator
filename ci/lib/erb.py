@@ -74,15 +74,17 @@ def merge_property_array(properties, new_properties):
 
 def compile_config(config_dir):
 	properties = {}
-	config = get_file_properties(os.path.join(config_dir, 'tile.yml'))
-	merge_properties(properties, config)
-	merge_property_array(properties, config.get('properties', []))
-	for form in config.get('forms', []):
-		merge_property_array(properties, form.get('properties', []))
-	for package in config.get('packages', []):
-		merge_properties(properties, { package['name']: {} })
-	merge_properties(properties, get_file_properties(os.path.join(config_dir, 'missing-properties.yml')))
+	config1 = get_file_properties(os.path.join(config_dir, 'tile.yml'))
+	config2 = get_file_properties(os.path.join(config_dir, 'missing-properties.yml'))
 	merge_properties(properties, get_cf_properties())
+	merge_properties(properties, config1)
+	merge_property_array(properties, config1.get('properties', []))
+	for form in config1.get('forms', []):
+		merge_property_array(properties, form.get('properties', []))
+	for package in config1.get('packages', []):
+		merge_properties(package, config2.get(package['name'], {}))
+		merge_properties(properties, { package['name']: package })
+	merge_properties(properties, config2)
 	return {
 		'properties': properties,
 		'JSON': { 'dump': json.dumps },
