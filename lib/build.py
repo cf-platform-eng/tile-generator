@@ -193,6 +193,10 @@ def add_package(dir, context, package, alternate_template=None):
 	}
 	with cd('..'):
 		files = package.get('files', [])
+		path = package.get('path', None)
+		if path is not None:
+			files += [ { 'path': path } ]
+			package['path'] = os.path.basename(path)
 		manifest_path = package.get('manifest', {}).get('path', None)
 		if manifest_path is not None:
 			files += [ { 'path': manifest_path } ]
