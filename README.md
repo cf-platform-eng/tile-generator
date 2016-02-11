@@ -186,24 +186,17 @@ If this app is also a service broker, use `docker-app-broker` instead of just
 `docker-app`. This option is appropriate for docker-wrapper 12-factor apps that
 delegate their persistence to bound services.
 
-Docker applications that require persistent storage can not be deployed into the
-Elastic Runtime. These can be deployed to separate BOSH-managed VMs instead by
-using the `docker-bosh` type:
+Docker applications that require persistent storage can not be deployed into the Elastic Runtime. These can be deployed to separate BOSH-managed VMs instead by using the `docker-bosh` type:
 
 <pre>
 - name: docker-bosh1
   type: docker-bosh
-  image: test/dockerimage
   cpu: 5
   memory: 4096
   ephemeral_disk: 4096
   persistent_disk: 2048
   instances: 1
   manifest: |
-    test-key1: testValue1
-    test-key2: testValue2
-    test-key3: testValue3
-    test-key4: testValue4
     containers:
     - name: redis
       image: "redis"
@@ -235,33 +228,21 @@ If a docker image cannot be downloaded by BOSH dynamically, its better to provid
 <pre>
 - name: docker-bosh2
   type: docker-bosh
-  image: test/dockerimage # This should match the `image` entry within manifest
   files:
-  - path: resources/dockerimage.tgz
+  - path: resources/cfplatformeng-docker-tile-example.tgz
   cpu: 5
   memory: 4096
   ephemeral_disk: 4096
   persistent_disk: 2048
   instances: 1
   manifest: |
-    test-key1: testValue1
-    test-key2: testValue2
-    test-key3: testValue3
-    test-key4: testValue4
     containers:
-    - name: test-docker-image
-      image: "test/dockerimage" # This should match the `image_name` specified in the package
-      command: "--dir /var/lib/redis/ --appendonly yes"
-      bind_ports:
-      - "6379:6379"
-      bind_volumes:
-      - "/var/lib/redis"
-      entrypoint: "redis-server"
-      memory: "256m"
+    - name: test_docker_image
+      image: "cfplatformeng/docker-tile-example"
       env_vars:
       - "EXAMPLE_VAR=1"
       # See below on custom forms/variables and binding it to the docker env variable
-      - custom-variable-name: ((.properties.customer_name.value))
+      - "custom_variable_name=((.properties.customer_name.value))"
 </pre>
 
 Also, refer to [docker-bosh](docs/docker-bosh.md) for more details.
