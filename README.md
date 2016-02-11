@@ -18,24 +18,44 @@ For a 7-minute introduction into what it is and does, see [this screencast]
 (https://www.youtube.com/watch?v=_WeJbqNJWzQ).
 
 ## How to Use
+1. check out the tile-generator repo:
 
-1. Create a repository for your tile (preferably git, but this is not required)
-2. Initialize it as a tile repo using `tile init`
-3. Edit the `tile.yml` file to describe your tile (more detail below)
-4. Build your tile using `tile build`
+  ```bash
+  git clone https://github.com/cf-platform-eng/tile-generator.git
+  ```
+
+1. change to the root directory of the tile generator, and pull down the generator's dependencies:
+
+  ```bash
+  cd tile-generator
+  pip install -r requirements.txt
+  ```
+
+1. Add root directory of tile-generator to your path:
+  ```bash
+  export PATH=<path to root dir of tile-generator>:$PATH
+  ```
+
+1. then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
+
+   ```bash
+   cd <your project dir>
+   tile init
+   ```
+   
+1. Edit the generated `tile.yml` file to define your tile (more details below)
+
+1. Build your tile
+   ```bash
+   tile build
+   ```
 
 The generator will first create a BOSH release (in the `release` subdirectory),
 then wrap that release into a Pivotal tile (in the `product` subdirectory).
 If required for the installation, it will automatically pull down the latest
 release version of the Cloud Foundry CLI.
 
-## Install Dependencies
-
-```
-pip install -r requirements.txt
-```
-
-## Describing your Tile
+## Defining your Tile
 
 All required configuration for your tile is in the file called `tile.yml`.
 `tile init` will create an initial version for you that can serve as a template.
@@ -51,7 +71,7 @@ description: Longer description of the tile's purpose
 The `icon_file` should be a 128x128 pixel image that will appear on your tile in
 the Ops Manager GUI. By convention, any resources used by the tile should be
 placed in the `resources` sub-directory of your repo, although this is not
-mandatory. The `label` test will appear on the tile under your icon.
+mandatory. The `label` text will appear on the tile under your icon.
 
 ### Packages
 
@@ -61,14 +81,14 @@ the package entry depends on the type of package you are adding.
 #### Pushed Application
 
 For a standard Cloud Foundry application (that is being 'cf push'ed into the
-Elastic Runtime), use the following format:
+Elastic Runtime), use the following format.
 
 <pre>
 - name: my-application
   type: app                            <i># or app-broker (see below)</i>
-  uri: app.example.com
+  uri: app.example.com                 <i># optional</i>
   files:
-  - path: resources/my-application.jar
+  - path: resources/my-application.jar <i># see note below for apps that are not single files</i>
   start_command: start_here.sh         <i># optional</i>
   health_monitor: true                 <i># optional</i>
   create_open_security_group: true     <i># optional</i>
@@ -80,9 +100,17 @@ Elastic Runtime), use the following format:
   bind_to_service: mysql-service1,redis-service <i># optional</i>
 </pre>
 
+Note: for applications that are normally pushed as multiple files (node.js for example) you should zip up the project files plus all dependencies into a single zip file, then edit tile.yml to point to the zipped file: 
+```bash
+cd <your project dir>
+tar -zcvf resources/<your project name>.tgz .
+```
+
 If your application is also a service broker, use `app-broker` as the type
-instead of just `app`. `persistence_store: true` results in the user being
-able to select a backing service for data persistence.
+instead of just `app`. 
+
+`persistence_store: true` results in the user being
+able to select a backing service for data persistence. Otherwise, if your broker has a service that it binds to via a manifes file, use the bind_to_service
 
 Also, refer to [apps](docs/app.md) for more details.
 
@@ -92,7 +120,7 @@ Most modern service brokers are pushed into the Elastic Runtime as normal
 CF applications. For these types of brokers, use the Pushed Application format
 specified above, but set the type to `app-broker` instead of just `app`.
 
-Some service brokers support operator-defined service plans, for isntance when
+Some service brokers support operator-defined service plans, for instance when
 the plans reflect customer license keys. To allow operators to add plans from
 the tile configuration, add the following section to the service broker definition:
 
@@ -158,24 +186,17 @@ If this app is also a service broker, use `docker-app-broker` instead of just
 `docker-app`. This option is appropriate for docker-wrapper 12-factor apps that
 delegate their persistence to bound services.
 
-Docker applications that require persistent storage can not be deployed into the
-Elastic Runtime. These can be deployed to separate BOSH-managed VMs instead by
-using the `docker-bosh` type:
+Docker applications that require persistent storage can not be deployed into the Elastic Runtime. These can be deployed to separate BOSH-managed VMs instead by using the `docker-bosh` type:
 
 <pre>
 - name: docker-bosh1
   type: docker-bosh
-  image: test/dockerimage
   cpu: 5
   memory: 4096
   ephemeral_disk: 4096
   persistent_disk: 2048
   instances: 1
   manifest: |
-    test-key1: testValue1
-    test-key2: testValue2
-    test-key3: testValue3
-    test-key4: testValue4
     containers:
     - name: redis
       image: "redis"
@@ -207,33 +228,21 @@ If a docker image cannot be downloaded by BOSH dynamically, its better to provid
 <pre>
 - name: docker-bosh2
   type: docker-bosh
-  image: test/dockerimage # This should match the `image` entry within manifest
   files:
-  - path: resources/dockerimage.tgz
+  - path: resources/cfplatformeng-docker-tile-example.tgz
   cpu: 5
   memory: 4096
   ephemeral_disk: 4096
   persistent_disk: 2048
   instances: 1
   manifest: |
-    test-key1: testValue1
-    test-key2: testValue2
-    test-key3: testValue3
-    test-key4: testValue4
     containers:
-    - name: test-docker-image
-      image: "test/dockerimage" # This should match the `image_name` specified in the package
-      command: "--dir /var/lib/redis/ --appendonly yes"
-      bind_ports:
-      - "6379:6379"
-      bind_volumes:
-      - "/var/lib/redis"
-      entrypoint: "redis-server"
-      memory: "256m"
+    - name: test_docker_image
+      image: "cfplatformeng/docker-tile-example"
       env_vars:
       - "EXAMPLE_VAR=1"
       # See below on custom forms/variables and binding it to the docker env variable
-      - custom-variable-name: ((.properties.customer_name.value))
+      - "custom_variable_name=((.properties.customer_name.value))"
 </pre>
 
 Also, refer to [docker-bosh](docs/docker-bosh.md) for more details.
