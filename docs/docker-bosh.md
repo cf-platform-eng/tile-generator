@@ -80,10 +80,12 @@ Various properties can be specified to control/configure the app. The format is
     <td> manifest </td>
     <td> Y </td>
     <td> yaml </td>
-    <td> docker-boshrelease yaml manifest for running the container; Also, requires specifying env variables to be passed onto the docker image along with the `image` name that matches the `image_name`.
+    <td> docker-boshrelease yaml manifest [1] for running the container; Also, requires specifying env variables to be passed onto the docker image along with the `image` name that matches the `image_name`.
     <td>  </td>
   </tr>
 </table>
+
+[1] [Properties format](https://github.com/cloudfoundry-community/docker-boshrelease/blob/master/CONTAINERS.md#properties-format)
 
 ### Sample docker package
 ```
@@ -91,7 +93,7 @@ Various properties can be specified to control/configure the app. The format is
   type: docker-bosh
   image_name: ubuntu  # Need this to match the `image` specifed in manifest
   files:
-  - path: resources/ubuntu_image.tgz
+  - path: resources/cfplatformeng-docker-tile-example.tgz
   cpu: 5
   memory: 4096
   ephemeral_disk: 4096
@@ -99,19 +101,14 @@ Various properties can be specified to control/configure the app. The format is
   instances: 1
   manifest: |
     containers:
-    - name: test-ubuntu-docker
-      image: ubuntu # should match the docker image name
-      command: "--dir /var/lib/test --appendonly yes"
-      bind_ports:
-      - "9200:9200"
-      bind_volumes:
-      - "/var/lib/test"
-      env-vars:
-      - test-key1: testValue1
-      - test-key2: testValue2
+    - name: test_docker_image
+      image: "cfplatformeng/docker-tile-example"
+      env_vars:
+      - "test_key1=testValue1"
+      - "test_key2=testValue2"
       # Add custom properties below 
-      - custom-variable-name: (( .properties.customer_name.value ))
-      - custom-variable-city: (( .properties.city.value ))
+      - "custom_variable_name=(( .properties.customer_name.value ))"
+      - "custom_variable_city=(( .properties.city.value ))"
 
 ```
 
