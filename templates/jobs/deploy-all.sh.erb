@@ -2,8 +2,9 @@
 
 set -e
 
+export CF=`which cf`
+
 function cf() {
-	CF=`which cf`
 	if [ "$1" == "--output" ]; then
 		shift
 		echo cf "$@"
@@ -135,6 +136,18 @@ function delete_older_versions() {
 	done
 }
 
+function wait_till_running() {
+	for i in `seq 1  6`; do
+		matches=`CF_TRACE=true $CF app "$1" | grep RUNNING | grep "$1"`
+		if [ "$?" -ne "0" ]; then
+			sleep 10
+			echo "cf app $1 - waiting for running state"
+		else
+			break
+		fi
+	done
+}
+
 import_opsmgr_variables
 prepare_cf_cli
 authenticate
@@ -149,18 +162,27 @@ apply_open_security_group
 {% for package in context.packages %}
 # Deploy package {{ package.name }}
 #
+
 {% if package.is_app %}
 export APP_NAME={{ package.name }}-{{ context.version }}
 export APP_HOST={{ (package.manifest and package.manifest.host) or package.name }}
-cf --output push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} -f $PACKAGE_PATH/{{ package.name }}/manifest.yml --no-start
+{% if package.is_docker %}
+export DOCKER_IMAGE="--docker-image {{ package.image }}"
+{% else %}
+export DOCKER_IMAGE=""
+{% endif %}
+cf --output push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} ${DOCKER_IMAGE} -f $PACKAGE_PATH/{{ package.name }}/manifest.yml --no-start
 add_env_vars ${APP_NAME}
 {% if package.needs_cf_credentials %}
 add_cf_credentials ${APP_NAME}
 {% endif %}
 cf --output restart ${APP_NAME}
+wait_till_running ${APP_NAME}
 delete_older_versions {{ package.name }} ${APP_NAME}
+
 {% elif package.is_buildpack %}
 {% endif %}
+
 {% if package.is_broker %}
 {% if package.has_dynamic_plans %}
 add_dynamic_plans ${APP_NAME}

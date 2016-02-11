@@ -1,15 +1,35 @@
 #!/bin/bash
 
+set -e
+
+function cf() {
+	CF=`which cf`
+	if [ "$1" == "--output" ]; then
+		shift
+		echo cf "$@"
+		$CF "$@"
+		result=$?
+	else
+		echo cf "$@"
+		output=`$CF "$@" 2>&1`
+		result=$?
+		if [ "$result" -ne "0" ]; then
+			echo "$output"
+		fi
+	fi
+	return $result
+}
+
 function import_opsmgr_variables() {
 	export SCHEME=https
 	export ADMIN_USER=<%= properties.cf.admin_user %>
 	export ADMIN_PASSWORD=<%= properties.cf.admin_password %>
 	export DOMAIN=<%= properties.domain %>
 	export APP_DOMAIN=<%= properties.app_domains[0] %>
-	export APP_VERSION=<%= properties.version %>
 	export CF_ORG=<%= properties.org %>
 	export CF_ORG_QUOTA=<%= properties.org_quota %>
 	export CF_SPACE=<%= properties.space %>
+	export CF_TARGET=$SCHEME://api.${DOMAIN}
 	export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
 }
 
@@ -20,121 +40,71 @@ function prepare_cf_cli {
 }
 
 function authenticate() {
-	cf --version
-	if [ "$CF_SKIP_SSL" == "true" ]; then
-		cf api $API_ENDPOINT --skip-ssl-validation
+	cf --output --version
+	if [ "$CF_SKIP_SSL" == "true" -o "$CF_SKIP_SSL" == "True" ]; then
+		cf api $CF_TARGET --skip-ssl-validation
 	else
-		cf api $API_ENDPOINT
+		cf api $CF_TARGET
 	fi
 	cf auth $ADMIN_USER $ADMIN_PASSWORD
 }
 
-function setup_target_org() {
+function target_org() {
 	if [ -z "$CF_ORG" ]; then
-		CF_ORG={{ name }}-org
+		CF_ORG={{ context.name }}-org
 	fi
-	if ! cf org $CF_ORG >/dev/null; then
-		cf create-org $CF_ORG
-	fi
-	cf target -o $CF_ORG
+	ignore=`cf target -o $CF_ORG`
+	return $?
 }
 
-function setup_org_quota() {
-	if [ -n "$CF_ORG_QUOTA" ]; then
-		export CF_QUOTA=${CF_ORG}-quota
-		if ! cf quota $CF_QUOTA >/dev/null; then
-			cf create-quota $CF_QUOTA -m ${CF_ORG_QUOTA}m -r 10 -s 10
-		fi
-		cf update-quota $CF_QUOTA -m ${CF_ORG_QUOTA}m -r 10 -s 10 --disallow-paid-service-plans
-		cf set-quota $CF_ORG $CF_QUOTA
-	fi
-}
-
-function setup_target_space() {
+function target_space() {
 	if [ -z "$CF_SPACE" ]; then
-		CF_SPACE={{ name }}-space
+		CF_SPACE={{ context.name }}-space
 	fi
-	if ! cf space $CF_SPACE >/dev/null; then
-		cf create-space $CF_SPACE
-	fi
-	cf target -s $CF_SPACE
+	ignore=`cf target -s $CF_SPACE`
+	return $?
 }
 
-function create_open_security_group() {
-	if [ "${CREATE_OPEN_SECURITY_GROUP}" == "true" ]; then
-		if ! cf security-group all_open >/dev/null; then
-			cf create-security-group all_open $PACKAGE_PATH/templates/all_open.json
-		fi
-		cf bind-running-security-group all_open
+function delete_empty_space() {
+	output=`cf --output apps | tail -1`
+	if [ "$output" == "No apps found" ]; then
+		cf delete-space -f $CF_SPACE
 	fi
 }
 
-function add_env_vars() {
-	APP_NAME="$1"
-
-	cf set-env $1 UAA_HOST "$SCHEME://uaa.$DOMAIN"
-	cf set-env $1 CC_HOST "$API_ENDPOINT"
-	cf set-env $1 LOGIN_HOST "$SCHEME://login.$DOMAIN"
-	cf set-env $1 ROOT "\$HOME"
-	cf set-env $1 SCHEME "$SCHEME"
-	cf set-env $1 VERIFY_SSL "$CF_SKIP_SSL"
-
-	# Adding additional properties that most spring based apps or internal apps seem to be expecting
-	cf set-env $1 CF_ORG "$CF_ORG"
-	cf set-env $1 CF_SPACE "$CF_SPACE"
-	cf set-env $1 CF_TARGET "$CF_TARGET"
-	cf set-env $1 SECURITY_USER_NAME "$SECURITY_USER_NAME"
-	cf set-env $1 SECURITY_USER_PASSWORD "$SECURITY_USER_PASSWORD"
-
-	# Custom variables from tile.yml
-	{% for property in context.all_properties %}
-	cf set-env $1 {{ property.name | upper }} "${{ property.name | upper }}"
-	{% endfor %}
+function delete_empty_org() {
+	output=`cf --output spaces | tail -1`
+	if [ "$output" == "No spaces found" ]; then
+		cf delete-org -f $CF_ORG
+	fi
 }
 
-function add_cf_credentials() {
-	[ "$2" != "true" ] && return
-	cf set-env $1 CF_ADMIN_USER $CF_USER
-	cf set-env $1 CF_ADMIN_USERNAME $CF_USER
-	cf set-env $1 CF_ADMIN_PASSWORD $CF_PASSWORD
+function delete_all_versions() {
+	cf --output apps | grep "$1-" | while read app rest; do
+		cf delete -f $app
+	done
 }
 
-function add_dynamic_plans() {
-	[ "$2" != "true" ] && return
-	TBD
-}
-
-# If commands below fail, we attempt to continue
-#
-unset -e
-
-# Errors in this section should cause the script to exit
-#
-set -e 
 import_opsmgr_variables
 prepare_cf_cli
 authenticate
-setup_target_org
-setup_org_quota
-setup_target_space
-create_open_security_group
+if target_org; then
+	if target_space; then
 
-# Errors in this section are not considered fatal. We will complete as much as we can
-#
-unset -e
+		{% for package in context.packages | reverse %}
+		# Delete package {{ package.name }}
+		#
+		{% if package.is_app %}
+		delete_all_versions {{ package.name }}
+		{% elif package.is_buildpack %}
+		{% endif %}
+		{% if package.is_broker %}
+		{% if package.has_dynamic_plans %}
+		{% endif %}
+		{% endif %}
 
-{% for package in context.packages %}
-	# Deploy package {{ package.name }}
-	#
-	{% if package.is_app %}
-		export APP_NAME={{ package.name }}-{{ context.version }}
-		export APP_HOST={{ package.host or package.name }}
-		cf push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} -f $PACKAGE_PATH/{{ package.name }}/manifest.yml --no-start
-		add_env_vars ${APP_NAME}
-		add_cf_credentials ${APP_NAME} {{ package.need_cf_credentials }}
-	{% elif package.is_buildpack %}
-	{% endif %}
-	{% if package_is_broker %}
-		add_dynamic_plans ${APP_NAME} {{ package.has_dynamic_plans }}
-	{% endif %}
-{% endfor %}
+		{% endfor %}
+		delete_empty_space
+	fi
+	delete_empty_org
+fi
