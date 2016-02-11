@@ -2,7 +2,6 @@
 
 import os
 import json
-import uuid
 
 from flask import Flask
 app = Flask(__name__)
@@ -16,22 +15,22 @@ def route(url):
 
 catalog = {
 	"services": [{
-		"id": str(uuid.uuid4()),
+		"id": name + '-id',
 		"name": name + '-service',
 		"description": "A generated test service",
 		"bindable": True,
 		"plans": [{
-			"id": str(uuid.uuid4()),
+			"id": name + '-plan-1-id',
 			"name": "first-plan",
 			"description": "A first, free, service plan"
 		},{
-			"id": str(uuid.uuid4()),
+			"id": name + '-plan-2-id',
 			"name": "second-plan",
 			"description": "A second, for-a-fee, service plan",
 			"free": False
 		}],
 		"dashboard_client": {
-			"id": str(uuid.uuid4()),
+			"id": name + '-client-id',
 			"secret": "secret",
 			"redirect_uri": route('/dashboard')
 		}
