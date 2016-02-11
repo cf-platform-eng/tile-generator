@@ -43,6 +43,20 @@ forms:
     - name: country_elsewhere
       label: Elsewhere
 
+dynamic_service_plans:
+- name: description
+  type: string
+  configurable: true
+  description: The description of this plan
+- name: license_key
+  type: string
+  configurable: true
+  description: The license key for this plan
+- name: num_seats
+  type: integer
+  configurable: true
+  description: The number of available seats for this license
+
 packages:
 
 - name: app1                          # App with minimal configuration, i.e. all default values
@@ -68,7 +82,7 @@ packages:
     host: app2-hostname               # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
     health_check_type: none           # Turn off health monitoring, default: true
-  bind_to_service: broker1-service    # Bind to existing service, default: none (if service is in this tile, it must be listed before this package)
+  auto_services: broker1-service      # Auto-provision and bind a service (broker must preceed the app in this file)
   needs_cf_credentials: true          # Pass CF creds to the app, default: false
   configurable_persistence: true      # Users will be allowed to select between MySQL, Mongo or none, default: false
 

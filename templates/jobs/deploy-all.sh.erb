@@ -34,9 +34,22 @@ function import_opsmgr_variables() {
 	export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
 	export SECURITY_USER_NAME=<%= properties.security.user %>
 	export SECURITY_USER_PASSWORD=<%= properties.security.password %>
-{% for property in context.all_properties %}
+	{% if context.dynamic_service_plans is defined %}
+	<%
+	  plans = { }
+	  if properties.dynamic_service_plans
+
+	      p("dynamic_service_plans").each do |plan|
+	        plan_name = plan['name']
+	        plans[plan_name] = plan
+	      end
+	  end
+	%>
+	export DYNAMIC_PLANS='<%= JSON.dump(plans) %>'
+	{% endif %}
+	{% for property in context.all_properties %}
 	export {{ property.name | upper }}="<%= properties.{{ property.name }} %>"
-{% endfor %}
+	{% endfor %}
 }
 
 function prepare_cf_cli {
@@ -114,6 +127,11 @@ function add_env_vars() {
 	cf set-env $1 SECURITY_USER_NAME "$SECURITY_USER_NAME"
 	cf set-env $1 SECURITY_USER_PASSWORD "$SECURITY_USER_PASSWORD"
 
+	# Dynamic plans (if defined)
+	{% if context.dynamic_service_plans is defined %}
+	cf set-env $1 PLANS "$DYNAMIC_PLANS"
+	{% endif %}
+
 	# Custom variables from tile.yml
 	{% for property in context.all_properties %}
 	cf set-env $1 {{ property.name | upper }} "${{ property.name | upper }}"
@@ -126,12 +144,10 @@ function add_cf_credentials() {
 	cf set-env $1 CF_ADMIN_PASSWORD "$ADMIN_PASSWORD"
 }
 
-function add_dynamic_plans() {
-	TBD
-}
-
 function delete_older_versions() {
-	cf --output apps | grep "$1" | grep -v "$2" | while read app rest; do
+	PKG_NAME="$1"
+	APP_NAME="$2"
+	cf --output apps | grep "$PKG_NAME" | grep -v "$APP_NAME" | while read app rest; do
 		cf delete -f $app
 	done
 }
@@ -141,9 +157,42 @@ function wait_till_running() {
 		matches=`CF_TRACE=true $CF app "$1" | grep RUNNING | grep "$1"`
 		if [ "$?" -ne "0" ]; then
 			sleep 10
-			echo "cf app $1 - waiting for running state"
+			echo "cf app $1   # waiting for running state"
 		else
 			break
+		fi
+	done
+}
+
+function deploy_app() {
+	PKG_NAME="$1"
+	APP_NAME="$2"
+	APP_HOST="$3"
+	DOCKER_IMAGE="$4"
+	NEEDS_CF_CREDS="$5"
+	AUTO_SERVICES="$6"
+	cf --output push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} \
+		${DOCKER_IMAGE} -f $PACKAGE_PATH/${PKG_NAME}/manifest.yml \
+		--no-start
+	add_env_vars ${APP_NAME}
+	if [ -n "$NEEDS_CF_CREDS" ]; then
+		add_cf_credentials ${APP_NAME}
+	fi
+	provision_auto_services ${AUTO_SERVICES}
+	cf --output restart ${APP_NAME}
+	wait_till_running ${APP_NAME}
+	delete_older_versions ${PKG_NAME} ${APP_NAME}
+}
+
+function provision_auto_services() {
+	for service in $*; do
+		plan=`cf --output marketplace | grep $service | awk '{ print $2 }' | sed 's/,//g'`
+		if [ "$plan" != "" ]; then
+			cf create-service $service $plan ${APP_NAME}-${APP_VERSION}-$service
+			cf bind-service ${APP_NAME}-${APP_VERSION} ${APP_NAME}-${APP_VERSION}-$service
+		else
+			echo "no service matching" $service "in marketplace"
+			exit 1
 		fi
 	done
 }
@@ -164,29 +213,20 @@ apply_open_security_group
 #
 
 {% if package.is_app %}
+export PKG_NAME={{ package.name }}
 export APP_NAME={{ package.name }}-{{ context.version }}
 export APP_HOST={{ (package.manifest and package.manifest.host) or package.name }}
-{% if package.is_docker %}
-export DOCKER_IMAGE="--docker-image {{ package.image }}"
-{% else %}
-export DOCKER_IMAGE=""
-{% endif %}
-cf --output push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} ${DOCKER_IMAGE} -f $PACKAGE_PATH/{{ package.name }}/manifest.yml --no-start
-add_env_vars ${APP_NAME}
-{% if package.needs_cf_credentials %}
-add_cf_credentials ${APP_NAME}
-{% endif %}
-cf --output restart ${APP_NAME}
-wait_till_running ${APP_NAME}
-delete_older_versions {{ package.name }} ${APP_NAME}
-
-{% elif package.is_buildpack %}
+export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
+export NEEDS_CF_CREDS="{{ ( package.needs_cf_credentials and 'true' ) or 'false' }}"
+export AUTO_SERVICES="<%= properties.{{ package.name }}.auto_services %>"
+export AUTO_SERVICES="${AUTO_SERVICES} <%= properties.{{ package.name }}.persistence_store_type %>"
+deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$AUTO_SERVICES"
 {% endif %}
 
 {% if package.is_broker %}
-{% if package.has_dynamic_plans %}
-add_dynamic_plans ${APP_NAME}
 {% endif %}
+
+{% if package.is_buildpack %}
 {% endif %}
 
 {% endfor %}
