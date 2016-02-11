@@ -225,5 +225,11 @@ def test_errand_cmd(tile_repo, errand_name):
 	env['PACKAGE_PATH'] = os.path.join(tile_repo, 'release/blobs')
 	subprocess.call([ 'bash', rendered_errand ], env=env)
 
+@cli.command('target')
+def target_cmd():
+	cf = opsmgr.get_cfinfo()
+	subprocess.call(['cf', 'api', 'api.' + cf['system_domain'], '--skip-ssl-validation'])
+	subprocess.call(['cf', 'login', '-u', cf['admin_username'], '-p', cf['admin_password']])
+
 if __name__ == '__main__':
 	cli()
