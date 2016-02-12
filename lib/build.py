@@ -125,7 +125,8 @@ def create_bosh_release(context):
 		{ 'label': 'manifest', 'pattern': 'Release manifest' },
 		{ 'label': 'tarball', 'pattern': 'Release tarball' },
 	])
-	context['requires_docker_bosh'] = requires_docker_bosh;
+	context['requires_docker_bosh'] = requires_docker_bosh
+	context['requires_cf_cli'] = requires_cf_cli
 	print
 
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
