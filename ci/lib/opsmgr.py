@@ -95,6 +95,14 @@ def get_products():
 		product['installed'] = len(installed) > 0
 	return available_products
 
+def flatten(properties):
+	additions = {}
+	for key1, value1 in properties.iteritems():
+		if type(value1) is dict:
+			for key2, value2 in value1.iteritems():
+				additions[key1 + '_' + key2] = value2
+	properties.update(additions)
+
 def configure(settings, product, properties):
 	#
 	# Use the first availability zone
@@ -120,6 +128,7 @@ def configure(settings, product, properties):
 	# Insert supplied properties
 	#
 	missing_properties = []
+	flatten(properties)
 	for p in product_settings['properties']:
 		key = p['identifier']
 		value = properties.get(key, None)
