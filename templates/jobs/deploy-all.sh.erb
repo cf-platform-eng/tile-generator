@@ -12,6 +12,11 @@ function cf() {
 	fi
 }
 
+function is_true() {
+	VALUE="$1"
+	echo "$VALUE" | grep -i "true" >/dev/null
+}
+
 function import_opsmgr_variables() {
 	export SCHEME=https
 	export ADMIN_USER=<%= properties.cf.admin_user %>
@@ -51,7 +56,7 @@ function prepare_cf_cli {
 
 function authenticate() {
 	$CF --version
-	if [ "$CF_SKIP_SSL" == "true" -o "$CF_SKIP_SSL" == "True" ]; then
+	if is_true "$CF_SKIP_SSL"; then
 		cf api $CF_TARGET --skip-ssl-validation
 	else
 		cf api $CF_TARGET
@@ -145,7 +150,7 @@ function delete_older_versions() {
 
 function wait_till_running() {
 	for i in `seq 1  6`; do
-		matches=`CF_TRACE=true $CF app "$1" | grep RUNNING | grep "$1"`
+		CF_TRACE=true $CF app "$1" | grep RUNNING | grep "$1" >/dev/null
 		if [ "$?" -ne "0" ]; then
 			sleep 10
 			echo "cf app $1   # waiting for running state"
@@ -167,7 +172,7 @@ function deploy_app() {
 		${DOCKER_IMAGE} -f $PACKAGE_PATH/${PKG_NAME}/manifest.yml \
 		--no-start
 	add_env_vars ${APP_NAME}
-	if [ -n "$NEEDS_CF_CREDS" ]; then
+	if is_true "$NEEDS_CF_CREDS"; then
 		add_cf_credentials ${APP_NAME}
 	fi
 	if [ -n "$HEALTH_CHECK" ]; then
@@ -187,10 +192,10 @@ function provision_auto_services() {
 		if [ "$service" == "None" ]; then
 			continue
 		fi
-		services=`$CF services | grep ${PKG_NAME}-$service`
-		if [ -z "$services" ]; then
+		$CF services | grep ${PKG_NAME}-$service >/dev/null
+		if [ "$?" -ne "0" ]; then
 			plan=`$CF marketplace | grep $service | awk '{ print $2 }' | sed 's/,//g'`
-			if [ "$plan" != "" ]; then
+			if [ -n "$plan" ]; then
 				cf create-service $service $plan ${PKG_NAME}-$service
 			else
 				echo "no service matching" $service "in marketplace"
@@ -208,13 +213,13 @@ function register_broker() {
 	BROKER_URL="$4"
 	GLOBAL_ACCESS="$5"
 	BROKER_SERVICES="$6"
-	broker=`$CF service-brokers | grep $BROKER_NAME | cat`
-	if [ -z "$broker" ]; then
+	$CF service-brokers | grep $BROKER_NAME >/dev/null
+	if [ "$?" -ne "0" ]; then
 		cf create-service-broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL"
 	else
 		cf update-service-broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL"
 	fi
-	if [ "$GLOBAL_ACCESS" == "true" -o "$GLOBAL_ACCESS" == "True" ]; then
+	if is_true "$GLOBAL_ACCESS"; then
 		publicize_services "$BROKER_NAME" "$BROKER_SERVICES"
 	fi
 }
@@ -223,12 +228,12 @@ function publicize_services() {
 	BROKER_NAME="$1"
 	BROKER_SERVICES="$2"
 	services_url=`$CF curl /v2/services?q=label:$BROKER_NAME | grep service_plans_url | awk '{ print $2 }' | sed 's/[",]//g'`
-	if [ "$services_url" != "" ]; then
+	if [ -n "$services_url" ]; then
 		services=`$CF curl $services_url | grep "\"url\"" | awk '{ print $2 }' | sed 's/[",]//g'`
 		for service in $services; do
 			cf curl $service -X PUT -d '{"public": true}'
 		done
-	elif [ "$BROKER_SERVICES" != "" ] && [ "$BROKER_SERVICES" != "INTERNAL_SERVICE_NAME" ]; then
+	elif [ -n "$BROKER_SERVICES" ] && [ "$BROKER_SERVICES" != "INTERNAL_SERVICE_NAME" ]; then
 		# Rely on the internal plan names if we cannot get it from the /v2/services on the broker
 		for service_name in `echo "$BROKER_SERVICES" | sed -e 's/,/ /g;s/;/ /g'`
 		do
@@ -246,8 +251,8 @@ function push_buildpack() {
 	BUILDPACK_NAME="$1"
 	BUILDPACK_ORDER="$2"
 	BUILDPACK_FILE="$3"
-	BUILDPACK_EXISTS=`$CF buildpacks | grep ${BUILDPACK_NAME}`
-	if [ -n "$BUILDPACK_EXISTS" ]; then
+	$CF buildpacks | grep ${BUILDPACK_NAME} >/dev/null
+	if [ "$?" -eq "0" ]; then
 		cf update-buildpack $BUILDPACK_NAME -p $BUILDPACK_FILE --enable
 	else
 		cf create-buildpack $BUILDPACK_NAME $BUILDPACK_FILE $BUILDPACK_ORDER --enable
@@ -274,7 +279,7 @@ export PKG_NAME={{ package.name }}
 export APP_NAME={{ package.name }}-{{ context.version }}
 export APP_HOST={{ (package.manifest and package.manifest.host) or package.name }}
 export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
-export NEEDS_CF_CREDS="{{ ( package.needs_cf_credentials and 'true' ) or 'false' }}"
+export NEEDS_CF_CREDS="{{ package.needs_cf_credentials }}"
 export HEALTH_CHECK=<%= properties.{{ package.name }}.health_check %>
 export AUTO_SERVICES="<%= properties.{{ package.name }}.auto_services %>"
 export AUTO_SERVICES="${AUTO_SERVICES} <%= properties.{{ package.name }}.persistence_store_type %>"
