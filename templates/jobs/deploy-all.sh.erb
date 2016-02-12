@@ -72,7 +72,7 @@ function setup_target_org() {
 	if [ -z "$CF_ORG" ]; then
 		CF_ORG={{ context.name }}-org
 	fi
-	if ! cf org $CF_ORG >/dev/null; then
+	if ! $CF org $CF_ORG >/dev/null; then
 		cf create-org $CF_ORG
 	fi
 	cf target -o $CF_ORG
@@ -81,7 +81,7 @@ function setup_target_org() {
 function setup_org_quota() {
 	if [ -n "$CF_ORG_QUOTA" ]; then
 		export CF_QUOTA=${CF_ORG}-quota
-		if ! cf quota $CF_QUOTA >/dev/null; then
+		if ! $CF quota $CF_QUOTA >/dev/null; then
 			cf create-quota $CF_QUOTA -m ${CF_ORG_QUOTA}m -r 10 -s 10
 		fi
 		cf update-quota $CF_QUOTA -m ${CF_ORG_QUOTA}m -r 10 -s 10 --disallow-paid-service-plans
@@ -93,7 +93,7 @@ function setup_target_space() {
 	if [ -z "$CF_SPACE" ]; then
 		CF_SPACE={{ context.name }}-space
 	fi
-	if ! cf space $CF_SPACE >/dev/null; then
+	if ! $CF space $CF_SPACE >/dev/null; then
 		cf create-space $CF_SPACE
 	fi
 	cf target -s $CF_SPACE
@@ -109,7 +109,7 @@ function apply_open_security_group() {
 	if ! is_true "$1"; then
 		return
 	fi
-	if ! cf security-group all_open >/dev/null; then
+	if ! $CF security-group all_open >/dev/null; then
 		cf create-security-group all_open $PACKAGE_PATH/templates/all_open.json
 	fi
 	cf bind-running-security-group all_open
