@@ -83,6 +83,7 @@ def compile_config(config_dir):
 		merge_property_array(properties, form.get('properties', []))
 	for package in config1.get('packages', []):
 		merge_properties(package, config2.get(package['name'], {}))
+		merge_properties(package, properties['security'])
 		merge_properties(properties, { package['name']: package })
 	merge_properties(properties, config2)
 	return {

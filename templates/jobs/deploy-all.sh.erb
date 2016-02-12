@@ -1,24 +1,15 @@
 #!/bin/bash
 
-set -e
-
 export CF=`which cf`
 
 function cf() {
-	if [ "$1" == "--output" ]; then
-		shift
-		echo cf "$@"
-		$CF "$@"
-		result=$?
-	else
-		echo cf "$@"
-		output=`$CF "$@" 2>&1`
-		result=$?
-		if [ "$result" -ne "0" ]; then
-			echo "$output"
-		fi
+	echo cf "$@"
+	output=$($CF "$@" 2>&1)
+	result="$?"
+	if [ "$result" -ne "0" ]; then
+		echo "$output"
+		exit $result
 	fi
-	return $result
 }
 
 function import_opsmgr_variables() {
@@ -59,7 +50,7 @@ function prepare_cf_cli {
 }
 
 function authenticate() {
-	cf --output --version
+	$CF --version
 	if [ "$CF_SKIP_SSL" == "true" -o "$CF_SKIP_SSL" == "True" ]; then
 		cf api $CF_TARGET --skip-ssl-validation
 	else
@@ -147,7 +138,7 @@ function add_cf_credentials() {
 function delete_older_versions() {
 	PKG_NAME="$1"
 	APP_NAME="$2"
-	cf --output apps | grep "$PKG_NAME" | grep -v "$APP_NAME" | while read app rest; do
+	$CF apps | grep "$PKG_NAME" | grep -v "$APP_NAME" | while read app rest; do
 		cf delete -f $app
 	done
 }
@@ -170,31 +161,99 @@ function deploy_app() {
 	APP_HOST="$3"
 	DOCKER_IMAGE="$4"
 	NEEDS_CF_CREDS="$5"
-	AUTO_SERVICES="$6"
-	cf --output push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} \
+	HEALTH_CHECK="$6"
+	AUTO_SERVICES="$7"
+	cf push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} \
 		${DOCKER_IMAGE} -f $PACKAGE_PATH/${PKG_NAME}/manifest.yml \
 		--no-start
 	add_env_vars ${APP_NAME}
 	if [ -n "$NEEDS_CF_CREDS" ]; then
 		add_cf_credentials ${APP_NAME}
 	fi
-	provision_auto_services ${AUTO_SERVICES}
-	cf --output restart ${APP_NAME}
+	if [ -n "$HEALTH_CHECK" ]; then
+		cf set-health-check ${APP_NAME} "$HEALTH_CHECK"
+	fi
+	provision_auto_services ${PKG_NAME} ${APP_NAME} ${AUTO_SERVICES}
+	cf start ${APP_NAME}
 	wait_till_running ${APP_NAME}
 	delete_older_versions ${PKG_NAME} ${APP_NAME}
 }
 
 function provision_auto_services() {
+	PKG_NAME="$1"
+	APP_NAME="$2"
+	shift; shift
 	for service in $*; do
-		plan=`cf --output marketplace | grep $service | awk '{ print $2 }' | sed 's/,//g'`
-		if [ "$plan" != "" ]; then
-			cf create-service $service $plan ${APP_NAME}-${APP_VERSION}-$service
-			cf bind-service ${APP_NAME}-${APP_VERSION} ${APP_NAME}-${APP_VERSION}-$service
-		else
-			echo "no service matching" $service "in marketplace"
-			exit 1
+		if [ "$service" == "None" ]; then
+			continue
 		fi
+		services=`$CF services | grep ${PKG_NAME}-$service`
+		if [ -z "$services" ]; then
+			plan=`$CF marketplace | grep $service | awk '{ print $2 }' | sed 's/,//g'`
+			if [ "$plan" != "" ]; then
+				cf create-service $service $plan ${PKG_NAME}-$service
+			else
+				echo "no service matching" $service "in marketplace"
+				exit 1
+			fi
+		fi
+		cf bind-service ${APP_NAME} ${PKG_NAME}-$service
 	done
+}
+
+function register_broker() {
+	BROKER_NAME="$1"
+	BROKER_USER="$2"
+	BROKER_PASS="$3"
+	BROKER_URL="$4"
+	GLOBAL_ACCESS="$5"
+	BROKER_SERVICES="$6"
+	$CF service-brokers
+	broker=`$CF service-brokers | grep $BROKER_NAME | cat`
+	echo broker: "$broker"
+	if [ -z "$broker" ]; then
+		cf create-service-broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL"
+	else
+		cf update-service-broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL"
+	fi
+	if [ "$GLOBAL_ACCESS" == "true" -o "$GLOBAL_ACCESS" == "True" ]; then
+		publicize_services "$BROKER_NAME" "$BROKER_SERVICES"
+	fi
+}
+
+function publicize_services() {
+	BROKER_NAME="$1"
+	BROKER_SERVICES="$2"
+	services_url=`$CF curl /v2/services?q=label:$BROKER_NAME | grep service_plans_url | awk '{ print $2 }' | sed 's/[",]//g'`
+	if [ "$services_url" != "" ]; then
+		services=`$CF curl $services_url | grep "\"url\"" | awk '{ print $2 }' | sed 's/[",]//g'`
+		for service in $services; do
+			cf curl $service -X PUT -d '{"public": true}'
+		done
+	elif [ "$BROKER_SERVICES" != "" ] && [ "$BROKER_SERVICES" != "INTERNAL_SERVICE_NAME" ]; then
+		# Rely on the internal plan names if we cannot get it from the /v2/services on the broker
+		for service_name in `echo "$BROKER_SERVICES" | sed -e 's/,/ /g;s/;/ /g'`
+		do
+			cf enable-service-access $service_name
+		done
+	else
+		services=`$CF service-access | awk "/broker: ${BROKER_NAME}/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq `
+		for service_name in $services; do
+			cf enable-service-access $service_name
+		done
+	fi
+}
+
+function push_buildpack() {
+	BUILDPACK_NAME="$1"
+	BUILDPACK_ORDER="$2"
+	BUILDPACK_FILE="$3"
+	BUILDPACK_EXISTS=`$CF buildpacks | grep ${BUILDPACK_NAME}`
+	if [ -n "$BUILDPACK_EXISTS" ]; then
+		cf update-buildpack $BUILDPACK_NAME -p $BUILDPACK_FILE --enable
+	else
+		cf create-buildpack $BUILDPACK_NAME $BUILDPACK_FILE $BUILDPACK_ORDER --enable
+	fi
 }
 
 import_opsmgr_variables
@@ -218,15 +277,31 @@ export APP_NAME={{ package.name }}-{{ context.version }}
 export APP_HOST={{ (package.manifest and package.manifest.host) or package.name }}
 export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
 export NEEDS_CF_CREDS="{{ ( package.needs_cf_credentials and 'true' ) or 'false' }}"
+export HEALTH_CHECK=<%= properties.{{ package.name }}.health_check %>
 export AUTO_SERVICES="<%= properties.{{ package.name }}.auto_services %>"
 export AUTO_SERVICES="${AUTO_SERVICES} <%= properties.{{ package.name }}.persistence_store_type %>"
-deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$AUTO_SERVICES"
+deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$HEALTH_CHECK" "$AUTO_SERVICES"
 {% endif %}
 
 {% if package.is_broker %}
+export BROKER_NAME={{ package.name }}
+export BROKER_USER=<%= properties.{{ package.name }}.user %>
+export BROKER_PASS=<%= properties.{{ package.name }}.password %>
+export BROKER_SERVICES="<%= properties.{{ package.name }}.internal_service_names %>"
+{% if package.is_external_broker %}
+export BROKER_URL=<%= properties.{{ package.name }}.url %>
+{% else %}
+export BROKER_URL=$SCHEME://${APP_HOST}.${APP_DOMAIN}
+{% endif %}
+export GLOBAL_ACCESS=<%= properties.{{ package.name }}.enable_global_access_to_plans %>
+register_broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL" "$GLOBAL_ACCESS" "$BROKER_SERVICES"
 {% endif %}
 
 {% if package.is_buildpack %}
+export BUILDPACK_NAME={{ package.name }}
+export BUILDPACK_ORDER=<%= properties.{{ package.name }}.buildpack_order %>
+export BUILDPACK_FILE=$PACKAGE_PATH/{{ package.name }}/{{ package.path }}
+push_buildpack "$BUILDPACK_NAME" "$BUILDPACK_ORDER" "$BUILDPACK_FILE"
 {% endif %}
 
 {% endfor %}

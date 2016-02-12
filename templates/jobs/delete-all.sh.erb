@@ -85,6 +85,14 @@ function delete_all_versions() {
 	done
 }
 
+function delete_service_broker() {
+    services=`cf service-access | awk "/broker: $1/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq `
+    for service_name in $services; do
+      cf purge-service-offering -f $service_name
+    done
+    cf delete-service-broker -f $1
+}
+
 import_opsmgr_variables
 prepare_cf_cli
 authenticate
@@ -94,13 +102,14 @@ if target_org; then
 		{% for package in context.packages | reverse %}
 		# Delete package {{ package.name }}
 		#
+		{% if package.is_broker %}
+		delete_service_broker {{ package.name }}
+		{% endif %}
 		{% if package.is_app %}
 		delete_all_versions {{ package.name }}
-		{% elif package.is_buildpack %}
 		{% endif %}
-		{% if package.is_broker %}
-		{% if package.has_dynamic_plans %}
-		{% endif %}
+		{% if package.is_buildpack %}
+		cf delete-buildpack -f {{ package.name }}
 		{% endif %}
 
 		{% endfor %}
