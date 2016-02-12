@@ -27,7 +27,6 @@ function import_opsmgr_variables() {
 	export DOMAIN=<%= properties.domain %>
 	export APP_DOMAIN=<%= properties.app_domains[0] %>
 	export CF_ORG=<%= properties.org %>
-	export CF_ORG_QUOTA=<%= properties.org_quota %>
 	export CF_SPACE=<%= properties.space %>
 	export CF_TARGET=$SCHEME://api.${DOMAIN}
 	export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
@@ -87,7 +86,7 @@ function delete_all_versions() {
 
 function delete_service_broker() {
     services=`cf service-access | awk "/broker: $1/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq `
-    for service_name in $services; do
+    for service_name in "$services"; do
       cf purge-service-offering -f $service_name
     done
     cf delete-service-broker -f $1

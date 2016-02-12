@@ -13,8 +13,11 @@ function cf() {
 }
 
 function is_true() {
-	VALUE="$1"
-	echo "$VALUE" | grep -i "true" >/dev/null
+	equals_ignore_case "$1" "true"
+}
+
+function equals_ignore_case() {
+	echo "$1" | grep -i "^$2\$" >/dev/null
 }
 
 function import_opsmgr_variables() {
@@ -30,6 +33,7 @@ function import_opsmgr_variables() {
 	export CF_SKIP_SSL=<%= properties.ssl.skip_cert_verify %>
 	export SECURITY_USER_NAME=<%= properties.security.user %>
 	export SECURITY_USER_PASSWORD=<%= properties.security.password %>
+	export APPLY_OPEN_SECURITY_GROUP=<%= properties.apply_open_security_group %>
 	{% if context.dynamic_service_plans is defined %}
 	<%
 	  plans = { }
@@ -102,6 +106,9 @@ function setup_package_path() {
 }
 
 function apply_open_security_group() {
+	if ! is_true "$1"; then
+		return
+	fi
 	if ! cf security-group all_open >/dev/null; then
 		cf create-security-group all_open $PACKAGE_PATH/templates/all_open.json
 	fi
@@ -189,7 +196,7 @@ function provision_auto_services() {
 	APP_NAME="$2"
 	shift; shift
 	for service in $*; do
-		if [ "$service" == "None" ]; then
+		if equals_ignore_case "$service" "none"; then
 			continue
 		fi
 		$CF services | grep ${PKG_NAME}-$service >/dev/null
@@ -266,9 +273,7 @@ setup_target_org
 setup_org_quota
 setup_target_space
 setup_package_path
-{% if context.apply_open_security_group %}
-apply_open_security_group
-{% endif %}
+apply_open_security_group "$APPLY_OPEN_SECURITY_GROUP"
 
 {% for package in context.packages %}
 # Deploy package {{ package.name }}
@@ -280,8 +285,8 @@ export APP_NAME={{ package.name }}-{{ context.version }}
 export APP_HOST={{ (package.manifest and package.manifest.host) or package.name }}
 export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
 export NEEDS_CF_CREDS="{{ package.needs_cf_credentials }}"
-export HEALTH_CHECK=<%= properties.{{ package.name }}.health_check %>
-export AUTO_SERVICES="<%= properties.{{ package.name }}.auto_services %>"
+export HEALTH_CHECK="{{ package.health_check }}"
+export AUTO_SERVICES="{{ package.auto_services }}"
 export AUTO_SERVICES="${AUTO_SERVICES} <%= properties.{{ package.name }}.persistence_store_type %>"
 deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$HEALTH_CHECK" "$AUTO_SERVICES"
 {% endif %}
@@ -290,7 +295,7 @@ deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS"
 export BROKER_NAME={{ package.name }}
 export BROKER_USER=<%= properties.{{ package.name }}.user %>
 export BROKER_PASS=<%= properties.{{ package.name }}.password %>
-export BROKER_SERVICES="<%= properties.{{ package.name }}.internal_service_names %>"
+export BROKER_SERVICES="{{ package.internal_service_names }}"
 {% if package.is_external_broker %}
 export BROKER_URL=<%= properties.{{ package.name }}.url %>
 {% else %}
