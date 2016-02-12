@@ -43,7 +43,7 @@ properties:
     description: 'Username of the CF admin user'
   cf.admin_password:
     description: 'Password of the CF admin user'
-{% if type == "deploy-all" %}
+{% if job_type == "deploy-all" %}
   org_quota:
     description: 'Org Memory Quota for the Application'
     default: 1024
@@ -54,15 +54,15 @@ properties:
     description: 'Basic auth user'
   security.password:
     description: 'Basic auth password'
-{% for property in all_properties %}
+{% for property in context.all_properties %}
   {{ property.name }}:
     description: {{ property.description or property.name }}
 {% endfor %}
-{% if dynamic_service_plans %}
+{% if context.dynamic_service_plans %}
   dynamic_service_plans:
     description: 'Dynamic service plans'
 {% endif %}
-{% for package in packages %}
+{% for package in context.packages %}
   {{ package.name }}.name:
     description: 'Name of package'
 {% if package.configurable_persistence %}
