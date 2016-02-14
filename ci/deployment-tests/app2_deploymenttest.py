@@ -30,7 +30,7 @@ class VerifyApp2(unittest.TestCase):
 		self.assertEqual(env.get('STREET_ADDRESS'), 'Cartaway Alley')
 		self.assertEqual(env.get('CITY'), 'New Jersey')
 		self.assertEqual(env.get('ZIP_CODE'), '90310')
-		self.assertEqual(env.get('COUNTRY'), 'USA')
+		self.assertEqual(env.get('COUNTRY'), 'US')
 
 	def test_receives_expected_services(self):
 		headers = { 'Accept': 'application/json' }
@@ -38,8 +38,11 @@ class VerifyApp2(unittest.TestCase):
 		response.raise_for_status()
 		env = response.json()
 		vcap_services = json.loads(env.get('VCAP_SERVICES'))
-		print json.dumps(vcap_services, indent=4)
-
+		broker1_service = vcap_services.get('broker1-service', None)
+		self.assertTrue(broker1_service is not None)
+		self.assertEquals(len(broker1_service), 1)
+		self.assertEquals(broker1_service[0].get('plan'), 'first-plan')
+	
 	def test_has_versioned_name(self):
 		headers = { 'Accept': 'application/json' }
 		response = requests.get(self.url + '/env', headers=headers)
@@ -56,7 +59,7 @@ class VerifyApp2(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		space= vcap_application.get('space_name')
-		self.assertEquals(space, 'app2-space')
+		self.assertEquals(space, 'test-space')
 
 if __name__ == '__main__':
 	unittest.main()

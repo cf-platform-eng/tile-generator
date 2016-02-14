@@ -30,7 +30,7 @@ class VerifyApp1(unittest.TestCase):
 		self.assertEqual(env.get('STREET_ADDRESS'), 'Cartaway Alley')
 		self.assertEqual(env.get('CITY'), 'New Jersey')
 		self.assertEqual(env.get('ZIP_CODE'), '90310')
-		self.assertEqual(env.get('COUNTRY'), 'USA')
+		self.assertEqual(env.get('COUNTRY'), 'US')
 
 	def test_receives_expected_services(self):
 		headers = { 'Accept': 'application/json' }
@@ -55,7 +55,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		space= vcap_application.get('space_name')
-		self.assertEquals(space, 'app1-space')
+		self.assertEquals(space, 'test-space')
 
 if __name__ == '__main__':
 	unittest.main()
