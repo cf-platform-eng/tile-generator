@@ -41,22 +41,18 @@ package_types = [
 	{
 		'typename': 'app',
 		'flags': [ 'requires_cf_cli', 'is_app' ],
-#		'jobs':  [ '+deploy-app', '-delete-app' ],
 	},
 	{
 		'typename': 'app-broker',
 		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app' ],
-#		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
 	},
 	{
 		'typename': 'external-broker',
 		'flags': [ 'requires_cf_cli', 'is_broker', 'is_external_broker' ],
-#		'jobs':  [ '+register-broker', '-destroy-broker' ],
 	},
 	{
 		'typename': 'buildpack',
 		'flags': [ 'requires_cf_cli', 'is_buildpack' ],
-#		'jobs':  [ '+deploy-buildpack', '-delete-buildpack' ],
 	},
 	{
 		'typename': 'docker-bosh',
@@ -66,17 +62,14 @@ package_types = [
 	{
 		'typename': 'docker-app',
 		'flags': [ 'requires_cf_cli', 'is_app', 'is_docker_app', 'is_docker' ],
-#		'jobs':  [ '+deploy-app', '-delete-app' ],
 	},
 	{
 		'typename': 'docker-app-broker',
 		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app', 'is_docker_app', 'is_docker' ],
-#		'jobs':  [ '+deploy-app', '-delete-app', '+register-broker', '-destroy-broker' ],
 	},
 	{
 		'typename': 'blob',
 		'flags': [ 'is_blob' ],
-#		'jobs':  [],
 	},
 ]
 
