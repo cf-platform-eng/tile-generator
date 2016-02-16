@@ -7,6 +7,9 @@ TARGET_DIR=$3
 MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
 REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
+BIN_DIR="$( cd "${REPO_DIR}/bin" && pwd )"
+
+TILE="${BIN_DIR}/tile"
 
 cd ${BASE_DIR}
 
@@ -15,7 +18,7 @@ if [ -n "${HISTORY}" ]; then
 	cp ${HISTORY} ${SOURCE_DIR}/tile-history.yml
 fi
 
-(cd ${SOURCE_DIR}; ${REPO_DIR}/tile build)
+(cd ${SOURCE_DIR}; $TILE build)
 
 VERSION=`grep '^version:' ${SOURCE_DIR}/tile-history.yml | sed 's/^version: //'`
 HISTORY="tile-history-${VERSION}.yml"
