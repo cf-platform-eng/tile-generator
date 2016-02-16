@@ -109,16 +109,16 @@ packages:
   manifest:
     memory: 256M                      # Override memory, default: 1G
 
-- name: app4
-  type: docker-bosh
-  docker_images:
-  - guidowb/sample-cf-app
-  cpu: 2
-  memory: 512
-  ephemeral_disk: 4096
-  persistent_disk: 2048
-  instances: 1
-  manifest: |
-    containers:
-    - name: app4
-      image: "guidowb/sample-cf-app" # should match the docker image name
+# - name: app4
+#   type: docker-bosh
+#   docker_images:
+#   - guidowb/sample-cf-app
+#   cpu: 2
+#   memory: 512
+#   ephemeral_disk: 4096
+#   persistent_disk: 2048
+#   instances: 1
+#   manifest: |
+#     containers:
+#     - name: app4
+#       image: "guidowb/sample-cf-app" # should match the docker image name
