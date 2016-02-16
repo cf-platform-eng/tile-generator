@@ -1,3 +1,5 @@
 release/
 product/
 tile-history.yml
+vendor/
+resources/*.zip

@@ -17,9 +17,9 @@ description: Longer description of the tile's purpose
 packages:
 - name: my-application
   type: app
-  uri: app.example.com
   files:
   - path: resources/my-application-1.0.0.jar
+# uri: app.example.com
 # start_command: start_here.sh
 # health_monitor: true
 # create_open_security_group: true
@@ -32,7 +32,7 @@ packages:
 # strongly recommend you leave this alone so that your tile always
 # runs with the latest stemcell.
 #
-stemcell_criteria:
+# stemcell_criteria:
 #   os: ubuntu-trusty
 #   requires_cpi: false
 #   version: '3062'
@@ -40,7 +40,7 @@ stemcell_criteria:
 # Add properties you want to pass to your applications.
 # Properties specified here will not be configurable by the user.
 #
-properties:
+# properties:
 # - name: example_property
 #   type: string
 #   default: specify a value
@@ -53,7 +53,7 @@ properties:
 # elsewhere in this template by using:
 #     (( .properties.<property-name> ))
 # 
-forms:
+# forms:
 # - name: buildpack_properties
 #   label: Buildpack
 #   description: Buildpack_properties

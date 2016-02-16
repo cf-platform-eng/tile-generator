@@ -18,34 +18,38 @@ For a 7-minute introduction into what it is and does, see [this screencast]
 (https://www.youtube.com/watch?v=_WeJbqNJWzQ).
 
 ## How to Use
-1. check out the tile-generator repo:
+
+1. Check out the tile-generator repo:
 
   ```bash
   git clone https://github.com/cf-platform-eng/tile-generator.git
   ```
 
-1. change to the root directory of the tile generator, and pull down the generator's dependencies:
+2. Change to the root directory of the tile generator, and pull down the generator's dependencies:
 
   ```bash
   cd tile-generator
   pip install -r requirements.txt
   ```
 
-1. Add root directory of tile-generator to your path:
+3. Add the `bin` directory of tile-generator to your path:
+
   ```bash
-  export PATH=<path to root dir of tile-generator>:$PATH
+  export PATH=`pwd`/bin:$PATH
   ```
 
-1. then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
+*If you expect to frequently use the tile generator, you may want to add this to your shell's startup script, i.e. `.profile`*
+
+4. Then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
 
    ```bash
    cd <your project dir>
    tile init
    ```
    
-1. Edit the generated `tile.yml` file to define your tile (more details below)
+5. Edit the generated `tile.yml` file to define your tile (more details below)
 
-1. Build your tile
+6. Build your tile
    ```bash
    tile build
    ```

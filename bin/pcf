@@ -1,0 +1,200 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import yaml
+import json
+import time
+import click
+import subprocess
+
+PATH = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(PATH, os.path.join('..', 'lib')))
+import opsmgr
+import erb
+
+@click.group()
+def cli():
+	pass
+
+@cli.command('products')
+def products_cmd():
+	products = opsmgr.get_products()
+	for product in products:
+		print "-", product["name"], product["product_version"], "(installed)" if product["installed"] else ""
+
+@cli.command('is-available')
+@click.argument('product')
+@click.argument('version', None, required=False)
+def is_available_cmd(product, version):
+	products = opsmgr.get_products()
+	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) ]
+	if len(matches) < 1:
+		print >> sys.stderr, 'No match found for product', product, 'version', version
+		sys.exit(1)
+
+@cli.command('is-installed')
+@click.argument('product')
+@click.argument('version', None, required=False)
+def is_installed_cmd(product, version):
+	products = opsmgr.get_products()
+	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) and p['installed'] ]
+	if len(matches) < 1:
+		print >> sys.stderr, 'Product', product, 'version', version, 'is not installed'
+		sys.exit(1)
+
+@cli.command('configure')
+@click.argument('product')
+@click.argument('properties_file')
+def configure_cmd(product, properties_file):
+	with open(properties_file) as f:
+		properties = yaml.safe_load(f)
+	settings = opsmgr.get('/api/installation_settings').json()
+	opsmgr.configure(settings, product, properties)
+	opsmgr.post_yaml('/api/installation_settings', 'installation[file]', settings)
+
+@cli.command('settings')
+@click.argument('product', None, required=False)
+def settings_cmd(product):
+	settings = opsmgr.get('/api/installation_settings').json()
+	if product is not None:
+		settings = [ p for p in settings['products'] if p['identifier'] == product ]
+		if len(settings) < 1:
+			print >> sys.stderr, 'No settings found for product', product
+			sys.exit(1)
+		settings = settings[0]
+	print json.dumps(settings, indent=4)
+
+@cli.command('cf-info')
+def cf_info_cmd():
+	cfinfo = opsmgr.get_cfinfo()
+	for key, value in cfinfo.items():
+		print '-', key + ':', value
+
+@cli.command('import')
+@click.argument('zipfile')
+def import_cmd(zipfile):
+	opsmgr.upload('/api/products', zipfile)
+
+@cli.command('install')
+@click.argument('product')
+@click.argument('version')
+def install_cmd(product, version):
+	payload = {
+		'name': product,
+		'product_version': version,
+	}
+	opsmgr.post('/api/installation_settings/products', payload)
+
+@cli.command('uninstall')
+@click.argument('product')
+def install_cmd(product):
+	products = opsmgr.get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	for match in matches:
+		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+
+@cli.command('delete-unused-products')
+def delete_unused_products_cmd():
+	opsmgr.delete('/api/products')
+
+@cli.command('backup')
+@click.argument('backup_file')
+def backup_cmd(backup_file):
+	response = opsmgr.get('/api/installation_asset_collection', stream=True)
+	with open(backup_file, 'wb') as f:
+		for chunk in response.iter_content(1024):
+			f.write(chunk)
+
+@cli.command('restore')
+@click.argument('backup_file')
+def restore_cmd(backup_file):
+	creds = get_credentials()
+	with open(backup_file, 'rb') as f:
+		payload = { 'installation[file]': f, 'password': creds['opsmgr']['password'] }
+		opsmgr.post('/api/installation_asset_collection', f)
+
+@cli.command('cleanup')
+@click.argument('product')
+def cleanup_cmd(product):
+	#
+	# Attempt 1 - Delete any uninstalled versions
+	#
+	products = opsmgr.get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	for match in matches:
+		print >> sys.stderr, '- attempting to delete', match['name']
+		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+	products = opsmgr.get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	if len(matches) < 1:
+		sys.exit(0)
+	if len(matches) > 1:
+		print >> sys.stderr, '- more than one match remains installed'
+		sys.exit(1)
+	#
+	# Attempt 2 - Uninstall deployed version
+	#
+	match = matches[0]
+	print >> sys.stderr, '- product was deployed, applying changes to uninstall it'
+	apply_changes_cmd()
+	opsmgr.delete('/api/products')
+	products = opsmgr.get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	if len(matches) < 1:
+		sys.exit(0)
+	#
+	# Attempt 3 - Re-deploy with errands disabled, then uninstall
+	#
+	match = matches[0]
+	print >> sys.stderr, '- uninstall appears to have failed'
+	print >> sys.stderr, '- re-deploying with disabled errands'
+	opsmgr.disable_errands(product)
+	apply_changes_cmd()
+	print >> sys.stderr, '- uninstalling with disabled errands'
+	opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+	apply_changes_cmd()
+	opsmgr.delete('/api/products')
+	products = opsmgr.get('/api/installation_settings/products').json()
+	matches = [ p for p in products if p['type'] == product ]
+	if len(matches) > 0:
+		print >> sys.stderr, '- failed to uninstall'
+		sys.exit(1)
+
+@cli.command('apply-changes')
+def apply_changes_cmd():
+	install = opsmgr.post('/api/installation', { 'ignore_warnings': 'true' }).json()['install']
+	lines_shown = 0
+	while True:
+		log_lines = opsmgr.get('/api/installation/' + str(install['id']) + '/logs').json()['logs'].splitlines()
+		for line in log_lines[lines_shown:]:
+			if not line.startswith('{'):
+				print ' ', line
+		lines_shown = len(log_lines)
+		install_status = opsmgr.get('/api/installation/' + str(install['id'])).json()['status']
+		if not install_status == 'running':
+			break
+		time.sleep(1)
+	if not install_status == 'success':
+		print >> sys.stderr, '- install finished with status:', install_status
+		sys.exit(1)
+
+@cli.command('test-errand')
+@click.argument('tile_repo')
+@click.argument('errand_name')
+def test_errand_cmd(tile_repo, errand_name):
+	errand_file = os.path.join(tile_repo, 'release/jobs', errand_name, 'templates', errand_name + '.sh.erb')
+	rendered_errand = errand_name + '.sh'
+	erb.render(rendered_errand, errand_file, tile_repo)
+	env = os.environ
+	env['PACKAGE_PATH'] = os.path.join(tile_repo, 'release/blobs')
+	os.execlpe('bash', 'bash', rendered_errand, env)
+
+@cli.command('target')
+def target_cmd():
+	cf = opsmgr.get_cfinfo()
+	subprocess.call(['cf', 'api', 'api.' + cf['system_domain'], '--skip-ssl-validation'])
+	subprocess.call(['cf', 'login', '-u', cf['admin_username'], '-p', cf['admin_password']])
+
+if __name__ == '__main__':
+	cli()

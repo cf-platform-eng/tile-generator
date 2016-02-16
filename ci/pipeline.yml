@@ -1,5 +1,39 @@
 ---
 
+groups:
+
+- name: all
+  jobs:
+  - build-docker
+  - unit-tests
+  - build-tile
+  - acceptance-tests
+  - claim-pcf
+  - deploy-tile
+  - deployment-tests
+  - remove-tile
+  - release-pcf
+
+- name: build
+  jobs:
+  - build-docker
+  - unit-tests
+  - build-tile
+  - acceptance-tests
+
+- name: deploy
+  jobs:
+  - claim-pcf
+  - deploy-tile
+  - deployment-tests
+  - remove-tile
+  - release-pcf
+
+- name: manual
+  jobs:
+  - claim-pcf
+  - manual-cleanup-and-release
+
 resources:
 
 - name: sample-tile-repo
@@ -47,9 +81,25 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
 
+- name: app-docker-image
+  type: docker-image
+  source:
+    repository: guidowb/sample-cf-app
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: pcf-environment
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool
+    branch: master
+    pool: pcf
+    private_key: {{github-pool-private-key}}
+
 jobs:
 
-- name: docker-build
+- name: build-docker
   plan:
   - get: dockerfile-repo
     trigger: true
@@ -57,11 +107,11 @@ jobs:
     params:
       build: dockerfile-repo/ci
 
-- name: unit-test
+- name: unit-tests
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [ docker-build ]
+      passed: [ build-docker ]
       trigger: true
     - get: tile-generator-repo
       trigger: true
@@ -75,35 +125,202 @@ jobs:
         path: tile-generator-repo/ci/scripts/run-unittests.sh
         args: [ "tile-generator-repo/lib" ]
 
-- name: tile-build
+- name: build-tile
   plan:
   - aggregate:
     - get: ci-docker-image
-      passed: [ unit-test ]
+      passed: [ unit-tests ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ unit-test ]
+      passed: [ unit-tests ]
       trigger: true
     - get: sample-tile-repo
       trigger: true
     - get: tile-history
       trigger: false
+  - task: build-sample-apps
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: sample-tile-repo
+      outputs:
+      - name: sample-tile-build
+      run:
+        path: sample-tile-repo/sample/src/build.sh
+        args: [ "sample-tile-build" ]
+  - put: app-docker-image
+    params:
+      build: sample-tile-build/src
   - task: build-sample-tile
     config:
       platform: linux
       image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: tile-generator-repo
-      - name: sample-tile-repo
+      - name: sample-tile-build
       - name: tile-history
       outputs:
       - name: generated-tile
       run:
         path: tile-generator-repo/ci/scripts/tile-build.sh
-        args: [ "sample-tile-repo/sample", "tile-history", "generated-tile" ]
+        args: [ "sample-tile-build", "tile-history", "generated-tile" ]
   - put: tile-history
     params:
       from: generated-tile/tile-history-.*\.yml
   - put: generated-tile
     params:
       from: generated-tile/.*\.pivotal
+
+- name: acceptance-tests
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ build-tile ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ build-tile ]
+      trigger: true
+    - get: generated-tile
+      passed: [ build-tile ]
+      trigger: true
+  - task: run-acceptance-tests
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-acceptancetests.sh
+        args: [ "generated-tile" ]
+
+- name: claim-pcf
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ acceptance-tests ]
+      trigger: true
+    - put: pcf-environment
+      params:
+        acquire: true
+
+- name: deploy-tile
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ claim-pcf ]
+  - task: run-deploy-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
+        args: [ "generated-tile", "pcf-environment" ]
+
+- name: deployment-tests
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ deploy-tile ]
+  - task: run-deployment-tests
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
+        args: [ "generated-tile", "pcf-environment" ]
+
+- name: remove-tile
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ deployment-tests ]
+  - task: remove-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment" ]
+
+- name: release-pcf
+  plan:
+  - get: pcf-environment
+    passed: [ remove-tile ]
+    trigger: true
+  - put: pcf-environment
+    params:
+      release: pcf-environment
+
+- name: manual-cleanup-and-release
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ claim-pcf ]
+    - get: tile-generator-repo
+      passed: [ claim-pcf ]
+    - get: generated-tile
+      passed: [ claim-pcf ]
+    - get: pcf-environment
+      passed: [ claim-pcf ]
+  - task: remove-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment" ]
+  - put: pcf-environment
+    params:
+      release: pcf-environment
+

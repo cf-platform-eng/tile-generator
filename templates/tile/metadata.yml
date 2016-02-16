@@ -24,96 +24,33 @@ stemcell_criteria:
   version: '{{ stemcell_criteria.version or 3146.5 }}'
 
 property_blueprints:
-{% for package in packages %}
 #
-# Standard properties for package {{ package.name }}
+# Parameters for the entire product
 #
-- name: {{ package.name }}_app_name
+- name: org
   type: string
   configurable: true
-  default: {{ package.name }}
-{% if package.is_buildpack %}
-- name: {{ package.name }}_buildpack_order
+  default: {{ org }}
+- name: org_quota
   type: integer
   configurable: true
-  default: 0
-{% else %}
-- name: {{ package.name }}_app_version
-  type: string
-  configurable: true
-  default: {{ version }}
-- name: {{ package.name }}_app_uri
-  type: string
-  configurable: true
-  default: {{ package.uri or package.name }}
-{% if package.is_app %}
-{% if package.is_docker %}
-- name: {{ package.name }}_docker_image
-  type: string
-  configurable: true
-  default: {{ package.image }}
-{% endif %}
-- name: {{ package.name }}_start_command
-  type: string
-  configurable: false
-  default: {{ package.start_command or '' }}
-- name: {{ package.name }}_health_monitor
-  type: boolean
-  configurable: false
-  default: {{ package.health_monitor or true }}
-- name: {{ package.name }}_need_cf_creds
-  type: boolean
-  configurable: false
-  default: {{ package.need_cf_creds or false }}
-- name: {{ package.name }}_create_open_security_group
-  type: boolean
-  configurable: true
-  default: {{ package.create_open_security_group or false }}
-- name: {{ package.name }}_org
-  type: string
-  configurable: true
-  default: {{ package.org or '' }}
-- name: {{ package.name }}_space
-  type: string
-  configurable: true
-  default: {{ package.space or '' }}
-- name: {{ package.name }}_org_quota
-  type: integer
-  configurable: false
   constraints:
     min: 512
     max: 4096
-  default: {{ package.org_quota or 1024 }}
-- name: {{ package.name }}_memory
-  type: integer
-  configurable: false
-  constraints:
-    min: 256
-    max: 2048
-  default: {{ package.memory or 512 }}
-- name: {{ package.name }}_persistence_store_type
-  type: dropdown_select
-  configurable: true
-  options:
-  - name: mysql
-    label: Managed MySQL Service
-  - name: mongo
-    label: Managed Mongo Service
-  - name: none
-    label: None
-    default: true
-- name: {{ package.name }}_bind_to_service
+  default: {{ org_quota or 1024 }}
+- name: space
   type: string
   configurable: true
-  default: {{ package.bind_to_service or none }}
-
-{% endif %}
-{% if package.is_broker_app  %}
-{% if package.on_demand_service_plans %}
+  default: {{ space }}
+- name: apply_open_security_group
+  type: boolean
+  configurable: true
+  default: {{ apply_open_security_group or false }}
+{% if dynamic_service_plans %}
 #
 # Properties for on-demand service plans
 #
-- name: {{ package.name }}_on_demand_service_plans_collection
+- name: dynamic_service_plans
   type: collection
   configurable: true
   property_blueprints:
@@ -124,31 +61,52 @@ property_blueprints:
   - name: name
     type: string
     configurable: true
-  {% for field in package.on_demand_service_plans %}
+  {% for field in dynamic_service_plans %}
   - name: {{ field.name }}
     type: {{ field.type }}
     configurable: {{ field.configurable }}
+    decription: {{ field.description }}
   {% endfor %}
 {% endif %}
+{% for package in packages %}
+#
+# Standard properties for package {{ package.name }}
+#
+{% if package.is_buildpack %}
+- name: {{ package.name }}_buildpack_order
+  type: integer
+  configurable: true
+  default: 0
+{% endif %}
+{% if package.configurable_persistence %}
+- name: {{ package.name }}_persistence_store_type
+  type: dropdown_select
+  configurable: true
+  options:
+  - name: p-mysql
+    label: Managed MySQL Service
+  - name: p-mongo
+    label: Managed Mongo Service
+  - name: none
+    label: None
+    default: true
 {% endif %}
 {% if package.is_broker  %}
 - name: {{ package.name }}_enable_global_access_to_plans
   type: boolean
   configurable: true
-  default: false
-- name: {{ package.name }}_internal_service_names
-  type: string
-  configurable: false
-  default: {{ package.internal_service_names }}
+  default: {{ package.enable_global_access_to_plans or false }}
 {% endif %}
 {% if package.is_external_broker %}
-- name: {{ package.name }}_broker_user
+- name: {{ package.name }}_url
   type: string
   configurable: true
-- name: {{ package.name }}_broker_password
+- name: {{ package.name }}_user
+  type: string
+  configurable: true
+- name: {{ package.name }}_password
   type: secret
   configurable: true
-{% endif %}
 {% endif %}
 {% endfor %}
 #
@@ -183,8 +141,8 @@ form_types:
 #
 # Custom form {{ form.name}} from the tile.yml file
 #
-- name: {{ form.name }} Global Configuration
-  label: {{ form.label }} 
+- name: {{ form.name }}
+  label: {{ form.label }}
   description: {{ form.description or form.label }}
   property_inputs:
   {% for property in form.properties %}
@@ -193,98 +151,89 @@ form_types:
     description: {{ property.description or property.label }}
   {% endfor %}
 {% endfor %}
-{% for package in packages %}
-{% if not package.is_blob %}
+{% if dynamic_service_plans %}
 #
-# Standard form for package {{ package.name }}
+# Dynamic service plan form
 #
-- name: {{ package.name }}
-  label: {{ package.name | replace('_',' ') | title }}
-  description: Configuration for {{ package.name | replace('_',' ') | title }}
+- name: dynamic_service_plans
+  label: Dynamic Service Plans
+  description: Operator-Defined Service Plans
   property_inputs:
-{% if package.is_buildpack %}
-  - reference: .properties.{{ package.name }}_app_name
-    label: Buildpack Name
-    description: 'Enter the name of the Buildpack'
-  - reference: .properties.{{ package.name }}_buildpack_order
-    label: Buildpack Order
-    description: 'Enter order for the Buildpack'
-{% elif package.is_external_broker %}
-  - reference: .properties.{{ package.name }}_app_name
-    label: Service Broker Application Name
-    description: 'Enter the name for the Service Broker App'
-  - reference: .properties.{{ package.name }}_app_uri
-    label: Service Broker Application URI
-    description: 'Enter the External uri/endpoint (with http or https protocol) for the Service Broker'
-  - reference: .properties.{{ package.name }}_broker_user
-    label: Service Broker Username
-    description: 'Enter the username for accessing the Service Broker'
-  - reference: .properties.{{ package.name }}_broker_password
-    label: Service Broker Password
-    description: 'Enter the password for accessing the Service Broker'
-  - reference: .properties.{{ package.name }}_enable_global_access_to_plans
-    label: Enable global access to plans
-    description: "Enable global access to plans in the marketplace"
-{% elif package.is_app %}
-  - reference: .properties.{{ package.name }}_app_name
-    label: Application Name
-    description: 'Enter the name for the App'
-  - reference: .properties.{{ package.name }}_app_uri
-    label: Application URI
-    description: 'Enter the uri/endpoint for the App (on push to CF)'
-{% if package.is_docker %}
-  - reference: .properties.{{ package.name }}_docker_image
-    label: Docker Image
-    description: 'Docker image to push to CF'
-{% endif %}
-{% if package.org %}
-  - reference: .properties.{{ package.name }}_org
-    label: Target Org to deploy
-    description: "Specify name of target Org"
-{% endif %}
-{% if package.space %}
-  - reference: .properties.{{ package.name }}_space
-    label: Target Space to deploy
-    description: "Specify name of target Space"
-{% endif %}
-{% if package.bind_to_service %}
-  - reference: .properties.{{ package.name }}_bind_to_service
-    label: Bind to Pre-provisioned Services
-    description: "Specify comma separated list of pre-provisioned Services in the Target Org/Space"
-{% endif %}
-  - reference: .properties.{{ package.name }}_create_open_security_group
-    label: Open up Security Groups
-    description: 'Open up security group on CF for App to access external endpoints'
-{% if package.persistence_store %}
-  - reference: .properties.{{ package.name }}_persistence_store_type
-    label: Persistence using MySQL or Mongo Service binding or none
-    description: "Select MySQL or Mongo Service Binding or None for saving state"
-{% endif %}
-{% if package.is_broker %}
-  - reference: .properties.{{ package.name }}_enable_global_access_to_plans
-    label: Enable global access to plans
-    description: "Enable global access to plans in the marketplace"
-{% endif %}
-{% if package.on_demand_service_plans %}
-#
-# On demand service plan form for package {{ package.name }}
-#
-  - reference: .properties.{{ package.name }}_on_demand_service_plans_collection
-    label: On-Demand Service Plans
+  - reference: .properties.dynamic_service_plans
+    label: Dynamic Service Plans
     property_inputs:
     - reference: name
       label: Plan Name
       description: "Name of Plan"
       slug: false
-{% for field in package.on_demand_service_plans %}
+{% for field in dynamic_service_plans %}
     - reference: {{ field.name }}
       label: {{ field.name }}
-      description: {{ field.descrp }}
+      description: {{ field.description }}
       slug: false
 {% endfor %}
 {% endif %}
+{% for package in packages if package.is_buildpack %}
+{% if loop.first %}
+#
+# Buildpack form
+#
+- name: buildpacks
+  label: Buildpack Settings
+  description: Configurable settings for buildpacks
+  property_inputs:
 {% endif %}
+  - reference: .properties.{{ package.name }}_buildpack_order
+    label: {{ package.name }} Buildpack Order
+    description: 'Enter order for the {{ package.name }} buildpack'
+{% endfor %}
+{% for package in packages if package.is_external_broker %}
+{% if loop.first %}
+#
+# External broker form
+#
+- name: external_brokers
+  label: Broker Settings
+  description: Configurable settings for external service brokers
+  property_inputs:
 {% endif %}
+  - reference: .properties.{{ package.name }}_uri
+    label: Service Broker Application URI for {{ package.name }}
+    description: 'Enter the External uri/endpoint (with http or https protocol) for the Service Broker'
+  - reference: .properties.{{ package.name }}_user
+    label: Service Broker Username for {{ package.name }}
+    description: 'Enter the username for accessing the Service Broker'
+  - reference: .properties.{{ package.name }}_password
+    label: Service Broker Password for {{ package.name }}
+    description: 'Enter the password for accessing the Service Broker'
+{% endfor %}
+{% for package in packages if package.is_broker %}
+{% if loop.first %}
+#
+# Service access form
+#
+- name: service_access
+  label: Service Access
+  description: Determine availability of services
+  property_inputs:
+{% endif %}
+  - reference: .properties.{{ package.name }}_enable_global_access_to_plans
+    label: Enable global access to plans of service {{ package.name}}
+    description: "Enable global access to plans in the marketplace"
+{% endfor %}
+{% for package in packages if package.configurable_persistence %}
+{% if loop.first %}
+#
+# Persistence configuration form
+#
+- name: configurable_persistence
+  label: Persistence
+  description: Configure persistence services
+  property_inputs:
+{% endif %}
+  - reference: .properties.{{ package.name }}_persistence_store_type
+    label: Persistence service to use for {{ package.name }}
+    description: "Select MySQL or Mongo Service Binding or None for saving state"
 {% endfor %}
 
 job_types:
@@ -317,11 +266,10 @@ job_types:
     - name: instances
       type: integer
       default: 1
-{% for job in jobs %}
+{% for job in jobs if job.type == 'docker-bosh' %}
 #
 # {{ job.type }} job for {{ job.package.name }}
 #
-{% if job.package.is_docker_bosh %}
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: false
@@ -366,7 +314,11 @@ job_types:
     type: salted_credentials
   manifest: |
     {{ job.package.manifest | indent }}
-{% else %}
+{% endfor %}
+{% for job in jobs if not job.type == 'docker-bosh' %}
+#
+# {{ job.type }} job
+#
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: true
@@ -408,63 +360,47 @@ job_types:
   manifest: |
     domain: (( ..cf.cloud_controller.system_domain.value ))
     app_domains:
-      - (( ..cf.cloud_controller.apps_domain.value ))
+    - (( ..cf.cloud_controller.apps_domain.value ))
+    org: (( .properties.org.value ))
+    space: (( .properties.space.value ))
     ssl:
       skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
     cf:
       admin_user: (( ..cf.uaa.system_services_credentials.identity ))
       admin_password: (( ..cf.uaa.system_services_credentials.password ))
-    uaa:
-      url: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
-      clients:
-        {{ job.package.name }}:
-          secret: test
-    {{ job.package.name }}:
-      app_name: (( .properties.{{ job.package.name }}_app_name.value ))
-{% if job.package.is_buildpack  %}
-      buildpack_order: (( .properties.{{ job.package.name }}_buildpack_order.value ))
-{% else %}
-      app_uri: (( .properties.{{ job.package.name }}_app_uri.value ))
-{% if job.package.is_app  %}
-      app_version: (( .properties.{{ job.package.name }}_app_version.value ))
-      create_open_security_group: (( .properties.{{ job.package.name }}_create_open_security_group.value ))
-      app_push:
-        org: (( .properties.{{ job.package.name }}_org.value ))
-        space: (( .properties.{{ job.package.name }}_space.value ))
-        org_quota: (( .properties.{{ job.package.name }}_org_quota.value ))
-        timeout: 180
-        memory: (( .properties.{{ job.package.name }}_memory.value ))
-{% if job.package.is_docker %}
-      docker_image: (( .properties.{{ job.package.name }}_docker_image.value ))
-{% endif %}
-      start_command: (( .properties.{{ job.package.name }}_start_command.value ))
-      health_monitor: (( .properties.{{ job.package.name }}_health_monitor.value ))
-      need_cf_creds: (( .properties.{{ job.package.name }}_need_cf_creds.value ))
-      persistence_store_type: (( .properties.{{ job.package.name }}_persistence_store_type.value ))
-      bind_to_service: (( .properties.{{ job.package.name }}_bind_to_service.value ))
-      user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
-      password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))
-      
-{% if job.package.on_demand_service_plans is defined %}
-      on_demand_service_plans: (( .properties.{{ job.package.name }}_on_demand_service_plans_collection.value ))
-{% endif %}
-{% endif %}
-{% if job.package.is_broker %}
-      internal_service_name: (( .properties.{{ job.package.name }}_internal_service_names.value ))
-      enable_global_access_to_plans: (( .properties.{{ job.package.name }}_enable_global_access_to_plans.value ))
-      broker:
-{% if job.package.is_external_broker %}
-        user: (( .properties.{{ job.package.name }}_broker_user.value ))
-        password: (( .properties.{{ job.package.name }}_broker_password.value ))
-{% else %}
-        user: (( .deploy-app-{{ job.package.name }}.app_credentials.identity ))
-        password: (( .deploy-app-{{ job.package.name }}.app_credentials.password ))
-{% endif %}
-{% endif %}
+{% if job.type == "deploy-all" %}
+    org_quota: (( .properties.org_quota.value ))
+    apply_open_security_group: (( .properties.apply_open_security_group.value ))
+    security:
+      user: (( .{{ job.name }}.app_credentials.identity ))
+      password: (( .{{ job.name }}.app_credentials.password ))
 {% for property in all_properties %}
     {{ property.name }}: (( .properties.{{ property.name }}.value ))
 {% endfor %}
+{% if dynamic_service_plans %}
+    dynamic_service_plans: (( .properties.dynamic_service_plans.value ))
 {% endif %}
+{% for package in packages %}
+    {{ package.name }}:
+      name: {{ package.name }}
+{% if package.configurable_persistence %}
+      persistence_store_type: (( .properties.{{ package.name }}_persistence_store_type.value ))
+{% endif %}
+{% if package.is_external_broker %}
+      url: (( .properties.{{ package.name }}.url ))
+      user: (( .properties.{{ package.name }}.user ))
+      password: (( .properties.{{ package.name }}.password ))
+{% elif package.is_broker %}
+      user: (( .{{ job.name }}.app_credentials.identity ))
+      password: (( .{{ job.name }}.app_credentials.password ))
+{% endif %}
+{% if package.is_broker %}
+      enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
+{% endif %}
+{% if package.is_buildpack  %}
+      buildpack_order: (( .properties.{{ package.name }}_buildpack_order.value ))
+{% endif %}
+{% endfor %}
 {% endif %}
 {% endfor %}
 
@@ -480,13 +416,15 @@ pre_delete_errands:
 
 update:
   canaries: 1
-  canary_watch_time: 60000-240000
+  canary_watch_time: 10000-100000
   max_in_flight: 1
-  update_watch_time: 60000-240000
+  update_watch_time: 10000-100000
 
+{% if requires_cf_cli %}
 requires_product_versions:
 - name: cf
   version: "~> 1.5"
+{% endif %}
 provides_product_versions:
 - name: {{ name }}
   version: '{{ version }}'

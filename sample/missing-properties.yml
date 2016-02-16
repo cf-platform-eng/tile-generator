@@ -1,0 +1,19 @@
+---
+customer_name: Jimmy's Johnnys
+street_address: Cartaway Alley
+city: New Jersey
+country: US
+app2:
+  persistence_store_type: none # p-mysql # Works, but turned off because this is not deployed in our PCF environments
+dynamic_service_plans:
+- name: plan1
+  guid: plan1-id
+  description: Plan for license key 1
+  license_key: 0001-0002-0003
+  num_seats: 10
+- name: plan2
+  guid: plan2-id
+  description: Plan for license key 2
+  license_key: 0004-0005-0006
+  num_seats: 20
+

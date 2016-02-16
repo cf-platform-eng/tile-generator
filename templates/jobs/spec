@@ -7,6 +7,12 @@ templates:
   {{ job_name }}.sh.erb: bin/{{ job_name }}_ctl
 {% endif %}
 packages:
+{% if not package %}
+- cf_cli
+{% for package in context.packages %}
+- {{ package.name }}
+{% endfor %}
+{% else %}
 {% if package.requires_cf_cli %}
 - cf_cli
 {% endif %}
@@ -16,109 +22,75 @@ packages:
 {% if not errand %}
 - common
 {% endif %}
+{% endif %}
 {% if package.is_docker_bosh %}
 properties: {}
 {% else %}
 properties:
-  ssl.skip_cert_verify:
-    description: 'Whether to verify SSL certs when making web requests'
   domain:
     description: 'CloudFoundry system domain'
   app_domains:
     description: 'CloudFoundry application domains'
-  uaa.url:
-    description: 'UAA URL '
-  uaa.clients.{{ package.name }}.secret:
-    description: 'UAA Client Secret'
+  org:
+    description: 'Org for the Application'
+    default: ''
+  space:
+    description: 'Space for the Application'
+    default: ''
+  ssl.skip_cert_verify:
+    description: 'Whether to verify SSL certs when making web requests'
   cf.admin_user:
     description: 'Username of the CF admin user'
   cf.admin_password:
     description: 'Password of the CF admin user'
-{% if package.is_buildpack %}
-  {{ package.name }}.buildpack_name:
-    description: 'Name of the Buildpack'
-  {{ package.name }}.buildpack_order:
-    description: 'Order of the Buildpack'
-{% else %}
-  {{ package.name }}.app_name:
-    description: 'Name of the Application'
-  {{ package.name }}.app_uri:
-    description: 'Uri of the Application'
-  {{ package.name }}.is_external_broker:
-    description: 'Is an external broker'
-{% if package.is_external_broker %}
-    default: true
-{% else %}
-    default: false
-{% endif %}
-{% if package.is_app %}
-  {{ package.name }}.app_version:
-    description: 'Version of the Application'
-  {{ package.name }}.create_open_security_group:
-    description: 'Open security group for the app to access outside'
-    default: false
-  {{ package.name }}.app_push.org:
-    description: 'Org for the Application'
-    default: ''
-  {{ package.name }}.app_push.space:
-    description: 'Space for the Application'
-    default: ''
-  {{ package.name }}.app_push.org_quota:
+{% if job_type == "deploy-all" %}
+  org_quota:
     description: 'Org Memory Quota for the Application'
     default: 1024
-  {{ package.name }}.app_push.timeout:
-    description: 'App Push timeout for the Application'
-    default: 180
-  {{ package.name }}.app_push.memory:
-    description: 'App Push Memory limit for the Application'
-    default: 512
-  {{ package.name }}.user:
-    description: 'App basic auth user'
-  {{ package.name }}.password:
-    description: 'App basic auth password'
-  {{ package.name }}.delete_prev_app_instances:
-    description: 'Delete prev instances of app'
+  apply_open_security_group:
+    description: 'Open security group for the app to access outside'
     default: false
-  {{ package.name }}.start_command:
-    description: 'app start command '
-    default: ''
-  {{ package.name }}.health_monitor:
-    description: 'Turn on or off health monitor '
-    default: true
-  {{ package.name }}.need_cf_creds:
-    description: 'App needs cf creds'
-    default: false
-  {{ package.name }}.persistence_store_type:
-    description: 'Use MySQL or Mongo for persistence store'
-    default: none
-  {{ package.name }}.bind_to_service:
-    description: 'Bind to some service'
-    default: none  
-{% if package.on_demand_service_plans is defined %}
-  {{ package.name }}.on_demand_service_plans:
-    description: 'On demand service plans'
-{% endif %}
-{% endif %}
-{% endif %}
-{% if package.is_broker %}
-  {{ package.name }}.internal_service_name:
-    description: 'Internal service name'
-    default: ''
-  {{ package.name }}.enable_global_access_to_plans:
-    description: 'Access to all service plans'
-    default: false
-  {{ package.name }}.broker.user:
-    description: 'Broker auth user'
-  {{ package.name }}.broker.password:
-    description: 'Broker auth password'
-{% endif %}
-{% if package.is_docker %}
-  {{ package.name }}.docker_image:
-    description: Docker image to run
-    default: {{ package.image }}
-{% endif %}
+  security.user:
+    description: 'Basic auth user'
+  security.password:
+    description: 'Basic auth password'
 {% for property in context.all_properties %}
   {{ property.name }}:
     description: {{ property.description or property.name }}
 {% endfor %}
+{% if context.dynamic_service_plans %}
+  dynamic_service_plans:
+    description: 'Dynamic service plans'
+{% endif %}
+{% for package in context.packages %}
+  {{ package.name }}.name:
+    description: 'Name of package'
+{% if package.configurable_persistence %}
+  {{ package.name }}.persistence_store_type:
+    description: 'Type of persistence store'
+{% endif %}
+{% if package.is_external_broker %}
+  {{ package.name }}.url:
+    description: 'URL to access service'
+  {{ package.name }}.user:
+     description: 'Basic auth username to access service'
+ {{ package.name }}.password:
+     description: 'Basic auth password to access service'
+{% elif package.is_broker %}
+  {{ package.name }}.user:
+     description: 'Basic auth username'
+  {{ package.name }}.password:
+     description: 'Basic auth password'
+{% endif %}
+{% if package.is_broker %}
+  {{ package.name }}.enable_global_access_to_plans:
+    description: 'Access to all service plans'
+    default: false
+{% endif %}
+{% if package.is_buildpack  %}
+  {{ package.name }}.buildpack_order:
+    description: 'Order of the Buildpack'
+{% endif %}
+{% endfor %}
+{% endif %}
 {% endif %}
