@@ -5,7 +5,7 @@ import os
 import requests
 
 PATH = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(os.path.join(PATH, '..'), 'lib'))
+sys.path.append(os.path.join(os.path.join(os.path.join(PATH, '..'), '..'), 'lib'))
 import opsmgr
 
 class VerifyApp2(unittest.TestCase):
