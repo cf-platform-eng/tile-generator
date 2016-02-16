@@ -80,43 +80,61 @@ mandatory. The `label` text will appear on the tile under your icon.
 ### Packages
 
 Next you can specify the packages to be included in your tile. The format of
-the package entry depends on the type of package you are adding.
+each package entry depends on the type of package you are adding.
 
-#### Pushed Application
+#### Pushed Applications and Service Brokers
 
-For a standard Cloud Foundry application (that is being 'cf push'ed into the
-Elastic Runtime), use the following format.
+Applications (including service brokers) that are being `cf push`ed into the
+Elastic Runtime use the following format:
 
 <pre>
 - name: my-application
-  type: app                            <i># or app-broker (see below)</i>
-  uri: app.example.com                 <i># optional</i>
-  files:
-  - path: resources/my-application.jar <i># see note below for apps that are not single files</i>
-  start_command: start_here.sh         <i># optional</i>
-  health_monitor: true                 <i># optional</i>
-  create_open_security_group: true     <i># optional</i>
-  org_quota: 2000                      <i># optional</i>
-  memory: 1500                         <i># optional</i>
-  persistence_store: true              <i># optional</i>
-  org: test-org                        <i># optional</i>
-  space: test-space                    <i># optional</i>
-  bind_to_service: mysql-service1,redis-service <i># optional</i>
+  type: app <i>or</i> app-broker
+  manifest:
+    <i>any options that you would normally specify in a cf manifest.yml, including</i>
+    buildpack:
+    command:
+    domain:
+    host:
+    instances:
+    memory:
+    path:
+    env:
+    services:
+  health_check: true                 <i># optional</i>
+  configurable_persistence: true     <i># optional</i>
+  needs_cf_credentials: true         <i># optional</i>
+  auto_services: p-mysql, p-redis    <i># optional</i>
 </pre>
 
-Note: for applications that are normally pushed as multiple files (node.js for example) you should zip up the project files plus all dependencies into a single zip file, then edit tile.yml to point to the zipped file: 
+Note: for applications that are normally pushed as multiple files (node.js for example)
+you should zip up the project files plus all dependencies into a single zip file, then
+edit tile.yml to point to the zipped file: 
+
 ```bash
 cd <your project dir>
 tar -zcvf resources/<your project name>.tgz .
 ```
 
-If your application is also a service broker, use `app-broker` as the type
-instead of just `app`. 
+If your application is a service broker, use `app-broker` as the type
+instead of just `app`. The application will then automatically be registered
+as a broker on install, and deleted on uninstall.
 
-`persistence_store: true` results in the user being
-able to select a backing service for data persistence. Otherwise, if your broker has a service that it binds to via a manifes file, use the bind_to_service
+`health_check` lets you configure the value of the cf cli `--health_check_type`
+option. Expect this option to move into the manifest as soon as CF supports it there.
+Currently, the only valid options are `none` and `port`.
 
-Also, refer to [apps](docs/app.md) for more details.
+`configurable_persistence: true` results in the user being able to select a backing
+service for data persistence. If there is a specific broker you want to use, you can
+use the `auto-services` feature described below. If you want to bind to an already
+existing service instance, use the `services` proeprty of the `manifest` instead.
+
+`needs_cf_credentials` causes the application to receive two additional environment
+variables named `CF_ADMIN_USER` and `CF_ADMIN_PASSWORD` with the admin credentials
+for the Elastic Runtime into which they are being deployed. This allows apps and
+services to interact with the Cloud Controller.
+
+`auto_services` is described in more detail below.
 
 #### Service Brokers
 
@@ -304,6 +322,54 @@ as the property name but in ALL_CAPS). They can also be referenced in other part
 of the configuration file by using `(( .properties.<property-name> ))` instead
 of a hardcoded value.
 
+### Automatic Provisioning of Services
+
+Tile generator automates the provisioning of services. Any application (including
+service brokers and docker-based applications) that are being pushed into the
+Elastic Runtime can automatically bound to services through the `auto_services`
+feature:
+
+<pre>
+- name: app1
+  type: app
+  auto_services: p-mysql p-redis
+</pre>
+
+You can specify any number of service *broker* names separated by spaces
+(not proper yaml yet, sorry!). During deployment, the generated tile will
+create an instance of each service, using the first available plan, if one
+does not already exist, and then bind that instance to your package.
+
+Service instances provisioned this way survive updates, but will be deleted
+when the tile is uninstalled.
+
+`configurable_persistence` is really just a special case of `auto_services`,
+letting the user choose between some standard brokers.
+
+### Orgs and Spaces
+
+By default, the tile generator will create a single new org and space for any
+packages that install into the Elastic Runtime, using the name of the tile and
+appending `-org` and `-space`, respectively. The default memory quota for a
+newly created or will be 1024 (1G). You can change any of these defaults by
+specifying the following properties in `tile.yml`:
+
+<pre>
+org: test-org
+org_quota: 4096
+space: test-space
+</pre>
+
+### Security
+
+If your cf packages need outbound access (including access to other packages
+within the same tile), you will need to apply an appropriate security group.
+The following option will remove all constraints on outbound traffic:
+
+<pre>
+apply_open_security_group: true
+</pre>
+
 ### Stemcells
 
 The tile generator will default to a recent stemcell supported by Ops Manager.
@@ -315,7 +381,7 @@ a `stemcell-criteria` section and replacing the appopriate values:
 <pre>
 stemcell_criteria:
   os: 'ubunty-trusty'
-  version: '3146.5'     <i>NOTE: Your must quote the version to force the type to be string</i>
+  version: '3146.5'     <i>NOTE: You must quote the version to force the type to be string</i>
 </pre>
 
 ## Versioning
