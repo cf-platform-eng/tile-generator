@@ -6,7 +6,9 @@ POOL_DIR="$( cd "$2" && pwd )"
 MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
 REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
-LIB_DIR="$( cd "${REPO_DIR}/ci/lib" && pwd )"
+BIN_DIR="$( cd "${REPO_DIR}/bin" && pwd )"
+
+PCF="${BIN_DIR}/pcf"
 
 TILE_FILE=`cd "${TILE_DIR}"; ls *.pivotal`
 if [ -z "${TILE_FILE}" ]; then
@@ -21,31 +23,31 @@ VERSION=`echo "${TILE_FILE}" | sed "s/.*-//" | sed "s/\.pivotal\$//"`
 cd "${POOL_DIR}"
 
 echo "Available products:"
-python "${LIB_DIR}/pcf" products
+$PCF products
 echo
 
 echo "Uploading ${TILE_FILE}"
-python "${LIB_DIR}/pcf" import "${TILE_DIR}/${TILE_FILE}"
+$PCF import "${TILE_DIR}/${TILE_FILE}"
 echo
 
 echo "Available products:"
-python "${LIB_DIR}/pcf" products
-python "${LIB_DIR}/pcf" is-available "${PRODUCT}" "${VERSION}"
+$PCF products
+$PCF is-available "${PRODUCT}" "${VERSION}"
 echo
 
 echo "Installing product ${PRODUCT} version ${VERSION}"
-python "${LIB_DIR}/pcf" install "${PRODUCT}" "${VERSION}"
+$PCF install "${PRODUCT}" "${VERSION}"
 echo
 
 echo "Available products:"
-python "${LIB_DIR}/pcf" products
-python "${LIB_DIR}/pcf" is-installed "${PRODUCT}" "${VERSION}"
+$PCF products
+$PCF is-installed "${PRODUCT}" "${VERSION}"
 echo
 
 echo "Configuring product ${PRODUCT}"
-python "${LIB_DIR}/pcf" configure "${PRODUCT}" "${REPO_DIR}/sample/missing-properties.yml"
+$PCF configure "${PRODUCT}" "${REPO_DIR}/sample/missing-properties.yml"
 echo
 
 echo "Applying Changes"
-python "${LIB_DIR}/pcf" apply-changes
+$PCF apply-changes
 echo

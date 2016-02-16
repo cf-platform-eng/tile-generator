@@ -6,7 +6,9 @@ BACKUP_DIR="$( cd "$2" && pwd )"
 MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
 REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
-LIB_DIR="$( cd "${REPO_DIR}/ci/lib" && pwd )"
+BIN_DIR="$( cd "${REPO_DIR}/bin" && pwd )"
+
+PCF="${BIN_DIR}/pcf"
 
 PCF_NAME=`cat "${POOL_DIR}/name"`
 if [ -z "${PCF_NAME}" ]; then
@@ -33,5 +35,5 @@ if [ -f "${BACKUP_DIR}/${BACKUP_FILE}" ]; then
 fi
 
 echo "Backing up to ${BACKUP_FILE}"
-python "${LIB_DIR}/pcf" backup "${BACKUP_DIR}/${BACKUP_FILE}"
+$PCF backup "${BACKUP_DIR}/${BACKUP_FILE}"
 echo
