@@ -288,10 +288,13 @@ def download_docker_release():
 
 def download_docker_image(docker_image, target_file):
 	from docker.client import Client
-	from docker.utils import kwargs_from_env
-	kwargs = kwargs_from_env()
-	kwargs['tls'].assert_hostname = False
-	docker_cli = Client(**kwargs)
+	try: # First attempt boot2docker, because it is fail-fast
+		from docker.utils import kwargs_from_env
+		kwargs = kwargs_from_env()
+		kwargs['tls'].assert_hostname = False
+		docker_cli = Client(**kwargs)
+	except KeyError as e: # Assume this means we are not using boot2docker
+		docker_cli = Client(base_url='unix://var/run/docker.sock', tls=False)
 	image = docker_cli.get_image(docker_image)
 	image_tar = open(target_file,'w')
 	image_tar.write(image.data)
