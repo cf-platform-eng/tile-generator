@@ -15,6 +15,7 @@ RUN gem install bosh_cli --no-ri --no-rdoc
 
 RUN apk add --update bash
 
-RUN apt install docker.io -y
+RUN apk add docker
+RUN rc-update add docker boot
 
 RUN rm -rf /var/cache/apk/*
