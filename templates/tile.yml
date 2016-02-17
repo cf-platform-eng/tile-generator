@@ -7,6 +7,13 @@ icon_file: resources/icon.png
 label: Brief Text for the Tile Icon
 description: Longer description of the tile's purpose
 
+# Global defaults (all optional)
+#
+# org: test-org                         # Name of org to create for your apps
+# org_quota: 4096                       # Memory quota for that org in MB
+# space: test-space                     # Name of space to create for your apps
+apply_open_security_group: true         # Apply open security group, default: false
+
 # Specify the packages to be included in your tile.
 # The format of the section to include depends on the type
 # of package you are describing. For fragments of each type
@@ -17,15 +24,10 @@ description: Longer description of the tile's purpose
 packages:
 - name: my-application
   type: app
-  files:
-  - path: resources/my-application-1.0.0.jar
-# uri: app.example.com
-# start_command: start_here.sh
-# health_monitor: true
-# create_open_security_group: true
-# org_quota: 2048
-# memory: 1024
-# persistence_store: true
+  manifest:
+    path: resources/my-application-1.0.0.jar
+#   command: python app.py
+#   memory: 256M
 
 # Include stemcell criteria if you don't want to accept the default.
 # Since this stemcell is only used to run pre and post errands, we
@@ -63,4 +65,3 @@ packages:
 #     default: 0
 #     label: Buildpack rank for this buildpack_rank
 #     description: Ranking of this buildpack relative to others
-

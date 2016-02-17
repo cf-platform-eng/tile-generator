@@ -82,7 +82,7 @@ mandatory. The `label` text will appear on the tile under your icon.
 Next you can specify the packages to be included in your tile. The format of
 each package entry depends on the type of package you are adding.
 
-#### Pushed Applications and Service Brokers
+#### Pushed Applications
 
 Applications (including service brokers) that are being `cf push`ed into the
 Elastic Runtime use the following format:
@@ -101,10 +101,10 @@ Elastic Runtime use the following format:
     path:
     env:
     services:
-  health_check: true                 <i># optional</i>
+  health_check: none                 <i># optional</i>
   configurable_persistence: true     <i># optional</i>
   needs_cf_credentials: true         <i># optional</i>
-  auto_services: p-mysql, p-redis    <i># optional</i>
+  auto_services: p-mysql p-redis     <i># optional</i>
 </pre>
 
 Note: for applications that are normally pushed as multiple files (node.js for example)
@@ -116,9 +116,9 @@ cd <your project dir>
 tar -zcvf resources/<your project name>.tgz .
 ```
 
-If your application is a service broker, use `app-broker` as the type
-instead of just `app`. The application will then automatically be registered
-as a broker on install, and deleted on uninstall.
+If your application is a service broker, use `app-broker` as the type instead of just
+`app`. The application will then automatically be registered as a broker on install,
+and deleted on uninstall.
 
 `health_check` lets you configure the value of the cf cli `--health_check_type`
 option. Expect this option to move into the manifest as soon as CF supports it there.
@@ -140,26 +140,27 @@ services to interact with the Cloud Controller.
 
 Most modern service brokers are pushed into the Elastic Runtime as normal
 CF applications. For these types of brokers, use the Pushed Application format
-specified above, but set the type to `app-broker` instead of just `app`.
+specified above, but set the type to `app-broker` or `docker-app-broker` instead
+of just `app` or `docker-app`.
 
 Some service brokers support operator-defined service plans, for instance when
 the plans reflect customer license keys. To allow operators to add plans from
-the tile configuration, add the following section to the service broker definition:
+the tile configuration, add the following section:
 
 <pre>
-  on_demand_service_plans:
-  - name: description
-    type: string
-    descrp: "Some Description"
-    configurable: true
-  - name: key1
-    type: integer
-    descrp: "Key 1 of type integer"
-    configurable: true
-  - name: key2
-    type: secret
-    descrp: "Key 2 of type Password"
-    configurable: true
+dynamic_service_plans:
+- name: description
+  type: string
+  description: "Some Description"
+  configurable: true
+- name: key1
+  type: integer
+  description: "Key 1 of type integer"
+  configurable: true
+- name: key2
+  type: secret
+  description: "Key 2 of type Password"
+  configurable: true
 </pre>
 
 Name and GUID fields will be supplied by default for each plan, but all other fields
@@ -176,8 +177,6 @@ For an external service broker, use:
   internal_service_names: 'service1,service2'
 </pre>
 
-Also, refer to [brokers](docs/broker.md) for more details.
-
 #### Buildpacks
 
 <pre>
@@ -190,25 +189,26 @@ Also, refer to [brokers](docs/broker.md) for more details.
 #### Docker Images
 
 Applications packages as docker images can be deployed inside or outside the Elastic
-Runtime. To push a docker image as a CF application, use the `docker-app` type:
+Runtime. To push a docker image as a CF application, use the *Pushed Application*
+format specified above, but use the `docker-app` or `docker-app-broker` type instead
+of just `app` or `app-broker`. The docker image to be used is then specified using
+the `image` property:
 
 <pre>
-- name: docker-app
+- name: app1
   type: docker-app
   image: test/dockerimage
-  uri: docker-app1.example.com
-  start_command: start_here.sh
-  health_monitor: true
-  create_open_security_group: true
-  org_quota: 2000
-  memory: 1500
+  manifest:
+    ...
 </pre>
 
 If this app is also a service broker, use `docker-app-broker` instead of just
-`docker-app`. This option is appropriate for docker-wrapper 12-factor apps that
+`docker-app`. This option is appropriate for docker-wrapped 12-factor apps that
 delegate their persistence to bound services.
 
-Docker applications that require persistent storage can not be deployed into the Elastic Runtime. These can be deployed to separate BOSH-managed VMs instead by using the `docker-bosh` type:
+Docker applications that require persistent storage can not be deployed into
+the Elastic Runtime. These can be deployed to separate BOSH-managed VMs instead
+by using the `docker-bosh` type:
 
 <pre>
 - name: docker-bosh1
