@@ -59,6 +59,25 @@ then wrap that release into a Pivotal tile (in the `product` subdirectory).
 If required for the installation, it will automatically pull down the latest
 release version of the Cloud Foundry CLI.
 
+## Building the Sample
+
+The repository includes a sample tile that exercises most of the features of the
+tile generator (it is used by the CI pipeline to verify that things work correctly).
+You can build this sample using the following steps:
+
+```bash
+cd sample
+src/build.sh
+tile build
+```
+
+The sample tile includes a Python application that is re-used in several packages,
+sometimes as an app, sometimes as a service broker. One of the deployments (app3)
+uses the sample application inside a docker image that is currently only modified
+by the CI pipeline. If you modify the sample app, you will have to build your own
+docker image using the provided `Dockerfile` and change the image name in
+`sample/tile.yml` to include the modified code in app3.
+
 ## Defining your Tile
 
 All required configuration for your tile is in the file called `tile.yml`.
