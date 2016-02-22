@@ -30,7 +30,7 @@ property_blueprints:
 - name: org
   type: string
   configurable: true
-  default: {{ org }}
+  default: {{ org or name + '-org' }}
 - name: org_quota
   type: integer
   configurable: true
@@ -41,7 +41,7 @@ property_blueprints:
 - name: space
   type: string
   configurable: true
-  default: {{ space }}
+  default: {{ space or name + '-space' }}
 - name: apply_open_security_group
   type: boolean
   configurable: true
