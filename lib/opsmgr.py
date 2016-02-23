@@ -29,51 +29,68 @@ def get_credentials():
 		sys.exit(1)
 	return creds
 
+class auth(requests.auth.AuthBase):
+
+	def __init__(self, creds):
+		self.creds = creds
+
+	def __call__(self, request):
+		url = self.creds.get('opsmgr').get('url') + '/uaa/oauth/token'
+		username = self.creds.get('opsmgr').get('username')
+		password = self.creds.get('opsmgr').get('password')
+		headers = { 'Accept': 'application/json' }
+		data = {
+			'grant_type': 'password',
+			'client_id': 'opsman',
+			'client_secret': '',
+			'username': username,
+			'password': password,
+			'response_type': 'token',
+		}
+		response = requests.post(url, data=data, verify=False, headers=headers)
+		if response.status_code != requests.codes.ok:
+			return requests.auth.HTTPBasicAuth(username, password)(request)
+		response = response.json()
+		access_token = response.get('access_token')
+		token_type = response.get('token_type')
+		request.headers['Authorization'] = token_type + ' ' + access_token
+		return request
+
 def get(url, stream=False):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	username = creds.get('opsmgr').get('username')
-	password = creds.get('opsmgr').get('password')
 	headers = { 'Accept': 'application/json' }
-	response = requests.get(url, auth=(username, password), verify=False, headers=headers, stream=stream)
+	response = requests.get(url, auth=auth(creds), verify=False, headers=headers, stream=stream)
 	check_response(response)
 	return response
 
 def post(url, payload):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	username = creds.get('opsmgr').get('username')
-	password = creds.get('opsmgr').get('password')
-	response = requests.post(url, auth=(username, password), verify=False, data=payload)
+	response = requests.post(url, auth=auth(creds), verify=False, data=payload)
 	check_response(response)
 	return response
 
 def post_yaml(url, filename, payload):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	username = creds.get('opsmgr').get('username')
-	password = creds.get('opsmgr').get('password')
 	files = { filename: yaml.safe_dump(payload) }
-	response = requests.post(url, auth=(username, password), verify=False, files=files)
+	response = requests.post(url, auth=auth(creds), verify=False, files=files)
 	check_response(response)
 	return response
 
 def upload(url, filename):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	username = creds.get('opsmgr').get('username')
-	password = creds.get('opsmgr').get('password')
 	files = { 'product[file]': open(filename, 'rb') }
-	response = requests.post(url, auth=(username, password), verify=False, files=files)
+	response = requests.post(url, auth=auth(creds), verify=False, files=files)
 	check_response(response)
 	return response
 
 def delete(url, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	username = creds.get('opsmgr').get('username')
-	password = creds.get('opsmgr').get('password')
-	response = requests.delete(url, auth=(username, password), verify=False)
+	response = requests.delete(url, auth=auth(creds), verify=False)
 	check_response(response, check=check)
 	return response
 
