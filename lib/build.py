@@ -10,12 +10,14 @@ import template
 import urllib
 import zipfile
 import yaml
+import re
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
 DOCKER_BOSHRELEASE_VERSION = '23'
 
 def build(config, verbose=False):
+	validate_config(config)
 	context = config.copy()
 	add_defaults(context)
 	context['verbose'] = verbose
@@ -23,6 +25,25 @@ def build(config, verbose=False):
 		create_bosh_release(context)
 	with cd('product', clobber=True):
 		create_tile(context)
+
+def validate_config(config):
+	try:
+		validname = re.compile('[a-z][a-z0-9]+(-[a-z0-9]+)*$')
+		if validname.match(config['name']) is None:
+			print >> sys.stderr, 'product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens'
+			sys.exit(1)
+	except KeyError as e:
+		print >> sys.stderr, 'tile.yml is missing mandatory property', e
+		sys.exit(1)
+	for package in config.get('packages', []):
+		try:
+			if validname.match(package['name']) is None:
+				print >> sys.stderr, 'package name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens'
+				sys.exit(1)
+		except KeyError as e:
+			print >> sys.stderr, 'package is missing mandatory property', e
+			sys.exit(1)
+	return config
 
 def add_defaults(context):
 	context['stemcell_criteria'] = context.get('stemcell_criteria', {})
