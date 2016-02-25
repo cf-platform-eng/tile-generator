@@ -74,7 +74,7 @@ properties:
     description: 'URL to access service'
   {{ package.name }}.user:
      description: 'Basic auth username to access service'
- {{ package.name }}.password:
+  {{ package.name }}.password:
      description: 'Basic auth password to access service'
 {% elif package.is_broker %}
   {{ package.name }}.user:
