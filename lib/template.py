@@ -14,9 +14,13 @@ def render_base64(file):
 	with open(os.path.realpath(os.path.join('..', file)), 'rb') as f:
 		return base64.b64encode(f.read())
 
+def render_hyphens(input):
+	return input.replace('_','-')
+
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
+TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 
 def render(target_path, template_file, config):
 	target_dir = os.path.dirname(target_path)

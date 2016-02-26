@@ -14,6 +14,72 @@ def capture_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
+class TestConfigValidation(unittest.TestCase):
+
+	def test_requires_product_name(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({})
+
+	def test_accepts_valid_product_name(self):
+		build.validate_config({'name': 'validname'})
+
+	def test_accepts_valid_product_name_with_hyphen(self):
+		build.validate_config({'name': 'valid-name'})
+
+	def test_accepts_valid_product_name_with_hyphens(self):
+		build.validate_config({'name': 'valid-name-too'})
+
+	def test_accepts_valid_product_name_with_number(self):
+		build.validate_config({'name': 'valid-name-2'})
+
+	def test_refuses_spaces_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'an invalid name'})
+
+	def test_refuses_capital_letters_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'Invalid'})
+
+	def test_refuses_underscores_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'invalid_name'})
+
+	def test_refuses_product_name_starting_with_number(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': '1-invalid-name'})
+
+	def test_requires_package_names(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'validname', 'packages': [{'name': 'validname'}, {}]})
+
+	def test_accepts_valid_package_name(self):
+		build.validate_config({'name': 'validname', 'packages': [{'name': 'validname'}]})
+
+	def test_accepts_valid_package_name_with_hyphen(self):
+		build.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name'}]})
+
+	def test_accepts_valid_package_name_with_hyphens(self):
+		build.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name-too'}]})
+
+	def test_accepts_valid_package_name_with_number(self):
+		build.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name-2'}]})
+
+	def test_refuses_spaces_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'validname', 'packages': [{'name': 'invalid name'}]})
+
+	def test_refuses_capital_letters_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'validname', 'packages': [{'name': 'Invalid'}]})
+
+	def test_refuses_underscores_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'validname', 'packages': [{'name': 'invalid_name'}]})
+
+	def test_refuses_package_name_starting_with_number(self):
+		with self.assertRaises(SystemExit):
+			build.validate_config({'name': 'validname', 'packages': [{'name': '1-invalid-name'}]})
+
 class TestVersionMethods(unittest.TestCase):
 
 	def test_accepts_valid_semver(self):

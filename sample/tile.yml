@@ -68,7 +68,7 @@ packages:
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
 
-- name: broker1                       # Broker with minimal configuration, i.e. all default values
+- name: service-broker1               # Broker with minimal configuration, i.e. all default values
   type: app-broker
   enable_global_access_to_plans: true
   manifest:
@@ -84,11 +84,11 @@ packages:
     host: app2-hostname               # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
   health_check: none                  # Turn off health monitoring, default: true
-  auto_services: broker1-service      # Auto-provision and bind a service (broker must preceed the app in this file)
+  auto_services: service-broker1-service    # Auto-provision and bind a service (broker must preceed the app in this file)
   needs_cf_credentials: true          # Pass CF creds to the app, default: false
   configurable_persistence: true      # Users will be allowed to select between MySQL, Mongo or none, default: false
 
-- name: broker2                       # Broker showing additional configurable values
+- name: service-broker2               # Broker showing additional configurable values
   type: app-broker
   manifest:
     path: resources/app.zip
@@ -98,7 +98,7 @@ packages:
   - service1
   - service2
 
-- name: noop_buildpack                # A buildpack
+- name: noop-buildpack                # A buildpack
   type: buildpack
   buildpack_order: 99                 # 99 (or higher) means go to the end of the list
   path: resources/buildpack.zip
