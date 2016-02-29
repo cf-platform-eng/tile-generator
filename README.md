@@ -40,16 +40,18 @@ For a 7-minute introduction into what it is and does, see [this screencast]
 
 *If you expect to frequently use the tile generator, you may want to add this to your shell's startup script, i.e. `.profile`*
 
-4. Then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
+4. Install the [BOSH CLI](https://bosh.io/docs/bosh-cli.html)
+
+5. Then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
 
    ```bash
    cd <your project dir>
    tile init
    ```
    
-5. Edit the generated `tile.yml` file to define your tile (more details below)
+6. Edit the generated `tile.yml` file to define your tile (more details below)
 
-6. Build your tile
+7. Build your tile
    ```bash
    tile build
    ```
