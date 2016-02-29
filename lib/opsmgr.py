@@ -64,6 +64,13 @@ def get(url, stream=False):
 	check_response(response)
 	return response
 
+def put(url, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	response = requests.put(url, auth=auth(creds), verify=False, data=payload)
+	check_response(response)
+	return response
+
 def post(url, payload):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
@@ -110,6 +117,8 @@ def get_products():
 	for product in available_products:
 		installed = [ p for p in installed_products if p['identifier'] == product['name'] and p['product_version'] == product['product_version'] ]
 		product['installed'] = len(installed) > 0
+		if product['installed']:
+			product['guid'] = installed[0]['guid']
 	return available_products
 
 def flatten(properties):
