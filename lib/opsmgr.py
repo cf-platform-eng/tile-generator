@@ -130,11 +130,16 @@ def flatten(properties):
 	properties.update(additions)
 
 def configure(settings, product, properties):
+	properties = properties if properties is not None else {}
 	#
 	# Use the first availability zone
 	#
 	infrastructure = settings['infrastructure']
-	product_settings = [ p for p in settings['products'] if p['identifier'] == product ][0]
+	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
+	if len(product_settings) < 1:
+		print >> sys.stderr, 'Product', product, 'does not appear to be installed'
+		sys.exit(1)
+	product_settings = product_settings[0]
 	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
 	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
 	#

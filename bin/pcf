@@ -173,16 +173,17 @@ def cleanup_cmd(product):
 def apply_changes_cmd():
 	install = opsmgr.post('/api/installation', { 'ignore_warnings': 'true' }).json()['install']
 	lines_shown = 0
-	while True:
+	running = True
+	while running:
+		install_status = opsmgr.get('/api/installation/' + str(install['id'])).json()['status']
+		running = install_status == 'running'
 		log_lines = opsmgr.get('/api/installation/' + str(install['id']) + '/logs').json()['logs'].splitlines()
 		for line in log_lines[lines_shown:]:
 			if not line.startswith('{'):
 				print ' ', line
 		lines_shown = len(log_lines)
-		install_status = opsmgr.get('/api/installation/' + str(install['id'])).json()['status']
-		if not install_status == 'running':
-			break
-		time.sleep(1)
+		if running:
+			time.sleep(1)
 	if not install_status == 'success':
 		print >> sys.stderr, '- install finished with status:', install_status
 		sys.exit(1)

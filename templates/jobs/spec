@@ -50,6 +50,9 @@ properties:
   apply_open_security_group:
     description: 'Open security group for the app to access outside'
     default: false
+  allow_paid_service_plans:
+    description: 'Allow use of paid service plans'
+    default: false
   security.user:
     description: 'Basic auth user'
   security.password:
