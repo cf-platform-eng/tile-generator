@@ -80,11 +80,19 @@ def import_cmd(zipfile):
 @click.argument('product')
 @click.argument('version')
 def install_cmd(product, version):
-	payload = {
-		'name': product,
-		'product_version': version,
-	}
-	opsmgr.post('/api/installation_settings/products', payload)
+	products = opsmgr.get_products()
+	matches = [ p for p in products if p['name'] == product and p['installed'] ]
+	if len(matches) < 1:
+		payload = {
+			'name': product,
+			'product_version': version,
+		}
+		opsmgr.post('/api/installation_settings/products', payload)
+	else:
+		payload = {
+			'to_version': version
+		}
+		opsmgr.put('/api/installation_settings/products/' + matches[0]['guid'], payload)
 
 @cli.command('uninstall')
 @click.argument('product')

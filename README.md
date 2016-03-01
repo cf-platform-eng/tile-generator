@@ -40,16 +40,18 @@ For a 7-minute introduction into what it is and does, see [this screencast]
 
 *If you expect to frequently use the tile generator, you may want to add this to your shell's startup script, i.e. `.profile`*
 
-4. Then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
+4. Install the [BOSH CLI](https://bosh.io/docs/bosh-cli.html)
+
+5. Then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
 
    ```bash
    cd <your project dir>
    tile init
    ```
    
-5. Edit the generated `tile.yml` file to define your tile (more details below)
+6. Edit the generated `tile.yml` file to define your tile (more details below)
 
-6. Build your tile
+7. Build your tile
    ```bash
    tile build
    ```
@@ -345,25 +347,61 @@ of a hardcoded value.
 
 Tile generator automates the provisioning of services. Any application (including
 service brokers and docker-based applications) that are being pushed into the
-Elastic Runtime can automatically bound to services through the `auto_services`
+Elastic Runtime can automatically be bound to services through the `auto_services`
 feature:
 
 <pre>
 - name: app1
   type: app
-  auto_services: p-mysql p-redis
+  auto_services:
+  - name: p-mysql
+    plan: 100mb-dev
+  - name: p-redis
 </pre>
 
-You can specify any number of service *broker* names separated by spaces
-(not proper yaml yet, sorry!). During deployment, the generated tile will
-create an instance of each service, using the first available plan, if one
-does not already exist, and then bind that instance to your package.
+You can specify any number of service names, optionally specifying a specific
+plan. During deployment, the generated tile will create an instance of each
+service if one does not already exist, and then bind that instance to your
+package.
 
 Service instances provisioned this way survive updates, but will be deleted
 when the tile is uninstalled.
 
+*NOTE* that the name is the name of the provided *service*, *not* the *broker*.
+In many cases these are not the same, and a single broker may even offer
+multiple services. Use `cf marketplace` to see the services and plans
+available from installed brokers.
+
+If you do not specify a plan, the tile generator will use the first plan
+listed for the service in the broker catalog. It is a good idea to always
+specify a service plan. If you *change* the plan between versions of your
+tile, the tile generator will attempt to update the plan while preserving
+the service (thus not causing data loss during upgrade). If the service
+does not support plan changes, this will cause the upgrade to fail.
+
 `configurable_persistence` is really just a special case of `auto_services`,
 letting the user choose between some standard brokers.
+
+### Declaring Product Dependencies
+
+When your product has dependencies on others, you can have Ops Manager
+enforce that dependency by declaring it in your `tile.yml` file as follows:
+
+```
+requires_product_versions:
+- name: p-mysql
+  version '~> 1.7'
+```
+
+If the required product is not present in the PCF installation, Ops Manager
+will display a message saying
+`<your-tile> requires 'p-mysql' version '~> 1.7' as a dependency`, and will
+refuse to install your tile until that dependency is satisfied.
+
+When using automatic provisioning of services as described above, it is
+often appropriate to add those products as a dependency. Tile generator can
+not do this automatically as it can't always determine which product provides
+the requested service.
 
 ### Orgs and Spaces
 
