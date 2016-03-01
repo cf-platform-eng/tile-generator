@@ -420,11 +420,14 @@ update:
   max_in_flight: 1
   update_watch_time: 10000-100000
 
-{% if requires_cf_cli %}
+{% for product in requires_product_versions %}
+{% if loop.first %}
 requires_product_versions:
-- name: cf
-  version: "~> 1.5"
 {% endif %}
+- name: {{ product.name }}
+  version: '{{product.version }}'
+{% endfor %}
+
 provides_product_versions:
 - name: {{ name }}
   version: '{{ version }}'

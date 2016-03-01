@@ -65,3 +65,12 @@ packages:
 #     default: 0
 #     label: Buildpack rank for this buildpack_rank
 #     description: Ranking of this buildpack relative to others
+
+# Add any dependencies your tile has on other installed products.
+# This is often appropriate when using automatic service provisioning
+# for any of your packages above, with services provided by other
+# products.
+#
+# requires_product_versions:
+# - name: p-mysql
+#   version: '~> 1.7'

@@ -256,6 +256,12 @@ def add_cf_cli(context):
 		},
 		alternate_template='cf_cli'
 	)
+	context['requires_product_versions'] = context.get('requires_product_versions', []) + [
+		{
+			'name': 'cf',
+			'version': '~> 1.5'
+		}
+	]
 
 def add_common_utils(context):
 	add_src_package(context,

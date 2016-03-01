@@ -367,6 +367,27 @@ when the tile is uninstalled.
 `configurable_persistence` is really just a special case of `auto_services`,
 letting the user choose between some standard brokers.
 
+### Declaring Product Dependencies
+
+When your product has dependencies on others, you can have Ops Manager
+enforce that dependency by declaring it in your `tile.yml` file as follows:
+
+```
+requires_product_versions:
+- name: p-mysql
+  version '~> 1.7'
+```
+
+If the required product is not present in the PCF installation, Ops Manager
+will display a message saying
+`<your-tile> requires 'p-mysql' version '~> 1.7' as a dependency`, and will
+refuse to install your tile until that dependency is satisfied.
+
+When using automatic provisioning of services as described above, it is
+often appropriate to add those products as a dependency. Tile generator can
+not do this automatically as it can't always determine which product provides
+the requested service.
+
 ### Orgs and Spaces
 
 By default, the tile generator will create a single new org and space for any
