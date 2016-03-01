@@ -130,6 +130,7 @@ def flatten(properties):
 	properties.update(additions)
 
 def configure(settings, product, properties):
+	properties = properties if properties is not None else {}
 	#
 	# Use the first availability zone
 	#
