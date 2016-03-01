@@ -84,7 +84,9 @@ packages:
     host: app2-hostname               # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
   health_check: none                  # Turn off health monitoring, default: true
-  auto_services: service-broker1-service    # Auto-provision and bind a service (broker must preceed the app in this file)
+  auto_services:                      # Auto-provision and bind services
+  - name: service-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
+    plan: first-plan                  # Optionally specify a plan (default is the first plan offered by the service)
   needs_cf_credentials: true          # Pass CF creds to the app, default: false
   configurable_persistence: true      # Users will be allowed to select between MySQL, Mongo or none, default: false
 

@@ -186,7 +186,6 @@ function deploy_app() {
 	DOCKER_IMAGE="$4"
 	NEEDS_CF_CREDS="$5"
 	HEALTH_CHECK="$6"
-	AUTO_SERVICES="$7"
 	cf push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} \
 		${DOCKER_IMAGE} -f $PACKAGE_PATH/${PKG_NAME}/manifest.yml \
 		--no-start
@@ -197,32 +196,43 @@ function deploy_app() {
 	if [ -n "$HEALTH_CHECK" ]; then
 		cf set-health-check ${APP_NAME} "$HEALTH_CHECK"
 	fi
-	provision_auto_services ${PKG_NAME} ${APP_NAME} ${AUTO_SERVICES}
+}
+
+function start_app() {
+	PKG_NAME="$1"
+	APP_NAME="$2"
 	cf start ${APP_NAME}
 	wait_till_running ${APP_NAME}
 	delete_older_versions ${PKG_NAME} ${APP_NAME}
 }
 
-function provision_auto_services() {
+function provision_auto_service() {
 	PKG_NAME="$1"
 	APP_NAME="$2"
-	shift; shift
-	for service in $*; do
-		if equals_ignore_case "$service" "none"; then
-			continue
-		fi
-		$CF services | grep ${PKG_NAME}-$service >/dev/null
-		if [ "$?" -ne "0" ]; then
-			plan=`$CF marketplace | grep $service | awk '{ print $2 }' | sed 's/,//g'`
-			if [ -n "$plan" ]; then
-				cf create-service $service $plan ${PKG_NAME}-$service
-			else
-				echo "no service matching" $service "in marketplace"
-				exit 1
+	SVC_NAME="$3"
+	SVC_PLAN="$4"
+	if [ -z "${SVC_NAME}" ]; then
+		return
+	fi
+	if equals_ignore_case "$SVC_NAME" "none"; then
+		return
+	fi
+	$CF services | grep ${PKG_NAME}-${SVC_NAME} >/dev/null
+	if [ "$?" -ne "0" ]; then
+		DEFAULT_PLAN=`$CF marketplace | grep "${SVC_NAME}" | awk '{ print $2 }' | sed 's/,//g'`
+		if [ -n "$DEFAULT_PLAN" ]; then
+			if [ -z "$SVC_PLAN" ]; then
+				SVC_PLAN="${DEFAULT_PLAN}"
 			fi
+			cf create-service ${SVC_NAME} ${SVC_PLAN} ${PKG_NAME}-${SVC_NAME}
+		else
+			echo "no service matching" ${SVC_NAME} "in marketplace"
+			exit 1
 		fi
-		cf bind-service ${APP_NAME} ${PKG_NAME}-$service
-	done
+	elif [ -n "$SVC_PLAN" ]; then
+		cf update-service ${PKG_NAME}-${SVC_NAME} -p ${SVC_PLAN}
+	fi
+	cf bind-service ${APP_NAME} ${PKG_NAME}-${SVC_NAME}
 }
 
 function register_broker() {
@@ -299,9 +309,16 @@ export APP_HOST={{ (package.manifest and package.manifest.host) or package.name 
 export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
 export NEEDS_CF_CREDS="{{ package.needs_cf_credentials }}"
 export HEALTH_CHECK="{{ package.health_check }}"
-export AUTO_SERVICES="{{ package.auto_services }}"
-export AUTO_SERVICES="${AUTO_SERVICES} <%= properties.{{ package.name }}.persistence_store_type %>"
-deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$HEALTH_CHECK" "$AUTO_SERVICES"
+deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$HEALTH_CHECK"
+{% for service in package.auto_services %}
+export SVC_NAME="{{ service.name }}"
+export SVC_PLAN="{{ service.plan or '' }}"
+provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
+{% endfor %}
+export SVC_NAME="<%= properties.{{ package.name }}.persistence_store_type %>"
+export SVC_PLAN=""
+provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
+start_app "$PKG_NAME" "$APP_NAME"
 {% endif %}
 
 {% if package.is_broker %}

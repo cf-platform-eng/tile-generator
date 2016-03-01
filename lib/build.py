@@ -20,6 +20,7 @@ def build(config, verbose=False):
 	validate_config(config)
 	context = config.copy()
 	add_defaults(context)
+	upgrade_config(context)
 	context['verbose'] = verbose
 	with cd('release', clobber=True):
 		create_bosh_release(context)
@@ -44,6 +45,14 @@ def validate_config(config):
 			print >> sys.stderr, 'package is missing mandatory property', e
 			sys.exit(1)
 	return config
+
+def upgrade_config(config):
+	# v0.9 specified auto_services as a space-separated string of service names
+	for package in config.get('packages', []):
+		auto_services = package.get('auto_services', None)
+		if auto_services is not None:
+			if isinstance(auto_services, basestring):
+				package['auto_services'] = [ { 'name': s } for s in auto_services.split()]
 
 def add_defaults(context):
 	context['stemcell_criteria'] = context.get('stemcell_criteria', {})

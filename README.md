@@ -347,22 +347,37 @@ of a hardcoded value.
 
 Tile generator automates the provisioning of services. Any application (including
 service brokers and docker-based applications) that are being pushed into the
-Elastic Runtime can automatically bound to services through the `auto_services`
+Elastic Runtime can automatically be bound to services through the `auto_services`
 feature:
 
 <pre>
 - name: app1
   type: app
-  auto_services: p-mysql p-redis
+  auto_services:
+  - name: p-mysql
+    plan: 100mb-dev
+  - name: p-redis
 </pre>
 
-You can specify any number of service *broker* names separated by spaces
-(not proper yaml yet, sorry!). During deployment, the generated tile will
-create an instance of each service, using the first available plan, if one
-does not already exist, and then bind that instance to your package.
+You can specify any number of service names, optionally specifying a specific
+plan. During deployment, the generated tile will create an instance of each
+service if one does not already exist, and then bind that instance to your
+package.
 
 Service instances provisioned this way survive updates, but will be deleted
 when the tile is uninstalled.
+
+*NOTE* that the name is the name of the provided *service*, *not* the *broker*.
+In many cases these are not the same, and a single broker may even offer
+multiple services. Use `cf marketplace` to see the services and plans
+available from installed brokers.
+
+If you do not specify a plan, the tile generator will use the first plan
+listed for the service in the broker catalog. It is a good idea to always
+specify a service plan. If you *change* the plan between versions of your
+tile, the tile generator will attempt to update the plan while preserving
+the service (thus not causing data loss during upgrade). If the service
+does not support plan changes, this will cause the upgrade to fail.
 
 `configurable_persistence` is really just a special case of `auto_services`,
 letting the user choose between some standard brokers.
