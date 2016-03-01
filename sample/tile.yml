@@ -9,6 +9,7 @@ icon_file: resources/icon.png
 # space: test-space                   # Optional
 org_quota: 4096                       # Optional
 apply_open_security_group: true       # Apply open security group, default: false
+allow_paid_service_plans: true        # Allow paid service plans, default: false
 
 properties:
 - name: author

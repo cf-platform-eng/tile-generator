@@ -46,6 +46,10 @@ property_blueprints:
   type: boolean
   configurable: true
   default: {{ apply_open_security_group or false }}
+- name: allow_paid_service_plans
+  type: boolean
+  configurable: true
+  default: {{ allow_paid_service_plans or false }}
 {% if dynamic_service_plans %}
 #
 # Properties for on-demand service plans
@@ -371,6 +375,7 @@ job_types:
 {% if job.type == "deploy-all" %}
     org_quota: (( .properties.org_quota.value ))
     apply_open_security_group: (( .properties.apply_open_security_group.value ))
+    allow_paid_service_plans: (( .properties.allow_paid_service_plans.value ))
     security:
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
