@@ -111,6 +111,9 @@ packages:
   image: guidowb/sample-cf-app        # Start command must be specified in the Dockerfile (CMD)
   manifest:
     memory: 256M                      # Override memory, default: 1G
+  auto_services:                      # Auto-provision and bind services
+  - name: service-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
+    plan: second-plan                 # Optionally specify a plan (default is the first plan offered by the service)
 
 # - name: app4
 #   type: docker-bosh
