@@ -56,12 +56,12 @@ class auth(requests.auth.AuthBase):
 		request.headers['Authorization'] = token_type + ' ' + access_token
 		return request
 
-def get(url, stream=False):
+def get(url, stream=False, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	headers = { 'Accept': 'application/json' }
 	response = requests.get(url, auth=auth(creds), verify=False, headers=headers, stream=stream)
-	check_response(response)
+	check_response(response, check=check)
 	return response
 
 def put(url, payload):
@@ -186,9 +186,49 @@ def get_cfinfo():
 	apps_domain = [ p for p in cc_properties if p['identifier'] == 'apps_domain' ][0]['value']
 	uaa_properties = [ j for j in jobs if j['identifier'] == 'uaa' ][0]['properties']
 	admin_credentials = [ c for c in uaa_properties if c['identifier'] == 'admin_credentials' ][0]['value']
+	system_services_credentials = [ c for c in uaa_properties if c['identifier'] == 'system_services_credentials' ][0]['value']
 	return {
 		'system_domain': system_domain,
 		'apps_domain': apps_domain,
 		'admin_username': admin_credentials['identity'],
 		'admin_password': admin_credentials['password'],
+		'system_services_username': system_services_credentials['identity'],
+		'system_services_password': system_services_credentials['password'],
 	}
+
+def logs(install_id):
+	if install_id is None:
+		install_id = last_install()
+		if install_id == 0:
+			print >> sys.stderr, 'No installation has ever been performed'
+			sys.exit(1)
+	lines_shown = 0
+	running = True
+	while running:
+		install_status = get('/api/installation/' + str(install_id)).json()['status']
+		running = install_status == 'running'
+		log_lines = get('/api/installation/' + str(install_id) + '/logs').json()['logs'].splitlines()
+		for line in log_lines[lines_shown:]:
+			if not line.startswith('{'):
+				print ' ', line
+		lines_shown = len(log_lines)
+		if running:
+			time.sleep(1)
+	if not install_status == 'success':
+		print >> sys.stderr, '- install finished with status:', install_status
+		sys.exit(1)
+
+def install_exists(id):
+	response = get('/api/installation/' + str(id), check=False)
+	return response.status_code == requests.codes.ok
+
+def last_install(lower=0, upper=1, check=install_exists):
+	if lower == upper:
+		return lower
+	if check(upper):
+		return last_install(upper, upper * 2, check=check)
+	middle = (lower + upper + 1) / 2
+	if check(middle):
+		return last_install(middle, upper, check=check)
+	else:
+		return last_install(lower, middle - 1, check=check)

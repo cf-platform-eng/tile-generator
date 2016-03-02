@@ -68,8 +68,8 @@ def settings_cmd(product):
 @cli.command('cf-info')
 def cf_info_cmd():
 	cfinfo = opsmgr.get_cfinfo()
-	for key, value in cfinfo.items():
-		print '-', key + ':', value
+	for key in sorted(cfinfo):
+		print '-', key + ':', cfinfo[key]
 
 @cli.command('import')
 @click.argument('zipfile')
@@ -172,21 +172,12 @@ def cleanup_cmd(product):
 @cli.command('apply-changes')
 def apply_changes_cmd():
 	install = opsmgr.post('/api/installation', { 'ignore_warnings': 'true' }).json()['install']
-	lines_shown = 0
-	running = True
-	while running:
-		install_status = opsmgr.get('/api/installation/' + str(install['id'])).json()['status']
-		running = install_status == 'running'
-		log_lines = opsmgr.get('/api/installation/' + str(install['id']) + '/logs').json()['logs'].splitlines()
-		for line in log_lines[lines_shown:]:
-			if not line.startswith('{'):
-				print ' ', line
-		lines_shown = len(log_lines)
-		if running:
-			time.sleep(1)
-	if not install_status == 'success':
-		print >> sys.stderr, '- install finished with status:', install_status
-		sys.exit(1)
+	opsmgr.logs(install['id'])
+
+@cli.command('logs')
+@click.argument('install_id', None, required=False)
+def logs_cmd(install_id=None):
+	opsmgr.logs(install_id)
 
 @cli.command('test-errand')
 @click.argument('tile_repo')

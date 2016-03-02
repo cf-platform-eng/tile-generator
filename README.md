@@ -38,23 +38,24 @@ For a 7-minute introduction into what it is and does, see [this screencast]
   export PATH=`pwd`/bin:$PATH
   ```
 
-*If you expect to frequently use the tile generator, you may want to add this to your shell's startup script, i.e. `.profile`*
+  *If you expect to frequently use the tile generator, you may want to add this to your shell's startup script, i.e. `.profile`*
 
 4. Install the [BOSH CLI](https://bosh.io/docs/bosh-cli.html)
 
 5. Then, from within the root directory of the project for which you wish to create a tile, initialize it as a tile repo (we recommend that this be a git repo, but this is not required):
 
-   ```bash
-   cd <your project dir>
-   tile init
-   ```
+  ```bash
+  cd <your project dir>
+  tile init
+  ```
    
 6. Edit the generated `tile.yml` file to define your tile (more details below)
 
 7. Build your tile
-   ```bash
-   tile build
-   ```
+
+  ```bash
+  tile build
+  ```
 
 The generator will first create a BOSH release (in the `release` subdirectory),
 then wrap that release into a Pivotal tile (in the `product` subdirectory).
