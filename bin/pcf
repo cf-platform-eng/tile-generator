@@ -68,8 +68,8 @@ def settings_cmd(product):
 @cli.command('cf-info')
 def cf_info_cmd():
 	cfinfo = opsmgr.get_cfinfo()
-	for key, value in cfinfo.items():
-		print '-', key + ':', value
+	for key in sorted(cfinfo):
+		print '-', key + ':', cfinfo[key]
 
 @cli.command('import')
 @click.argument('zipfile')

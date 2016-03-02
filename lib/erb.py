@@ -47,8 +47,8 @@ def get_cf_properties():
 	cf = opsmgr.get_cfinfo()
 	properties = {}
 	properties['cf'] = {
-		'admin_user': cf['admin_username'],
-		'admin_password': cf['admin_password'],
+		'admin_user': cf['system_services_username'],
+		'admin_password': cf['system_services_password'],
 	}
 	properties['domain'] = cf['system_domain']
 	properties['app_domains'] = [ cf['apps_domain'] ]

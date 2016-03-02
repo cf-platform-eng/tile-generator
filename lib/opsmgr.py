@@ -186,9 +186,12 @@ def get_cfinfo():
 	apps_domain = [ p for p in cc_properties if p['identifier'] == 'apps_domain' ][0]['value']
 	uaa_properties = [ j for j in jobs if j['identifier'] == 'uaa' ][0]['properties']
 	admin_credentials = [ c for c in uaa_properties if c['identifier'] == 'admin_credentials' ][0]['value']
+	system_services_credentials = [ c for c in uaa_properties if c['identifier'] == 'system_services_credentials' ][0]['value']
 	return {
 		'system_domain': system_domain,
 		'apps_domain': apps_domain,
 		'admin_username': admin_credentials['identity'],
 		'admin_password': admin_credentials['password'],
+		'system_services_username': system_services_credentials['identity'],
+		'system_services_password': system_services_credentials['password'],
 	}
