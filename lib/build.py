@@ -24,6 +24,7 @@ def build(config, verbose=False):
 	context['verbose'] = verbose
 	with cd('release', clobber=True):
 		create_bosh_release(context)
+	validate_memory_quota(context)
 	with cd('product', clobber=True):
 		create_tile(context)
 
@@ -57,6 +58,8 @@ def upgrade_config(config):
 def add_defaults(context):
 	context['stemcell_criteria'] = context.get('stemcell_criteria', {})
 	context['all_properties'] = context.get('properties', [])
+	context['total_memory'] = 0
+	context['max_memory'] = 0
 	for form in context.get('forms', []):
 		properties = form.get('properties', [])
 		for property in properties:
@@ -64,6 +67,33 @@ def add_defaults(context):
 		context['all_properties'] += properties
 	for property in context['all_properties']:
 		property['name'] = property['name'].lower().replace('-','_')
+
+def update_memory(context, manifest):
+	memory = manifest.get('memory', '1G')
+	unit = memory.lstrip('0123456789').lstrip(' ').lower()
+	if unit not in [ 'g', 'gb', 'm', 'mb' ]:
+		print >> sys.stderr, 'invalid memory size unit', unit, 'in', memory
+		sys.exit(1)
+	memory = int(memory[:-len(unit)])
+	if unit in [ 'g', 'gb' ]:
+		memory *= 1024
+	context['total_memory'] += memory
+	if memory > context['max_memory']:
+		context['max_memory'] = memory
+
+def validate_memory_quota(context):
+	required = context['total_memory'] + context['max_memory']
+	specified = context.get('org_quota', None)
+	if specified is None:
+		# We default to twice the total size
+		# For most cases this is generous, but there's no harm in it
+		context['org_quota'] = context['total_memory'] * 2
+	elif specified < required:
+		print >> sys.stderr, 'Specified org quota of', specified, 'MB is insufficient'
+		print >> sys.stderr, 'Required quota is at least the total package size of', context['total_memory'], 'MB'
+		print >> sys.stderr, 'Plus enough room for blue/green deployment of the largest app:', context['max_memory'], 'MB'
+		print >> sys.stderr, 'For a total of:', required, 'MB'
+		sys.exit(1)
 
 package_types = [
 	# A + at the start of the job type indicates it is a post-deploy errand
@@ -238,11 +268,13 @@ def add_package(dir, context, package, alternate_template=None):
 			download_docker_image(docker_image, os.path.join(target_dir, filename))
 			package_context['files'] += [ filename ]
 	if package.get('is_app', False):
-		manifest = os.path.join(target_dir, 'manifest.yml')
-		with open(manifest, 'wb') as f:
+		manifest = package.get('manifest', { 'name': name })
+		manifest_file = os.path.join(target_dir, 'manifest.yml')
+		with open(manifest_file, 'wb') as f:
 			f.write('---\n')
-			f.write(yaml.safe_dump(package.get('manifest', { 'name': name }), default_flow_style=False))
+			f.write(yaml.safe_dump(manifest, default_flow_style=False))
 		package_context['files'] += [ 'manifest.yml' ]
+		update_memory(context, manifest)
 	template.render(
 		os.path.join(package_dir, 'spec'),
 		os.path.join(template_dir, 'spec'),
