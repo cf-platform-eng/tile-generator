@@ -269,6 +269,9 @@ def add_package(dir, context, package, alternate_template=None):
 			package_context['files'] += [ filename ]
 	if package.get('is_app', False):
 		manifest = package.get('manifest', { 'name': name })
+		if manifest.get('random-route', False):
+			print >> sys.stderr, 'Illegal manifest option in package', name + ': random-route is not supported'
+			sys.exit(1)
 		manifest_file = os.path.join(target_dir, 'manifest.yml')
 		with open(manifest_file, 'wb') as f:
 			f.write('---\n')
