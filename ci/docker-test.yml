@@ -80,18 +80,20 @@ jobs:
       run:
         path: sample-tile-repo/sample/src/build.sh
         args: [ "sample-tile-build" ]
-# - put: app-docker-image
-#   params:
-#     build: sample-tile-build/src
-  - task: download-app-image
+  - put: app-docker-image
+    params:
+      build: sample-tile-build/src
+  - task: import-app-image
     config:
       platform: linux
       image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: app-docker-image
       outputs:
       - name: app-image
       run:
         path: sh
-        args: [ "-c", 'ls -l /var/run/*; DOCKER_HOST="unix:///var/run/docker.sock" docker info']
+        args: [ "-c", 'ls -l app-docker-image; tar tvf app-docker-image/image']
   # - task: build-sample-tile
   #   config:
   #     platform: linux

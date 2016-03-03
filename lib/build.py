@@ -358,20 +358,23 @@ def download_docker_release():
 	}
 
 def download_docker_image(docker_image, target_file):
-	from docker.client import Client
-	try: # First attempt boot2docker, because it is fail-fast
+	try:
+		from docker.client import Client
 		from docker.utils import kwargs_from_env
 		kwargs = kwargs_from_env()
 		kwargs['tls'].assert_hostname = False
 		docker_cli = Client(**kwargs)
-		print 'using boot2docker for docker image download'
-	except KeyError as e: # Assume this means we are not using boot2docker
-		print 'using local docker daemon for docker image download'
-		docker_cli = Client(base_url='unix://var/run/docker.sock', tls=False)
-	image = docker_cli.get_image(docker_image)
-	image_tar = open(target_file,'w')
-	image_tar.write(image.data)
-	image_tar.close()
+		image = docker_cli.get_image(docker_image)
+		image_tar = open(target_file,'w')
+		image_tar.write(image.data)
+		image_tar.close()
+	except Error as e:
+		cached_file = os.path.join('resources', docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
+		if os.exists(cached_file):
+			print 'using cached version of', docker_image
+			urllib.urlretrieve(cached_file, target_file)
+			return
+		print 'failed to download docker image', docker_image + ':', e
 
 def bosh_extract(output, properties):
 	result = {}
