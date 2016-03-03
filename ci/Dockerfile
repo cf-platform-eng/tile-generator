@@ -20,3 +20,5 @@ RUN apk add docker
 RUN rc-update add docker boot
 
 RUN rm -rf /var/cache/apk/*
+
+CMD /sbin/init

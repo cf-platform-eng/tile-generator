@@ -83,16 +83,25 @@ jobs:
 # - put: app-docker-image
 #   params:
 #     build: sample-tile-build/src
-  - task: build-sample-tile
+  - task: download-app-image
     config:
       platform: linux
       image: "docker:///guidowb/tile-pipeline"
-      inputs:
-      - name: tile-generator-repo
-      - name: sample-tile-build
-      - name: tile-history
       outputs:
-      - name: generated-tile
+      - name: app-image
       run:
-        path: tile-generator-repo/ci/scripts/tile-build.sh
-        args: [ "sample-tile-build", "tile-history", "generated-tile" ]
+        path: sh
+        args: [ "-c", 'ls -l /var/run/*; DOCKER_HOST="unix:///var/run/docker.sock" docker info']
+  # - task: build-sample-tile
+  #   config:
+  #     platform: linux
+  #     image: "docker:///guidowb/tile-pipeline"
+  #     inputs:
+  #     - name: tile-generator-repo
+  #     - name: sample-tile-build
+  #     - name: tile-history
+  #     outputs:
+  #     - name: generated-tile
+  #     run:
+  #       path: tile-generator-repo/ci/scripts/tile-build.sh
+  #       args: [ "sample-tile-build", "tile-history", "generated-tile" ]

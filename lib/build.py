@@ -364,7 +364,9 @@ def download_docker_image(docker_image, target_file):
 		kwargs = kwargs_from_env()
 		kwargs['tls'].assert_hostname = False
 		docker_cli = Client(**kwargs)
+		print 'using boot2docker for docker image download'
 	except KeyError as e: # Assume this means we are not using boot2docker
+		print 'using local docker daemon for docker image download'
 		docker_cli = Client(base_url='unix://var/run/docker.sock', tls=False)
 	image = docker_cli.get_image(docker_image)
 	image_tar = open(target_file,'w')
