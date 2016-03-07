@@ -128,4 +128,8 @@ packages:
     containers:
     - name: app4
       image: "guidowb/sample-cf-app2" # should match the docker image name
-
+      bind_ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+      - '8443:8443'
