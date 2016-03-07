@@ -20,7 +20,7 @@ if [ -n "${HISTORY}" ]; then
 fi
 
 if [ -n "${DOCKER_DIR}" ]; then
-	DOCKER_DIR="--docker-cache $DOCKER_DIR"
+	DOCKER_DIR="--docker-cache $BASE_DIR/$DOCKER_DIR"
 fi
 
 (cd ${SOURCE_DIR}; $TILE build $DOCKER_DIR )
