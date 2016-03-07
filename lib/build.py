@@ -265,7 +265,7 @@ def add_package(dir, context, package, alternate_template=None):
 			package_context['files'] += [ filename ]
 		for docker_image in package.get('docker_images', []):
 			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-			download_docker_image(docker_image, os.path.join(target_dir, filename))
+			download_docker_image(docker_image, os.path.join(target_dir, filename), cache=context.get('docker_cache', None))
 			package_context['files'] += [ filename ]
 	if package.get('is_app', False):
 		manifest = package.get('manifest', { 'name': name })
@@ -357,7 +357,7 @@ def download_docker_release():
 		'file': release_file,
 	}
 
-def download_docker_image(docker_image, target_file):
+def download_docker_image(docker_image, target_file, cache=None):
 	try:
 		from docker.client import Client
 		from docker.utils import kwargs_from_env
@@ -368,13 +368,15 @@ def download_docker_image(docker_image, target_file):
 		image_tar = open(target_file,'w')
 		image_tar.write(image.data)
 		image_tar.close()
-	except Error as e:
-		cached_file = os.path.join('resources', docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
-		if os.exists(cached_file):
-			print 'using cached version of', docker_image
-			urllib.urlretrieve(cached_file, target_file)
-			return
-		print 'failed to download docker image', docker_image + ':', e
+	except Exception as e:
+		if cache is not None:
+			cached_file = os.path.join(cache, docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
+			if os.exists(cached_file):
+				print 'using cached version of', docker_image
+				urllib.urlretrieve(cached_file, target_file)
+				return
+		print 'failed to download docker image', docker_image
+		raise
 
 def bosh_extract(output, properties):
 	result = {}
