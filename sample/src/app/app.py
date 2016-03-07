@@ -2,8 +2,10 @@
 
 import os
 import json
+import requests
 
 from flask import Flask
+from flask import request
 app = Flask(__name__)
 
 vcap_application = json.loads(os.getenv('VCAP_APPLICATION','{ "name": "none", "application_uris": [ "http://localhost:8080" ] }'))
@@ -44,6 +46,14 @@ def hello():
 @app.route("/env")
 def environment():
 	return json.dumps(dict(os.environ), indent=4)
+
+@app.route("/proxy")
+def proxy():
+	url = request.args.get('url')
+	if url is None:
+		return json.dumps('expected url parameter'), 404
+	response = requests.get(url, verify=False)
+	return response.content, response.status_code
 
 @app.route("/v2/catalog")
 def broker_catalog():
