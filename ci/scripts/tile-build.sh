@@ -3,6 +3,7 @@
 SOURCE_DIR=$1
 HISTORY_DIR=$2
 TARGET_DIR=$3
+DOCKER_DIR=$4
 
 MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
 REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
@@ -18,7 +19,11 @@ if [ -n "${HISTORY}" ]; then
 	cp ${HISTORY} ${SOURCE_DIR}/tile-history.yml
 fi
 
-(cd ${SOURCE_DIR}; $TILE build)
+if [ -n "${DOCKER_DIR}" ]; then
+	DOCKER_DIR="--docker-cache $DOCKER_DIR"
+fi
+
+(cd ${SOURCE_DIR}; $TILE build $DOCKER_DIR )
 
 VERSION=`grep '^version:' ${SOURCE_DIR}/tile-history.yml | sed 's/^version: //'`
 HISTORY="tile-history-${VERSION}.yml"
