@@ -371,7 +371,7 @@ def download_docker_image(docker_image, target_file, cache=None):
 	except Exception as e:
 		if cache is not None:
 			cached_file = os.path.join(cache, docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
-			if os.exists(cached_file):
+			if os.path.isfile(cached_file):
 				print 'using cached version of', docker_image
 				urllib.urlretrieve(cached_file, target_file)
 				return
