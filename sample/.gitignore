@@ -3,3 +3,4 @@ product/
 tile-history.yml
 vendor/
 resources/*.zip
+docker-cache/
