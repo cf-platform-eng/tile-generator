@@ -282,7 +282,7 @@ job_types:
     release: docker
   - name: docker
     release: docker
-  - name: {{ job.name}}
+  - name: {{ job.name }}
     release: {{ release.name }}
   resource_definitions:
   - name: ram
@@ -402,8 +402,12 @@ job_types:
 {% if package.is_broker %}
       enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
 {% endif %}
-{% if package.is_buildpack  %}
+{% if package.is_buildpack %}
       buildpack_order: (( .properties.{{ package.name }}_buildpack_order.value ))
+{% endif %}
+{% if package.is_docker_bosh %}
+      host: (( .docker-bosh-{{ package.name }}.first_ip ))
+      hosts: (( .docker-bosh-{{ package.name }}.ips ))
 {% endif %}
 {% endfor %}
 {% endif %}
