@@ -54,6 +54,12 @@ def upgrade_config(config):
 		if auto_services is not None:
 			if isinstance(auto_services, basestring):
 				package['auto_services'] = [ { 'name': s } for s in auto_services.split()]
+	# v0.9 expected a string manifest for docker-bosh releases
+	for package in config.get('packages', []):
+		if package.get('type') == 'docker-bosh':
+			manifest = package.get('manifest')
+			if manifest is not None and isinstance(manifest, basestring):
+				package['manifest'] = yaml.safe_load(manifest)
 
 def add_defaults(context):
 	context['stemcell_criteria'] = context.get('stemcell_criteria', {})

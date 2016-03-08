@@ -317,7 +317,7 @@ job_types:
   - name: app_credentials
     type: salted_credentials
   manifest: |
-    {{ job.package.manifest | indent }}
+    {{ job.package.manifest | yaml | indent }}
 {% endfor %}
 {% for job in jobs if not job.type == 'docker-bosh' %}
 #
