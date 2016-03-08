@@ -250,11 +250,11 @@ job_types:
    - name: ram
      type: integer
      configurable: true
-     default: 2048
+     default: 4096
    - name: ephemeral_disk
      type: integer
      configurable: true
-     default: 5120
+     default: 10240
    - name: persistent_disk
      type: integer
      configurable: true
