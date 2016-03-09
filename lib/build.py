@@ -54,6 +54,12 @@ def upgrade_config(config):
 		if auto_services is not None:
 			if isinstance(auto_services, basestring):
 				package['auto_services'] = [ { 'name': s } for s in auto_services.split()]
+	# v0.9 expected a string manifest for docker-bosh releases
+	for package in config.get('packages', []):
+		if package.get('type') == 'docker-bosh':
+			manifest = package.get('manifest')
+			if manifest is not None and isinstance(manifest, basestring):
+				package['manifest'] = yaml.safe_load(manifest)
 
 def add_defaults(context):
 	context['stemcell_criteria'] = context.get('stemcell_criteria', {})
@@ -265,7 +271,7 @@ def add_package(dir, context, package, alternate_template=None):
 			package_context['files'] += [ filename ]
 		for docker_image in package.get('docker_images', []):
 			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-			download_docker_image(docker_image, os.path.join(target_dir, filename))
+			download_docker_image(docker_image, os.path.join(target_dir, filename), cache=context.get('docker_cache', None))
 			package_context['files'] += [ filename ]
 	if package.get('is_app', False):
 		manifest = package.get('manifest', { 'name': name })
@@ -357,19 +363,26 @@ def download_docker_release():
 		'file': release_file,
 	}
 
-def download_docker_image(docker_image, target_file):
-	from docker.client import Client
-	try: # First attempt boot2docker, because it is fail-fast
+def download_docker_image(docker_image, target_file, cache=None):
+	try:
+		from docker.client import Client
 		from docker.utils import kwargs_from_env
 		kwargs = kwargs_from_env()
 		kwargs['tls'].assert_hostname = False
 		docker_cli = Client(**kwargs)
-	except KeyError as e: # Assume this means we are not using boot2docker
-		docker_cli = Client(base_url='unix://var/run/docker.sock', tls=False)
-	image = docker_cli.get_image(docker_image)
-	image_tar = open(target_file,'w')
-	image_tar.write(image.data)
-	image_tar.close()
+		image = docker_cli.get_image(docker_image)
+		image_tar = open(target_file,'w')
+		image_tar.write(image.data)
+		image_tar.close()
+	except Exception as e:
+		if cache is not None:
+			cached_file = os.path.join(cache, docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
+			if os.path.isfile(cached_file):
+				print 'using cached version of', docker_image
+				urllib.urlretrieve(cached_file, target_file)
+				return
+		print 'failed to download docker image', docker_image
+		raise
 
 def bosh_extract(output, properties):
 	result = {}

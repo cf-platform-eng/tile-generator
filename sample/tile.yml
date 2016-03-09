@@ -115,17 +115,21 @@ packages:
   - name: service-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
     plan: second-plan                 # Optionally specify a plan (default is the first plan offered by the service)
 
-# - name: app4
-#   type: docker-bosh
-#   docker_images:
-#   - guidowb/sample-cf-app
-#   cpu: 2
-#   memory: 512
-#   ephemeral_disk: 4096
-#   persistent_disk: 2048
-#   instances: 1
-#   manifest: |
-#     containers:
-#     - name: app4
-#       image: "guidowb/sample-cf-app" # should match the docker image name
-
+- name: app4
+  type: docker-bosh
+  docker_images:
+  - guidowb/sample-cf-app
+  cpu: 2
+  memory: 512
+  ephemeral_disk: 4096
+  persistent_disk: 2048
+  instances: 1
+  manifest: |
+    containers:
+    - name: app
+      image: "guidowb/sample-cf-app" # should match the docker image name
+      bind_ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+      - '8443:8443'

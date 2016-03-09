@@ -90,9 +90,15 @@ properties:
     description: 'Access to all service plans'
     default: false
 {% endif %}
-{% if package.is_buildpack  %}
+{% if package.is_buildpack %}
   {{ package.name }}.buildpack_order:
     description: 'Order of the Buildpack'
+{% endif %}
+{% if package.is_docker_bosh %}
+  {{ package.name }}.host:
+    description: '(First) Hostname for the container'
+  {{ package.name }}.hosts:
+    description: '(All) Hostnames for the container'
 {% endif %}
 {% endfor %}
 {% endif %}

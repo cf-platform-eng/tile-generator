@@ -52,6 +52,10 @@ function import_opsmgr_variables() {
 	{% for property in context.all_properties %}
 	export {{ property.name | upper }}="<%= properties.{{ property.name }} %>"
 	{% endfor %}
+	{% for package in context.packages if package.type == 'docker-bosh' %}
+	export {{ package.name | upper }}_HOST="<%= properties.{{ package.name }}.host %>"
+	export {{ package.name | upper }}_HOSTS="<%= properties.{{ package.name }}.hosts %>"
+	{% endfor %}
 }
 
 function prepare_cf_cli {
@@ -156,6 +160,12 @@ function add_env_vars() {
 	# Custom variables from tile.yml
 	{% for property in context.all_properties %}
 	cf set-env $1 {{ property.name | upper }} "${{ property.name | upper }}"
+	{% endfor %}
+
+	# Addresses of bosh vms
+	{% for package in context.packages if package.type == 'docker-bosh' %}
+	cf set-env $1 {{ package.name | upper }}_HOST "${{ package.name | upper }}_HOST"
+	cf set-env $1 {{ package.name | upper }}_HOSTS "${{ package.name | upper }}_HOSTS"
 	{% endfor %}
 }
 
