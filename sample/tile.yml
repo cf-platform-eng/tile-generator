@@ -108,7 +108,7 @@ packages:
 
 - name: app3
   type: docker-app
-  image: guidowb/sample-cf-app2       # Start command must be specified in the Dockerfile (CMD)
+  image: guidowb/sample-cf-app        # Start command must be specified in the Dockerfile (CMD)
   manifest:
     memory: 256M                      # Override memory, default: 1G
   auto_services:                      # Auto-provision and bind services
@@ -118,7 +118,7 @@ packages:
 - name: app4
   type: docker-bosh
   docker_images:
-  - guidowb/sample-cf-app2
+  - guidowb/sample-cf-app
   cpu: 2
   memory: 512
   ephemeral_disk: 4096
@@ -126,8 +126,8 @@ packages:
   instances: 1
   manifest: |
     containers:
-    - name: app4
-      image: "guidowb/sample-cf-app2" # should match the docker image name
+    - name: app
+      image: "guidowb/sample-cf-app" # should match the docker image name
       bind_ports:
       - '80:80'
       - '443:443'
