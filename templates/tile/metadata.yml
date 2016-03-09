@@ -250,11 +250,11 @@ job_types:
    - name: ram
      type: integer
      configurable: true
-     default: 2048
+     default: 4096
    - name: ephemeral_disk
      type: integer
      configurable: true
-     default: 5120
+     default: 10240
    - name: persistent_disk
      type: integer
      configurable: true
@@ -282,7 +282,7 @@ job_types:
     release: docker
   - name: docker
     release: docker
-  - name: {{ job.name}}
+  - name: {{ job.name }}
     release: {{ release.name }}
   resource_definitions:
   - name: ram
@@ -317,7 +317,7 @@ job_types:
   - name: app_credentials
     type: salted_credentials
   manifest: |
-    {{ job.package.manifest | indent }}
+    {{ job.package.manifest | yaml | indent }}
 {% endfor %}
 {% for job in jobs if not job.type == 'docker-bosh' %}
 #
@@ -402,8 +402,12 @@ job_types:
 {% if package.is_broker %}
       enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
 {% endif %}
-{% if package.is_buildpack  %}
+{% if package.is_buildpack %}
       buildpack_order: (( .properties.{{ package.name }}_buildpack_order.value ))
+{% endif %}
+{% if package.is_docker_bosh %}
+      host: (( .docker-bosh-{{ package.name }}.first_ip ))
+      hosts: (( .docker-bosh-{{ package.name }}.ips ))
 {% endif %}
 {% endfor %}
 {% endif %}

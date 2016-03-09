@@ -4,6 +4,7 @@ import os
 import sys
 import errno
 import base64
+import yaml
 
 from jinja2 import Environment, FileSystemLoader, exceptions
 
@@ -17,10 +18,14 @@ def render_base64(file):
 def render_hyphens(input):
 	return input.replace('_','-')
 
+def render_yaml(input):
+	return yaml.safe_dump(input, default_flow_style=False)
+
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
 TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
+TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
 
 def render(target_path, template_file, config):
 	target_dir = os.path.dirname(target_path)
