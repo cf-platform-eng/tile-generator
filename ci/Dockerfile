@@ -6,6 +6,8 @@ RUN apk add --no-cache zip &&\
     wget "https://bootstrap.pypa.io/get-pip.py" -O /dev/stdout | python && \
     apk del build-dependencies
 
+RUN apk add ca-certificates && update-ca-certificates
+
 ADD requirements.txt .
 RUN pip install -r requirements.txt
 
