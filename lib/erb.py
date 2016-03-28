@@ -38,7 +38,11 @@ def mkdir_p(dir):
 def get_file_properties(filename):
 	try:
 		with open(filename) as f:
-			return yaml.safe_load(f)
+			properties = yaml.safe_load(f)
+			if properties is None:
+				return {}
+			else:
+				return properties
 	except IOError as e:
 		print >> sys.stderr, filename, 'not found'
 		sys.exit(1)
