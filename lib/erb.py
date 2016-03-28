@@ -18,9 +18,10 @@ TEMPLATE_ENVIRONMENT = Environment(
 	variable_start_string='<%=', variable_end_string='%>',
 	comment_start_string='<%', comment_end_string='%>', # To completely ignore Ruby code blocks
 )
-TEMPLATE_ENVIRONMENT.loader = FileSystemLoader('.')
+TEMPLATE_ENVIRONMENT.loader = FileSystemLoader('/')
 
 def render(target_path, template_file, config_dir):
+	template_file = os.path.realpath(template_file)
 	config = compile_config(config_dir)
 	target_dir = os.path.dirname(target_path)
 	if target_dir != '':
