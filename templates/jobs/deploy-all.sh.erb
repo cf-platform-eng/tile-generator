@@ -334,7 +334,7 @@ provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
 export SVC_NAME="<%= properties.{{ package.name }}.persistence_store_type %>"
 export SVC_PLAN=""
 provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
-start_app "$PKG_NAME" "$APP_NAME"
+start_app {{ package.name | hyphens }} "$APP_NAME"
 {% endif %}
 
 {% if package.is_broker %}
