@@ -146,7 +146,7 @@ edit tile.yml to point to the zipped file:
 
 ```bash
 cd <your project dir>
-tar -zcvf resources/<your project name>.tgz .
+zip -r resources/<your project name>.zip <list of file and dirs to include in the zip>
 ```
 
 If your application is a service broker, use `app-broker` as the type instead of just
