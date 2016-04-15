@@ -23,6 +23,16 @@ def products_cmd():
 	for product in products:
 		print "-", product["name"], product["product_version"], "(installed)" if product["installed"] else ""
 
+@cli.command('changes')
+def deployed_cmd():
+	try:
+		changes = opsmgr.get_changes()
+		print 'install:', ', '.join(changes['install'])
+		print 'delete: ', ', '.join(changes['delete'])
+	except:
+		print >> sys.stderr, 'This command is only available for PCF 1.7 and beyond.'
+		sys.exit(1)
+
 @cli.command('is-available')
 @click.argument('product')
 @click.argument('version', None, required=False)
@@ -171,7 +181,34 @@ def cleanup_cmd(product):
 
 @cli.command('apply-changes')
 def apply_changes_cmd():
-	install = opsmgr.post('/api/installation', { 'ignore_warnings': 'true' }).json()['install']
+	enabled_errands = []
+	try:
+		changes = opsmgr.get_changes()
+		if len(changes['install']) == 0 and len(changes['delete']) == 0:
+			print >> sys.stderr, 'Nothing to do'
+			return
+		for p in changes['install']:
+			enabled_errands += [
+				'enabled_errands' +
+				'[' + p + ']' +
+				'[post_deploy_errands]' +
+				'[]' +
+				'=deploy-all' ]
+		for p in changes['delete']:
+			enabled_errands += [
+				'enabled_errands' +
+				'[' + p + ']' +
+				'[pre_delete_errands]' +
+				'[]' +
+				'=delete-all' ]
+	except:
+		# Assume we're talking to a PCF version prior to 1.7
+		# It does not support the get_changes APIs
+		# But it also does not require us to pass in the list of errands
+		# So this is perfectly fine
+		pass
+	body = '&'.join(enabled_errands)
+	install = opsmgr.post('/api/installation?ignore_warnings=1', body).json()['install']
 	opsmgr.logs(install['id'])
 
 @cli.command('logs')

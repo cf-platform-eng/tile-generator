@@ -173,6 +173,16 @@ def configure(settings, product, properties):
 		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
 		sys.exit(1)
 
+def get_changes():
+	deployed = [ p["guid"] for p in get('/api/v0/deployed/products').json() ]
+	staged   = [ p["guid"] for p in get('/api/v0/staged/products'  ).json() ]
+	install  = [ p for p in staged if p not in deployed ]
+	delete   = [ p for p in deployed if p not in staged ]
+	return {
+		'install': install,
+		'delete':  delete,
+	}
+
 def get_cfinfo():
 	settings = get('/api/installation_settings').json()
 	settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
