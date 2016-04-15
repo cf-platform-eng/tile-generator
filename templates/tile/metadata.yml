@@ -201,7 +201,7 @@ form_types:
   description: Configurable settings for external service brokers
   property_inputs:
 {% endif %}
-  - reference: .properties.{{ package.name }}_uri
+  - reference: .properties.{{ package.name }}_url
     label: Service Broker Application URI for {{ package.name }}
     description: 'Enter the External uri/endpoint (with http or https protocol) for the Service Broker'
   - reference: .properties.{{ package.name }}_user
@@ -392,9 +392,9 @@ job_types:
       persistence_store_type: (( .properties.{{ package.name }}_persistence_store_type.value ))
 {% endif %}
 {% if package.is_external_broker %}
-      url: (( .properties.{{ package.name }}.url ))
-      user: (( .properties.{{ package.name }}.user ))
-      password: (( .properties.{{ package.name }}.password ))
+      url: (( .properties.{{ package.name }}_url ))
+      user: (( .properties.{{ package.name }}_user ))
+      password: (( .properties.{{ package.name }}_password ))
 {% elif package.is_broker %}
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
