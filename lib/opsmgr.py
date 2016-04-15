@@ -224,7 +224,7 @@ def logs(install_id):
 		lines_shown = len(log_lines)
 		if running:
 			time.sleep(1)
-	if not install_status == 'success':
+	if not install_status.startswith('succ'):
 		print >> sys.stderr, '- install finished with status:', install_status
 		sys.exit(1)
 
