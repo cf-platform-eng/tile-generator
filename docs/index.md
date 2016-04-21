@@ -61,7 +61,7 @@ The pipeline verifies that:
     cd <your project dir>
     tile init
     ```
-   
+
 6. Edit the generated `tile.yml` file to define your tile (more details below)
 
 7. Build your tile
@@ -144,7 +144,7 @@ Elastic Runtime use the following format:
 
 Note: for applications that are normally pushed as multiple files (node.js for example)
 you should zip up the project files plus all dependencies into a single zip file, then
-edit tile.yml to point to the zipped file: 
+edit tile.yml to point to the zipped file:
 
 ```bash
 cd <your project dir>
