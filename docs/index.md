@@ -10,7 +10,7 @@ you to have intimate knowledge of all the tools involved.
 
 ![Overview](img/tilegenerator.png)
 
-Tile generator takes your software components and a simply configuration file
+Tile generator takes your software components, and a simple configuration file
 that provides the minimal amount of information to describe and customize your
 tile. It then creates everything that's required to deploy your software into
 Pivotal Cloud Foundry:
