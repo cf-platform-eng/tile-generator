@@ -5,6 +5,8 @@ installation package format used by Pivotal's Ops Manager to deploy add-on
 software such as services and their brokers, buildpacks, or anything else
 that needs to be installable in both public and private cloud deployments.
 
+![Overview](img/tilegenerator.png)
+
 The current release of the tile generator supports tiles that have any
 combination of the following package types:
 
@@ -87,12 +89,13 @@ src/build.sh
 tile build
 ```
 
-The sample tile includes a Python application that is re-used in several packages,
-sometimes as an app, sometimes as a service broker. One of the deployments (app3)
-uses the sample application inside a docker image that is currently only modified
-by the CI pipeline. If you modify the sample app, you will have to build your own
-docker image using the provided `Dockerfile` and change the image name in
-`sample/tile.yml` to include the modified code in app3.
+!!! note "Note:"
+    The sample tile includes a Python application that is re-used in several packages,
+    sometimes as an app, sometimes as a service broker. One of the deployments (app3)
+    uses the sample application inside a docker image that is currently only modified
+    by the CI pipeline. If you modify the sample app, you will have to build your own
+    docker image using the provided `Dockerfile` and change the image name in
+    `sample/tile.yml` to include the modified code in app3.
 
 ## Defining your Tile
 

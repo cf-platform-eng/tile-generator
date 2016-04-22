@@ -1,4 +1,10 @@
 site_name: Tile Generator
+
 pages:
 - Home: 'index.md'
 - PCF: 'pcf.md'
+
+markdown_extensions:
+  - toc:
+      permalink:
+  - admonition:
