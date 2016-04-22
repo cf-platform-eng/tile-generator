@@ -12,7 +12,8 @@ RUN apk add --no-cache zip &&\
     apk del build-dependencies
 
 RUN pip install mkdocs
-RUN apk add git
+RUN apk update && apk upgrade && \
+    apk add --no-cache git
 
 ADD requirements.txt .
 RUN pip install -r requirements.txt
