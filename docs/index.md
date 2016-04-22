@@ -1,11 +1,32 @@
 # PCF Tile Generator
 
-This is a tile generation utility for PCF tiles. Tiles are the
-installation package format used by Pivotal's Ops Manager to deploy add-on
-software such as services and their brokers, buildpacks, or anything else
-that needs to be installable in both public and private cloud deployments.
+PCF Tile Generator is a suite of tools to help you develop, package, test,
+and deploy services and other add-ons to Pivotal Cloud Foundry. Tiles are the
+installation package format used by Pivotal's Ops Manager to deploy these
+components to both public and private cloud deployments. The tile generator
+uses templates and patterns that are based on years of experience integrating
+third-party services into Cloud Foundry, and eliminates much of the need for
+you to have intimate knowledge of all the tools involved.
 
 ![Overview](img/tilegenerator.png)
+
+Tile generator takes your software components and a simply configuration file
+that provides the minimal amount of information to describe and customize your
+tile. It then creates everything that's required to deploy your software into
+Pivotal Cloud Foundry:
+
+- **BOSH errands** to deploy and delete your software, including blue/green
+  deployments for zero-downtime upgrades
+- A **BOSH release** suitable for deploying your software to the Elastic Runtime
+  or open-source Cloud Foundry
+- A **Pivotal Ops Manager Tile** that can be imported into Ops Manager, installed,
+  configured, and deployed, including UI forms and automatic upgrades from
+  previous versions
+- A **Concourse pipeline configuration** to enable Continuous Integration of
+  your software with the latest versions of Pivotal Cloud Foundry
+
+The Tile Generator suite also contains a [utility](pcf.md) to enable rapid
+deploy and test cycles of your software.
 
 The current release of the tile generator supports tiles that have any
 combination of the following package types:
@@ -17,7 +38,7 @@ combination of the following package types:
 
 ## Screencast
 
-For a 7-minute introduction into what it is and does, see
+For a 7-minute introduction into what tile generator is and does, see
 [this screencast](https://www.youtube.com/watch?v=_WeJbqNJWzQ).
 
 ## Continuous Integration
