@@ -174,10 +174,10 @@ def configure(settings, product, properties):
 		sys.exit(1)
 
 def get_changes():
-	deployed = [ p["guid"] for p in get('/api/v0/deployed/products').json() ]
-	staged   = [ p["guid"] for p in get('/api/v0/staged/products'  ).json() ]
-	install  = [ p for p in staged if p not in deployed ]
-	delete   = [ p for p in deployed if p not in staged ]
+	deployed = [ p for p in get('/api/v0/deployed/products').json() ]
+	staged   = [ p for p in get('/api/v0/staged/products'  ).json() ]
+	install  = [ p for p in staged   if p["guid"] not in [ g["guid"] for g in deployed ] ]
+	delete   = [ p for p in deployed if p["guid"] not in [ g["guid"] for g in staged   ] ]
 	return {
 		'install': install,
 		'delete':  delete,
