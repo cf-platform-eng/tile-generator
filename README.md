@@ -1,6 +1,10 @@
 # PCF Tile Generator
 
-This is a tile generation utility for PCF tiles. Tiles are the installation package format used by Pivotal's Ops Manager to deploy add-on software such as services and their brokers, buildpacks, or anything else that needs to be installable in both public and private cloud deployments.
+PCF Tile Generator is a suite of tools to help you develop, package, test,
+and deploy services and other add-ons to Pivotal Cloud Foundry. The tile generator
+uses templates and patterns that are based on years of experience integrating
+third-party services into Cloud Foundry, and eliminates much of the need for
+you to have intimate knowledge of all the tools involved.
 
 - Website: [Github Pages](http://cf-platform-eng.github.io/tile-generator)
 - Documentation: [Github Pages](http://cf-platform-eng.github.io/tile-generator)

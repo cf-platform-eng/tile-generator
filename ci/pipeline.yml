@@ -13,6 +13,7 @@ groups:
   - deployment-tests
   - remove-tile
   - release-pcf
+  - publish-docs
 
 - name: build
   jobs:
@@ -20,6 +21,7 @@ groups:
   - unit-tests
   - build-tile
   - acceptance-tests
+  - publish-docs
 
 - name: deploy
   jobs:
@@ -46,7 +48,14 @@ resources:
 - name: tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "sample" ]
+    ignore_paths: [ "sample", "mkdocs.yml", "docs" ]
+    branch: master
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: documentation-repo
+  type: git
+  source:
+    paths: [ "mkdocs.yml", "docs" ]
     branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -124,6 +133,24 @@ jobs:
       run:
         path: tile-generator-repo/ci/scripts/run-unittests.sh
         args: [ "tile-generator-repo/lib" ]
+
+- name: publish-docs
+  plan:
+  - aggregate:
+    - get: ci-docker-image
+      passed: [ build-docker ]
+      trigger: true
+    - get: documentation-repo
+      trigger: true
+  - task: publish-docs
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: documentation-repo
+      run:
+        path: sh
+        args: [ "-c", 'cd documentation-repo; mkdocs gh-deploy --clean' ]
 
 - name: build-tile
   plan:
