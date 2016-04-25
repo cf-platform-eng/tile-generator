@@ -27,8 +27,17 @@ def products_cmd():
 def deployed_cmd():
 	try:
 		changes = opsmgr.get_changes()
-		print 'install:', ', '.join(changes['install'])
-		print 'delete: ', ', '.join(changes['delete'])
+		install = [p for p in changes['install']]
+		for p in install:
+			print "Install " + p["type"]
+
+		delete = [p for p in changes['delete']]
+		for p in delete:
+			print "Delete " + p["type"]
+
+
+		#print 'install:', ', '.join(changes['install'])
+		#print 'delete: ', ', '.join(changes['delete'])
 	except:
 		print >> sys.stderr, 'This command is only available for PCF 1.7 and beyond.'
 		sys.exit(1)
@@ -190,14 +199,14 @@ def apply_changes_cmd():
 		for p in changes['install']:
 			enabled_errands += [
 				'enabled_errands' +
-				'[' + p + ']' +
+				'[' + p["guid"] + ']' +
 				'[post_deploy_errands]' +
 				'[]' +
 				'=deploy-all' ]
 		for p in changes['delete']:
 			enabled_errands += [
 				'enabled_errands' +
-				'[' + p + ']' +
+				'[' + p["guid"] + ']' +
 				'[pre_delete_errands]' +
 				'[]' +
 				'=delete-all' ]
