@@ -9,7 +9,7 @@ templates:
 packages:
 {% if not package %}
 - cf_cli
-{% for package in context.packages %}
+{% for package in context.packages if not package.is_bosh_release %}
 - {{ package.name }}
 {% endfor %}
 {% else %}

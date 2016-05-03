@@ -137,6 +137,10 @@ package_types = [
 		'typename': 'blob',
 		'flags': [ 'is_blob' ],
 	},
+	{
+		'typename': 'bosh-release',
+		'flags': [ 'is_bosh_release' ],
+	}
 ]
 
 def create_bosh_release(context):
@@ -160,7 +164,10 @@ def create_bosh_release(context):
 			sys.exit(1)
 		for flag in typedef['flags']:
 			package[flag] = True
-		add_blob_package(context, package)
+		if package.get('is_bosh_release', False):
+			add_bosh_release(context, package)
+		else:
+			add_blob_package(context, package)
 		for job in typedef.get('jobs', []):
 			add_bosh_job(
 				context,
@@ -343,6 +350,10 @@ def create_tile(context):
 		if context.get('requires_docker_bosh', False):
 			docker_release = context['docker_release']
 			f.write(os.path.join('releases', docker_release['file']))
+		for bosh_release in context.get('bosh_releases'):
+			print 'tile import release', bosh_release['name']
+			shutil.copy(bosh_release['tarball'], os.path.join('releases', bosh_release['file']))
+			f.write(os.path.join('releases', bosh_release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
 		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
 	print
@@ -362,6 +373,25 @@ def download_docker_release():
 		'version': release_version,
 		'file': release_file,
 	}
+
+def add_bosh_release(context, package):
+	try:
+		release_file = os.path.basename(package['path']) # my_bosh_release-6.tgz
+		basename = release_file.rsplit('.', 1)[0] # my_bosh_release-6
+		release_name = basename.rsplit('-', 1)[0] # my_bosh_release
+		release_version = basename.rsplit('-', 1)[1] # 6
+	except Exception as e:
+		print >> sys.stderr, "bosh-release must have a path attribute of the form <name>_<version>.tgz"
+		sys.exit(1)
+	with cd('..'):
+		context['bosh_releases'] = context.get('bosh_releases', []) + [
+			{
+				'tarball': os.path.realpath(package['path']),
+				'file': release_file,
+				'name': release_name,
+				'version': release_version,
+			}
+		]
 
 def download_docker_image(docker_image, target_file, cache=None):
 	try:

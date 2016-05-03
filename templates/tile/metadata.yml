@@ -17,6 +17,11 @@ releases:
   name: {{ docker_release.name }}
   version: '{{ docker_release.version }}'
 {% endif %}
+{% for bosh_release in bosh_releases %}
+- file: {{ bosh_release.file }}
+  name: {{ bosh_release.name }}
+  version: '{{ bosh_release.version }}'
+{% endfor %}
 
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
