@@ -324,6 +324,52 @@ job_types:
   manifest: |
     {{ job.package.manifest | yaml | indent }}
 {% endfor %}
+{% for package in packages if package.type == 'bosh-release' %}
+{% for job in package.jobs %}
+- name: {{ job.name }}
+  resource_label: {{ job.name }}
+{% if job.lifecycle and job.lifecycle == 'errand' %}
+  errand: true
+{% endif %}
+  templates:
+{% for template in job.templates %}
+  - name: {{ template.name }}
+    release: {{ template.release }}
+{% endfor %}
+  resource_definitions:
+  - name: ram
+    type: integer
+    configurable: false
+    default: {{ job.memory or 512 }}
+  - name: ephemeral_disk
+    type: integer
+    configurable: false
+    default: {{ job.ephemeral_disk or 4096 }}
+  - name: persistent_disk
+    type: integer
+    configurable: false
+    default: {{ job.persistent_disk or 0 }}
+  - name: cpu
+    type: integer
+    configurable: false
+    default: {{ job.cpu or 1 }}
+  static_ip: {{ job.static_ip or 0 }}
+  dynamic_ip: {{ job.dynamic_ip or 0 }}
+  max_in_flight: {{ job.max_in_flight or 1 }}
+  instance_definitions:
+  - name: instances
+    type: integer
+{% if job.lifecycle and job.lifecycle == 'errand' %}
+    configurable: false
+    default: 1
+{% else %}
+    configurable: true
+    default: {{ job.instances or 1 }}
+{% endif %}
+  manifest: |
+    {{ job.properties | yaml | indent }}
+{% endfor %}
+{% endfor %}
 {% for job in jobs if not job.type == 'docker-bosh' %}
 #
 # {{ job.type }} job
