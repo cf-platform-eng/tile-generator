@@ -468,10 +468,24 @@ post_deploy_errands:
 {% for errand in post_deploy_errands %}
 - name: {{ errand.name }}
 {% endfor %}
+{% for package in packages if package.type == 'bosh-release' %}
+{% for job in package.jobs %}
+{% if job.lifecycle and job.lifecycle == 'errand' and job.post_deploy %}
+- name: {{ job.name }}
+{% endif %}
+{% endfor %}
+{% endfor %}
 
 pre_delete_errands:
 {% for errand in pre_delete_errands %}
 - name: {{ errand.name }}
+{% endfor %}
+{% for package in packages if package.type == 'bosh-release' %}
+{% for job in package.jobs %}
+{% if job.lifecycle and job.lifecycle == 'errand' and job.pre_delete %}
+- name: {{ job.name }}
+{% endif %}
+{% endfor %}
 {% endfor %}
 
 update:
