@@ -14,9 +14,9 @@ to ask for our support and/or publish your integration in our
 
 There are a lot of things you will have to learn and do to complete an
 integration with Cloud Foundry. This page attempts to lay out a typical
-progression of an integration with PCF:
+progression of an integration with PCF.
 
-## Step 1. Design the integration
+## Step 0. Understand the concepts
 
 There are [many ways](integration-types.md) to integrate products with Cloud Foundry.
 The right one for each product depends on what the product does, and how
@@ -24,6 +24,18 @@ customer applications consume it. To determine the best way to integrate your
 product, you'll need a good understanding of
 [Cloud Foundry concepts](cf-concepts.md)
 like applications, containers, services, brokers, and buildpacks.
+
+## Step 1. Design the integration
+
+With sufficient understanding of both your product, and Cloud Foundry concepts,
+you are in a position to decide what the integration looks like. Integration
+points might include:
+
+- Service Brokers
+- Managed Services
+- Buidlpacks
+- Embedded Agents
+- Or any combination of the above
 
 If you are not intimately familiar with Cloud Foundry, this is one of the
 areas where we can help. We like to do scoping meetings with you, where
