@@ -1,8 +1,12 @@
 site_name: Tile Generator
 
 pages:
-- Home: 'index.md'
-- PCF: 'pcf.md'
+- 'Home': 'index.md'
+- 'Developer Guide':
+  - 'Getting Started': 'getting-started.md' 
+  - 'Stages of Integration': 'stages.md'
+- 'Reference':
+  - 'PCF Command': 'pcf.md'
 
 markdown_extensions:
   - toc:
