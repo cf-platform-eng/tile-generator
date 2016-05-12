@@ -30,7 +30,7 @@ areas where we can help. We like to do scoping meetings with you, where
 we pair your understanding of your products, with our understanding of
 Cloud Foundry, to map out the best possible integration path.
 
-## Step 2. Learn how to build the selected integration
+## Step 2. Learn how to build
 
 Depending on the selected type of integration, you will need to learn
 how to build on or more of:
@@ -46,7 +46,7 @@ organized learning, Pivotal provides many different classes and labs for
 partners and customers. [Contact us](mailto:mjoseph@pivotal.io)
 if your are interested in learning more about this.
 
-## Step 3. Getting access to PCF
+## Step 3. Set up a test environment
 
 Once you move into development, you will need access to a PCF environment.
 Partners who participate in our program have access to a number of shared
@@ -62,6 +62,38 @@ You will then also need to learn to operate and upgrade PCF by yourself:
 - [Operating a PCF environment](pcf-operations.md)
 - [Upgrading a PCF environment](pcf-upgrade.md)
 
-## Step 4. Buid/Test the integration
+## Step 4. Validate the design
 
+Pivotal is a strong believer in lean and agile development and the notion
+of delivering a Minimally Viable Product (MVP) to our customers as quickly
+as possible. So we always look for [staged approaches](stages.md) to
+the development of the integration, and only plan the upcoming stage in
+great detail.
 
+In most cases, there is a very rapid way to do a proof-of-concept of the
+proposed integration. For instance, if you are building a service, you
+can often emulate the availability of a brokered, managed, or dynamic
+service by setting up a [user-provided service](stages.md#ups)
+for an existing instance of your service. That will let you validate
+the integration design before you make a large development investment,
+and it will let real consumers weigh in development priorities.
+
+A critical component to this step is the development of consuming
+applications. Those can be real customer applications, or test applications
+that are deployed to PCF.
+
+- [Developing applications](app-development.md)
+- [Binding services](service-binding.md)
+
+## Step 5. Develop your components
+
+Once the design is established and validated, and the first [stage](stages.md)
+has been defined, you would start actual development of your tile.
+
+## Step 6. Maintain your tile
+
+- [Set up a Concourse Server](concourse.md#server)
+- [Set up a Concourse Pipeline](concourse.md#pipeline)
+- [Create a target PCF pool](concourse.md#pool)
+
+- [Upgrading tiles](tile-generator.md#upgrades)

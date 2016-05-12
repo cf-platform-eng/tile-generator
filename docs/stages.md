@@ -21,7 +21,8 @@ Integration can stop and be declared complete (enough) after any of these.
 For non-service integrations (such as applications or buildpacks), a similar
 staged integration approach is often possible and desirable.
 
-## Stage 1 - User-Provided Service
+<a name="ups"></a> 
+## Stage 1. User-Provided Service
 
 Either your software is available as a SaaS-offering, or you already have a
 way to install software on-premise at a customer site. Or also likely, your
@@ -51,12 +52,12 @@ developer perspective, once this works, later stages will not require any
 further code changes. User-provided service bindings are fully compatible with
 brokered service bindings.
 
-## Stage 2 - Brokered Service
+## Stage 2. Brokered Service
 
-## Stage 3 - Managed Service
+## Stage 3. Managed Service
 
-## Stage 3b - High Availability
+## Stage 3b. High Availability
 
-## Stage 4 - Dynamic Service
+## Stage 4. Dynamic Service
 
-## Stage 4b - High Availability
+## Stage 4b. High Availability
