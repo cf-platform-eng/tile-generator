@@ -350,7 +350,7 @@ def create_tile(context):
 		if context.get('requires_docker_bosh', False):
 			docker_release = context['docker_release']
 			f.write(os.path.join('releases', docker_release['file']))
-		for bosh_release in context.get('bosh_releases'):
+		for bosh_release in context.get('bosh_releases', []):
 			print 'tile import release', bosh_release['name']
 			shutil.copy(bosh_release['tarball'], os.path.join('releases', bosh_release['file']))
 			f.write(os.path.join('releases', bosh_release['file']))
