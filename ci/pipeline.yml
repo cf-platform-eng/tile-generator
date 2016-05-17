@@ -13,7 +13,6 @@ groups:
   - deployment-tests
   - remove-tile
   - release-pcf
-  - publish-docs
 
 - name: build
   jobs:
@@ -21,7 +20,6 @@ groups:
   - unit-tests
   - build-tile
   - acceptance-tests
-  - publish-docs
 
 - name: deploy
   jobs:
@@ -48,23 +46,9 @@ resources:
 - name: tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "sample", "mkdocs.yml", "docs" ]
+    ignore_paths: [ "sample" ]
     branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
-
-- name: documentation-repo
-  type: git
-  source:
-    paths: [ "mkdocs.yml", "docs" ]
-    branch: master
-    uri: http://github.com/cf-platform-eng/tile-generator.git
-
-- name: github-pages
-  type: git
-  source:
-    branch: gh-pages
-    uri: git@github.com:cf-platform-eng/tile-generator.git
-    private_key: {{github-pages-private-key}}
 
 - name: dockerfile-repo
   type: git
@@ -140,40 +124,6 @@ jobs:
       run:
         path: tile-generator-repo/ci/scripts/run-unittests.sh
         args: [ "tile-generator-repo/lib" ]
-
-- name: publish-docs
-  plan:
-  - aggregate:
-    - get: ci-docker-image
-      passed: [ build-docker ]
-      trigger: true
-    - get: documentation-repo
-      trigger: true
-    - get: github-pages
-  - task: update-docs
-    config:
-      platform: linux
-      image: "docker:///guidowb/tile-pipeline"
-      inputs:
-      - name: documentation-repo
-      - name: github-pages
-      outputs:
-      - name: generated-repo
-      run:
-        path: sh
-        args:
-        - -exc
-        - |
-          (cd documentation-repo; mkdocs build --clean)
-          cp -R github-pages/.git generated-repo
-          cp -R documentation-repo/site/* generated-repo
-          cd generated-repo
-          git config user.name "CI Pipeline"
-          git config user.email "ci-pipeline@localhost"
-          git commit -a -m "Pipeline published updated docs"
-  - put: github-pages
-    params:
-      repository: generated-repo
 
 - name: build-tile
   plan:
