@@ -187,6 +187,7 @@ packages:
     - name: acceptance-tests
       release: redis
     lifecycle: errand
+    post_deploy: true
     memory: 512
     ephemeral_disk: 4096
     persistent_disk: 0
