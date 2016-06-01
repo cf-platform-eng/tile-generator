@@ -4,7 +4,7 @@ label: {{ label }}
 description: {{ description }}
 icon_image: {{ base64(icon_file) }}
 product_version: '{{ version }}'
-metadata_version: '1.7'
+metadata_version: '1.5'
 minimum_version_for_upgrade: '0.0.1'
 rank: 1
 serial: true
@@ -268,8 +268,8 @@ job_types:
   dynamic_ip: 1
   max_in_flight: 1
   single_az_only: true
-  instance_definition:
-    name: instances
+  instance_definitions:
+  - name: instances
     type: integer
     configurable: true
     default: 1
@@ -308,8 +308,8 @@ job_types:
   dynamic_ip: 0
   max_in_flight: 1
   single_az_only: false
-  instance_definition:
-    name: instances
+  instance_definitions:
+  - name: instances
     type: integer
     configurable: true
     default: {{ job.package.instances }}
@@ -354,8 +354,8 @@ job_types:
   dynamic_ip: 1
   max_in_flight: 1
   single_az_only: false
-  instance_definition:
-    name: instances
+  instance_definitions:
+  - name: instances
     type: integer
     configurable: false
     default: 1
