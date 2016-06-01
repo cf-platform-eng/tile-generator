@@ -381,8 +381,14 @@ def download_docker_image(docker_image, target_file, cache=None):
 				print 'using cached version of', docker_image
 				urllib.urlretrieve(cached_file, target_file)
 				return
-		print 'failed to download docker image', docker_image
-		raise
+			print >> sys.stderr, docker_image, 'not found in cache', cache
+			sys.exit(1)
+		if isinstance(e, KeyError):
+			print >> sys.stderr, 'docker not configured on this machine (or environment variables are not properly set)'
+		else:
+			print >> sys.stderr, docker_image, 'not found on local machine'
+			print >> sys.stderr, 'you must either pull the image, or download it and use the --docker-cache option'
+		sys.exit(1)
 
 def bosh_extract(output, properties):
 	result = {}
