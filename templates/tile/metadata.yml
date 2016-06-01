@@ -392,9 +392,9 @@ job_types:
       persistence_store_type: (( .properties.{{ package.name }}_persistence_store_type.value ))
 {% endif %}
 {% if package.is_external_broker %}
-      url: (( .properties.{{ package.name }}_url ))
-      user: (( .properties.{{ package.name }}_user ))
-      password: (( .properties.{{ package.name }}_password ))
+      url: (( .properties.{{ package.name }}_url.value ))
+      user: (( .properties.{{ package.name }}_user.value ))
+      password: (( .properties.{{ package.name }}_password.value ))
 {% elif package.is_broker %}
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
