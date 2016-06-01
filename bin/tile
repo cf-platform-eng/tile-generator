@@ -32,11 +32,14 @@ def init_cmd(name):
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
 @click.option('--verbose', is_flag=True)
-def build_cmd(version, verbose):
+@click.option('--docker-cache', type=str, default=None)
+def build_cmd(version, verbose, docker_cache):
 	config = read_config()
 	history = read_history()
 	config['history'] = history
 	config['version'] = build.update_version(history, version)
+	if docker_cache is not None:
+		config['docker_cache'] = docker_cache
 	print 'name:', config.get('name', '<unspecified>')
 	print 'icon:', config.get('icon_file', '<unspecified>')
 	print 'label:', config.get('label', '<unspecified>')

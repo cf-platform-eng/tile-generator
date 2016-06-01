@@ -23,6 +23,25 @@ def products_cmd():
 	for product in products:
 		print "-", product["name"], product["product_version"], "(installed)" if product["installed"] else ""
 
+@cli.command('changes')
+def deployed_cmd():
+	try:
+		changes = opsmgr.get_changes()
+		install = [p for p in changes['install']]
+		for p in install:
+			print "Install " + p["type"]
+
+		delete = [p for p in changes['delete']]
+		for p in delete:
+			print "Delete " + p["type"]
+
+
+		#print 'install:', ', '.join(changes['install'])
+		#print 'delete: ', ', '.join(changes['delete'])
+	except:
+		print >> sys.stderr, 'This command is only available for PCF 1.7 and beyond.'
+		sys.exit(1)
+
 @cli.command('is-available')
 @click.argument('product')
 @click.argument('version', None, required=False)
@@ -68,8 +87,8 @@ def settings_cmd(product):
 @cli.command('cf-info')
 def cf_info_cmd():
 	cfinfo = opsmgr.get_cfinfo()
-	for key, value in cfinfo.items():
-		print '-', key + ':', value
+	for key in sorted(cfinfo):
+		print '-', key + ':', cfinfo[key]
 
 @cli.command('import')
 @click.argument('zipfile')
@@ -80,11 +99,19 @@ def import_cmd(zipfile):
 @click.argument('product')
 @click.argument('version')
 def install_cmd(product, version):
-	payload = {
-		'name': product,
-		'product_version': version,
-	}
-	opsmgr.post('/api/installation_settings/products', payload)
+	products = opsmgr.get_products()
+	matches = [ p for p in products if p['name'] == product and p['installed'] ]
+	if len(matches) < 1:
+		payload = {
+			'name': product,
+			'product_version': version,
+		}
+		opsmgr.post('/api/installation_settings/products', payload)
+	else:
+		payload = {
+			'to_version': version
+		}
+		opsmgr.put('/api/installation_settings/products/' + matches[0]['guid'], payload)
 
 @cli.command('uninstall')
 @click.argument('product')
@@ -163,21 +190,40 @@ def cleanup_cmd(product):
 
 @cli.command('apply-changes')
 def apply_changes_cmd():
-	install = opsmgr.post('/api/installation', { 'ignore_warnings': 'true' }).json()['install']
-	lines_shown = 0
-	while True:
-		log_lines = opsmgr.get('/api/installation/' + str(install['id']) + '/logs').json()['logs'].splitlines()
-		for line in log_lines[lines_shown:]:
-			if not line.startswith('{'):
-				print ' ', line
-		lines_shown = len(log_lines)
-		install_status = opsmgr.get('/api/installation/' + str(install['id'])).json()['status']
-		if not install_status == 'running':
-			break
-		time.sleep(1)
-	if not install_status == 'success':
-		print >> sys.stderr, '- install finished with status:', install_status
-		sys.exit(1)
+	enabled_errands = []
+	try:
+		changes = opsmgr.get_changes()
+		if len(changes['install']) == 0 and len(changes['delete']) == 0:
+			print >> sys.stderr, 'Nothing to do'
+			return
+		for p in changes['install']:
+			enabled_errands += [
+				'enabled_errands' +
+				'[' + p["guid"] + ']' +
+				'[post_deploy_errands]' +
+				'[]' +
+				'=deploy-all' ]
+		for p in changes['delete']:
+			enabled_errands += [
+				'enabled_errands' +
+				'[' + p["guid"] + ']' +
+				'[pre_delete_errands]' +
+				'[]' +
+				'=delete-all' ]
+	except:
+		# Assume we're talking to a PCF version prior to 1.7
+		# It does not support the get_changes APIs
+		# But it also does not require us to pass in the list of errands
+		# So this is perfectly fine
+		pass
+	body = '&'.join(enabled_errands)
+	install = opsmgr.post('/api/installation?ignore_warnings=1', body).json()['install']
+	opsmgr.logs(install['id'])
+
+@cli.command('logs')
+@click.argument('install_id', None, required=False)
+def logs_cmd(install_id=None):
+	opsmgr.logs(install_id)
 
 @cli.command('test-errand')
 @click.argument('tile_repo')

@@ -18,9 +18,10 @@ TEMPLATE_ENVIRONMENT = Environment(
 	variable_start_string='<%=', variable_end_string='%>',
 	comment_start_string='<%', comment_end_string='%>', # To completely ignore Ruby code blocks
 )
-TEMPLATE_ENVIRONMENT.loader = FileSystemLoader('.')
+TEMPLATE_ENVIRONMENT.loader = FileSystemLoader('/')
 
 def render(target_path, template_file, config_dir):
+	template_file = os.path.realpath(template_file)
 	config = compile_config(config_dir)
 	target_dir = os.path.dirname(target_path)
 	if target_dir != '':
@@ -38,7 +39,11 @@ def mkdir_p(dir):
 def get_file_properties(filename):
 	try:
 		with open(filename) as f:
-			return yaml.safe_load(f)
+			properties = yaml.safe_load(f)
+			if properties is None:
+				return {}
+			else:
+				return properties
 	except IOError as e:
 		print >> sys.stderr, filename, 'not found'
 		sys.exit(1)
@@ -47,8 +52,8 @@ def get_cf_properties():
 	cf = opsmgr.get_cfinfo()
 	properties = {}
 	properties['cf'] = {
-		'admin_user': cf['admin_username'],
-		'admin_password': cf['admin_password'],
+		'admin_user': cf['system_services_username'],
+		'admin_password': cf['system_services_password'],
 	}
 	properties['domain'] = cf['system_domain']
 	properties['app_domains'] = [ cf['apps_domain'] ]
@@ -84,7 +89,7 @@ def compile_config(config_dir):
 	for package in config1.get('packages', []):
 		merge_properties(package, config2.get(package['name'], {}))
 		merge_properties(package, properties['security'])
-		merge_properties(properties, { package['name']: package })
+		merge_properties(properties, { package['name'].replace('-','_'): package })
 	merge_properties(properties, config2)
 	return {
 		'properties': properties,

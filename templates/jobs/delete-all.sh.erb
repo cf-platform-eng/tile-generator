@@ -74,6 +74,7 @@ function delete_empty_org() {
 	output=`$CF spaces | tail -1`
 	if [ "$output" == "No spaces found" ]; then
 		cf delete-org -f $CF_ORG
+		cf delete-quota -f ${CF_ORG}-quota
 	fi
 }
 
@@ -101,10 +102,10 @@ if target_org; then
 		# Delete package {{ package.name }}
 		#
 		{% if package.is_broker %}
-		delete_service_broker {{ package.name }}
+		delete_service_broker {{ package.name | hyphens }}
 		{% endif %}
 		{% if package.is_app %}
-		delete_all_versions {{ package.name }}
+		delete_all_versions {{ package.name | hyphens }}
 		{% endif %}
 		{% if package.is_buildpack %}
 		cf delete-buildpack -f {{ package.name }}

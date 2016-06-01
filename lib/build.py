@@ -18,17 +18,55 @@ REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
 DOCKER_BOSHRELEASE_VERSION = '23'
 
 def build(config, verbose=False):
+	validate_config(config)
 	context = config.copy()
 	add_defaults(context)
+	upgrade_config(context)
 	context['verbose'] = verbose
 	with cd('release', clobber=True):
 		create_bosh_release(context)
+	validate_memory_quota(context)
 	with cd('product', clobber=True):
 		create_tile(context)
+
+def validate_config(config):
+	try:
+		validname = re.compile('[a-z][a-z0-9]+(-[a-z0-9]+)*$')
+		if validname.match(config['name']) is None:
+			print >> sys.stderr, 'product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens'
+			sys.exit(1)
+	except KeyError as e:
+		print >> sys.stderr, 'tile.yml is missing mandatory property', e
+		sys.exit(1)
+	for package in config.get('packages', []):
+		try:
+			if validname.match(package['name']) is None:
+				print >> sys.stderr, 'package name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens'
+				sys.exit(1)
+		except KeyError as e:
+			print >> sys.stderr, 'package is missing mandatory property', e
+			sys.exit(1)
+	return config
+
+def upgrade_config(config):
+	# v0.9 specified auto_services as a space-separated string of service names
+	for package in config.get('packages', []):
+		auto_services = package.get('auto_services', None)
+		if auto_services is not None:
+			if isinstance(auto_services, basestring):
+				package['auto_services'] = [ { 'name': s } for s in auto_services.split()]
+	# v0.9 expected a string manifest for docker-bosh releases
+	for package in config.get('packages', []):
+		if package.get('type') == 'docker-bosh':
+			manifest = package.get('manifest')
+			if manifest is not None and isinstance(manifest, basestring):
+				package['manifest'] = yaml.safe_load(manifest)
 
 def add_defaults(context):
 	context['stemcell_criteria'] = context.get('stemcell_criteria', {})
 	context['all_properties'] = context.get('properties', [])
+	context['total_memory'] = 0
+	context['max_memory'] = 0
 	for form in context.get('forms', []):
 		properties = form.get('properties', [])
 		for property in properties:
@@ -36,6 +74,33 @@ def add_defaults(context):
 		context['all_properties'] += properties
 	for property in context['all_properties']:
 		property['name'] = property['name'].lower().replace('-','_')
+
+def update_memory(context, manifest):
+	memory = manifest.get('memory', '1G')
+	unit = memory.lstrip('0123456789').lstrip(' ').lower()
+	if unit not in [ 'g', 'gb', 'm', 'mb' ]:
+		print >> sys.stderr, 'invalid memory size unit', unit, 'in', memory
+		sys.exit(1)
+	memory = int(memory[:-len(unit)])
+	if unit in [ 'g', 'gb' ]:
+		memory *= 1024
+	context['total_memory'] += memory
+	if memory > context['max_memory']:
+		context['max_memory'] = memory
+
+def validate_memory_quota(context):
+	required = context['total_memory'] + context['max_memory']
+	specified = context.get('org_quota', None)
+	if specified is None:
+		# We default to twice the total size
+		# For most cases this is generous, but there's no harm in it
+		context['org_quota'] = context['total_memory'] * 2
+	elif specified < required:
+		print >> sys.stderr, 'Specified org quota of', specified, 'MB is insufficient'
+		print >> sys.stderr, 'Required quota is at least the total package size of', context['total_memory'], 'MB'
+		print >> sys.stderr, 'Plus enough room for blue/green deployment of the largest app:', context['max_memory'], 'MB'
+		print >> sys.stderr, 'For a total of:', required, 'MB'
+		sys.exit(1)
 
 package_types = [
 	# A + at the start of the job type indicates it is a post-deploy errand
@@ -207,14 +272,19 @@ def add_package(dir, context, package, alternate_template=None):
 			package_context['files'] += [ filename ]
 		for docker_image in package.get('docker_images', []):
 			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-			download_docker_image(docker_image, os.path.join(target_dir, filename))
+			download_docker_image(docker_image, os.path.join(target_dir, filename), cache=context.get('docker_cache', None))
 			package_context['files'] += [ filename ]
 	if package.get('is_app', False):
-		manifest = os.path.join(target_dir, 'manifest.yml')
-		with open(manifest, 'wb') as f:
+		manifest = package.get('manifest', { 'name': name })
+		if manifest.get('random-route', False):
+			print >> sys.stderr, 'Illegal manifest option in package', name + ': random-route is not supported'
+			sys.exit(1)
+		manifest_file = os.path.join(target_dir, 'manifest.yml')
+		with open(manifest_file, 'wb') as f:
 			f.write('---\n')
-			f.write(yaml.safe_dump(package.get('manifest', { 'name': name }), default_flow_style=False))
+			f.write(yaml.safe_dump(manifest, default_flow_style=False))
 		package_context['files'] += [ 'manifest.yml' ]
+		update_memory(context, manifest)
 	template.render(
 		os.path.join(package_dir, 'spec'),
 		os.path.join(template_dir, 'spec'),
@@ -237,6 +307,12 @@ def add_cf_cli(context):
 		},
 		alternate_template='cf_cli'
 	)
+	context['requires_product_versions'] = context.get('requires_product_versions', []) + [
+		{
+			'name': 'cf',
+			'version': '~> 1.5'
+		}
+	]
 
 def add_common_utils(context):
 	add_src_package(context,
@@ -292,19 +368,32 @@ def download_docker_release():
 		'file': release_file,
 	}
 
-def download_docker_image(docker_image, target_file):
-	from docker.client import Client
-	try: # First attempt boot2docker, because it is fail-fast
+def download_docker_image(docker_image, target_file, cache=None):
+	try:
+		from docker.client import Client
 		from docker.utils import kwargs_from_env
 		kwargs = kwargs_from_env()
 		kwargs['tls'].assert_hostname = False
 		docker_cli = Client(**kwargs)
-	except KeyError as e: # Assume this means we are not using boot2docker
-		docker_cli = Client(base_url='unix://var/run/docker.sock', tls=False)
-	image = docker_cli.get_image(docker_image)
-	image_tar = open(target_file,'w')
-	image_tar.write(image.data)
-	image_tar.close()
+		image = docker_cli.get_image(docker_image)
+		image_tar = open(target_file,'w')
+		image_tar.write(image.data)
+		image_tar.close()
+	except Exception as e:
+		if cache is not None:
+			cached_file = os.path.join(cache, docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
+			if os.path.isfile(cached_file):
+				print 'using cached version of', docker_image
+				urllib.urlretrieve(cached_file, target_file)
+				return
+			print >> sys.stderr, docker_image, 'not found in cache', cache
+			sys.exit(1)
+		if isinstance(e, KeyError):
+			print >> sys.stderr, 'docker not configured on this machine (or environment variables are not properly set)'
+		else:
+			print >> sys.stderr, docker_image, 'not found on local machine'
+			print >> sys.stderr, 'you must either pull the image, or download it and use the --docker-cache option'
+		sys.exit(1)
 
 def bosh_extract(output, properties):
 	result = {}

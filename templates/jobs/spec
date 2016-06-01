@@ -50,6 +50,9 @@ properties:
   apply_open_security_group:
     description: 'Open security group for the app to access outside'
     default: false
+  allow_paid_service_plans:
+    description: 'Allow use of paid service plans'
+    default: false
   security.user:
     description: 'Basic auth user'
   security.password:
@@ -74,7 +77,7 @@ properties:
     description: 'URL to access service'
   {{ package.name }}.user:
      description: 'Basic auth username to access service'
- {{ package.name }}.password:
+  {{ package.name }}.password:
      description: 'Basic auth password to access service'
 {% elif package.is_broker %}
   {{ package.name }}.user:
@@ -87,9 +90,15 @@ properties:
     description: 'Access to all service plans'
     default: false
 {% endif %}
-{% if package.is_buildpack  %}
+{% if package.is_buildpack %}
   {{ package.name }}.buildpack_order:
     description: 'Order of the Buildpack'
+{% endif %}
+{% if package.is_docker_bosh %}
+  {{ package.name }}.host:
+    description: '(First) Hostname for the container'
+  {{ package.name }}.hosts:
+    description: '(All) Hostnames for the container'
 {% endif %}
 {% endfor %}
 {% endif %}

@@ -1,5 +1,10 @@
 FROM alpine
 
+RUN apk --update upgrade && \
+    apk add --update ca-certificates && \
+    update-ca-certificates && \
+    rm -rf /var/cache/apk/*
+
 RUN apk add --no-cache zip &&\
     apk add --no-cache python && \
     apk add --no-cache --virtual=build-dependencies wget ca-certificates && \
@@ -14,9 +19,5 @@ RUN apk add --no-cache ruby ruby-bundler
 RUN gem install bosh_cli --no-ri --no-rdoc
 
 RUN apk add --update bash
-
-RUN apk add openrc
-RUN apk add docker
-RUN rc-update add docker boot
 
 RUN rm -rf /var/cache/apk/*

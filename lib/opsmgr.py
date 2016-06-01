@@ -56,11 +56,18 @@ class auth(requests.auth.AuthBase):
 		request.headers['Authorization'] = token_type + ' ' + access_token
 		return request
 
-def get(url, stream=False):
+def get(url, stream=False, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	headers = { 'Accept': 'application/json' }
 	response = requests.get(url, auth=auth(creds), verify=False, headers=headers, stream=stream)
+	check_response(response, check=check)
+	return response
+
+def put(url, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	response = requests.put(url, auth=auth(creds), verify=False, data=payload)
 	check_response(response)
 	return response
 
@@ -110,6 +117,8 @@ def get_products():
 	for product in available_products:
 		installed = [ p for p in installed_products if p['identifier'] == product['name'] and p['product_version'] == product['product_version'] ]
 		product['installed'] = len(installed) > 0
+		if product['installed']:
+			product['guid'] = installed[0]['guid']
 	return available_products
 
 def flatten(properties):
@@ -121,11 +130,16 @@ def flatten(properties):
 	properties.update(additions)
 
 def configure(settings, product, properties):
+	properties = properties if properties is not None else {}
 	#
 	# Use the first availability zone
 	#
 	infrastructure = settings['infrastructure']
-	product_settings = [ p for p in settings['products'] if p['identifier'] == product ][0]
+	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
+	if len(product_settings) < 1:
+		print >> sys.stderr, 'Product', product, 'does not appear to be installed'
+		sys.exit(1)
+	product_settings = product_settings[0]
 	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
 	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
 	#
@@ -159,6 +173,16 @@ def configure(settings, product, properties):
 		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
 		sys.exit(1)
 
+def get_changes():
+	deployed = [ p for p in get('/api/v0/deployed/products').json() ]
+	staged   = [ p for p in get('/api/v0/staged/products'  ).json() ]
+	install  = [ p for p in staged   if p["guid"] not in [ g["guid"] for g in deployed ] ]
+	delete   = [ p for p in deployed if p["guid"] not in [ g["guid"] for g in staged   ] ]
+	return {
+		'install': install,
+		'delete':  delete,
+	}
+
 def get_cfinfo():
 	settings = get('/api/installation_settings').json()
 	settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
@@ -172,9 +196,49 @@ def get_cfinfo():
 	apps_domain = [ p for p in cc_properties if p['identifier'] == 'apps_domain' ][0]['value']
 	uaa_properties = [ j for j in jobs if j['identifier'] == 'uaa' ][0]['properties']
 	admin_credentials = [ c for c in uaa_properties if c['identifier'] == 'admin_credentials' ][0]['value']
+	system_services_credentials = [ c for c in uaa_properties if c['identifier'] == 'system_services_credentials' ][0]['value']
 	return {
 		'system_domain': system_domain,
 		'apps_domain': apps_domain,
 		'admin_username': admin_credentials['identity'],
 		'admin_password': admin_credentials['password'],
+		'system_services_username': system_services_credentials['identity'],
+		'system_services_password': system_services_credentials['password'],
 	}
+
+def logs(install_id):
+	if install_id is None:
+		install_id = last_install()
+		if install_id == 0:
+			print >> sys.stderr, 'No installation has ever been performed'
+			sys.exit(1)
+	lines_shown = 0
+	running = True
+	while running:
+		install_status = get('/api/installation/' + str(install_id)).json()['status']
+		running = install_status == 'running'
+		log_lines = get('/api/installation/' + str(install_id) + '/logs').json()['logs'].splitlines()
+		for line in log_lines[lines_shown:]:
+			if not line.startswith('{'):
+				print ' ', line
+		lines_shown = len(log_lines)
+		if running:
+			time.sleep(1)
+	if not install_status.startswith('succ'):
+		print >> sys.stderr, '- install finished with status:', install_status
+		sys.exit(1)
+
+def install_exists(id):
+	response = get('/api/installation/' + str(id), check=False)
+	return response.status_code == requests.codes.ok
+
+def last_install(lower=0, upper=1, check=install_exists):
+	if lower == upper:
+		return lower
+	if check(upper):
+		return last_install(upper, upper * 2, check=check)
+	middle = (lower + upper + 1) / 2
+	if check(middle):
+		return last_install(middle, upper, check=check)
+	else:
+		return last_install(lower, middle - 1, check=check)
