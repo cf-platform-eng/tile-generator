@@ -12,8 +12,12 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, '..', 'templates'))
 
 def render_base64(file):
-	with open(os.path.realpath(os.path.join('..', file)), 'rb') as f:
-		return base64.b64encode(f.read())
+	try:
+		with open(os.path.realpath(os.path.join('..', file)), 'rb') as f:
+			return base64.b64encode(f.read())
+	except Exception as e:
+		print >> sys.stderr, e
+		sys.exit(1)
 
 def render_hyphens(input):
 	return input.replace('_','-')
