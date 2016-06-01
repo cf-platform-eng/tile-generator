@@ -4,7 +4,8 @@ label: {{ label }}
 description: {{ description }}
 icon_image: {{ base64(icon_file) }}
 product_version: '{{ version }}'
-metadata_version: '1.5'
+metadata_version: '1.7'
+minimum_version_for_upgrade: '0.0.1'
 rank: 1
 serial: true
 
@@ -262,10 +263,12 @@ job_types:
   static_ip: 0
   dynamic_ip: 1
   max_in_flight: 1
-  instance_definitions:
-    - name: instances
-      type: integer
-      default: 1
+  single_az_only: true
+  instance_definition:
+    name: instances
+    type: integer
+    configurable: true
+    default: 1
 {% for job in jobs if job.type == 'docker-bosh' %}
 #
 # {{ job.type }} job for {{ job.package.name }}
@@ -300,8 +303,9 @@ job_types:
   static_ip: 1
   dynamic_ip: 0
   max_in_flight: 1
-  instance_definitions:
-  - name: instances
+  single_az_only: false
+  instance_definition:
+    name: instances
     type: integer
     configurable: true
     default: {{ job.package.instances }}
@@ -345,8 +349,9 @@ job_types:
   static_ip: 0
   dynamic_ip: 1
   max_in_flight: 1
-  instance_definitions:
-  - name: instances
+  single_az_only: false
+  instance_definition:
+    name: instances
     type: integer
     configurable: false
     default: 1

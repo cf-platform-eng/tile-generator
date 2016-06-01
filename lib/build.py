@@ -10,6 +10,8 @@ import template
 import urllib
 import zipfile
 import yaml
+import re
+import datetime
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
@@ -259,6 +261,9 @@ def create_tile(context):
 	template.render('metadata/' + release['name'] + '.yml', 'tile/metadata.yml', context)
 	print 'tile generate content-migrations'
 	template.render('content_migrations/' + release['name'] + '.yml', 'tile/content-migrations.yml', context)
+	print 'tile generate migrations'
+	migrations = 'migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
+	template.render(migrations, 'tile/migration.js', context)
 	print 'tile generate package'
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
@@ -268,6 +273,7 @@ def create_tile(context):
 			f.write(os.path.join('releases', docker_release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
 		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
+		f.write(migrations)
 	print
 	print 'created tile', pivotal_file
 
