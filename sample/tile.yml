@@ -69,8 +69,6 @@ packages:
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
 
-unused_packages:
-
 - name: service-broker1               # Broker with minimal configuration, i.e. all default values
   type: app-broker
   enable_global_access_to_plans: true
