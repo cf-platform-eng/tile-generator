@@ -5,6 +5,11 @@ import yaml
 import json
 import requests
 import time
+from urlparse import urlparse
+import subprocess
+import pty
+import os
+import select
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -110,6 +115,49 @@ def check_response(response, check=True):
 		except:
 			print >> sys.stderr, response.text
 		sys.exit(1)
+
+def ssh():
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url')
+	host = urlparse(url).hostname
+	command = [
+		'ssh',
+		'-q',
+		'-o', 'UserKnownHostsFile=/dev/null',
+		'-o', 'StrictHostKeyChecking=no',
+		'ubuntu@' + host
+	]
+	pid, tty = pty.fork()
+	if pid == 0:
+		try:
+			subprocess.check_call(command)
+			sys.exit(0)
+		except subprocess.CalledProcessError as error:
+			print 'Command failed with exit code', error.returncode
+			print error.output
+			sys.exit(error.returncode)
+	else:
+		output = os.read(tty, 4096)
+		os.write(tty, creds.get('opsmgr').get('password') + '\n')
+		os.write(tty, 'stty -echo\n')
+		while not output.endswith('stty -echo\n'):
+			output = os.read(tty, 1024)
+		while True:
+			rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
+			if sys.stdin.fileno() in rlist:
+				input = os.read(sys.stdin.fileno(), 1024)
+				if len(input) == 0:
+					os.close(tty)
+					break
+				else:
+					os.write(tty, input)
+					os.fsync(tty)
+			elif tty in rlist:
+				output = os.read(tty, 1024)
+				if len(output) == 0:
+					break
+				sys.stdout.write(output)
+				sys.stdout.flush()
 
 def get_products():
 	available_products = get('/api/products').json()
