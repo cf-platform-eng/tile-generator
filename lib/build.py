@@ -303,6 +303,9 @@ def add_cf_cli(context):
 			'files': [{
 				'name': 'cf-linux-amd64.tgz',
 				'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
+			},{
+				'name': 'all_open.json',
+				'path': template.path('src/templates/all_open.json')
 			}]
 		},
 		alternate_template='cf_cli'

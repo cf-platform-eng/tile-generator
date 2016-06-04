@@ -39,7 +39,10 @@ def render(target_path, template_file, config):
 		target.write(TEMPLATE_ENVIRONMENT.get_template(template_file).render(config))
 
 def exists(template_file):
-	return os.exists(os.path.join(TEMPLATE_PATH, template_file))
+	return os.exists(path(template_file))
+
+def path(template_file):
+	return os.path.join(TEMPLATE_PATH, template_file)
 
 def mkdir_p(dir):
    try:

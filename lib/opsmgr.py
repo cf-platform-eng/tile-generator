@@ -179,6 +179,8 @@ def get_changes():
 	install  = [ p for p in staged   if p["guid"] not in [ g["guid"] for g in deployed ] ]
 	delete   = [ p for p in deployed if p["guid"] not in [ g["guid"] for g in staged   ] ]
 	return {
+		'staged': staged,
+		'deployed': deployed,
 		'install': install,
 		'delete':  delete,
 	}

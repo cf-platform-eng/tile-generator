@@ -132,7 +132,7 @@ function apply_open_security_group() {
 		return
 	fi
 	if ! $CF security-group all_open >/dev/null; then
-		cf create-security-group all_open $PACKAGE_PATH/templates/all_open.json
+		cf create-security-group all_open ${PACKAGE_PATH}/cf_cli/all_open.json
 	fi
 	cf bind-running-security-group all_open
 }
