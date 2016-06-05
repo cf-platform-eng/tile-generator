@@ -129,7 +129,7 @@ def flatten(properties):
 				additions[key1 + '_' + key2] = value2
 	properties.update(additions)
 
-def configure(settings, product, properties):
+def configure(settings, product, properties, strict=False):
 	properties = properties if properties is not None else {}
 	#
 	# Use the first availability zone
@@ -152,9 +152,10 @@ def configure(settings, product, properties):
 	#
 	# Use the Elastic Runtime stemcell
 	#
-	stemcell = cf[0]['stemcell']
-	print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
-	product_settings['stemcell'] = stemcell
+	if not strict:
+		stemcell = cf[0]['stemcell']
+		print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
+		product_settings['stemcell'] = stemcell
 	#
 	# Insert supplied properties
 	#

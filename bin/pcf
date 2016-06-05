@@ -58,11 +58,12 @@ def is_installed_cmd(product, version):
 @cli.command('configure')
 @click.argument('product')
 @click.argument('properties_file')
-def configure_cmd(product, properties_file):
+@click.option('--strict', is_flag=True)
+def configure_cmd(product, properties_file, strict=False):
 	with open(properties_file) as f:
 		properties = yaml.safe_load(f)
 	settings = opsmgr.get('/api/installation_settings').json()
-	opsmgr.configure(settings, product, properties)
+	opsmgr.configure(settings, product, properties, strict)
 	opsmgr.post_yaml('/api/installation_settings', 'installation[file]', settings)
 
 @cli.command('settings')
