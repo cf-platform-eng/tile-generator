@@ -192,13 +192,13 @@ def apply_changes_cmd():
 			return
 		for p in changes['product_changes']:
 			for e in p['errands']:
-				if e['post_deploy']:
+				if e.get('post_deploy', False):
 					enabled_errands += [
 						'enabled_errands' +
 						'[' + p["guid"] + ']' +
 						'[post_deploy_errands]' +
 						'[]=' + e['name'] ]
-				if e['pre_delete']:
+				if e.get('pre_delete', False):
 					enabled_errands += [
 						'enabled_errands' +
 						'[' + p["guid"] + ']' +

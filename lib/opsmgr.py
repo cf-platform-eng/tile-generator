@@ -190,6 +190,8 @@ def get_changes():
 		errands = [ j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand' ]
 		if 'deploy-all' in errands:
 			p['errands'] = [ { 'name': 'deploy-all', 'post_deploy': True } ]
+	for p in delete:
+		p['errands'] = [ { 'name': 'delete-all', 'pre_delete': True } ]
 	changes  = { 'product_changes': [
 		{
 			'guid': p['guid'],
