@@ -174,16 +174,30 @@ def configure(settings, product, properties):
 		sys.exit(1)
 
 def get_changes():
+	# The new way (PCF 1.8 and beyond)
+	response = get('/api/v0/staged/pending_changes', check=False)
+	if response.status_code == requests.codes.ok:
+		return response.json()
+	# The hard way (PCF 1.7)
 	deployed = [ p for p in get('/api/v0/deployed/products').json() ]
 	staged   = [ p for p in get('/api/v0/staged/products'  ).json() ]
 	install  = [ p for p in staged   if p["guid"] not in [ g["guid"] for g in deployed ] ]
 	delete   = [ p for p in deployed if p["guid"] not in [ g["guid"] for g in staged   ] ]
-	return {
-		'staged': staged,
-		'deployed': deployed,
-		'install': install,
-		'delete':  delete,
-	}
+	update   = [ p for p in deployed if p["guid"]     in [ g["guid"] for g in staged   ] ]
+	for p in install + update:
+		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
+		errands = [ j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand' ]
+		if 'deploy-all' in errands:
+			p['errands'] = [ { 'name': 'deploy-all', 'post_deploy': True } ]
+	changes  = { 'product_changes': [
+		{
+			'guid': p['guid'],
+			'errands': p.get('errands', []),
+			'action': 'install' if p in install else 'delete' if p in delete else 'update'
+		}
+		for p in install + delete + update
+	]}
+	return changes
 
 def get_cfinfo():
 	settings = get('/api/installation_settings').json()
