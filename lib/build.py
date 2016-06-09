@@ -11,6 +11,7 @@ import urllib
 import zipfile
 import yaml
 import re
+import datetime
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
@@ -309,6 +310,9 @@ def add_cf_cli(context):
 			'files': [{
 				'name': 'cf-linux-amd64.tgz',
 				'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
+			},{
+				'name': 'all_open.json',
+				'path': template.path('src/templates/all_open.json')
 			}]
 		},
 		alternate_template='cf_cli'
@@ -343,6 +347,9 @@ def create_tile(context):
 	template.render('metadata/' + release['name'] + '.yml', 'tile/metadata.yml', context)
 	print 'tile generate content-migrations'
 	template.render('content_migrations/' + release['name'] + '.yml', 'tile/content-migrations.yml', context)
+	print 'tile generate migrations'
+	migrations = 'migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
+	template.render(migrations, 'tile/migration.js', context)
 	print 'tile generate package'
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
@@ -356,6 +363,7 @@ def create_tile(context):
 			f.write(os.path.join('releases', bosh_release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
 		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
+		f.write(migrations)
 	print
 	print 'created tile', pivotal_file
 
@@ -411,8 +419,14 @@ def download_docker_image(docker_image, target_file, cache=None):
 				print 'using cached version of', docker_image
 				urllib.urlretrieve(cached_file, target_file)
 				return
-		print 'failed to download docker image', docker_image
-		raise
+			print >> sys.stderr, docker_image, 'not found in cache', cache
+			sys.exit(1)
+		if isinstance(e, KeyError):
+			print >> sys.stderr, 'docker not configured on this machine (or environment variables are not properly set)'
+		else:
+			print >> sys.stderr, docker_image, 'not found on local machine'
+			print >> sys.stderr, 'you must either pull the image, or download it and use the --docker-cache option'
+		sys.exit(1)
 
 def bosh_extract(output, properties):
 	result = {}

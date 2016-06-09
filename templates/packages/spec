@@ -4,7 +4,6 @@ name: {{ package.name }}
 dependencies: []
 
 files:
-- templates/all_open.json
 {% for file in files %}
 - {{ package.name }}/{{ file }}
 {% endfor %}

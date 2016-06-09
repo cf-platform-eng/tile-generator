@@ -5,6 +5,7 @@ description: {{ description }}
 icon_image: {{ base64(icon_file) }}
 product_version: '{{ version }}'
 metadata_version: '1.5'
+minimum_version_for_upgrade: '0.0.1'
 rank: 1
 serial: true
 
@@ -271,10 +272,12 @@ job_types:
   static_ip: 0
   dynamic_ip: 1
   max_in_flight: 1
+  single_az_only: true
   instance_definitions:
-    - name: instances
-      type: integer
-      default: 1
+  - name: instances
+    type: integer
+    configurable: true
+    default: 1
 {% for job in jobs if job.type == 'docker-bosh' %}
 #
 # {{ job.type }} job for {{ job.package.name }}
@@ -309,6 +312,7 @@ job_types:
   static_ip: 1
   dynamic_ip: 0
   max_in_flight: 1
+  single_az_only: false
   instance_definitions:
   - name: instances
     type: integer
@@ -400,6 +404,7 @@ job_types:
   static_ip: 0
   dynamic_ip: 1
   max_in_flight: 1
+  single_az_only: false
   instance_definitions:
   - name: instances
     type: integer
@@ -443,9 +448,9 @@ job_types:
       persistence_store_type: (( .properties.{{ package.name }}_persistence_store_type.value ))
 {% endif %}
 {% if package.is_external_broker %}
-      url: (( .properties.{{ package.name }}_url ))
-      user: (( .properties.{{ package.name }}_user ))
-      password: (( .properties.{{ package.name }}_password ))
+      url: (( .properties.{{ package.name }}_url.value ))
+      user: (( .properties.{{ package.name }}_user.value ))
+      password: (( .properties.{{ package.name }}_password.value ))
 {% elif package.is_broker %}
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
