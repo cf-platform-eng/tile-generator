@@ -86,7 +86,8 @@ def add_defaults(context):
 	for form in context.get('forms', []):
 		properties = form.get('properties', [])
 		for property in properties:
-			property['configurable'] = 'true'
+			if 'configurable' not in property:
+				property['configurable'] = 'true'
 		context['all_properties'] += properties
 	for property in context['all_properties']:
 		property['name'] = property['name'].lower().replace('-','_')
