@@ -151,7 +151,7 @@ form_types:
   description: {{ form.description or form.label }}
   {% if form.markdown %}
   markdown: |
-    {{ form.markdown | indent(4, False) }}
+    {{ form.markdown | indent }}
   {% endif %}
   property_inputs:
   {% for property in form.properties %}
