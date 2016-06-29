@@ -149,6 +149,10 @@ form_types:
 - name: {{ form.name }}
   label: {{ form.label }}
   description: {{ form.description or form.label }}
+  {% if form.markdown %}
+  markdown: |
+    {{ form.markdown | indent }}
+  {% endif %}
   property_inputs:
   {% for property in form.properties %}
   - reference: .properties.{{ property.name }}
