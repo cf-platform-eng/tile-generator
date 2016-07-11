@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 
+# tile-generator
+#
+# Copyright (c) 2015-Present Pivotal Software, Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import yaml
 import json
@@ -177,7 +193,7 @@ def flatten(properties):
 				additions[key1 + '_' + key2] = value2
 	properties.update(additions)
 
-def configure(settings, product, properties):
+def configure(settings, product, properties, strict=False):
 	properties = properties if properties is not None else {}
 	#
 	# Use the first availability zone
@@ -200,9 +216,10 @@ def configure(settings, product, properties):
 	#
 	# Use the Elastic Runtime stemcell
 	#
-	stemcell = cf[0]['stemcell']
-	print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
-	product_settings['stemcell'] = stemcell
+	if not strict:
+		stemcell = cf[0]['stemcell']
+		print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
+		product_settings['stemcell'] = stemcell
 	#
 	# Insert supplied properties
 	#
@@ -222,14 +239,32 @@ def configure(settings, product, properties):
 		sys.exit(1)
 
 def get_changes():
+	# The new way (PCF 1.8 and beyond)
+	response = get('/api/v0/staged/pending_changes', check=False)
+	if response.status_code == requests.codes.ok:
+		return response.json()
+	# The hard way (PCF 1.7)
 	deployed = [ p for p in get('/api/v0/deployed/products').json() ]
 	staged   = [ p for p in get('/api/v0/staged/products'  ).json() ]
 	install  = [ p for p in staged   if p["guid"] not in [ g["guid"] for g in deployed ] ]
 	delete   = [ p for p in deployed if p["guid"] not in [ g["guid"] for g in staged   ] ]
-	return {
-		'install': install,
-		'delete':  delete,
-	}
+	update   = [ p for p in deployed if p["guid"]     in [ g["guid"] for g in staged   ] ]
+	for p in install + update:
+		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
+		errands = [ j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand' ]
+		if 'deploy-all' in errands:
+			p['errands'] = [ { 'name': 'deploy-all', 'post_deploy': True } ]
+	for p in delete:
+		p['errands'] = [ { 'name': 'delete-all', 'pre_delete': True } ]
+	changes  = { 'product_changes': [
+		{
+			'guid': p['guid'],
+			'errands': p.get('errands', []),
+			'action': 'install' if p in install else 'delete' if p in delete else 'update'
+		}
+		for p in install + delete + update
+	]}
+	return changes
 
 def get_cfinfo():
 	settings = get('/api/installation_settings').json()

@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 
+# tile-generator
+#
+# Copyright (c) 2015-Present Pivotal Software, Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import sys
 import yaml
@@ -31,17 +47,10 @@ def products_cmd():
 def deployed_cmd():
 	try:
 		changes = opsmgr.get_changes()
-		install = [p for p in changes['install']]
-		for p in install:
-			print "Install " + p["type"]
-
-		delete = [p for p in changes['delete']]
-		for p in delete:
-			print "Delete " + p["type"]
-
-
-		#print 'install:', ', '.join(changes['install'])
-		#print 'delete: ', ', '.join(changes['delete'])
+		for p in changes['product_changes']:
+			print p['action'], p['guid']
+			for e in p['errands']:
+				print '-', e['name']
 	except:
 		print >> sys.stderr, 'This command is only available for PCF 1.7 and beyond.'
 		sys.exit(1)
@@ -69,11 +78,12 @@ def is_installed_cmd(product, version):
 @cli.command('configure')
 @click.argument('product')
 @click.argument('properties_file')
-def configure_cmd(product, properties_file):
+@click.option('--strict', is_flag=True)
+def configure_cmd(product, properties_file, strict=False):
 	with open(properties_file) as f:
 		properties = yaml.safe_load(f)
 	settings = opsmgr.get('/api/installation_settings').json()
-	opsmgr.configure(settings, product, properties)
+	opsmgr.configure(settings, product, properties, strict)
 	opsmgr.post_yaml('/api/installation_settings', 'installation[file]', settings)
 
 @cli.command('settings')
@@ -197,23 +207,23 @@ def apply_changes_cmd():
 	enabled_errands = []
 	try:
 		changes = opsmgr.get_changes()
-		if len(changes['install']) == 0 and len(changes['delete']) == 0:
+		if len(changes['product_changes']) == 0:
 			print >> sys.stderr, 'Nothing to do'
 			return
-		for p in changes['install']:
-			enabled_errands += [
-				'enabled_errands' +
-				'[' + p["guid"] + ']' +
-				'[post_deploy_errands]' +
-				'[]' +
-				'=deploy-all' ]
-		for p in changes['delete']:
-			enabled_errands += [
-				'enabled_errands' +
-				'[' + p["guid"] + ']' +
-				'[pre_delete_errands]' +
-				'[]' +
-				'=delete-all' ]
+		for p in changes['product_changes']:
+			for e in p['errands']:
+				if e.get('post_deploy', False):
+					enabled_errands += [
+						'enabled_errands' +
+						'[' + p["guid"] + ']' +
+						'[post_deploy_errands]' +
+						'[]=' + e['name'] ]
+				if e.get('pre_delete', False):
+					enabled_errands += [
+						'enabled_errands' +
+						'[' + p["guid"] + ']' +
+						'[pre_delete_errands]' +
+						'[]=' + e['name'] ]
 	except:
 		# Assume we're talking to a PCF version prior to 1.7
 		# It does not support the get_changes APIs
