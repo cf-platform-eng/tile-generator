@@ -126,6 +126,7 @@ property_blueprints:
   default: {{ property.default }}
   {% endif %}
   configurable: {{ property.configurable or 'false' }}
+  optional: {{ property.optional or 'false' }}
   {% if property.constraints is defined %}
   constraints:
     {{ property.constraints | yaml | indent }}
