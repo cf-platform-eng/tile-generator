@@ -154,10 +154,10 @@ def ssh():
 			sys.exit(error.returncode)
 	else:
 		output = os.read(tty, 4096)
+		sys.stdout.write(output)
+		sys.stdout.flush()
 		os.write(tty, creds.get('opsmgr').get('password') + '\n')
 		os.write(tty, 'stty -echo\n')
-		while not output.endswith('stty -echo\n'):
-			output = os.read(tty, 1024)
 		while True:
 			rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
 			if sys.stdin.fileno() in rlist:
