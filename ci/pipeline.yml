@@ -152,6 +152,9 @@ jobs:
   - put: app-docker-image
     params:
       build: sample-tile-build/src
+  - get: app-docker-image
+    params:
+      save: true
   - task: populate-docker-cache
     config:
       platform: linux
