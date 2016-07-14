@@ -33,6 +33,10 @@ import erb
 def cli():
 	pass
 
+@cli.command('ssh')
+def ssh_cmd():
+	opsmgr.ssh()
+
 @cli.command('products')
 def products_cmd():
 	products = opsmgr.get_products()
@@ -253,4 +257,8 @@ def target_cmd():
 	subprocess.call(['cf', 'login', '-u', cf['admin_username'], '-p', cf['admin_password']])
 
 if __name__ == '__main__':
-	cli()
+	try:
+		cli()
+	except Exception as e:
+		print >> sys.stderr, e
+		sys.exit(1)
