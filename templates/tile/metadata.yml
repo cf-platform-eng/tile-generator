@@ -131,6 +131,11 @@ property_blueprints:
   default: {{ property.default }}
   {% endif %}
   configurable: {{ property.configurable or 'false' }}
+  optional: {{ property.optional or 'false' }}
+  {% if property.constraints is defined %}
+  constraints:
+    {{ property.constraints | yaml | indent }}
+  {% endif %}
   {% if property.options is defined %}
   options:
   {% for option in property.options %}
@@ -154,6 +159,10 @@ form_types:
 - name: {{ form.name }}
   label: {{ form.label }}
   description: {{ form.description or form.label }}
+  {% if form.markdown %}
+  markdown: |
+    {{ form.markdown | indent }}
+  {% endif %}
   property_inputs:
   {% for property in form.properties %}
   - reference: .properties.{{ property.name }}

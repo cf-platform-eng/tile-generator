@@ -1,10 +1,31 @@
 #!/usr/bin/env python
 
+# tile-generator
+#
+# Copyright (c) 2015-Present Pivotal Software, Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import yaml
 import json
 import requests
 import time
+from urlparse import urlparse
+import subprocess
+import pty
+import os
+import select
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -110,6 +131,49 @@ def check_response(response, check=True):
 		except:
 			print >> sys.stderr, response.text
 		sys.exit(1)
+
+def ssh():
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url')
+	host = urlparse(url).hostname
+	command = [
+		'ssh',
+		'-q',
+		'-o', 'UserKnownHostsFile=/dev/null',
+		'-o', 'StrictHostKeyChecking=no',
+		'ubuntu@' + host
+	]
+	pid, tty = pty.fork()
+	if pid == 0:
+		try:
+			subprocess.check_call(command)
+			sys.exit(0)
+		except subprocess.CalledProcessError as error:
+			print 'Command failed with exit code', error.returncode
+			print error.output
+			sys.exit(error.returncode)
+	else:
+		output = os.read(tty, 4096)
+		sys.stdout.write(output)
+		sys.stdout.flush()
+		os.write(tty, creds.get('opsmgr').get('password') + '\n')
+		os.write(tty, 'stty -echo\n')
+		while True:
+			rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
+			if sys.stdin.fileno() in rlist:
+				input = os.read(sys.stdin.fileno(), 1024)
+				if len(input) == 0:
+					os.close(tty)
+					break
+				else:
+					os.write(tty, input)
+					os.fsync(tty)
+			elif tty in rlist:
+				output = os.read(tty, 1024)
+				if len(output) == 0:
+					break
+				sys.stdout.write(output)
+				sys.stdout.flush()
 
 def get_products():
 	available_products = get('/api/products').json()
