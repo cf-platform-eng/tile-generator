@@ -238,15 +238,18 @@ def configure(settings, product, properties, strict=False):
 		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
 		sys.exit(1)
 
-def get_changes(post_deploy_errands = None):
+def get_changes(deploy_errands = None, delete_errands = None):
+	if deploy_errands is None:
+		deploy_errands = ['deploy-all']
+	if delete_errands is None:
+		delete_errands = ['delete-all']
+
 	# The new way (PCF 1.8 and beyond)
 	response = get('/api/v0/staged/pending_changes', check=False)
 	if response.status_code == requests.codes.ok:
 		return response.json()
 
 	# The hard way (PCF 1.7)
-	if post_deploy_errands is None:
-		post_deploy_errands = ['deploy-all']
 	deployed = [ p for p in get('/api/v0/deployed/products').json() ]
 	staged   = [ p for p in get('/api/v0/staged/products'  ).json() ]
 	install  = [ p for p in staged   if p["guid"] not in [ g["guid"] for g in deployed ] ]
@@ -256,11 +259,16 @@ def get_changes(post_deploy_errands = None):
 		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
 		errands = [ j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand' ]
 		p['errands'] = []
-		for post_deploy_errand in post_deploy_errands:
-			if post_deploy_errand in errands:
-				p['errands'].append({ 'name': post_deploy_errand, 'post_deploy': True })
+		for deploy_errand in deploy_errands:
+			if deploy_errand in errands:
+				p['errands'].append({ 'name': deploy_errand, 'post_deploy': True })
 	for p in delete:
-		p['errands'] = [ { 'name': 'delete-all', 'pre_delete': True } ]
+		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
+		errands = [ j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand' ]
+		p['errands'] = []
+		for deploy_errand in delete_errands:
+			if deploy_errand in errands:
+				p['errands'].append({ 'name': deploy_errand, 'pre_delete': True })
 	changes  = { 'product_changes': [
 		{
 			'guid': p['guid'],

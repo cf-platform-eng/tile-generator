@@ -57,7 +57,7 @@ class TestInstallTriangulation(unittest.TestCase):
 
 
 @mock.patch('opsmgr.get')
-class TestGetChanges(unittest.TestCase):
+class TestGetChangesOneSeven(unittest.TestCase):
 
 	def json_response(self, body):
 		response = requests.Response()
@@ -75,31 +75,32 @@ class TestGetChanges(unittest.TestCase):
 			self.json_response(json_deploy_products),
 			self.json_response(json_staged_products),
 			self.json_response(json_broker_one_manifest),
-			self.json_response(json_tile_two_manifest)
+			self.json_response(json_tile_two_manifest),
+			self.json_response(json_deleting_manifest),
 		]
 
 		product_changes = opsmgr.get_changes()
 
 		changes = product_changes['product_changes']
-		self.assertEquals(len(changes), 2)
+		self.assertEquals(len(changes), 3)
 
-		change_one = changes[0]
-		self.assertEquals(change_one['action'], 'update')
-		self.assertEquals(change_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
+		update_one = changes[1]
+		self.assertEquals(update_one['action'], 'update')
+		self.assertEquals(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
 
-		change_one_errands = change_one['errands']
-		self.assertEquals(len(change_one_errands), 1)
-		self.assertEquals(change_one_errands[0]['name'], 'deploy-all')
-		self.assertTrue(change_one_errands[0]['post_deploy'])
+		update_one_errands = update_one['errands']
+		self.assertEquals(len(update_one_errands), 1)
+		self.assertEquals(update_one_errands[0]['name'], 'deploy-all')
+		self.assertTrue(update_one_errands[0]['post_deploy'])
 
-		change_two = changes[1]
-		self.assertEquals(change_two['action'], 'update')
-		self.assertEquals(change_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
+		update_two = changes[2]
+		self.assertEquals(update_two['action'], 'update')
+		self.assertEquals(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
 
-		change_two_errands = change_two['errands']
-		self.assertEquals(len(change_two_errands), 1)
-		self.assertEquals(change_two_errands[0]['name'], 'deploy-all')
-		self.assertTrue(change_two_errands[0]['post_deploy'])
+		update_two_errands = update_two['errands']
+		self.assertEquals(len(update_two_errands), 1)
+		self.assertEquals(update_two_errands[0]['name'], 'deploy-all')
+		self.assertTrue(update_two_errands[0]['post_deploy'])
 
 	def test_custom_deploy_errands(self, mock_get_changes):
 		resp_not_found = requests.Response()
@@ -110,27 +111,86 @@ class TestGetChanges(unittest.TestCase):
 			self.json_response(json_deploy_products),
 			self.json_response(json_staged_products),
 			self.json_response(json_broker_one_manifest),
-			self.json_response(json_tile_two_manifest)
+			self.json_response(json_tile_two_manifest),
+			self.json_response(json_deleting_manifest),
 		]
 
-		product_changes = opsmgr.get_changes(post_deploy_errands = ['deploy-all', 'configure-broker', 'missing'])
+		product_changes = opsmgr.get_changes(deploy_errands= ['deploy-all', 'configure-broker', 'missing'])
 
 		changes = product_changes['product_changes']
-		self.assertEquals(len(changes), 2)
+		self.assertEquals(len(changes), 3)
 
-		change_one = changes[0]
-		self.assertEquals(change_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
-		self.assertEquals(len(change_one['errands']), 1)
+		update_one = changes[1]
+		self.assertEquals(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
+		self.assertEquals(len(update_one['errands']), 1)
 
-		change_two = changes[1]
-		self.assertEquals(change_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
-		change_two_errands = change_two['errands']
+		update_two = changes[2]
+		self.assertEquals(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
+		change_two_errands = update_two['errands']
 		self.assertEquals(len(change_two_errands), 2)
 		self.assertEquals(change_two_errands[0]['name'], 'deploy-all')
 		self.assertTrue(change_two_errands[0]['post_deploy'])
 		self.assertEquals(change_two_errands[1]['name'], 'configure-broker')
 		self.assertTrue(change_two_errands[1]['post_deploy'])
 
+	def test_default_delete_errands(self, mock_get_changes):
+		resp_not_found = requests.Response()
+		resp_not_found.status_code = 404
+
+		mock_get_changes.side_effect = [
+			resp_not_found,
+			self.json_response(json_deploy_products),
+			self.json_response(json_staged_products),
+			self.json_response(json_broker_one_manifest),
+			self.json_response(json_tile_two_manifest),
+			self.json_response(json_deleting_manifest),
+		]
+
+		product_changes = opsmgr.get_changes()
+
+		changes = product_changes['product_changes']
+		self.assertEquals(len(changes), 3)
+
+		delete = changes[0]
+		self.assertEquals(delete['action'], 'delete')
+		self.assertEquals(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
+
+		delete_errands = delete['errands']
+		self.assertEquals(len(delete_errands), 1)
+		self.assertEquals(delete_errands[0]['name'], 'delete-all')
+		self.assertTrue(delete_errands[0]['pre_delete'])
+
+	def test_custom_delete_errands(self, mock_get_changes):
+		resp_not_found = requests.Response()
+		resp_not_found.status_code = 404
+
+		mock_get_changes.side_effect = [
+			resp_not_found,
+			self.json_response(json_deploy_products),
+			self.json_response(json_staged_products),
+			self.json_response(json_broker_one_manifest),
+			self.json_response(json_tile_two_manifest),
+			self.json_response(json_deleting_manifest),
+		]
+
+		product_changes = opsmgr.get_changes(
+			deploy_errands= ['deploy-all'],
+			delete_errands=['delete-all', 'delete-cleanup']
+		)
+
+		changes = product_changes['product_changes']
+		self.assertEquals(len(changes), 3)
+
+		delete = changes[0]
+		self.assertEquals(delete['action'], 'delete')
+		self.assertEquals(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
+
+		delete_errands = delete['errands']
+		self.assertEquals(len(delete_errands), 2)
+		self.assertEquals(delete_errands[0]['name'], 'delete-all')
+		self.assertTrue(delete_errands[0]['pre_delete'])
+		self.assertEquals(delete_errands[1]['name'], 'delete-cleanup')
+		self.assertTrue(delete_errands[1]['pre_delete'])
 
 
 if __name__ == '__main__':
@@ -147,6 +207,11 @@ json_deploy_products = """
     {
         "guid": "tile-two-ed10ef2a821e0e810f2c",
         "installation_name": "tile-two-ed10ef2a821e0e810f2c",
+        "type": "tile-two"
+    },
+    {
+        "guid": "deleting-ecb2884a79cf44f5849b",
+        "installation_name": "tile-two-ecb2884a79cf44f5849b",
         "type": "tile-two"
     }
 ]
@@ -304,6 +369,98 @@ json_tile_two_manifest = """
             {
                 "version": "102",
                 "name": "tile-two"
+            }
+        ],
+        "compilation": {},
+        "update": {
+            "update_watch_time": "30000-300000",
+            "canary_watch_time": "30000-300000",
+            "max_errors": 2,
+            "max_in_flight": 1,
+            "serial": true,
+            "canaries": 1
+        },
+        "resource_pools": [],
+        "director_uuid": "ignore",
+        "networks": [],
+        "disk_pools": []
+    }
+}
+"""
+
+json_deleting_manifest = """
+{
+    "manifest": {
+        "jobs": [
+            {
+                "templates": [
+                    {
+                        "release": "deleting",
+                        "name": "delete-cleanup"
+                    }
+                ],
+                "resource_pool": "delete-cleanup",
+                "properties": {},
+                "name": "delete-cleanup",
+                "update": {
+                    "max_in_flight": 1
+                },
+                "lifecycle": "errand",
+                "instances": 1,
+                "networks": []
+            },
+            {
+                "templates": [
+                    {
+                        "release": "deleting",
+                        "name": "deploy-all"
+                    }
+                ],
+                "resource_pool": "deploy-all",
+                "properties": {},
+                "name": "deploy-all",
+                "update": {
+                    "max_in_flight": 1
+                },
+                "lifecycle": "errand",
+                "instances": 1,
+                "networks": [
+                    {
+                        "default": [
+                            "dns",
+                            "gateway"
+                        ],
+                        "name": "default"
+                    }
+                ]
+            },
+            {
+                "templates": [
+                    {
+                        "release": "deleting",
+                        "name": "delete-all"
+                    }
+                ],
+                "resource_pool": "delete-all",
+                "properties": {},
+                "name": "delete-all",
+                "update": {
+                    "max_in_flight": 1
+                },
+                "lifecycle": "errand",
+                "instances": 1,
+                "networks": []
+            }
+        ],
+        "name": "deleting-ecb2884a79cf44f5849b",
+        "releases": [
+            {
+                "version": "0.0.171",
+                "name": "deleting"
+            },
+            {
+                "version": "102",
+                "name": "deleting"
             }
         ],
         "compilation": {},
