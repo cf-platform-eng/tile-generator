@@ -209,14 +209,30 @@ class TestGetChanges18(unittest.TestCase):
 		self.assertEquals(install['action'], 'install')
 
 		install_errands = install['errands']
+		self.assertEquals(len(install_errands), 1)
+		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertTrue(install_errands[0]['post_deploy'])
+
+	def test_custom_install_errands(self, mock_get):
+		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['pending_changes_install'])
+		]
+
+		product_changes = opsmgr.get_changes(['deploy-all', 'config-broker'])
+		changes = product_changes['product_changes']
+
+		self.assertEquals(len(changes), 1)
+
+		install = changes[0]
+		self.assertEquals(install['guid'], 'service-broker-one-8a46337545b088152272')
+		self.assertEquals(install['action'], 'install')
+
+		install_errands = install['errands']
 		self.assertEquals(len(install_errands), 2)
 		self.assertEquals(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
 		self.assertEquals(install_errands[1]['name'], 'config-broker')
 		self.assertTrue(install_errands[1]['post_deploy'])
-
-	def x_test_custom_install_errands(self, mock_get):
-		return # "todo"
 
 	def test_default_update_errands(self, mock_get):
 		mock_get.side_effect = [
@@ -233,14 +249,30 @@ class TestGetChanges18(unittest.TestCase):
 		self.assertEquals(install['action'], 'update')
 
 		install_errands = install['errands']
+		self.assertEquals(len(install_errands), 1)
+		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertTrue(install_errands[0]['post_deploy'])
+
+	def test_custom_update_errands(self, mock_get):
+		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['pending_changes_update'])
+		]
+
+		product_changes = opsmgr.get_changes(['deploy-all', 'config-broker'])
+		changes = product_changes['product_changes']
+
+		self.assertEquals(len(changes), 1)
+
+		install = changes[0]
+		self.assertEquals(install['guid'], 'service-broker-two-e8e9996bf23a455fbee6')
+		self.assertEquals(install['action'], 'update')
+
+		install_errands = install['errands']
 		self.assertEquals(len(install_errands), 2)
 		self.assertEquals(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
 		self.assertEquals(install_errands[1]['name'], 'config-broker')
 		self.assertTrue(install_errands[1]['post_deploy'])
-
-	def x_test_custom_update_errands(self, mock_get):
-		return # "todo"
 
 	def test_default_delete_errands(self, mock_get):
 		mock_get.side_effect = [
@@ -266,14 +298,38 @@ class TestGetChanges18(unittest.TestCase):
 		self.assertEquals(delete_two['action'], 'delete')
 
 		delete_two_errands = delete_two['errands']
+		self.assertEquals(len(delete_two_errands), 0)
+
+	def test_custom_delete_errands(self, mock_get):
+		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['pending_changes_delete'])
+		]
+
+		product_changes = opsmgr.get_changes(delete_errands = [
+			'delete_subdeployments_on_demand_service_broker',
+			'unregister_on_demand_service_broker'
+		])
+		changes = product_changes['product_changes']
+
+		self.assertEquals(len(changes), 2)
+
+		delete_one = changes[0]
+		self.assertEquals(delete_one['guid'], 'key-value-tile-ce5a27ce8a93145ed200')
+		self.assertEquals(delete_one['action'], 'delete')
+
+		delete_one_errands = delete_one['errands']
+		self.assertEquals(len(delete_one_errands), 0)
+
+		delete_two = changes[1]
+		self.assertEquals(delete_two['guid'], 'db-on-demand-c8ace318b641342d8420')
+		self.assertEquals(delete_two['action'], 'delete')
+
+		delete_two_errands = delete_two['errands']
 		self.assertEquals(len(delete_two_errands), 2)
 		self.assertEquals(delete_two_errands[0]['name'], 'delete_subdeployments_on_demand_service_broker')
 		self.assertTrue(delete_two_errands[0]['pre_delete'])
 		self.assertEquals(delete_two_errands[1]['name'], 'unregister_on_demand_service_broker')
 		self.assertTrue(delete_two_errands[1]['pre_delete'])
-
-	def x_test_custom_delete_errands(self, mock_get):
-		return # "todo"
 
 
 api_responses_1_7 = {}

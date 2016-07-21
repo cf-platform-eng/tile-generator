@@ -227,12 +227,8 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 		# So this is perfectly fine
 		pass
 	body = '&'.join(enabled_errands)
-
-	print "------------------skipping install"
-	print body
-
-	#install = opsmgr.post('/api/installation?ignore_warnings=1', body).json()['install']
-	#opsmgr.logs(install['id'])
+	install = opsmgr.post('/api/installation?ignore_warnings=1', body).json()['install']
+	opsmgr.logs(install['id'])
 
 def serialize_errands(product, type, form_key):
 	matching_errands = [e for e in (product['errands']) if e.get(type, False)]
