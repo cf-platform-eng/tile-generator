@@ -56,27 +56,27 @@ class TestInstallTriangulation(unittest.TestCase):
 		self.assertEquals(opsmgr.last_install(check=self.twenty_installs_exist), 20)
 
 
+def build_json_response(body):
+	response = requests.Response()
+	response.status_code = 200
+	response.encoding = 'application/json'
+	response.raw = StringIO(body)
+	return response
+
+
 @mock.patch('opsmgr.get')
-class TestGetChangesOneSeven(unittest.TestCase):
-
-	def json_response(self, body):
-		response = requests.Response()
-		response.status_code = 200
-		response.encoding = 'application/json'
-		response.raw = StringIO(body)
-		return response
-
-	def test_default_errands(self, mock_get_changes):
+class TestGetChanges17(unittest.TestCase):
+	def test_default_errands(self, mock_get):
 		resp_not_found = requests.Response()
 		resp_not_found.status_code = 404
 
-		mock_get_changes.side_effect = [
+		mock_get.side_effect = [
 			resp_not_found,
-			self.json_response(json_deploy_products),
-			self.json_response(json_staged_products),
-			self.json_response(json_broker_one_manifest),
-			self.json_response(json_tile_two_manifest),
-			self.json_response(json_deleting_manifest),
+			build_json_response(api_responses_1_7['deployed_products']),
+			build_json_response(api_responses_1_7['staged_products']),
+			build_json_response(api_responses_1_7['broker_one_manifest']),
+			build_json_response(api_responses_1_7['tile_two_manifest']),
+			build_json_response(api_responses_1_7['deleting_manifest']),
 		]
 
 		product_changes = opsmgr.get_changes()
@@ -102,17 +102,17 @@ class TestGetChangesOneSeven(unittest.TestCase):
 		self.assertEquals(update_two_errands[0]['name'], 'deploy-all')
 		self.assertTrue(update_two_errands[0]['post_deploy'])
 
-	def test_custom_deploy_errands(self, mock_get_changes):
+	def test_custom_deploy_errands(self, mock_get):
 		resp_not_found = requests.Response()
 		resp_not_found.status_code = 404
 
-		mock_get_changes.side_effect = [
+		mock_get.side_effect = [
 			resp_not_found,
-			self.json_response(json_deploy_products),
-			self.json_response(json_staged_products),
-			self.json_response(json_broker_one_manifest),
-			self.json_response(json_tile_two_manifest),
-			self.json_response(json_deleting_manifest),
+			build_json_response(api_responses_1_7['deployed_products']),
+			build_json_response(api_responses_1_7['staged_products']),
+			build_json_response(api_responses_1_7['broker_one_manifest']),
+			build_json_response(api_responses_1_7['tile_two_manifest']),
+			build_json_response(api_responses_1_7['deleting_manifest']),
 		]
 
 		product_changes = opsmgr.get_changes(deploy_errands= ['deploy-all', 'configure-broker', 'missing'])
@@ -133,17 +133,17 @@ class TestGetChangesOneSeven(unittest.TestCase):
 		self.assertEquals(change_two_errands[1]['name'], 'configure-broker')
 		self.assertTrue(change_two_errands[1]['post_deploy'])
 
-	def test_default_delete_errands(self, mock_get_changes):
+	def test_default_delete_errands(self, mock_get):
 		resp_not_found = requests.Response()
 		resp_not_found.status_code = 404
 
-		mock_get_changes.side_effect = [
+		mock_get.side_effect = [
 			resp_not_found,
-			self.json_response(json_deploy_products),
-			self.json_response(json_staged_products),
-			self.json_response(json_broker_one_manifest),
-			self.json_response(json_tile_two_manifest),
-			self.json_response(json_deleting_manifest),
+			build_json_response(api_responses_1_7['deployed_products']),
+			build_json_response(api_responses_1_7['staged_products']),
+			build_json_response(api_responses_1_7['broker_one_manifest']),
+			build_json_response(api_responses_1_7['tile_two_manifest']),
+			build_json_response(api_responses_1_7['deleting_manifest']),
 		]
 
 		product_changes = opsmgr.get_changes()
@@ -160,17 +160,17 @@ class TestGetChangesOneSeven(unittest.TestCase):
 		self.assertEquals(delete_errands[0]['name'], 'delete-all')
 		self.assertTrue(delete_errands[0]['pre_delete'])
 
-	def test_custom_delete_errands(self, mock_get_changes):
+	def test_custom_delete_errands(self, mock_get):
 		resp_not_found = requests.Response()
 		resp_not_found.status_code = 404
 
-		mock_get_changes.side_effect = [
+		mock_get.side_effect = [
 			resp_not_found,
-			self.json_response(json_deploy_products),
-			self.json_response(json_staged_products),
-			self.json_response(json_broker_one_manifest),
-			self.json_response(json_tile_two_manifest),
-			self.json_response(json_deleting_manifest),
+			build_json_response(api_responses_1_7['deployed_products']),
+			build_json_response(api_responses_1_7['staged_products']),
+			build_json_response(api_responses_1_7['broker_one_manifest']),
+			build_json_response(api_responses_1_7['tile_two_manifest']),
+			build_json_response(api_responses_1_7['deleting_manifest']),
 		]
 
 		product_changes = opsmgr.get_changes(
@@ -192,12 +192,92 @@ class TestGetChangesOneSeven(unittest.TestCase):
 		self.assertEquals(delete_errands[1]['name'], 'delete-cleanup')
 		self.assertTrue(delete_errands[1]['pre_delete'])
 
+@mock.patch('opsmgr.get')
+class TestGetChanges18(unittest.TestCase):
+	def test_default_install_errands(self, mock_get):
+		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['pending_changes_install'])
+		]
 
-if __name__ == '__main__':
-	unittest.main()
+		product_changes = opsmgr.get_changes()
+		changes = product_changes['product_changes']
+
+		self.assertEquals(len(changes), 1)
+
+		install = changes[0]
+		self.assertEquals(install['guid'], 'service-broker-one-8a46337545b088152272')
+		self.assertEquals(install['action'], 'install')
+
+		install_errands = install['errands']
+		self.assertEquals(len(install_errands), 2)
+		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertTrue(install_errands[0]['post_deploy'])
+		self.assertEquals(install_errands[1]['name'], 'config-broker')
+		self.assertTrue(install_errands[1]['post_deploy'])
+
+	def x_test_custom_install_errands(self, mock_get):
+		return # "todo"
+
+	def test_default_update_errands(self, mock_get):
+		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['pending_changes_update'])
+		]
+
+		product_changes = opsmgr.get_changes()
+		changes = product_changes['product_changes']
+
+		self.assertEquals(len(changes), 1)
+
+		install = changes[0]
+		self.assertEquals(install['guid'], 'service-broker-two-e8e9996bf23a455fbee6')
+		self.assertEquals(install['action'], 'update')
+
+		install_errands = install['errands']
+		self.assertEquals(len(install_errands), 2)
+		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertTrue(install_errands[0]['post_deploy'])
+		self.assertEquals(install_errands[1]['name'], 'config-broker')
+		self.assertTrue(install_errands[1]['post_deploy'])
+
+	def x_test_custom_update_errands(self, mock_get):
+		return # "todo"
+
+	def test_default_delete_errands(self, mock_get):
+		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['pending_changes_delete'])
+		]
+
+		product_changes = opsmgr.get_changes()
+		changes = product_changes['product_changes']
+
+		self.assertEquals(len(changes), 2)
+
+		delete_one = changes[0]
+		self.assertEquals(delete_one['guid'], 'key-value-tile-ce5a27ce8a93145ed200')
+		self.assertEquals(delete_one['action'], 'delete')
+
+		delete_one_errands = delete_one['errands']
+		self.assertEquals(len(delete_one_errands), 1)
+		self.assertEquals(delete_one_errands[0]['name'], 'delete-all')
+		self.assertTrue(delete_one_errands[0]['pre_delete'])
+
+		delete_two = changes[1]
+		self.assertEquals(delete_two['guid'], 'db-on-demand-c8ace318b641342d8420')
+		self.assertEquals(delete_two['action'], 'delete')
+
+		delete_two_errands = delete_two['errands']
+		self.assertEquals(len(delete_two_errands), 2)
+		self.assertEquals(delete_two_errands[0]['name'], 'delete_subdeployments_on_demand_service_broker')
+		self.assertTrue(delete_two_errands[0]['pre_delete'])
+		self.assertEquals(delete_two_errands[1]['name'], 'unregister_on_demand_service_broker')
+		self.assertTrue(delete_two_errands[1]['pre_delete'])
+
+	def x_test_custom_delete_errands(self, mock_get):
+		return # "todo"
 
 
-json_deploy_products = """
+api_responses_1_7 = {}
+api_responses_1_7['deployed_products'] = """
 [
     {
         "guid": "service-broker-one-9ed445129ddee5b24bff",
@@ -216,8 +296,7 @@ json_deploy_products = """
     }
 ]
 """
-
-json_staged_products = """
+api_responses_1_7['staged_products'] = """
 [
     {
         "guid": "service-broker-one-9ed445129ddee5b24bff",
@@ -231,8 +310,7 @@ json_staged_products = """
     }
 ]
 """
-
-json_broker_one_manifest = """
+api_responses_1_7['broker_one_manifest'] = """
 {
     "manifest": {
         "jobs": [
@@ -295,8 +373,7 @@ json_broker_one_manifest = """
     }
 }
 """
-
-json_tile_two_manifest = """
+api_responses_1_7['tile_two_manifest'] = """
 {
     "manifest": {
         "jobs": [
@@ -387,8 +464,7 @@ json_tile_two_manifest = """
     }
 }
 """
-
-json_deleting_manifest = """
+api_responses_1_7['deleting_manifest'] = """
 {
     "manifest": {
         "jobs": [
@@ -479,3 +555,78 @@ json_deleting_manifest = """
     }
 }
 """
+
+api_responses_1_8 = {}
+api_responses_1_8['pending_changes_install'] = """
+{
+    "product_changes": [
+        {
+            "action": "install",
+            "guid": "service-broker-one-8a46337545b088152272",
+            "errands": [
+                {
+                    "name": "deploy-all",
+                    "post_deploy": true
+                },
+                {
+                    "name": "config-broker",
+                    "post_deploy": true
+                }
+            ]
+        }
+    ]
+}
+"""
+api_responses_1_8['pending_changes_update'] = """
+{
+    "product_changes": [
+        {
+            "action": "update",
+            "guid": "service-broker-two-e8e9996bf23a455fbee6",
+            "errands": [
+                {
+                    "name": "deploy-all",
+                    "post_deploy": true
+                },
+                {
+                    "name": "config-broker",
+                    "post_deploy": true
+                }
+            ]
+        }
+    ]
+}
+"""
+api_responses_1_8['pending_changes_delete'] = """
+{
+    "product_changes": [
+        {
+            "action": "delete",
+            "guid": "key-value-tile-ce5a27ce8a93145ed200",
+            "errands": [
+                {
+                    "pre_delete": true,
+                    "name": "delete-all"
+                }
+            ]
+        },
+        {
+            "action": "delete",
+            "guid": "db-on-demand-c8ace318b641342d8420",
+            "errands": [
+                {
+                    "pre_delete": true,
+                    "name": "delete_subdeployments_on_demand_service_broker"
+                },
+                {
+                    "pre_delete": true,
+                    "name": "unregister_on_demand_service_broker"
+                }
+            ]
+        }
+    ]
+}
+"""
+
+if __name__ == '__main__':
+	unittest.main()
