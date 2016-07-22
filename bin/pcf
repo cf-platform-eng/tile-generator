@@ -203,27 +203,23 @@ def cleanup_cmd(product):
 		sys.exit(1)
 
 @cli.command('apply-changes')
-def apply_changes_cmd():
+@click.option('--deploy-errands', help='Comma separated list of errands to run after install/update. For example: "deploy-all,configure-broker"')
+@click.option('--delete-errands', help='Comma separated list of errands to run before delete. For example: "pre_delete"')
+def apply_changes_cmd(deploy_errands, delete_errands):
 	enabled_errands = []
+	deploy_errand_list = None if deploy_errands is None else deploy_errands.split(',')
+	delete_errand_list = None if delete_errands is None else delete_errands.split(',')
 	try:
-		changes = opsmgr.get_changes()
+		changes = opsmgr.get_changes(deploy_errand_list, delete_errand_list)
 		if len(changes['product_changes']) == 0:
 			print >> sys.stderr, 'Nothing to do'
 			return
 		for p in changes['product_changes']:
-			for e in p['errands']:
-				if e.get('post_deploy', False):
-					enabled_errands += [
-						'enabled_errands' +
-						'[' + p["guid"] + ']' +
-						'[post_deploy_errands]' +
-						'[]=' + e['name'] ]
-				if e.get('pre_delete', False):
-					enabled_errands += [
-						'enabled_errands' +
-						'[' + p["guid"] + ']' +
-						'[pre_delete_errands]' +
-						'[]=' + e['name'] ]
+			post_deploy = serialize_errands(p, 'post_deploy', 'post_deploy_errands')
+			enabled_errands.extend(post_deploy)
+			pre_delete = serialize_errands(p, 'pre_delete', 'pre_delete_errands')
+			enabled_errands.extend(pre_delete)
+
 	except:
 		# Assume we're talking to a PCF version prior to 1.7
 		# It does not support the get_changes APIs
@@ -233,6 +229,14 @@ def apply_changes_cmd():
 	body = '&'.join(enabled_errands)
 	install = opsmgr.post('/api/installation?ignore_warnings=1', body).json()['install']
 	opsmgr.logs(install['id'])
+
+def serialize_errands(product, type, form_key):
+	matching_errands = [e for e in (product['errands']) if e.get(type, False)]
+	serialized = []
+	for matching_errand in matching_errands:
+		serialized.append('enabled_errands[%s][%s][]=%s' % (product['guid'], form_key, matching_errand['name']))
+
+	return serialized
 
 @cli.command('logs')
 @click.argument('install_id', None, required=False)
