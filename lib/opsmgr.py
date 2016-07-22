@@ -246,16 +246,16 @@ def get_changes(deploy_errands = None, delete_errands = None):
 
 	pending_changes_response = get('/api/v0/staged/pending_changes', check=False)
 	if pending_changes_response.status_code == requests.codes.ok:
-		return build_changes_1_8(delete_errands, deploy_errands, pending_changes_response)
+		return build_changes_1_8(deploy_errands, delete_errands, pending_changes_response)
 	elif pending_changes_response.status_code == requests.codes.not_found:
-		return build_changes_1_7(delete_errands, deploy_errands)
+		return build_changes_1_7(deploy_errands, delete_errands)
 	else:
 		raise Exception(
 			"Unexpected response code from /api/v0/staged/pending_changes",
 			pending_changes_response.status_code
 		)
 
-def build_changes_1_8(delete_errands, deploy_errands, pending_changes_response):
+def build_changes_1_8(deploy_errands, delete_errands, pending_changes_response):
 	changes = pending_changes_response.json()
 	for product_change in changes['product_changes']:
 		if product_change['action'] in ['install', 'update']:
@@ -271,7 +271,7 @@ def build_changes_1_8(delete_errands, deploy_errands, pending_changes_response):
 			]
 	return changes
 
-def build_changes_1_7(delete_errands, deploy_errands):
+def build_changes_1_7(deploy_errands, delete_errands):
 	deployed = [p for p in get('/api/v0/deployed/products').json()]
 	staged = [p for p in get('/api/v0/staged/products').json()]
 	install = [p for p in staged if p["guid"] not in [g["guid"] for g in deployed]]
@@ -285,12 +285,9 @@ def build_changes_1_7(delete_errands, deploy_errands):
 			if deploy_errand in errands:
 				p['errands'].append({'name': deploy_errand, 'post_deploy': True})
 	for p in delete:
-		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
-		errands = [j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand']
 		p['errands'] = []
-		for deploy_errand in delete_errands:
-			if deploy_errand in errands:
-				p['errands'].append({'name': deploy_errand, 'pre_delete': True})
+		for delete_errand in delete_errands:
+			p['errands'].append({'name': delete_errand, 'pre_delete': True})
 	changes = {'product_changes': [{
 			'guid': p['guid'],
 			'errands': p.get('errands', []),
