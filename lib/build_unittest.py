@@ -201,6 +201,15 @@ class TestVersionMethods(unittest.TestCase):
 	def test_accepts_valid_semver(self):
 		self.assertTrue(build.is_semver('11.2.25'))
 
+	def test_accepts_valid_semver_with_prerelease(self):
+		self.assertTrue(build.is_semver('11.2.25-alpha.1'))
+
+	def test_accepts_valid_semver_with_build(self):
+		self.assertTrue(build.is_semver('11.2.25+gb.23'))
+
+	def test_accepts_valid_semver_with_prerelease_and_build(self):
+		self.assertTrue(build.is_semver('11.2.25-alpha.1+gb.23'))
+
 	def test_rejects_short_semver(self):
 		self.assertFalse(build.is_semver('11.2'))
 
@@ -228,17 +237,27 @@ class TestVersionMethods(unittest.TestCase):
 	def test_explicit_version_update(self):
 		self.assertEquals(build.update_version({ 'version': '1.2.3' }, '5.0.1'), '5.0.1')
 
+	def test_annotated_version_update(self):
+		self.assertEquals(build.update_version({ 'version': '1.2.3-alpha.1' }, '1.2.4'), '1.2.4')
+
 	def test_illegal_old_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
 				build.update_version({ 'version': 'nonsense' }, 'patch')
-		self.assertIn('Version must be in semver format', err.getvalue())
+		self.assertIn('prior version must be in semver format', err.getvalue())
 
 	def test_illegal_new_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
 				build.update_version({ 'version': '1.2.3' }, 'nonsense')
 		self.assertIn('Argument must specify', err.getvalue())
+
+	def test_illegal_annotated_version_update(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out,err):
+				build.update_version({ 'version': '1.2.3-alpha.1' }, None)
+		self.assertIn('The prior version was 1.2.3-alpha.1', err.getvalue())
+		self.assertIn('and must not include a label', err.getvalue())
 
 	def test_saves_initial_version(self):
 		history = {}

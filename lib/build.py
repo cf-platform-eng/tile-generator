@@ -477,16 +477,12 @@ def bash(*argv):
 		sys.exit(e.returncode)
 
 def is_semver(version):
-	semver = version.split('.')
-	if len(semver) != 3:
-		return False
-	try:
-		int(semver[0])
-		int(semver[1])
-		int(semver[2])
-		return True
-	except:
-		return False
+	valid = re.compile('[0-9]+\\.[0-9]+\\.[0-9]+([\\-+][0-9a-zA-Z]+(\\.[0-9a-zA-Z]+)*)*$')
+	return valid.match(version) is not None
+
+def is_unannotated_semver(version):
+	valid = re.compile('[0-9]+\\.[0-9]+\\.[0-9]+$')
+	return valid.match(version) is not None
 
 def update_version(history, version):
 	if version is None:
@@ -497,8 +493,9 @@ def update_version(history, version):
 		history['history'] += [ prior_version ]
 	if not is_semver(version):
 		semver = history.get('version', '0.0.0')
-		if not is_semver(semver):
-			print >>sys.stderr, 'Version must be in semver format (x.y.z), instead found', semver
+		if not is_unannotated_semver(semver):
+			print >>sys.stderr, 'The prior version was', semver
+			print >>sys.stderr, 'To auto-increment, the prior version must be in semver format (x.y.z), and must not include a label.'
 			sys.exit(1)
 		semver = semver.split('.')
 		if version == 'patch':
