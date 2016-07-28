@@ -17,6 +17,8 @@
 # limitations under the License.
 
 import os
+import sys
+import traceback
 import json
 import requests
 
@@ -97,4 +99,9 @@ def internal_error(error):
 	return "Internal server error", 500
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', port=int(os.getenv('PORT', '8080')))
+	try:
+		app.run(host='0.0.0.0', port=int(os.getenv('PORT', '8080')))
+		print >>sys.stderr, " * Exited normally"
+	except:
+		print >>sys.stderr, " * Exited with exception"
+		traceback.print_exc()
