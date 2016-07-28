@@ -182,10 +182,10 @@ jobs:
         args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache" ]
   - put: tile-history
     params:
-      from: generated-tile/tile-history-.*\.yml
+      file: generated-tile/tile-history-.*\.yml
   - put: generated-tile
     params:
-      from: generated-tile/.*\.pivotal
+      file: generated-tile/.*\.pivotal
 
 - name: acceptance-tests
   plan:
