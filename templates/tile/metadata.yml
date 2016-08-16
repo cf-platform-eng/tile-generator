@@ -379,6 +379,11 @@ job_types:
     configurable: true
     default: {{ job.instances or 1 }}
 {% endif %}
+  property_blueprints:
+  - name: vm_credentials
+    type: salted_credentials
+    default:
+      identity: vcap
   manifest: |
     {{ job.properties | yaml | indent }}
 {% endfor %}
