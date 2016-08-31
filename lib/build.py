@@ -403,7 +403,7 @@ def add_bosh_release(context, package):
 	try:
 		release_file = os.path.basename(package['path']) # my_bosh_release-6.tgz
 		basename = release_file.rsplit('.', 1)[0] # my_bosh_release-6
-		release_name = basename.rsplit('-', 1)[0] # my_bosh_release
+		release_name = package['name']
 		release_version = basename.rsplit('-', 1)[1] # 6
 	except Exception as e:
 		print >> sys.stderr, "bosh-release must have a path attribute of the form <name>_<version>.tgz"
