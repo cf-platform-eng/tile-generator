@@ -423,7 +423,7 @@ def download_docker_image(docker_image, target_file, cache=None):
 		from docker.client import Client
 		from docker.utils import kwargs_from_env
 		kwargs = kwargs_from_env()
-		kwargs['tls'].assert_hostname = False
+		kwargs['tls'] = False
 		docker_cli = Client(**kwargs)
 		image = docker_cli.get_image(docker_image)
 		image_tar = open(target_file,'w')
