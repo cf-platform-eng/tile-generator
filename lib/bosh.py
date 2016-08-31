@@ -22,32 +22,47 @@ class BoshReleases:
 		self.releases_dir = releases_dir
 		self.known_releases = {}
 
-	def get(release_name, create=False):
-		release = known_releases.get(release_name, None)
-		if release is not None:
-			return release
-		release = BoshRelease.create(release_name, os.path.join(self.releases_dir, release_name))
+	def get_or_create(self, release_name):
+		if not release_name in self.known_releases:
+			release = BoshReleaseBuilder(release_name, os.path.join(self.releases_dir, release_name))
+			self.known_releases[release_name] = release
+		return self.known_releases.get(release_name)
+
+	def create(self, release_name, tarball, jobs):
+		if release_name in self.known_releases:
+			print >> sys.stderr, 'Release', release_name, 'already exists'
+			sys.exit(1)
+		release = BoshReleaseTarball(release_name, tarball, jobs)
 		self.known_releases[release_name] = release
 		return release
 
-	def list():
-		return known_releases.itervalues()
+	def list(self):
+		return self.known_releases.itervalues()
 
 class BoshRelease:
 
-	def create(release_name, release_dir):
-		return BoshRelease(release_name, release_dir).init()
+	def __init__(self, release_name):
+		self.release_name = release_name
+
+class BoshReleaseTarball(BoshRelease):
+
+	def __init__(self, release_name, tarball, jobs):
+		#
+		# TODO - Extract release name and version from the tarball's release.MF
+		#
+		super(BoshReleaseTarball, self).__init__(release_name)
+		self.tarball = tarball
+		self.jobs = jobs
+
+class BoshReleaseBuilder(BoshRelease):
 
 	def __init__(self, release_name, release_dir):
-		self.release_name = release_name
+		super(BoshReleaseBuilder, self).__init__(release_name)
 		self.release_dir = release_dir
 		self.post_deploy_errands = []
 		self.pre_delete_errands = []
-
-	def init(self):
 		self.__bosh('init', 'release')
 		self.__render('config/final.yml', 'config/final.yml', context)
-		return self
 
 	def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
 		is_errand = post_deploy or pre_delete
@@ -170,3 +185,11 @@ class BoshRelease:
 
 	def __render(self, template, target, context):
 		template.render(template, os.path.join(self.release_dir, target), context)
+
+class BoshCfReleaseBuilder(BoshReleaseBuilder):
+
+	def __init__(self, release_name):
+		# Add the cf cli package
+		# Add deploy-all job
+		# Add delete-all job
+
