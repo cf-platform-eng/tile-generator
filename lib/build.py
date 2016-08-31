@@ -45,6 +45,14 @@ def build(config, verbose=False):
 	with cd('product', clobber=True):
 		create_tile(context)
 
+def new_build(config):
+	# Iterate over packages
+	# 	For each cf type package, get/create the cf bosh release, and add the package
+	# 	If there is a cf bosh release, it requires the cf cli package (needs a custom create)
+	# 	For each bosh type package, create a new bosh release, then add the jobs/packages included in its config
+	# Create the tile from the collection of bosh releases
+	pass
+
 def validate_config(config):
 	try:
 		validname = re.compile('[a-z][a-z0-9]+(-[a-z0-9]+)*$')
