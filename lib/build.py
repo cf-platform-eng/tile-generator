@@ -22,6 +22,7 @@ import errno
 import requests
 import shutil
 import subprocess
+import tarfile
 import template
 import urllib
 import zipfile
@@ -432,23 +433,23 @@ def download_docker_release():
 	}
 
 def add_bosh_release(context, package):
-	try:
-		release_file = os.path.basename(package['path']) # my_bosh_release-6.tgz
-		basename = release_file.rsplit('.', 1)[0] # my_bosh_release-6
-		release_name = basename.rsplit('-', 1)[0] # my_bosh_release
-		release_version = basename.rsplit('-', 1)[1] # 6
-	except Exception as e:
-		print >> sys.stderr, "bosh-release must have a path attribute of the form <name>_<version>.tgz"
-		sys.exit(1)
 	with cd('..'):
-		context['bosh_releases'] = context.get('bosh_releases', []) + [
-			{
-				'tarball': os.path.realpath(package['path']),
-				'file': release_file,
-				'name': release_name,
-				'version': release_version,
-			}
-		]
+		tarball = os.path.realpath(package['path'])
+	release_file = os.path.basename(tarball)
+	with tarfile.open(tarball) as tar:
+		manifest_file = tar.extractfile('./release.MF')
+		manifest = yaml.safe_load(manifest_file)
+		manifest_file.close()
+		release_name = manifest['name']
+		release_version = manifest['version']
+	context['bosh_releases'] = context.get('bosh_releases', []) + [
+		{
+			'tarball': tarball,
+			'file': release_file,
+			'name': release_name,
+			'version': release_version,
+		}
+	]
 
 def download_docker_image(docker_image, target_file, cache=None):
 	try:

@@ -1,0 +1,25 @@
+#!/usr/bin/env perl
+
+# Filter the output of a recursive diff between samples.
+# Gets rid of the noise when comparing two runs on the sample.
+
+use strict;
+use warnings;
+
+if (scalar(@ARGV) != 2) {
+  print STDERR "$0: show the relevant difference between two sample tile directories.\n";
+  print STDERR  "Usage: $0 <sample-dir-1> <sample--dir-2>\n";
+  exit(1);
+}
+
+my $a = shift;
+my $b = shift;
+
+my @ignore_fields = qw( [a-z0-f-]+:$ blobstore_id: commit_hash: fingerprint: latest_release_filename: object_id: sha: sha1: version: );
+my $fields = join('|', @ignore_fields);
+
+my @difflines = `diff --recursive $a $b`;
+for (@difflines) {
+  # The funky-looking one here is diff's line number/operation notation.
+  print unless m/^[<>]\s+($fields)|^(\d+,)?\d+[acd]\d+(,\d+)?$|^---$|^Binary files |_noop.js$|\.blobs:/
+}
