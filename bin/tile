@@ -63,6 +63,7 @@ def build_cmd(version, verbose, docker_cache):
 	print 'version:', config.get('version', '<unspecified>')
 	print
 	build.build(config, verbose)
+	# build.new_build(config, verbose)
 	write_history(history)
 
 def read_config():

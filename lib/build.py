@@ -30,6 +30,9 @@ import yaml
 import re
 import datetime
 
+from bosh import *
+from util import *
+
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
 DOCKER_BOSHRELEASE_VERSION = '23'
@@ -46,12 +49,21 @@ def build(config, verbose=False):
 	with cd('product', clobber=True):
 		create_tile(context)
 
-def new_build(config):
-	releases = BoshReleases('releases')
+def new_build(config, verbose=False):
 	# Clean up config (as above)
-	process_packages(config, releases)
-	# Create the tile from the collection of bosh releases
-	pass
+	validate_config(config)
+	context = config.copy()
+	add_defaults(context)
+	upgrade_config(context)
+	context['verbose'] = verbose
+	releases = BoshReleases(context)
+	with cd('release', clobber=True):
+		packages = context.get('packages', [])
+		for package in packages:
+			releases.add_package(package)
+	validate_memory_quota(context)
+	with cd('product', clobber=True):
+		releases.create_tile()
 
 def process_packages(config, releases):
 	for package in packages:
@@ -125,19 +137,6 @@ def add_defaults(context):
 	for property in context['all_properties']:
 		property['name'] = property['name'].lower().replace('-','_')
 
-def update_memory(context, manifest):
-	memory = manifest.get('memory', '1G')
-	unit = memory.lstrip('0123456789').lstrip(' ').lower()
-	if unit not in [ 'g', 'gb', 'm', 'mb' ]:
-		print >> sys.stderr, 'invalid memory size unit', unit, 'in', memory
-		sys.exit(1)
-	memory = int(memory[:-len(unit)])
-	if unit in [ 'g', 'gb' ]:
-		memory *= 1024
-	context['total_memory'] += memory
-	if memory > context['max_memory']:
-		context['max_memory'] = memory
-
 def validate_memory_quota(context):
 	required = context['total_memory'] + context['max_memory']
 	specified = context.get('org_quota', None)
@@ -152,6 +151,7 @@ def validate_memory_quota(context):
 		print >> sys.stderr, 'For a total of:', required, 'MB'
 		sys.exit(1)
 
+# FIXME this wants to be a dict with 'typename' as the key.
 package_types = [
 	# A + at the start of the job type indicates it is a post-deploy errand
 	# A - at the start of the job type indicates it is a pre-delete errand
@@ -546,33 +546,3 @@ def update_version(history, version):
 		version = '.'.join(semver)
 	history['version'] = version
 	return version
-
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath, clobber=False):
-    	self.clobber = clobber
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        if self.clobber and os.path.isdir(self.newPath):
-			shutil.rmtree(self.newPath)
-        mkdir_p(self.newPath)
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
-def mkdir_p(dir):
-   try:
-      os.makedirs(dir)
-   except os.error, e:
-      if e.errno != errno.EEXIST:
-         raise
-
-def download(url, filename):
-	response = requests.get(url, stream=True)
-	with open(filename, 'wb') as file:
-		for chunk in response.iter_content(chunk_size=1024):
-			if chunk:
-				file.write(chunk)

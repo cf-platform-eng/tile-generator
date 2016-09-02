@@ -16,104 +16,335 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+import errno
+import requests
+import shutil
+import subprocess
+import tarfile
+import template
+import urllib
+import zipfile
+import yaml
+import re
+import datetime
+
+from util import *
+
+# FIXME this wants to be a dict with 'typename' as the key.
+package_types = [
+	# A + at the start of the job type indicates it is a post-deploy errand
+	# A - at the start of the job type indicates it is a pre-delete errand
+	{
+		'typename': 'app',
+		'flags': [ 'requires_cf_cli', 'is_app' ],
+	},
+	{
+		'typename': 'app-broker',
+		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app' ],
+	},
+	{
+		'typename': 'external-broker',
+		'flags': [ 'requires_cf_cli', 'is_broker', 'is_external_broker' ],
+	},
+	{
+		'typename': 'buildpack',
+		'flags': [ 'requires_cf_cli', 'is_buildpack' ],
+	},
+	{
+		'typename': 'docker-bosh',
+		'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ],
+		'jobs':  [ 'docker-bosh' ],
+	},
+	{
+		'typename': 'docker-app',
+		'flags': [ 'requires_cf_cli', 'is_app', 'is_docker_app', 'is_docker' ],
+	},
+	{
+		'typename': 'docker-app-broker',
+		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app', 'is_docker_app', 'is_docker' ],
+	},
+	{
+		'typename': 'blob',
+		'flags': [ 'is_blob' ],
+	},
+	{
+		'typename': 'bosh-release',
+		'flags': [ 'is_bosh_release' ],
+	}
+]
+
+# FIXME we shouldn't treat the docker bosh release specially.
+DOCKER_BOSHRELEASE_VERSION = '23'
+def download_docker_release():
+	release_name = 'docker'
+	release_version = DOCKER_BOSHRELEASE_VERSION
+	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
+	release_tarball = release_file
+	if not os.path.isfile(release_tarball):
+		url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
+		download(url, release_tarball)
+	return {
+		'tarball': release_tarball,
+		'name': release_name,
+		'version': release_version,
+		'file': release_file,
+	}
+
+def download_docker_image(docker_image, target_file, cache=None):
+	try:
+		from docker.client import Client
+		from docker.utils import kwargs_from_env
+		kwargs = kwargs_from_env()
+		kwargs['tls'] = False
+		docker_cli = Client(**kwargs)
+		image = docker_cli.get_image(docker_image)
+		image_tar = open(target_file,'w')
+		image_tar.write(image.data)
+		image_tar.close()
+	except Exception as e:
+		if cache is not None:
+			cached_file = os.path.join(cache, docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
+			if os.path.isfile(cached_file):
+				print 'using cached version of', docker_image
+				urllib.urlretrieve(cached_file, target_file)
+				return
+			print >> sys.stderr, docker_image, 'not found in cache', cache
+			sys.exit(1)
+		if isinstance(e, KeyError):
+			print >> sys.stderr, 'docker not configured on this machine (or environment variables are not properly set)'
+		else:
+			print >> sys.stderr, docker_image, 'not found on local machine'
+			print >> sys.stderr, 'you must either pull the image, or download it and use the --docker-cache option'
+		sys.exit(1)
+
+
+def bosh_extract(output, properties):
+	result = {}
+	for l in output.split('\n'):
+		for p in properties:
+			if l.startswith(p['pattern']):
+				result[p['label']] = l.split(':', 1)[-1].strip()
+	return result
+
+
 class BoshReleases:
 
-	def __init__(self, releases_dir):
-		self.releases_dir = releases_dir
-		self.known_releases = {}
+	def __init__(self, context):
+		self.context = context
+		# FIXME pass in target dir instead of relying on CWD.
+		# self.releases_dir = releases_dir
+		self.releases = {} # Map from name to BoshRelease object.
+		# self.requires_cf_cli = False
+		self.requires_docker_bosh = False
 
-	def get_or_create(self, release_name):
-		if not release_name in self.known_releases:
-			release = BoshReleaseBuilder(release_name, os.path.join(self.releases_dir, release_name))
-			self.known_releases[release_name] = release
-		return self.known_releases.get(release_name)
-
-	def create(self, release_name, tarball, jobs):
-		if release_name in self.known_releases:
-			print >> sys.stderr, 'Release', release_name, 'already exists'
+	def add_package(self, package):
+		print "tile adding package", package['name']
+		typename = package.get('type', None)
+		if typename is None:
+			print >>sys.stderr, 'Package', package['name'], 'does not have a type'
 			sys.exit(1)
-		release = BoshReleaseTarball(release_name, tarball, jobs)
-		self.known_releases[release_name] = release
-		return release
+		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
+		if typedef is None:
+			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
+			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
+			sys.exit(1)
+		flags = typedef.get('flags', [])
+		# The tempaltes expect the flags in the package map.
+		for flag in flags:
+			package[flag] = True
+		jobs = typedef.get('jobs', [])
+		name = package['name'] if 'is_bosh_release' in flags else self.context['name']
+		if not name in self.releases:
+			release = BoshRelease(name, self.context)
+			self.releases[name] = release
+		release = self.releases[name]
+		release.add_package(package, flags, jobs)
+		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
+		self.requires_docker_bosh |= release.has_flag('requires_docker_bosh')
 
-	def list(self):
-		return self.known_releases.itervalues()
+	def create_tile(self):
+		release_info = {}
+		for name in self.releases:
+			release = self.releases[name]
+			with cd(release.release_dir):
+				release_info.update(self.releases[name].pre_create_tile())
+		self.context['release'] = release_info
+		# FIXME add doc for release_name and release_version fields when no bosh release created.
+		release_name = release_info.get('name', self.context.get('release_name', None))
+		release_version = release_info.get('version', self.context.get('release_version', None))
+		# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
+		if self.requires_docker_bosh:
+			with cd('releases'):
+				print 'tile import release docker'
+				docker_release = download_docker_release()
+				self.context['docker_release'] = docker_release
+		print 'tile generate metadata'
+		template.render('metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
+		print 'tile generate content-migrations'
+		template.render('content_migrations/' + release_name + '.yml', 'tile/content-migrations.yml', self.context)
+		print 'tile generate migrations'
+		migrations = 'migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
+		template.render(migrations, 'tile/migration.js', self.context)
+		print 'tile generate package'
+		pivotal_file = release_name + '-' + release_version + '.pivotal'
+		with zipfile.ZipFile(pivotal_file, 'w') as f:
+			if self.requires_docker_bosh:
+				docker_release = self.context['docker_release']
+				f.write(os.path.join('releases', docker_release['file']))
+			for name in self.releases:
+				release = self.releases[name]
+				print 'tile import release', name
+				shutil.copy(release.tarball, os.path.join('releases', release.file))
+				f.write(os.path.join('releases', release.file))
+			f.write(os.path.join('metadata', release_name + '.yml'))
+			f.write(os.path.join('content_migrations', release_name + '.yml'))
+			f.write(migrations)
+		print
+		print 'created tile', pivotal_file
+
 
 class BoshRelease:
 
-	def __init__(self, release_name):
-		self.release_name = release_name
+	def __init__(self, name, context):
+		self.release_dir = os.getcwd() # FIXME parameterize
+		self.name = name
+		self.flags = []
+		self.jobs = []
+		self.packages = []
+		self.context = context
 
-class BoshReleaseTarball(BoshRelease):
+	def has_flag(self, flag):
+		return flag in self.flags
 
-	def __init__(self, release_name, tarball, jobs):
-		#
-		# TODO - Extract release name and version from the tarball's release.MF
-		#
-		super(BoshReleaseTarball, self).__init__(release_name)
-		self.tarball = tarball
-		self.jobs = jobs
+	def add_package(self, package, flags, jobs):
+		self.packages.append(package)
+		self.flags += flags
+		for job in jobs:
+			self.jobs.append({'name': job, 'package': package})
+		if 'is_bosh_release' in flags:
+			with cd('..'):
+				self.tarball = os.path.realpath(self.packages[0]['path'])
+				self.file = os.path.basename(self.tarball)
 
-class BoshReleaseBuilder(BoshRelease):
-
-	def __init__(self, release_name, release_dir):
-		super(BoshReleaseBuilder, self).__init__(release_name)
-		self.release_dir = release_dir
-		self.post_deploy_errands = []
-		self.pre_delete_errands = []
+	# Build the bosh release, if needed.
+	def pre_create_tile(self):
+		if self.has_flag('is_bosh_release'):
+			print "tile", self.name, "bosh release already built"
+			return {}
+		print "tile building bosh release for", self.name
 		self.__bosh('init', 'release')
-		self.__render('config/final.yml', 'config/final.yml', context)
+		template.render('src/templates/all_open.json', 'src/templates/all_open.json', self.context)
+		template.render('src/common/utils.sh', 'src/common/utils.sh', self.context)
+		template.render('config/final.yml', 'config/final.yml', self.context)
+		for package in self.packages:
+			self.add_blob_package(package)
+		for job in self.jobs:
+			self.add_bosh_job(
+				job['package'],
+				job['name'].lstrip('+-'),
+				post_deploy=job['name'].startswith('+'),
+				pre_delete=job['name'].startswith('-')
+			)
+		if self.has_flag('requires_cf_cli'):
+			self.add_cf_cli()
+			self.add_bosh_job(None, 'deploy-all', post_deploy=True)
+			self.add_bosh_job(None, 'delete-all', pre_delete=True)
+		self.add_common_utils()
+		self.__bosh('upload', 'blobs')
+		output = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'])
+		release_info = bosh_extract(output, [
+			{ 'label': 'name', 'pattern': 'Release name' },
+			{ 'label': 'version', 'pattern': 'Release version' },
+			{ 'label': 'manifest', 'pattern': 'Release manifest' },
+			{ 'label': 'tarball', 'pattern': 'Release tarball' },
+		])
+		self.tarball = release_info['tarball']
+		self.file = os.path.basename(self.tarball)
+		return release_info
 
-	def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
+	def add_cf_cli(self):
+		self.add_blob_package(
+			{
+				'name': 'cf_cli',
+				'files': [{
+					'name': 'cf-linux-amd64.tgz',
+					'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
+				},{
+					'name': 'all_open.json',
+					'path': template.path('src/templates/all_open.json')
+				}]
+			},
+			alternate_template='cf_cli'
+		)
+		self.context['requires_product_versions'] = self.context.get('requires_product_versions', []) + [
+			{
+				'name': 'cf',
+				'version': '~> 1.5'
+			}
+		]
+
+	def add_common_utils(self):
+		self.add_src_package(
+		{
+			'name': 'common',
+			'files': []
+		},
+		alternate_template='common'
+	)
+
+	def add_bosh_job(self, package, job_type, post_deploy=False, pre_delete=False):
 		is_errand = post_deploy or pre_delete
 		job_name = job_type
 		if package is not None:
-			job_name += '-' + package['name']
+			job_name += '-' + self.name
 
 		self.__bosh('generate', 'job', job_name)
 		job_context = {
 			'job_name': job_name,
 			'job_type': job_type,
-			'context': context,
+			'context': self.context,
 			'package': package,
 			'errand': is_errand,
 		}
-		self.__render(
+		template.render(
 			os.path.join('jobs', job_name, 'spec'),
 			os.path.join('jobs', 'spec'),
 			job_context
 		)
-		self.__render(
+		template.render(
 			os.path.join('jobs', job_name, 'templates', job_name + '.sh.erb'),
 			os.path.join('jobs', job_type + '.sh.erb'),
 			job_context
 		)
-		self.__render(
+		template.render(
 			os.path.join('jobs', job_name, 'monit'),
 			os.path.join('jobs', 'monit'),
 			job_context
 		)
 
-		context['jobs'] = context.get('jobs', []) + [{
+		self.context['jobs'] = self.context.get('jobs', []) + [{
 			'name': job_name,
 			'type': job_type,
 			'package': package,
 		}]
 		if post_deploy:
-			self.post_deploy_errands += [{ 'name': job_name }]
+			self.context['post_deploy_errands'] = self.context.get('post_deploy_errands', []) + [{ 'name': job_name }]
 		if pre_delete:
-			self.pre_delete_errands += [{ 'name': job_name }]
+			self.context['pre_delete_errands'] = self.context.get('pre_delete_errands', []) + [{ 'name': job_name }]
 
-	def add_src_package(context, package, alternate_template=None):
-		add_package('src', context, package, alternate_template)
+	def add_src_package(self, package, alternate_template=None):
+		self.add_package_to_bosh('src', package, alternate_template)
 
-	def add_blob_package(context, package, alternate_template=None):
-		add_package('blobs', context, package, alternate_template)
+	def add_blob_package(self, package, alternate_template=None):
+		self.add_package_to_bosh('blobs', package, alternate_template)
 
-	def add_package(dir, context, package, alternate_template=None):
+	def add_package_to_bosh(self, dir, package, alternate_template=None):
+		# Hmm...this possible renaming might break stuff...can we do it earlier?
 		name = package['name'].lower().replace('-','_')
 		package['name'] = name
-		bosh('generate', 'package', name)
+		self.__bosh('generate', 'package', name)
 		target_dir = os.path.realpath(os.path.join(dir, name))
 		package_dir = os.path.realpath(os.path.join('packages', name))
 		mkdir_p(target_dir)
@@ -121,7 +352,7 @@ class BoshReleaseBuilder(BoshRelease):
 		if alternate_template is not None:
 			template_dir = os.path.join(template_dir, alternate_template)
 		package_context = {
-			'context': context,
+			'context': self.context,
 			'package': package,
 			'files': []
 		}
@@ -145,9 +376,9 @@ class BoshReleaseBuilder(BoshRelease):
 				package_context['files'] += [ filename ]
 			for docker_image in package.get('docker_images', []):
 				filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-				download_docker_image(docker_image, os.path.join(target_dir, filename), cache=context.get('docker_cache', None))
+				download_docker_image(docker_image, os.path.join(target_dir, filename), cache=self.context.get('docker_cache', None))
 				package_context['files'] += [ filename ]
-		if package.get('is_app', False):
+		if self.has_flag('is_app'):
 			manifest = package.get('manifest', { 'name': name })
 			if manifest.get('random-route', False):
 				print >> sys.stderr, 'Illegal manifest option in package', name + ': random-route is not supported'
@@ -157,7 +388,7 @@ class BoshReleaseBuilder(BoshRelease):
 				f.write('---\n')
 				f.write(yaml.safe_dump(manifest, default_flow_style=False))
 			package_context['files'] += [ 'manifest.yml' ]
-			update_memory(context, manifest)
+			update_memory(self.context, manifest)
 		template.render(
 			os.path.join(package_dir, 'spec'),
 			os.path.join(template_dir, 'spec'),
@@ -182,14 +413,3 @@ class BoshReleaseBuilder(BoshRelease):
 				return e.output
 			print e.output
 			sys.exit(e.returncode)
-
-	def __render(self, template, target, context):
-		template.render(template, os.path.join(self.release_dir, target), context)
-
-class BoshCfReleaseBuilder(BoshReleaseBuilder):
-
-	def __init__(self, release_name):
-		# Add the cf cli package
-		# Add deploy-all job
-		# Add delete-all job
-
