@@ -201,7 +201,7 @@ class BoshRelease:
 		is_errand = post_deploy or pre_delete
 		job_name = job_type
 		if package is not None:
-			job_name += '-' + self.name
+			job_name += '-' + package['name']
 
 		self.__bosh('generate', 'job', job_name)
 		job_context = {
