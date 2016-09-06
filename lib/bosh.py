@@ -115,6 +115,7 @@ class BoshReleases:
 			for name in self.releases:
 				release = self.releases[name]
 				print 'tile import release', name
+				mkdir_p('releases')
 				shutil.copy(release.tarball, os.path.join('releases', release.file))
 				f.write(os.path.join('releases', release.file))
 			f.write(os.path.join('metadata', release_name + '.yml'))
