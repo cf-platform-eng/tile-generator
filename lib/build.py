@@ -37,7 +37,8 @@ LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
 DOCKER_BOSHRELEASE_VERSION = '23'
 
-def build(config, verbose=False):
+# FIXME dead code, remove.
+def old_build(config, verbose=False):
 	validate_config(config)
 	context = config.copy()
 	add_defaults(context)
@@ -49,7 +50,7 @@ def build(config, verbose=False):
 	with cd('product', clobber=True):
 		create_tile(context)
 
-def new_build(config, verbose=False):
+def build(config, verbose=False):
 	# Clean up config (as above)
 	validate_config(config)
 	context = config.copy()
@@ -64,31 +65,6 @@ def new_build(config, verbose=False):
 	validate_memory_quota(context)
 	with cd('product', clobber=True):
 		releases.create_tile()
-
-def process_packages(config, releases):
-	for package in packages:
-		typename = package.get('type', None)
-		if typename is None:
-			print >>sys.stderr, 'Package', package['name'], 'does not have a type'
-			sys.exit(1)
-		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
-		if typedef is None:
-			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
-			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
-			sys.exit(1)
-		for flag in typedef['flags']:
-			package[flag] = True
-		if package.get('is_bosh_release', False):
-			releases.create(package['name'], package['path'], package['jobs'])
-		elif package.get('is_docker_bosh', False):
-			# make sure we include the docker-boshrelease as a dependency
-			# stick this package in the right place (what is that?)
-			add_docker_bosh_release(config, package)
-		else: # package that goes into the cf bosh release
-			cf_release = releases.get_or_create(config['name'])
-			cf_release.add_blob_package(config, package)
-			# make sure it has the cf cli package in it
-			# make sure it has a deploy-all and a delete-all job
 
 def validate_config(config):
 	try:
@@ -151,6 +127,7 @@ def validate_memory_quota(context):
 		print >> sys.stderr, 'For a total of:', required, 'MB'
 		sys.exit(1)
 
+# FIXME dead code, remove.
 def create_bosh_release(context):
 	target = os.getcwd()
 	bosh('init', 'release')
@@ -203,6 +180,7 @@ def create_bosh_release(context):
 	context['requires_cf_cli'] = requires_cf_cli
 	print
 
+# FIXME dead code, remove.
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
 	errand = False
 	if post_deploy or pre_delete:
@@ -245,12 +223,15 @@ def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False
 	if pre_delete:
 		context['pre_delete_errands'] = context.get('pre_delete_errands', []) + [{ 'name': job_name }]
 
+# FIXME dead code, remove.
 def add_src_package(context, package, alternate_template=None):
 	add_package('src', context, package, alternate_template)
 
+# FIXME dead code, remove.
 def add_blob_package(context, package, alternate_template=None):
 	add_package('blobs', context, package, alternate_template)
 
+# FIXME dead code, remove.
 def add_package(dir, context, package, alternate_template=None):
 	name = package['name'].lower().replace('-','_')
 	package['name'] = name
@@ -310,6 +291,7 @@ def add_package(dir, context, package, alternate_template=None):
 		package_context
 	)
 
+# FIXME dead code, remove.
 def add_cf_cli(context):
 	add_blob_package(context,
 		{
@@ -331,6 +313,7 @@ def add_cf_cli(context):
 		}
 	]
 
+# FIXME dead code, remove.
 def add_common_utils(context):
 	add_src_package(context,
 		{
@@ -340,6 +323,7 @@ def add_common_utils(context):
 		alternate_template='common'
 	)
 
+# FIXME dead code, remove.
 def create_tile(context):
 	release = context['release']
 	release['file'] = os.path.basename(release['tarball'])
@@ -374,6 +358,7 @@ def create_tile(context):
 	print
 	print 'created tile', pivotal_file
 
+# FIXME dead code, remove.
 def add_bosh_release(context, package):
 	with cd('..'):
 		tarball = os.path.realpath(package['path'])
@@ -393,6 +378,7 @@ def add_bosh_release(context, package):
 		}
 	]
 
+# FIXME dead code, remove.
 def bosh(*argv):
 	argv = list(argv)
 	print 'bosh', ' '.join(argv)
@@ -407,6 +393,7 @@ def bosh(*argv):
 		print e.output
 		sys.exit(e.returncode)
 
+# FIXME dead code, remove.
 def bash(*argv):
 	argv = list(argv)
 	try:
