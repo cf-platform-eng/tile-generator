@@ -304,7 +304,7 @@ class BoshRelease:
 				filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
 				download_docker_image(docker_image, os.path.join(target_dir, filename), cache=self.context.get('docker_cache', None))
 				package_context['files'] += [ filename ]
-		if self.has_flag('is_app'):
+		if package.get('is_app', False):
 			manifest = package.get('manifest', { 'name': name })
 			if manifest.get('random-route', False):
 				print >> sys.stderr, 'Illegal manifest option in package', name + ': random-route is not supported'
