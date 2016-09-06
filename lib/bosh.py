@@ -40,7 +40,9 @@ class BoshReleases:
 		# self.releases_dir = releases_dir
 		self.releases = {} # Map from name to BoshRelease object.
 		# self.requires_cf_cli = False
-		self.requires_docker_bosh = False
+		# self.requires_docker_bosh = False
+		self.context['requires_docker_bosh'] = False
+		# self.context['bosh_releases'] = [] # FIXME Get rid of this contex entry, move info into BoshRelease instances.
 
 	def add_package(self, package):
 		print "tile adding package", package['name']
@@ -58,14 +60,26 @@ class BoshReleases:
 		for flag in flags:
 			package[flag] = True
 		jobs = typedef.get('jobs', [])
-		name = package['name'] if 'is_bosh_release' in flags else self.context['name']
-		if not name in self.releases:
-			release = BoshRelease(name, self.context)
-			self.releases[name] = release
-		release = self.releases[name]
+		bosh_release_name = package['name'] if 'is_bosh_release' in flags else self.context['name']
+		if not bosh_release_name in self.releases:
+			release = BoshRelease(bosh_release_name, self.context)
+			self.releases[bosh_release_name] = release
+		release = self.releases[bosh_release_name]
 		release.add_package(package, flags, jobs)
 		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
-		self.requires_docker_bosh |= release.has_flag('requires_docker_bosh')
+		self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
+		# FIXME Move this out of global context into the BoshRelease class.
+		# Cf related comment note in BoshRelease.add_packge.
+		if release.has_flag('is_bosh_release'):
+			self.context['bosh_releases'] = self.context.get('bosh_releases', []) + [
+				{
+					'tarball': release.tarball,
+					'file': release.file,
+					'name': release.name,
+					'version': release.version,
+
+				}
+			]
 
 	def create_tile(self):
 		release_info = {}
@@ -73,12 +87,13 @@ class BoshReleases:
 			release = self.releases[name]
 			with cd(release.release_dir):
 				release_info.update(self.releases[name].pre_create_tile())
+		release_info['file'] = os.path.basename(release_info['tarball'])
 		self.context['release'] = release_info
 		# FIXME add doc for release_name and release_version fields when no bosh release created.
 		release_name = release_info.get('name', self.context.get('release_name', None))
 		release_version = release_info.get('version', self.context.get('release_version', None))
 		# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
-		if self.requires_docker_bosh:
+		if self.context['requires_docker_bosh']:
 			with cd('releases'):
 				print 'tile import release docker'
 				docker_release = download_docker_release()
@@ -93,7 +108,7 @@ class BoshReleases:
 		print 'tile generate package'
 		pivotal_file = release_name + '-' + release_version + '.pivotal'
 		with zipfile.ZipFile(pivotal_file, 'w') as f:
-			if self.requires_docker_bosh:
+			if self.context['requires_docker_bosh']:
 				docker_release = self.context['docker_release']
 				f.write(os.path.join('releases', docker_release['file']))
 			for name in self.releases:
@@ -126,10 +141,18 @@ class BoshRelease:
 		self.flags += flags
 		for job in jobs:
 			self.jobs.append({'name': job, 'package': package})
+		# FIXME this is pretty ugly...would like a subclass for is_bosh_release, but
+		# want minimal code change for now.
 		if 'is_bosh_release' in flags:
 			with cd('..'):
 				self.tarball = os.path.realpath(self.packages[0]['path'])
 				self.file = os.path.basename(self.tarball)
+				with tarfile.open(self.tarball) as tar:
+					manifest_file = tar.extractfile('./release.MF')
+					manifest = yaml.safe_load(manifest_file)
+					manifest_file.close()
+					self.name = manifest['name']
+					self.version = manifest['version']
 
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):
