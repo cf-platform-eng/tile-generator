@@ -87,11 +87,12 @@ class BoshReleases:
 			release = self.releases[name]
 			with cd(release.release_dir):
 				release_info.update(self.releases[name].pre_create_tile())
-		release_info['file'] = os.path.basename(release_info['tarball'])
+		if 'tarball' in release_info:
+			release_info['file'] = os.path.basename(release_info['tarball'])
 		self.context['release'] = release_info
-		# FIXME add doc for release_name and release_version fields when no bosh release created.
-		release_name = release_info.get('name', self.context.get('release_name', None))
-		release_version = release_info.get('version', self.context.get('release_version', None))
+		# Can we just compute release_info instead of parsing from bosh in pre_create_tile?
+		release_name = release_info.get('name', self.context.get('name', None))
+		release_version = release_info.get('version', self.context.get('version', None))
 		# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
 		if self.context['requires_docker_bosh']:
 			with cd('releases'):
