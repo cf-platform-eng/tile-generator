@@ -92,6 +92,13 @@ def put(url, payload):
 	check_response(response)
 	return response
 
+def put_json(url, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	response = requests.put(url, auth=auth(creds), verify=False, json=payload)
+	check_response(response)
+	return response
+
 def post(url, payload):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
@@ -127,7 +134,7 @@ def check_response(response, check=True):
 		print >> sys.stderr, '-', response.status_code
 		try:
 			errors = response.json()["errors"]
-			print >> sys.stderr, '- '+('\n- '.join(errors))
+			print >> sys.stderr, '- '+('\n- '.join(json.dumps(errors, indent=4).splitlines()))
 		except:
 			print >> sys.stderr, response.text
 		sys.exit(1)
@@ -186,26 +193,24 @@ def get_products():
 	return available_products
 
 def flatten(properties):
-	additions = {}
+	flattened = {}
 	for key1, value1 in properties.iteritems():
 		if type(value1) is dict:
 			for key2, value2 in value1.iteritems():
-				additions[key1 + '_' + key2] = value2
-	properties.update(additions)
+				flattened[key1 + '_' + key2] = value2
+		else:
+			flattened[key1] = value1
+	return flattened
 
-def configure(settings, product, properties, strict=False):
-	properties = properties if properties is not None else {}
-	#
-	# Use the first availability zone
-	#
+def configure(product, properties, strict=False):
+	settings = get('/api/installation_settings').json()
 	infrastructure = settings['infrastructure']
 	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
 	if len(product_settings) < 1:
 		print >> sys.stderr, 'Product', product, 'does not appear to be installed'
 		sys.exit(1)
 	product_settings = product_settings[0]
-	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
-	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
+	properties = properties if properties is not None else {}
 	#
 	# Make sure Elastic Runtime tile is installed
 	#
@@ -214,17 +219,23 @@ def configure(settings, product, properties, strict=False):
 		print >> sys.stderr, 'Required product Elastic Runtime is missing'
 		sys.exit(1)
 	#
-	# Use the Elastic Runtime stemcell
+	# Use the Elastic Runtime stemcell (unless the --strict option was used)
 	#
 	if not strict:
 		stemcell = cf[0]['stemcell']
 		print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
 		product_settings['stemcell'] = stemcell
+		post_yaml('/api/installation_settings', 'installation[file]', settings)
+	#
+	# Use the first availability zone
+	#
+	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
+	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
 	#
 	# Insert supplied properties
 	#
 	missing_properties = []
-	flatten(properties)
+	properties = flatten(properties)
 	for p in product_settings['properties']:
 		key = p['identifier']
 		value = properties.get(key, None)
@@ -237,6 +248,34 @@ def configure(settings, product, properties, strict=False):
 		print >> sys.stderr, 'Input file is missing required properties:'
 		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
 		sys.exit(1)
+	#
+	# Attempt to update using the 1.8 apis first. If those fail, use 1.7
+	#
+	try: # 1.8
+		networks_and_azs = {
+			'networks_and_azs': {
+				'singleton_availability_zone': { 'name': infrastructure['availability_zones'][0]['name'] },
+				'other_availability_zones': [ { 'name': az['name'] } for az in infrastructure['availability_zones'] ],
+				'network': { 'name': infrastructure['networks'][0]['name'] },
+			}
+		}
+		scoped_properties = {}
+		for key in properties:
+			value = properties[key]
+			if not key.startswith('.'):
+				key = '.properties.' + key
+			scoped_properties[key] = { 'value': value }
+		properties = { 'properties': scoped_properties }
+		url = '/api/v0/staged/products/' + product_settings['guid']
+		print url
+		print 'networks_and_azs:', json.dumps(networks_and_azs, indent=4)
+		put_json(url + '/networks_and_azs', networks_and_azs)
+		print 'properties:', json.dumps(properties, indent=4)
+		put_json(url + '/properties', properties)
+		print 'successfully updated using 1.8 apis'
+	except:
+		print 'failed to use 1.8 apis, falling back to 1.7'
+		post_yaml('/api/installation_settings', 'installation[file]', settings)
 
 def get_changes(deploy_errands = None, delete_errands = None):
 	if deploy_errands is None:
