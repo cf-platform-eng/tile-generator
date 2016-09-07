@@ -66,7 +66,7 @@ class VerifyApp4(unittest.TestCase):
 		self.assertEqual(env.get('STREET_ADDRESS'), 'Cartaway Alley')
 		self.assertEqual(env.get('CITY'), 'New Jersey')
 		self.assertEqual(env.get('ZIP_CODE'), '90310')
-		self.assertEqual(env.get('COUNTRY'), 'US')
+		self.assertEqual(env.get('COUNTRY'), 'country_us')
 
 if __name__ == '__main__':
 	unittest.main()
