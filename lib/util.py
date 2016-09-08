@@ -20,6 +20,7 @@ import errno
 import os
 import requests
 import shutil
+import sys
 import urllib
 
 # FIXME this wants to be a dict with 'typename' as the key.
