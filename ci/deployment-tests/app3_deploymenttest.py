@@ -46,7 +46,7 @@ class VerifyApp3(unittest.TestCase):
 		self.assertEqual(env.get('STREET_ADDRESS'), 'Cartaway Alley')
 		self.assertEqual(env.get('CITY'), 'New Jersey')
 		self.assertEqual(env.get('ZIP_CODE'), '90310')
-		self.assertEqual(env.get('COUNTRY'), 'US')
+		self.assertEqual(env.get('COUNTRY'), 'country_us')
 
 	def test_receives_expected_services(self):
 		headers = { 'Accept': 'application/json' }
