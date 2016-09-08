@@ -143,12 +143,15 @@ def mkdir_p(dir):
          raise
 
 def download(url, filename):
-        urllib.urlretrieve(url, filename)
-	# response = requests.get(url, stream=True)
-	# with open(filename, 'wb') as file:
-	# 	for chunk in response.iter_content(chunk_size=1024):
-	# 		if chunk:
-	# 			file.write(chunk)
+	# [mboldt:20160908] Using urllib.urlretrieve gave an "Access
+	# Denied" page when trying to download docker boshrelease.
+	# I don't know why. requests.get works. Do what works.
+	# urllib.urlretrieve(url, filename)
+	response = requests.get(url, stream=True)
+	with open(filename, 'wb') as file:
+		for chunk in response.iter_content(chunk_size=1024):
+			if chunk:
+				file.write(chunk)
 
 def update_memory(context, manifest):
 	memory = manifest.get('memory', '1G')
