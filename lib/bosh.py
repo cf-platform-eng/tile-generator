@@ -69,7 +69,7 @@ class BoshReleases:
 		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
 		self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
 		# FIXME Move this out of global context into the BoshRelease class.
-		# Cf related comment note in BoshRelease.add_packge.
+		# Cf related comment in BoshRelease.add_packge.
 		if release.has_flag('is_bosh_release'):
 			self.context['bosh_releases'] = self.context.get('bosh_releases', []) + [
 				{
