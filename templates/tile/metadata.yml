@@ -82,7 +82,7 @@ property_blueprints:
     options:
       {% for option in field.options %}
       name: {{ option.name }}
-      lael: {{ option.label }}
+      label: {{ option.label }}
       {% endfor %}
     {% endif %}
   {% endfor %}
