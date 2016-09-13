@@ -78,6 +78,13 @@ property_blueprints:
     type: {{ field.type }}
     configurable: {{ field.configurable }}
     decription: {{ field.description }}
+    {% if field.options is defined %}
+    options:
+      {% for option in field.options %}
+      name: {{ option.name }}
+      lael: {{ option.label }}
+      {% endfor %}
+    {% endif %}
   {% endfor %}
 {% endif %}
 {% for package in packages %}
