@@ -148,7 +148,7 @@ def download(url, filename):
 	# I don't know why. requests.get works. Do what works.
 	# urllib.urlretrieve(url, filename)
 	response = requests.get(url, stream=True)
-        response.raise_for_status()
+	response.raise_for_status()
 	with open(filename, 'wb') as file:
 		for chunk in response.iter_content(chunk_size=1024):
 			if chunk:
