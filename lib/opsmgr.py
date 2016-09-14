@@ -195,7 +195,7 @@ def get_products():
 def flatten(properties):
 	flattened = {}
 	for key1, value1 in properties.iteritems():
-		if type(value1) is dict:
+		if type(value1) is dict and value1.keys() != ['secret']:
 			for key2, value2 in value1.iteritems():
 				flattened[key1 + '_' + key2] = value2
 		else:
