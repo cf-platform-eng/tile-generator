@@ -50,7 +50,7 @@ function import_opsmgr_variables() {
 	export DYNAMIC_PLANS='<%= JSON.dump(plans) %>'
 	{% endif %}
 	{% for property in context.all_properties %}
-	export {{ property.name | upper }}="<%= properties.{{ property.name }} %>"
+	export {{ property.name | upper }}='<%= properties.{{ property.name }} %>'
 	{% endfor %}
 	{% for package in context.packages if package.type == 'docker-bosh' %}
 	export {{ package.name | upper }}_HOST="<%= properties.{{ package.name }}.host %>"
