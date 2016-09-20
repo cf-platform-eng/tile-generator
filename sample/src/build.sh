@@ -32,7 +32,7 @@ RESOURCES_DIR="$( cd "${SAMPLE_DIR}/resources" && pwd )"
 
 cd "${APP_DIR}"
 mkdir -p vendor
-pip install --download vendor -r requirements.txt
+pip install --no-binary :all: --download vendor -r requirements.txt
 zip -r "${RESOURCES_DIR}/app.zip" *
 
 cd "${BUILDPACK_DIR}"
