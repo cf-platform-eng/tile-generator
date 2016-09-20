@@ -47,7 +47,7 @@ forms:
       label: Elsewhere
 
 service_plan_forms:
-- name: custom_dynamic_service_plans_1
+- name: custom_dynamic_service_plan_1
   label: Custom Dynamic Service Plan 1 
   description: Custom Dynamic service plan 1 for Test Tile
   properties:
@@ -63,7 +63,7 @@ service_plan_forms:
     type: integer
     configurable: true
     description: The number of available seats for this license
-- name: custom_dynamic_service_plans_2
+- name: custom_dynamic_service_plan_2
   label: Custom Dynamic Service Plan 2
   description: Custom Dynamic service plan 2 for Test Tile
   properties:
@@ -79,7 +79,7 @@ service_plan_forms:
     type: integer
     configurable: true
     description: The number of licenses
-    
+
 dynamic_service_plans:
 - name: description
   type: string
