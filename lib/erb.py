@@ -107,8 +107,13 @@ def compile_config(config_dir):
 		merge_properties(package, properties['security'])
 		merge_properties(properties, { package['name'].replace('-','_'): package })
 	merge_properties(properties, config2)
+
+	for collection_form in config1.get('service_plan_forms', []):
+		merge_property_array(properties, form.get('properties', []))
+
 	return {
 		'properties': properties,
 		'JSON': { 'dump': json.dumps },
-		'plans': properties.get('dynamic_service_plans', {})
+		'plans': properties.get('dynamic_service_plans', {}),
+		'service_plan_forms': properties.get('service_plan_forms', {})
 	}
