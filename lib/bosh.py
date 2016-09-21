@@ -155,6 +155,9 @@ class BoshRelease:
 					manifest_file.close()
 					self.name = manifest['name']
 					self.version = manifest['version']
+		if 'is_app' in flags:
+			manifest = package.get('manifest', { 'name': package['name'] })
+			update_memory(self.context, manifest)
 
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):
@@ -316,7 +319,6 @@ class BoshRelease:
 				f.write('---\n')
 				f.write(yaml.safe_dump(manifest, default_flow_style=False))
 			package_context['files'] += [ 'manifest.yml' ]
-			update_memory(self.context, manifest)
 		template.render(
 			os.path.join(package_dir, 'spec'),
 			os.path.join(template_dir, 'spec'),
