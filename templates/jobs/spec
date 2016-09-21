@@ -65,6 +65,10 @@ properties:
   dynamic_service_plans:
     description: 'Dynamic service plans'
 {% endif %}
+{% for service_plan_form in context.service_plan_forms %}
+  {{ service_plan_form.name }}: 
+    description: {{ service_plan_form.name }}
+{% endfor %}
 {% for package in context.packages %}
   {{ package.name }}.name:
     description: 'Name of package'

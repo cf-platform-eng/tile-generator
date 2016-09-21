@@ -46,6 +46,40 @@ forms:
     - name: country_elsewhere
       label: Elsewhere
 
+service_plan_forms:
+- name: custom_dynamic_service_plan_1
+  label: Custom Dynamic Service Plan 1 
+  description: Custom Dynamic service plan 1 for Test Tile
+  properties:
+  - name: description1
+    type: string
+    configurable: true
+    description: The description of this plan
+  - name: license_key1
+    type: string
+    configurable: true
+    description: The license key for this plan
+  - name: num_seats1
+    type: integer
+    configurable: true
+    description: The number of available seats for this license
+- name: custom_dynamic_service_plan_2
+  label: Custom Dynamic Service Plan 2
+  description: Custom Dynamic service plan 2 for Test Tile
+  properties:
+  - name: description2
+    type: string
+    configurable: true
+    description: The description of this plan
+  - name: api_key2
+    type: string
+    configurable: true
+    description: The api key for this plan
+  - name: num_of_license2
+    type: integer
+    configurable: true
+    description: The number of licenses
+
 dynamic_service_plans:
 - name: description
   type: string

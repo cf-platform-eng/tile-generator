@@ -84,6 +84,37 @@ property_blueprints:
     {% endif %}
   {% endfor %}
 {% endif %}
+{% for service_plan_form in service_plan_forms %}
+#
+# Properties for on-demand service plans
+#
+- name: {{ service_plan_form.name }}
+  type: collection
+  configurable: true
+  property_blueprints:
+  - name: guid
+    type: uuid
+    optional: false
+    unique: true
+  - name: name
+    type: string
+    configurable: true
+  {% for field in service_plan_form.properties %}
+  - name: {{ field.name }}
+    type: {{ field.type }}
+    configurable: {{ field.configurable }}
+    decription: {{ field.description }}
+    {% if field.options is defined %}
+    options:
+      {% for option in field.options %}
+    - name: {{ option.name }}
+      label: {{ option.label }}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+
 {% for package in packages %}
 #
 # Standard properties for package {{ package.name }}
@@ -176,6 +207,35 @@ form_types:
     description: {{ property.description or property.label }}
   {% endfor %}
 {% endfor %}
+
+{% for service_plan_form in service_plan_forms %}
+#
+# Custom Service Plan form {{ service_plan_form.name}} from the tile.yml file
+#
+- name: {{ service_plan_form.name }}
+  label: {{ service_plan_form.label }}
+  description: {{ service_plan_form.description or service_plan_form.label }}
+  {% if service_plan_form.markdown %}
+  markdown: |
+    {{ service_plan_form.markdown | indent }}
+  {% endif %}
+  property_inputs:
+  - reference: .properties.{{ service_plan_form.name }}
+    label: {{ service_plan_form.label }}
+    property_inputs:
+    - reference: name
+      label: Plan Name
+      description: "Name of Plan"
+      slug: false
+  {% for field in service_plan_form.properties %}
+    - reference: {{ field.name }}
+      label: {{ field.name }}
+      description: {{ field.description }}
+      slug: false
+  {% endfor %}
+{% endfor %}
+
+
 {% if dynamic_service_plans %}
 #
 # Dynamic service plan form
@@ -198,6 +258,8 @@ form_types:
       slug: false
 {% endfor %}
 {% endif %}
+
+
 {% for package in packages if package.is_buildpack %}
 {% if loop.first %}
 #
@@ -461,6 +523,9 @@ job_types:
 {% if dynamic_service_plans %}
     dynamic_service_plans: (( .properties.dynamic_service_plans.value ))
 {% endif %}
+{% for service_plan_form in service_plan_forms %}
+    {{ service_plan_form.name }}: (( .properties.{{ service_plan_form.name }}.value ))
+{% endfor %}
 {% for package in packages %}
     {{ package.name }}:
       name: {{ package.name }}
