@@ -42,9 +42,6 @@ property_blueprints:
 - name: org_quota
   type: integer
   configurable: true
-  constraints:
-    min: 512
-    max: 4096
   default: {{ org_quota or 1024 }}
 - name: space
   type: string
