@@ -270,6 +270,11 @@ def target_cmd(org, space):
 		login += [ '-s', space ]
 	subprocess.call(login)
 
+@cli.command('version')
+def version_cmd():
+	version = opsmgr.get_version()
+	print '.'.join([ str(x) for x in version ])
+
 if __name__ == '__main__':
 	try:
 		cli()

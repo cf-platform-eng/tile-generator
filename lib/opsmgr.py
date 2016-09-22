@@ -202,6 +202,10 @@ def flatten(properties):
 			flattened[key1] = value1
 	return flattened
 
+def get_version():
+	diag = get('/api/v0/diagnostic_report').json()
+	return [ int(x) for x in diag['versions']['release_version'].split('.') ]
+
 def configure(product, properties, strict=False):
 	settings = get('/api/installation_settings').json()
 	infrastructure = settings['infrastructure']
