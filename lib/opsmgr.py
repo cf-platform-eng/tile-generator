@@ -99,11 +99,11 @@ def put_json(url, payload):
 	check_response(response)
 	return response
 
-def post(url, payload):
+def post(url, payload, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	response = requests.post(url, auth=auth(creds), verify=False, data=payload)
-	check_response(response)
+	check_response(response, check)
 	return response
 
 def post_yaml(url, filename, payload):
