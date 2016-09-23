@@ -204,7 +204,9 @@ def flatten(properties):
 
 def get_version():
 	diag = get('/api/v0/diagnostic_report').json()
-	return [ int(x) for x in diag['versions']['release_version'].split('.') ]
+	version = diag['versions']['release_version']
+	print 'Ops Manager version', version
+	return [ int(x) for x in version.split('.') ]
 
 def configure(product, properties, strict=False):
 	settings = get('/api/installation_settings').json()
