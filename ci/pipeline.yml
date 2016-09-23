@@ -10,17 +10,9 @@ resource_types:
 
 resources:
 
-- name: sample-tile-repo
-  type: git
-  source:
-    paths: [ "sample" ]
-    branch: master
-    uri: http://github.com/cf-platform-eng/tile-generator.git
-
 - name: tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "sample" ]
     branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -121,8 +113,6 @@ jobs:
     - get: tile-generator-repo
       passed: [ unit-tests ]
       trigger: true
-    - get: sample-tile-repo
-      trigger: true
     - get: tile-history
       trigger: false
   - task: build-sample-apps
@@ -130,11 +120,11 @@ jobs:
       platform: linux
       image: "docker:///guidowb/tile-pipeline"
       inputs:
-      - name: sample-tile-repo
+      - name: tile-generator-repo
       outputs:
       - name: sample-tile-build
       run:
-        path: sample-tile-repo/sample/src/build.sh
+        path: tile-generator-repo/sample/src/build.sh
         args: [ "sample-tile-build" ]
     on_failure:
       aggregate:
