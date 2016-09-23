@@ -253,10 +253,22 @@ def test_errand_cmd(tile_repo, errand_name):
 	os.execlpe('bash', 'bash', rendered_errand, env)
 
 @cli.command('target')
-def target_cmd():
+@click.option('--org','-o',default=None)
+@click.option('--space','-s',default=None)
+def target_cmd(org, space):
 	cf = opsmgr.get_cfinfo()
-	subprocess.call(['cf', 'api', 'api.' + cf['system_domain'], '--skip-ssl-validation'])
-	subprocess.call(['cf', 'login', '-u', cf['admin_username'], '-p', cf['admin_password']])
+	login = [
+		'cf', 'login',
+		'-a', 'api.' + cf['system_domain'],
+		'--skip-ssl-validation',
+		'-u', cf['admin_username'],
+		'-p', cf['admin_password'],
+	]
+	if org is not None:
+		login += [ '-o', org ]
+	if space is not None:
+		login += [ '-s', space ]
+	subprocess.call(login)
 
 if __name__ == '__main__':
 	try:
