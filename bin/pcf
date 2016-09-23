@@ -225,19 +225,24 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 		# So this is perfectly fine
 		pass
 	body = '&'.join(enabled_errands)
-	waiting = False
-	while True:
+	in_progress = None
+	install_id = None
+	while install_id is None:
 		response = opsmgr.post('/api/installation?ignore_warnings=1', body, check=False)
 		if response.status_code == 422 and "Install in progress" in response.json()["errors"]:
-			if not waiting:
+			if in_progress is None:
 				print >> sys.stderr, 'Waiting for in-progress installation to complete'
-				waiting = True
+				in_progress = opsmgr.last_install()
 			time.sleep(10)
+			if opsmgr.install_exists(in_progress + 1):
+				install_id = in_progress + 1
+				break
 			continue
 		opsmgr.check_response(response)
 		install = response.json()['install']
+		install_id = install['id']
 		break
-	opsmgr.logs(install['id'])
+	opsmgr.logs(install_id)
 
 def serialize_errands(product, type, form_key):
 	matching_errands = [e for e in (product['errands']) if e.get(type, False)]
