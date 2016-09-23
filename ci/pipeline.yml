@@ -39,6 +39,14 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
+- name: redis-boshrelease
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: redis-12\+dev\.1\.tgz
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
 - name: tile-history
   type: s3
   source:
@@ -118,6 +126,7 @@ jobs:
     - get: ci-docker-image
       passed: [ unit-tests ]
       trigger: true
+    - get: redis-boshrelease
     - get: tile-generator-repo
       passed: [ unit-tests ]
       trigger: true
@@ -131,11 +140,14 @@ jobs:
       image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: sample-tile-repo
+      - name: redis-boshrelease
       outputs:
       - name: sample-tile-build
       run:
-        path: sample-tile-repo/sample/src/build.sh
-        args: [ "sample-tile-build" ]
+        path: sh
+        args:
+        - -c
+        - cp redis-boshrelease/redis-12+dev.1.tgz sample-tile-repo/sample/resources/ && sample-tile-repo/sample/src/build.sh sample-tile-build
     on_failure:
       aggregate:
       - put: slack-alert
