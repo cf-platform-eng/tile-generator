@@ -16,4 +16,26 @@ dynamic_service_plans:
   description: Plan for license key 2
   license_key: 0004-0005-0006
   num_seats: 20
+custom_dynamic_service_plan_1:
+- name: plan3
+  guid: plan3-guid
+  description1: Plan for license key 3
+  license_key1: 001002003004
+  num_seats1: 30
+- name: plan4
+  guid: plan4-guid
+  description1: Plan for license key 4
+  license_key1: 005006007008
+  num_seats1: 40
+custom_dynamic_service_plan_2:
+- name: plan5
+  guid: plan5-guid
+  description2: Plan for license key 5
+  api_key2: api123
+  num_of_license2: 50
+- name: plan6
+  guid: plan6-guid
+  description2: Plan for license key 6
+  api_key2: api456
+  num_of_license2: 60
 
