@@ -202,6 +202,12 @@ def flatten(properties):
 			flattened[key1] = value1
 	return flattened
 
+def get_version():
+	diag = get('/api/v0/diagnostic_report').json()
+	version = diag['versions']['release_version']
+	print 'Ops Manager version', version
+	return [ int(x) for x in version.split('.') ]
+
 def configure(product, properties, strict=False):
 	settings = get('/api/installation_settings').json()
 	infrastructure = settings['infrastructure']
@@ -249,9 +255,10 @@ def configure(product, properties, strict=False):
 		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
 		sys.exit(1)
 	#
-	# Attempt to update using the 1.8 apis first. If those fail, use 1.7
+	# Update using the appropriate API for the Ops Manager version
 	#
-	try: # 1.8
+	version = get_version()
+	if version[:2] == [1, 8]:
 		networks_and_azs = {
 			'networks_and_azs': {
 				'singleton_availability_zone': { 'name': infrastructure['availability_zones'][0]['name'] },
@@ -273,9 +280,15 @@ def configure(product, properties, strict=False):
 		print 'properties:', json.dumps(properties, indent=4)
 		put_json(url + '/properties', properties)
 		print 'successfully updated using 1.8 apis'
-	except:
-		print 'failed to use 1.8 apis, falling back to 1.7'
+	elif version[:2] == [1, 7]:
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
+	else:
+		print "PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version))
+		try:
+			post_yaml('/api/installation_settings', 'installation[file]', settings)
+		except:
+			print >> 'Configuration failed, probably due to incompatible PCF version.'
+			sys.exit(1)
 
 def get_changes(deploy_errands = None, delete_errands = None):
 	if deploy_errands is None:
