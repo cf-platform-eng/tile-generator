@@ -100,7 +100,7 @@ def upgrade_config(config):
 				package['manifest'] = yaml.safe_load(manifest)
 
 def add_defaults(context):
-	context['stemcell_criteria'] = context.get('stemcell_criteria', {})
+	context['stemcell_criteria'] = default_stemcell(context)
 	context['all_properties'] = context.get('properties', [])
 	context['total_memory'] = 0
 	context['max_memory'] = 0
@@ -112,6 +112,26 @@ def add_defaults(context):
 		context['all_properties'] += properties
 	for property in context['all_properties']:
 		property['name'] = property['name'].lower().replace('-','_')
+
+def default_stemcell(context):
+	stemcell_criteria = context.get('stemcell_criteria', {})
+	stemcell_criteria['os'] = stemcell_criteria.get('os', 'ubuntu-trusty')
+	stemcell_criteria['version'] = stemcell_criteria.get('version', latest_stemcell(stemcell_criteria['os']))
+
+def latest_stemcell(os):
+	if os == 'ubuntu-trusty':
+		headers = { 'Accept': 'application/json' }
+		response = requests.get('https://network.pivotal.io/api/v2/products/stemcells/releases', headers=headers)
+		response.raise_for_status()
+		releases = response.json()['releases']
+		versions = [r['version'] for r in releases]
+		latest_major = sorted(versions)[-1].split('.')[0]
+		print 'default_stemcell:'
+		print '  os:', os
+		print '  version:', latest_major
+		print
+		return latest_major
+	return None # TODO - Look for latest on bosh.io for given os
 
 def validate_memory_quota(context):
 	required = context['total_memory'] + context['max_memory']
