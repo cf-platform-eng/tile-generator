@@ -240,6 +240,7 @@ def configure(product, properties, strict=False):
 	#
 	# Insert supplied properties
 	#
+	jobs_properties = properties.pop('jobs', {})
 	missing_properties = []
 	properties = flatten(properties)
 	for p in product_settings['properties']:
@@ -267,6 +268,10 @@ def configure(product, properties, strict=False):
 			}
 		}
 		scoped_properties = {}
+		for job, job_properties in jobs_properties.iteritems():
+			for name, value in job_properties.iteritems():
+				key = '.'.join(('', job, name))
+				scoped_properties[key] = value
 		for key in properties:
 			value = properties[key]
 			if not key.startswith('.'):
@@ -281,6 +286,9 @@ def configure(product, properties, strict=False):
 		put_json(url + '/properties', properties)
 		print 'successfully updated using 1.8 apis'
 	elif version[:2] == [1, 7]:
+		if job_properties:
+			print >> sys.stderr, 'Setting job-specific properties is not supported for PCF 1.7.'
+			sys.exit(1)
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	else:
 		print "PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version))
