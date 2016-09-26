@@ -208,6 +208,13 @@ def get_version():
 	print 'Ops Manager version', version
 	return [ int(x) for x in version.split('.') ]
 
+def get_job_guid(job_identifier, jobs_settings):
+	for job in jobs_settings:
+		if job.get('identifier', None) == job_identifier:
+			return job['guid']
+	print >> sys.stderr, 'Could not find job with identifier', job_identifier
+	sys.exit(1)
+
 def configure(product, properties, strict=False):
 	settings = get('/api/installation_settings').json()
 	infrastructure = settings['infrastructure']
@@ -268,7 +275,12 @@ def configure(product, properties, strict=False):
 			}
 		}
 		scoped_properties = {}
+		resource_config = {}
 		for job, job_properties in jobs_properties.iteritems():
+			if 'resource_config' in job_properties:
+				job_resource_config = job_properties.pop('resource_config')
+				job_guid = get_job_guid(job, product_settings.get('jobs', []))
+				resource_config[job_guid] = job_resource_config
 			for name, value in job_properties.iteritems():
 				key = '.'.join(('', job, name))
 				scoped_properties[key] = value
@@ -284,6 +296,12 @@ def configure(product, properties, strict=False):
 		put_json(url + '/networks_and_azs', networks_and_azs)
 		print 'properties:', json.dumps(properties, indent=4)
 		put_json(url + '/properties', properties)
+		for job_guid, job_resource_config in resource_config.iteritems():
+			resource_config_url = url + '/jobs/' + job_guid + '/resource_config'
+			merged_job_resource_config = get(resource_config_url).json()
+			merged_job_resource_config.update(job_resource_config)
+			print 'resource_config:', job_guid, merged_job_resource_config
+			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
 		print 'successfully updated using 1.8 apis'
 	elif version[:2] == [1, 7]:
 		if job_properties:
