@@ -259,7 +259,7 @@ def configure(product, properties, strict=False):
 	# Update using the appropriate API for the Ops Manager version
 	#
 	version = get_version()
-	if version[:2] == [1, 8]:
+	if version[0] == 1 and version[1] >= 8:
 		networks_and_azs = {
 			'networks_and_azs': {
 				'singleton_availability_zone': { 'name': infrastructure['availability_zones'][0]['name'] },
