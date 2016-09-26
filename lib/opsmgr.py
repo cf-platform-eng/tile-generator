@@ -249,8 +249,17 @@ def configure(product, properties, strict=False):
 	#
 	jobs_properties = properties.pop('jobs', {})
 	missing_properties = []
+	for job in product_settings.get('jobs', []):
+		job_properties = jobs_properties.get(job['identifier'], {})
+		for job_property in job.get('properties', []):
+			property_name = job_property['identifier']
+			if property_name in job_properties:
+				job_property['value'] = job_properties[property_name]
+			else:
+				if job_property.get('value', None) is None:
+					missing_properties.append('.'.join(('jobs', job['identifier'], property_name)))
 	properties = flatten(properties)
-	for p in product_settings['properties']:
+	for p in product_settings.get('properties', []):
 		key = p['identifier']
 		value = properties.get(key, None)
 		if value is not None:
