@@ -253,6 +253,9 @@ def configure(product, properties, strict=False):
 		job_properties = jobs_properties.get(job['identifier'], {})
 		for job_property in job.get('properties', []):
 			property_name = job_property['identifier']
+			if property_name == 'app_credentials':
+				# app_credentials are generated in opsmgr; skip.
+				continue
 			if property_name in job_properties:
 				job_property['value'] = job_properties[property_name]
 			else:
