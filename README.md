@@ -17,7 +17,7 @@ The master branch of this repository is being monitored by
 [this Concourse pipeline](http://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator).
 The pipeline verifies that:
 
-- The tile generator passes all unit tests in `lib/*_unittest.py`
+- The tile generator passes all unit tests in `tile_generator/*_unittest.py`
 - The tile generator successfully builds the sample tile in `sample`
 - The generated tile passes all acceptance tests in `ci/acceptance-tests`
 - The generated tile successfully deploys to a current version of PCF
