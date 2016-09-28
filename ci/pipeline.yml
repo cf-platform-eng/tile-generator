@@ -165,6 +165,14 @@ jobs:
         args:
         - tile-generator-package/*
         - tile-generator-dockerfile-repo/ci/docker-tile-generator/
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Tile Generator docker build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
   - put: tile-pipeline-docker-image
     params:
       build: tile-pipeline-dockerfile-repo/ci/docker-tile-generator
