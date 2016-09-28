@@ -11,8 +11,8 @@ RUN apk add --no-cache zip &&\
     wget "https://bootstrap.pypa.io/get-pip.py" -O /dev/stdout | python && \
     apk del build-dependencies
 
-ADD tile_generator-*.tar.gz .
-RUN ["sh", "-c", "pip install tile_generator-*.tar.gz"]
+COPY tile_generator-*.tar.gz .
+RUN pip install tile_generator-*.tar.gz
 
 RUN apk add --no-cache ruby ruby-bundler
 
