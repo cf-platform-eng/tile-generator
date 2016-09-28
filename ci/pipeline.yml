@@ -102,7 +102,7 @@ jobs:
       - name: tile-generator-repo
       run:
         path: tile-generator-repo/ci/scripts/run-unittests.sh
-        args: [ "tile-generator-repo/lib" ]
+        args: [ "tile-generator-repo/tile_generator" ]
     on_failure:
       aggregate:
       - put: slack-alert
