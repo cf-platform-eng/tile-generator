@@ -14,6 +14,10 @@ RUN apk add --no-cache zip &&\
 ADD requirements.txt .
 RUN pip install -r requirements.txt
 
+RUN apk add --no-cache ruby ruby-bundler
+
+RUN gem install bosh_cli --no-ri --no-rdoc
+
 RUN apk add --update bash
 
 RUN rm -rf /var/cache/apk/*
