@@ -188,13 +188,11 @@ jobs:
 - name: build-tile
   plan:
   - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ build-tile-generator-docker ]
+      trigger: true
     - get: tile-pipeline-docker-image
-      passed: [ unit-tests ]
-      trigger: true
     - get: redis-boshrelease
-    - get: tile-generator-repo
-      passed: [ unit-tests ]
-      trigger: true
     - get: tile-history
       trigger: false
   - task: build-sample-apps
@@ -247,7 +245,7 @@ jobs:
   - task: build-sample-tile
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
+      image: tile-generator-docker-image
       inputs:
       - name: tile-generator-repo
       - name: sample-tile-build
@@ -276,7 +274,7 @@ jobs:
 - name: acceptance-tests
   plan:
   - aggregate:
-    - get: tile-pipeline-docker-image
+    - get: tile-generator-docker-image
       passed: [ build-tile ]
       trigger: true
     - get: tile-generator-repo
@@ -288,7 +286,7 @@ jobs:
   - task: run-acceptance-tests
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
+      image: "docker:///guidowb/tile-generator"
       inputs:
       - name: tile-generator-repo
       - name: generated-tile
@@ -307,7 +305,7 @@ jobs:
 - name: claim-pcf
   plan:
   - aggregate:
-    - get: tile-pipeline-docker-image
+    - get: tile-generator-docker-image
       passed: [ acceptance-tests ]
       trigger: true
     - get: tile-generator-repo
@@ -323,7 +321,7 @@ jobs:
 - name: deploy-tile
   plan:
   - aggregate:
-    - get: tile-pipeline-docker-image
+    - get: tile-generator-docker-image
       passed: [ claim-pcf ]
       trigger: true
     - get: tile-generator-repo
@@ -337,7 +335,7 @@ jobs:
   - task: run-deploy-tile
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
+      image: "docker:///guidowb/tile-generator"
       inputs:
       - name: tile-generator-repo
       - name: pcf-environment
@@ -360,7 +358,7 @@ jobs:
 - name: deployment-tests
   plan:
   - aggregate:
-    - get: tile-pipeline-docker-image
+    - get: tile-generator-docker-image
       passed: [ deploy-tile ]
       trigger: true
     - get: tile-generator-repo
@@ -374,7 +372,7 @@ jobs:
   - task: run-deployment-tests
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
+      image: "docker:///guidowb/tile-generator"
       inputs:
       - name: tile-generator-repo
       - name: pcf-environment
@@ -397,7 +395,7 @@ jobs:
 - name: remove-tile
   plan:
   - aggregate:
-    - get: tile-pipeline-docker-image
+    - get: tile-generator-docker-image
       passed: [ deployment-tests ]
       trigger: true
     - get: tile-generator-repo
@@ -411,7 +409,7 @@ jobs:
   - task: remove-tile
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
+      image: "docker:///guidowb/tile-generator"
       inputs:
       - name: tile-generator-repo
       - name: pcf-environment

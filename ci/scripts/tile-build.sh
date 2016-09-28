@@ -26,7 +26,7 @@ REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
 BIN_DIR="$( cd "${REPO_DIR}/bin" && pwd )"
 
-TILE="${BIN_DIR}/tile"
+TILE="tile"
 
 cd ${BASE_DIR}
 
