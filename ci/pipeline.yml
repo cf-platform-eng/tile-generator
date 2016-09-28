@@ -23,6 +23,14 @@ resources:
     branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
+- name: tile-generator-package
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: tile_generator-(?P<version>).tar.gz
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
 - name: generated-tile
   type: s3
   source:
@@ -111,6 +119,27 @@ jobs:
           icon_emoji: ':concourse:'
           text: '(master) Unit tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
+
+- name: buld-package
+  plan:
+    - get: tile-generator-repo
+      passed: [ unit-tests ]
+      trigger: true
+    - task: build-package
+      config:
+        platform: linux
+        inputs:
+        - tile-generator-repo
+        run:
+          path: python
+          args:
+          - tile-generator-repo/setup.py
+          - sdist
+          dir: tile-generator-repo
+      image: tile-pipeline-docker-image
+    - put: tile-generator-package
+      params:
+        file: tile-generator-repo/dist/tile_generator-*.tar.gz
 
 - name: build-tile
   plan:
