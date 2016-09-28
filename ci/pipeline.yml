@@ -16,10 +16,10 @@ resources:
     branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
-- name: dockerfile-repo
+- name: tile-pipeline-dockerfile-repo
   type: git
   source:
-    paths: [ "ci/Dockerfile", "ci/requirements.txt" ]
+    paths: [ "ci/docker-tile-pipeline/Dockerfile", "ci/docker-tile-pipeline/requirements.txt" ]
     branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -47,7 +47,7 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
-- name: ci-docker-image
+- name: tile-pipeline-docker-image
   type: docker-image
   source:
     repository: guidowb/tile-pipeline
@@ -78,18 +78,18 @@ resources:
 
 jobs:
 
-- name: build-docker
+- name: build-pipeline-docker
   plan:
-  - get: dockerfile-repo
+  - get: tile-pipeline-dockerfile-repo
     trigger: true
-  - put: ci-docker-image
+  - put: tile-pipeline-docker-image
     params:
-      build: dockerfile-repo/ci
+      build: tile-pipeline-dockerfile-repo/ci/docker-tile-pipeline
 
 - name: unit-tests
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-pipeline-docker-image
       passed: [ build-docker ]
       trigger: true
     - get: tile-generator-repo
@@ -115,7 +115,7 @@ jobs:
 - name: build-tile
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-pipeline-docker-image
       passed: [ unit-tests ]
       trigger: true
     - get: redis-boshrelease
@@ -203,7 +203,7 @@ jobs:
 - name: acceptance-tests
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-pipeline-docker-image
       passed: [ build-tile ]
       trigger: true
     - get: tile-generator-repo
@@ -234,7 +234,7 @@ jobs:
 - name: claim-pcf
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-pipeline-docker-image
       passed: [ acceptance-tests ]
       trigger: true
     - get: tile-generator-repo
@@ -250,7 +250,7 @@ jobs:
 - name: deploy-tile
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-pipeline-docker-image
       passed: [ claim-pcf ]
       trigger: true
     - get: tile-generator-repo
@@ -287,7 +287,7 @@ jobs:
 - name: deployment-tests
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-pipeline-docker-image
       passed: [ deploy-tile ]
       trigger: true
     - get: tile-generator-repo
@@ -324,7 +324,7 @@ jobs:
 - name: remove-tile
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-pipeline-docker-image
       passed: [ deployment-tests ]
       trigger: true
     - get: tile-generator-repo
