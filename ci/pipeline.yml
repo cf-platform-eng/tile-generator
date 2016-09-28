@@ -70,6 +70,14 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
 
+- name: tile-generator-docker-image
+  type: docker-image
+  source:
+    repository: guidowb/tile-generator
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
 - name: app-docker-image
   type: docker-image
   source:
@@ -173,9 +181,9 @@ jobs:
           icon_emoji: ':concourse:'
           text: '(master) Tile Generator docker build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
-  - put: tile-pipeline-docker-image
+  - put: tile-generator-docker-image
     params:
-      build: tile-pipeline-dockerfile-repo/ci/docker-tile-generator
+      build: tile-generator-dockerfile-repo/ci/docker-tile-generator
 
 - name: build-tile
   plan:
