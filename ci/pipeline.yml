@@ -19,7 +19,14 @@ resources:
 - name: tile-pipeline-dockerfile-repo
   type: git
   source:
-    paths: [ "ci/docker-tile-pipeline/Dockerfile", "ci/docker-tile-pipeline/requirements.txt" ]
+    paths: [ "ci/docker-tile-pipeline/Dockerfile" ]
+    branch: master
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/docker-tile-generator/Dockerfile" ]
     branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -140,6 +147,27 @@ jobs:
     - put: tile-generator-package
       params:
         file: tile-generator-repo/dist/tile_generator-*.tar.gz
+
+- name: build-tile-generator-docker
+  plan:
+  - get: tile-generator-dockerfile-repo
+    trigger: true
+  - get: tile-generator-package
+    trigger: true
+  - task: copy-package-into-docker
+    config:
+      platform: linux
+      inputs:
+      - tile-generator-dockerfile-repo
+      - tile-generator-package
+      run:
+        path: cp
+        args:
+        - tile-generator-package/*
+        - tile-generator-dockerfile-repo/ci/docker-tile-generator/
+  - put: tile-pipeline-docker-image
+    params:
+      build: tile-pipeline-dockerfile-repo/ci/docker-tile-generator
 
 - name: build-tile
   plan:
