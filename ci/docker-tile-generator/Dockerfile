@@ -12,7 +12,7 @@ RUN apk add --no-cache zip &&\
     apk del build-dependencies
 
 ADD tile_generator-*.tar.gz .
-RUN pip install tile_generator-*.tar.gz
+RUN sh -c "pip install tile_generator-*.tar.gz"
 
 RUN apk add --no-cache ruby ruby-bundler
 
