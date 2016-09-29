@@ -13,14 +13,7 @@ resources:
 - name: tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "ci", "sample" ]
-    branch: {{github-branch}}
-    uri: http://github.com/cf-platform-eng/tile-generator.git
-
-- name: tile-generator-sample
-  type: git
-  source:
-    paths: [ "sample", "ci/scripts" ]
+    ignore_paths: [ "ci/*-tests" ]
     branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -159,7 +152,7 @@ jobs:
           text: '(master) Unit tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: package-tile-generator
+- name: create-dev
   plan:
   - aggregate:
     - get: base-pipeline-docker-image
@@ -168,7 +161,39 @@ jobs:
     - get: tile-generator-repo
       passed: [ unit-tests ]
       trigger: true
-    - get: tile-generator-dockerfile-repo
+  - put: version
+    params:
+      pre: dev
+
+- name: create-patch
+  plan:
+  - put: version
+    params:
+      bump: patch
+
+- name: create-minor
+  plan:
+  - put: version
+    params:
+      bump: minor
+
+- name: create-major
+  plan:
+  - put: version
+    params:
+      bump: major
+
+- name: package-tile-generator
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ create-dev ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ create-dev ]
+      trigger: true
+    - get: version
+      passed: [ create-dev, create-patch, create-minor, create-major ]
       trigger: true
   - task: build-package
     image: base-pipeline-docker-image
@@ -195,7 +220,21 @@ jobs:
   - put: tile-generator-package
     params:
       file: tile-generator-dist/tile_generator-*.tar.gz
-  - get: tile-generator-package
+
+- name: install-tile-generator
+  plan:
+  - aggregate:
+    - get: tile-generator-package
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: version
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-dockerfile-repo
+      trigger: true
   - task: prepare-docker-build
     image: base-pipeline-docker-image
     config:
@@ -226,19 +265,23 @@ jobs:
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ package-tile-generator ]
+      passed: [ install-tile-generator ]
       trigger: true
     - get: redis-boshrelease
     - get: tile-history
       trigger: false
-    - get: tile-generator-sample
+    - get: tile-generator-repo
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: version
+      passed: [ install-tile-generator ]
       trigger: true
   - task: build-sample-apps
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
-      - name: tile-generator-sample
+      - name: tile-generator-repo
       - name: redis-boshrelease
       outputs:
       - name: sample-tile-build
@@ -246,7 +289,7 @@ jobs:
         path: sh
         args:
         - -c
-        - cp redis-boshrelease/redis-*.tgz tile-generator-sample/sample/resources/ && tile-generator-sample/sample/src/build.sh sample-tile-build
+        - cp redis-boshrelease/redis-*.tgz tile-generator-repo/sample/resources/ && tile-generator-repo/sample/src/build.sh sample-tile-build
     on_failure:
       aggregate:
       - put: slack-alert
@@ -285,14 +328,14 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-sample
+      - name: tile-generator-repo
       - name: sample-tile-build
       - name: tile-history
       - name: docker-cache
       outputs:
       - name: generated-tile
       run:
-        path: tile-generator-sample/ci/scripts/tile-build.sh
+        path: tile-generator-repo/ci/scripts/tile-build.sh
         args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache" ]
     on_failure:
       aggregate:
@@ -318,6 +361,12 @@ jobs:
     - get: tile-generator-tests
       trigger: true
     - get: generated-tile
+      passed: [ build-tile ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ build-tile ]
+      trigger: true
+    - get: version
       passed: [ build-tile ]
       trigger: true
   - task: run-acceptance-tests
@@ -351,6 +400,12 @@ jobs:
     - get: generated-tile
       passed: [ acceptance-tests ]
       trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: version
+      passed: [ acceptance-tests ]
+      trigger: true
     - put: pcf-environment
       params:
         acquire: true
@@ -369,6 +424,12 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ claim-pcf ]
+    - get: tile-generator-repo
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: version
+      passed: [ claim-pcf ]
+      trigger: true
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
@@ -406,6 +467,12 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ deploy-tile ]
+    - get: tile-generator-repo
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: version
+      passed: [ deploy-tile ]
+      trigger: true
   - task: run-deployment-tests
     image: tile-generator-docker-image
     config:
@@ -443,6 +510,12 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ deployment-tests ]
+    - get: tile-generator-repo
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: version
+      passed: [ deployment-tests ]
+      trigger: true
   - task: remove-tile
     image: tile-generator-docker-image
     config:
@@ -468,9 +541,16 @@ jobs:
 
 - name: release-pcf
   plan:
-  - get: pcf-environment
-    passed: [ remove-tile ]
-    trigger: true
+  - aggregate:
+    - get: pcf-environment
+      passed: [ remove-tile ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ remove-tile ]
+      trigger: true
+    - get: version
+      passed: [ remove-tile ]
+      trigger: true
   - put: pcf-environment
     params:
       release: pcf-environment
