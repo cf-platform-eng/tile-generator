@@ -117,6 +117,11 @@ def default_stemcell(context):
 	stemcell_criteria = context.get('stemcell_criteria', {})
 	stemcell_criteria['os'] = stemcell_criteria.get('os', 'ubuntu-trusty')
 	stemcell_criteria['version'] = stemcell_criteria.get('version', latest_stemcell(stemcell_criteria['os']))
+	print 'stemcell_criteria:'
+	print '  os:', stemcell_criteria['os']
+	print '  version:', stemcell_criteria['version']
+	print
+	return stemcell_criteria
 
 def latest_stemcell(os):
 	if os == 'ubuntu-trusty':
@@ -126,10 +131,6 @@ def latest_stemcell(os):
 		releases = response.json()['releases']
 		versions = [r['version'] for r in releases]
 		latest_major = sorted(versions)[-1].split('.')[0]
-		print 'default_stemcell:'
-		print '  os:', os
-		print '  version:', latest_major
-		print
 		return latest_major
 	return None # TODO - Look for latest on bosh.io for given os
 
