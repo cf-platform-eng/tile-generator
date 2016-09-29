@@ -17,9 +17,35 @@
 # limitations under the License.
 
 from setuptools import setup
+import os
+
+here = os.path.abspath(os.path.dirname(__file__))
+long_description = ''
+with open(os.path.join(here, 'README.md')) as f:
+    long_descrption = f.read()
+
 setup(
     name = "tile_generator",
     version = "0.9.1",
+    description = 'Tools supporting development of Pivotal Cloud Foundry services and add-ons.',
+    long_description = long_description,
+    url = 'https://github.com/cf-platform-eng/tile-generator',
+    author = 'Pivotal Cloud Foundry Platform Engineering',
+    license = 'Apache 2.0',
+    classifiers = [
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 2 :: Only',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Code Generators',
+    ],
+    keywords = [
+        'pivotal cloud foundry',
+        'tile',
+        'generator'
+    ],
     packages = [ 'tile_generator' ],
     install_requires = [
         'click>=6.2',
