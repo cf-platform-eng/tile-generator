@@ -92,6 +92,7 @@ property_blueprints:
 - name: {{ service_plan_form.name }}
   type: collection
   configurable: true
+  optional: true
   property_blueprints:
   - name: guid
     type: uuid
