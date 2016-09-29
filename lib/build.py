@@ -121,6 +121,7 @@ def default_stemcell(context):
 	print '  os:', stemcell_criteria['os']
 	print '  version:', stemcell_criteria['version']
 	print
+	return stemcell_criteria
 
 def latest_stemcell(os):
 	if os == 'ubuntu-trusty':
