@@ -114,6 +114,15 @@ resources:
   source:
     url: {{slack-hook}}
 
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:cf-platform-eng/tile-generator
+    branch: version
+    file: version
+    private_key: {{github-semver-private-key}}
+
 jobs:
 
 - name: build-base-image
