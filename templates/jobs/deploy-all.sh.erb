@@ -46,7 +46,7 @@ function import_opsmgr_variables() {
 			end
 		end
 	%>
-	export DYNAMIC_PLANS='<%= Shellwords.escape JSON.dump(plans) %>'
+	export DYNAMIC_PLANS=<%= Shellwords.escape JSON.dump(plans) %>
     {% endif %}
 	{% for service_plan_form in context.service_plan_forms %}
 	<%
@@ -58,7 +58,7 @@ function import_opsmgr_variables() {
 			end
 		end
 	%>
-	export {{ service_plan_form.name | upper }}='<%= Shellwords.escape JSON.dump(plans) %>'
+	export {{ service_plan_form.name | upper }}=<%= Shellwords.escape JSON.dump(plans) %>
 	{% endfor %}
 
 	{% for property in context.all_properties %}
