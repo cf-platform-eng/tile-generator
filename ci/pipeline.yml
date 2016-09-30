@@ -193,7 +193,6 @@ jobs:
       passed: [ create-dev ]
       trigger: true
     - get: version
-      passed: [ create-dev, create-patch, create-minor, create-major ]
       trigger: true
   - task: build-package
     image: base-pipeline-docker-image
@@ -225,7 +224,6 @@ jobs:
   plan:
   - aggregate:
     - get: base-pipeline-docker-image
-      passed: [ create-dev ]
       trigger: true
     - get: tile-generator-package
       passed: [ package-tile-generator ]
