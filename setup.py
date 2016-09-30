@@ -18,17 +18,28 @@
 
 from setuptools import setup
 import os
+import sys
 
 here = os.path.abspath(os.path.dirname(__file__))
-long_description = ''
-with open(os.path.join(here, 'README.md')) as f:
-    long_descrption = f.read()
+
+def read_readme():
+    with open(os.path.join(here, 'README.md')) as f:
+        return f.read()
+
+def get_version():
+    version_file = os.path.join(here, 'version.txt')
+    try:
+        with open(version_file) as f:
+            return f.read()
+    except:
+        print >> sys.stderr, "Error: please create a file", version_file, "with the tile_generator version in it."
+        raise
 
 setup(
     name = "tile_generator",
-    version = "0.9.1",
+    version = get_version(),
     description = 'Tools supporting development of Pivotal Cloud Foundry services and add-ons.',
-    long_description = long_description,
+    long_description = read_readme(),
     url = 'https://github.com/cf-platform-eng/tile-generator',
     author = 'Pivotal Cloud Foundry Platform Engineering',
     license = 'Apache 2.0',

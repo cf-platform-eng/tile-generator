@@ -203,11 +203,11 @@ jobs:
       outputs:
       - name: tile-generator-dist
       run:
+        dir: tile-generator-repo
         path: sh
         args:
         - -c 
-        - python setup.py sdist && cp dist/tile_generator-*.tar.gz ../tile-generator-dist
-        dir: tile-generator-repo
+        - cp ../version/version version.txt && python setup.py sdist && cp dist/tile_generator-*.tar.gz ../tile-generator-dist
     on_failure:
       aggregate:
       - put: slack-alert
