@@ -224,6 +224,9 @@ jobs:
 - name: install-tile-generator
   plan:
   - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ create-dev ]
+      trigger: true
     - get: tile-generator-package
       passed: [ package-tile-generator ]
       trigger: true
