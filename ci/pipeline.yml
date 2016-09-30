@@ -17,6 +17,13 @@ resources:
     branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
+- name: tile-generator-tag
+  type: git
+  source:
+    branch: {{github-branch}}
+    uri: git@github.com:cf-platform-eng/tile-generator.git
+    private_key: {{github-semver-private-key}}
+
 - name: tile-generator-tests
   type: git
   source:
@@ -217,9 +224,16 @@ jobs:
           icon_emoji: ':concourse:'
           text: '(master) Tile Generator package build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
-  - put: tile-generator-package
-    params:
-      file: tile-generator-dist/tile_generator-*.tar.gz
+  - aggregate:
+      - put: tile-generator-package
+        params:
+          file: tile-generator-dist/tile_generator-*.tar.gz
+      - put: tile-generator-tag
+        params:
+          repository: tile-generator-repo
+          only_tag: true
+          tag: version/version
+          tag_prefix: v
 
 - name: install-tile-generator
   plan:
