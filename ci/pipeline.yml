@@ -200,6 +200,7 @@ jobs:
       platform: linux
       inputs:
       - name: tile-generator-repo
+      - name: version
       outputs:
       - name: tile-generator-dist
       run:
@@ -207,7 +208,7 @@ jobs:
         path: sh
         args:
         - -c 
-        - cp ../version/version version.txt && python setup.py sdist && cp dist/tile_generator-*.tar.gz ../tile-generator-dist
+        - cp ../version/version version.txt && python setup.py sdist && cp dist/tile_generator-*.tar.gz ../tile-generator-dist/tile_generator-`cat version.txt`.tar.gz
     on_failure:
       aggregate:
       - put: slack-alert
