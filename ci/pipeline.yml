@@ -24,6 +24,13 @@ resources:
     uri: git@github.com:cf-platform-eng/tile-generator.git
     private_key: {{github-semver-private-key}}
 
+- name: tile-generator-github-release
+  type: github-release
+  source:
+    user: cf-platform-eng
+    repository: tile-generator
+    access_token: {{github-release-token}}
+
 - name: tile-generator-tests
   type: git
   source:
@@ -292,6 +299,9 @@ jobs:
     - get: version
       passed: [ install-tile-generator ]
       trigger: true
+    - get: tile-generator-package
+      passed: [ install-tile-generator ]
+      trigger: true
   - task: build-sample-apps
     image: tile-generator-docker-image
     config:
@@ -385,6 +395,9 @@ jobs:
     - get: version
       passed: [ build-tile ]
       trigger: true
+    - get: tile-generator-package
+      passed: [ build-tile ]
+      trigger: true
   - task: run-acceptance-tests
     image: tile-generator-docker-image
     config:
@@ -425,6 +438,9 @@ jobs:
     - put: pcf-environment
       params:
         acquire: true
+    - get: tile-generator-package
+      passed: [ acceptance-tests ]
+      trigger: true
 
 - name: deploy-tile
   plan:
@@ -444,6 +460,9 @@ jobs:
       passed: [ claim-pcf ]
       trigger: true
     - get: version
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: tile-generator-package
       passed: [ claim-pcf ]
       trigger: true
   - task: run-deploy-tile
@@ -489,6 +508,9 @@ jobs:
     - get: version
       passed: [ deploy-tile ]
       trigger: true
+    - get: tile-generator-package
+      passed: [ deploy-tile ]
+      trigger: true
   - task: run-deployment-tests
     image: tile-generator-docker-image
     config:
@@ -532,6 +554,9 @@ jobs:
     - get: version
       passed: [ deployment-tests ]
       trigger: true
+    - get: tile-generator-package
+      passed: [ deployment-tests ]
+      trigger: true
   - task: remove-tile
     image: tile-generator-docker-image
     config:
@@ -554,6 +579,23 @@ jobs:
           icon_emoji: ':concourse:'
           text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
+
+- name: publish-release
+  plan:
+  - aggregate:
+    - get: tile-generator-package
+      passed: [ remove-tile ]
+      trigger: true
+    - get: version
+      passed: [ remove-tile ]
+      trigger: true
+  - put: tile-generator-github-release
+    params:
+      name: version/version
+      tag: version/version
+      tag_prefix: v
+      globs:
+      - tile-generator-package/tile_generator-*.tar.gz
 
 - name: release-pcf
   plan:
