@@ -3,6 +3,8 @@ customer_name: Jimmy's Johnnys
 street_address: Cartaway Alley
 city: New Jersey
 country: country_us
+username: SpongeBob
+password: { 'secret': SquarePants }
 app2:
   persistence_store_type: none # p-mysql # Works, but turned off because this is not deployed in our PCF environments
 dynamic_service_plans:

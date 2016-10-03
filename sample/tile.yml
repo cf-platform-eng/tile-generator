@@ -45,6 +45,16 @@ forms:
       default: true
     - name: country_elsewhere
       label: Elsewhere
+- name: account-info-1
+  label: Account Info
+  description: Example Account Information Form
+  properties:
+  - name: username
+    type: string
+    label: Username
+  - name: password
+    type: secret
+    label: Password
 
 service_plan_forms:
 - name: custom_dynamic_service_plan_1
