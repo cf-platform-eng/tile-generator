@@ -98,6 +98,8 @@ service_plan_forms:
     description: The number of licenses
     default: 1
 
+# Deprecated but still supported for backward compatibility.
+# Use service_plan_forms instead.
 dynamic_service_plans:
 - name: description
   type: string
