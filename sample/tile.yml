@@ -52,6 +52,9 @@ forms:
   - name: username
     type: string
     label: Username
+    constraints:
+    - must_match_regex: '^[^!@#$%^&*()]*$'
+      error_message: 'This name cannot contain capital digits.'
   - name: password
     type: secret
     label: Password
@@ -74,6 +77,9 @@ service_plan_forms:
     configurable: true
     description: The number of available seats for this license
     default: 1
+    constraints:
+      min: 1
+      max: 500
 - name: custom_dynamic_service_plan_2
   label: Custom Dynamic Service Plan 2
   description: Custom Dynamic service plan 2 for Test Tile
