@@ -73,6 +73,7 @@ service_plan_forms:
     type: integer
     configurable: true
     description: The number of available seats for this license
+    default: 1
 - name: custom_dynamic_service_plan_2
   label: Custom Dynamic Service Plan 2
   description: Custom Dynamic service plan 2 for Test Tile
@@ -89,6 +90,7 @@ service_plan_forms:
     type: integer
     configurable: true
     description: The number of licenses
+    default: 1
 
 dynamic_service_plans:
 - name: description
@@ -103,6 +105,7 @@ dynamic_service_plans:
   type: integer
   configurable: true
   description: The number of available seats for this license
+  default: 1
 
 packages:
 

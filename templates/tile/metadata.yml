@@ -72,17 +72,7 @@ property_blueprints:
     type: string
     configurable: true
   {% for field in dynamic_service_plans %}
-  - name: {{ field.name }}
-    type: {{ field.type }}
-    configurable: {{ field.configurable }}
-    decription: {{ field.description }}
-    {% if field.options is defined %}
-    options:
-      {% for option in field.options %}
-    - name: {{ option.name }}
-      label: {{ option.label }}
-      {% endfor %}
-    {% endif %}
+  - {{ field | yaml | indent }}
   {% endfor %}
 {% endif %}
 {% for service_plan_form in service_plan_forms %}
@@ -102,17 +92,7 @@ property_blueprints:
     type: string
     configurable: true
   {% for field in service_plan_form.properties %}
-  - name: {{ field.name }}
-    type: {{ field.type }}
-    configurable: {{ field.configurable }}
-    decription: {{ field.description }}
-    {% if field.options is defined %}
-    options:
-      {% for option in field.options %}
-    - name: {{ option.name }}
-      label: {{ option.label }}
-      {% endfor %}
-    {% endif %}
+  - {{ field | yaml | indent }}
   {% endfor %}
 {% endfor %}
 
@@ -162,32 +142,7 @@ property_blueprints:
 # Custom properties from the tile.yml file
 #
 {% for property in all_properties %}
-- name: {{ property.name }} # Refer to this elsewhere as (( .properties.{{ property.name }} ))
-  type: {{ property.type }}
-  {% if property.value is defined %}
-  default: {{ property.value }}
-  {% elif property.default is defined %}
-  default: {{ property.default }}
-  {% endif %}
-  configurable: {{ property.configurable or 'false' }}
-  optional: {{ property.optional or 'false' }}
-  {% if property.constraints is defined %}
-  constraints:
-    {{ property.constraints | yaml | indent }}
-  {% endif %}
-  {% if property.options is defined %}
-  options:
-  {% for option in property.options %}
-  - name: {{ option.name }}
-    label: {{ option.label }}
-    {% if option.default is defined %}
-    default: {{ option.default }}
-    {% endif %}
-    {% if option.slug is defined %}
-    slug: {{ option.slug }}
-    {% endif %}
-  {% endfor %}
-  {% endif %}
+- {{ property | yaml | indent(2) }}
 {% endfor %}
 
 form_types:
@@ -212,7 +167,7 @@ form_types:
 
 {% for service_plan_form in service_plan_forms %}
 #
-# Custom Service Plan form {{ service_plan_form.name}} from the tile.yml file
+# Custom Service Plan form {{service_plan_form.name}} from the tile.yml file
 #
 - name: {{ service_plan_form.name }}
   label: {{ service_plan_form.label }}
