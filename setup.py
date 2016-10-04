@@ -32,11 +32,11 @@ def get_version():
         with open(version_file) as f:
             return f.read()
     except:
-        print >> sys.stderr, "Error: please create a file", version_file, "with the tile_generator version in it."
+        print >> sys.stderr, "Error: please create a file", version_file, "with the tile-generator version in it."
         raise
 
 setup(
-    name = "tile_generator",
+    name = "tile-generator",
     version = get_version(),
     description = 'Tools supporting development of Pivotal Cloud Foundry services and add-ons.',
     long_description = read_readme(),
