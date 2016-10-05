@@ -11,7 +11,7 @@ resource_types:
 - name: pypi
   type: docker-image
   source:
-    repository: mboldt/concourse-pypi-resource
+    repository: cfplatformeng/concourse-pypi-resource
 
 resources:
 
