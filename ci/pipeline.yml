@@ -8,6 +8,11 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
+- name: pypi
+  type: docker-image
+  source:
+    repository: mboldt/concourse-pypi-resource
+
 resources:
 
 - name: tile-generator-repo
@@ -30,6 +35,14 @@ resources:
     user: cf-platform-eng
     repository: tile-generator
     access_token: {{github-release-token}}
+
+- name: tile-generator-pypi-release
+  type: pypi
+  source:
+    name: tile-generator
+    username: {{pypi-user}}
+    password: {{pypi-password}}
+    test: true
 
 - name: tile-generator-tests
   type: git
@@ -56,7 +69,7 @@ resources:
   type: s3
   source:
     bucket: {{s3-bucket}}
-    regexp: tile_generator-(?P<version>.*).tar.gz
+    regexp: tile-generator-(?P<version>.*).tar.gz
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
@@ -222,7 +235,7 @@ jobs:
         path: sh
         args:
         - -c 
-        - cp ../version/version version.txt && python setup.py sdist && cp dist/tile_generator-*.tar.gz ../tile-generator-dist/tile_generator-`cat version.txt`.tar.gz
+        - cp ../version/version version.txt && python setup.py sdist && cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-`cat version.txt`.tar.gz
     on_failure:
       aggregate:
       - put: slack-alert
@@ -234,7 +247,7 @@ jobs:
   - aggregate:
       - put: tile-generator-package
         params:
-          file: tile-generator-dist/tile_generator-*.tar.gz
+          file: tile-generator-dist/tile-generator-*.tar.gz
       - put: tile-generator-tag
         params:
           repository: tile-generator-repo
@@ -589,13 +602,17 @@ jobs:
     - get: version
       passed: [ remove-tile ]
       trigger: true
-  - put: tile-generator-github-release
-    params:
-      name: version/version
-      tag: version/version
-      tag_prefix: v
-      globs:
-      - tile-generator-package/tile_generator-*.tar.gz
+  - aggregate:
+    - put: tile-generator-github-release
+      params:
+        name: version/version
+        tag: version/version
+        tag_prefix: v
+        globs:
+        - tile-generator-package/tile-generator-*.tar.gz
+    - put: tile-generator-pypi-release
+      params:
+        glob: tile-generator-package/tile-generator-*.tar.gz
 
 - name: release-pcf
   plan:
