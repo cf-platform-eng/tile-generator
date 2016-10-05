@@ -108,10 +108,15 @@ def add_defaults(context):
 		properties = form.get('properties', [])
 		for property in properties:
 			if 'configurable' not in property:
-				property['configurable'] = 'true'
+				property['configurable'] = True
 		context['all_properties'] += properties
 	for property in context['all_properties']:
 		property['name'] = property['name'].lower().replace('-','_')
+		default = property.get('default', property.pop('value', None)) # NOTE this intentionally removes property['value']
+		if default is not None:
+			property['default'] = default
+		property['configurable'] = property.get('configurable', False)
+		property['optional'] = property.get('optional', False)
 
 def default_stemcell(context):
 	stemcell_criteria = context.get('stemcell_criteria', {})

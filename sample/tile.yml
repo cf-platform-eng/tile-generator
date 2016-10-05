@@ -45,6 +45,19 @@ forms:
       default: true
     - name: country_elsewhere
       label: Elsewhere
+- name: account-info-1
+  label: Account Info
+  description: Example Account Information Form
+  properties:
+  - name: username
+    type: string
+    label: Username
+    constraints:
+    - must_match_regex: '^[^!@#$%^&*()]*$'
+      error_message: 'This name cannot contain capital digits.'
+  - name: password
+    type: secret
+    label: Password
 
 service_plan_forms:
 - name: custom_dynamic_service_plan_1
@@ -63,6 +76,10 @@ service_plan_forms:
     type: integer
     configurable: true
     description: The number of available seats for this license
+    default: 1
+    constraints:
+      min: 1
+      max: 500
 - name: custom_dynamic_service_plan_2
   label: Custom Dynamic Service Plan 2
   description: Custom Dynamic service plan 2 for Test Tile
@@ -79,7 +96,10 @@ service_plan_forms:
     type: integer
     configurable: true
     description: The number of licenses
+    default: 1
 
+# Deprecated but still supported for backward compatibility.
+# Use service_plan_forms instead.
 dynamic_service_plans:
 - name: description
   type: string
@@ -93,6 +113,7 @@ dynamic_service_plans:
   type: integer
   configurable: true
   description: The number of available seats for this license
+  default: 1
 
 packages:
 
