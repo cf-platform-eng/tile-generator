@@ -23,8 +23,12 @@ import sys
 here = os.path.abspath(os.path.dirname(__file__))
 
 def read_readme():
-    with open(os.path.join(here, 'README.md')) as f:
-        return f.read()
+    try:
+        import pypandoc
+        return pypandoc.convert('README.md', 'rst')
+    except ImportError:
+        with open(os.path.join(here, 'README.md')) as f:
+            return f.read()
 
 def get_version():
     version_file = os.path.join(here, 'version.txt')
