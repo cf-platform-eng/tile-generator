@@ -11,11 +11,9 @@ groups:
   - install-tile-generator
   - build-tile
   - acceptance-tests
-  - claim-pcf
   - deploy-tile
   - deployment-tests
   - remove-tile
-  - release-pcf
   - publish-release
 
 - name: version
@@ -454,7 +452,7 @@ jobs:
           text: '(master) Acceptance tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: claim-pcf
+- name: deploy-tile
   plan:
   - aggregate:
     - get: tile-generator-docker-image
@@ -470,38 +468,14 @@ jobs:
       passed: [ acceptance-tests ]
       trigger: true
     - get: version
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
     - put: pcf-environment
       params:
         acquire: true
-    - get: tile-generator-package
-      passed: [ acceptance-tests ]
-      trigger: true
-
-- name: deploy-tile
-  plan:
-  - aggregate:
-    - get: tile-generator-docker-image
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: tile-generator-tests
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: generated-tile
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: pcf-environment
-      passed: [ claim-pcf ]
-    - get: tile-generator-repo
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: version
-      passed: [ claim-pcf ]
-      trigger: true
-    - get: tile-generator-package
-      passed: [ claim-pcf ]
-      trigger: true
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
@@ -605,17 +579,17 @@ jobs:
       run:
         path: tile-generator-tests/ci/scripts/run-removetile.sh
         args: [ "generated-tile", "pcf-environment" ]
+    ensure:
+      put: pcf-environment
+      params:
+        release: pcf-environment
     on_failure:
-      aggregate:
-      - put: pcf-environment
-        params:
-          release: pcf-environment
-      - put: slack-alert
-        params:
-          channel: {{slack-channel}}
-          icon_emoji: ':concourse:'
-          text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
-          username: Tile Generator
+      put: slack-alert
+      params:
+        channel: {{slack-channel}}
+        icon_emoji: ':concourse:'
+        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        username: Tile Generator
 
 - name: publish-release
   plan:
@@ -637,19 +611,3 @@ jobs:
     - put: tile-generator-pypi-release
       params:
         glob: tile-generator-package/tile-generator-*.tar.gz
-
-- name: release-pcf
-  plan:
-  - aggregate:
-    - get: pcf-environment
-      passed: [ remove-tile ]
-      trigger: true
-    - get: tile-generator-repo
-      passed: [ remove-tile ]
-      trigger: true
-    - get: version
-      passed: [ remove-tile ]
-      trigger: true
-  - put: pcf-environment
-    params:
-      release: pcf-environment
