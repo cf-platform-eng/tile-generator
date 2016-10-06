@@ -303,18 +303,13 @@ def configure(product, properties, strict=False):
 			scoped_properties[key] = { 'value': value }
 		properties = { 'properties': scoped_properties }
 		url = '/api/v0/staged/products/' + product_settings['guid']
-		print url
-		print 'networks_and_azs:', json.dumps(networks_and_azs, indent=4)
 		put_json(url + '/networks_and_azs', networks_and_azs)
-		print 'properties:', json.dumps(properties, indent=4)
 		put_json(url + '/properties', properties)
 		for job_guid, job_resource_config in resource_config.iteritems():
 			resource_config_url = url + '/jobs/' + job_guid + '/resource_config'
 			merged_job_resource_config = get(resource_config_url).json()
 			merged_job_resource_config.update(job_resource_config)
-			print 'resource_config:', job_guid, merged_job_resource_config
 			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
-		print 'successfully updated using 1.8 apis'
 	elif version[:2] == [1, 7]:
 		if job_properties:
 			print >> sys.stderr, 'Setting job-specific properties is not supported for PCF 1.7.'
