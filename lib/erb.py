@@ -25,25 +25,46 @@ import json
 import opsmgr
 import random
 import string
+import build
 
-from jinja2 import Environment, FileSystemLoader, exceptions
+from jinja2 import Environment, FileSystemLoader, exceptions, contextfilter
 
 PATH = os.path.dirname(os.path.realpath(__file__))
+TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, '..', 'templates'))
+
+def render_hyphens(input):
+	return input.replace('_','-')
+
+@contextfilter
+def render_shell_string(context, input):
+	expression = context.environment.compile_expression(input, undefined_to_none=False)
+	return "'" + str(expression(context)).replace("'", "'\\''") + "'"
+
+@contextfilter
+def render_plans_json(context, input):
+	name = 'missing.' + input
+	form = context.environment.compile_expression(name, undefined_to_none=False)(context)
+	plans = {}
+	for p in form:
+		plans[p['name']] = p
+	return input.upper() + "='" + json.dumps(plans).replace("'", "'\\''") + "'"
 
 TEMPLATE_ENVIRONMENT = Environment(
-	variable_start_string='<%=', variable_end_string='%>',
+	trim_blocks=True, lstrip_blocks=True,
 	comment_start_string='<%', comment_end_string='%>', # To completely ignore Ruby code blocks
 )
-TEMPLATE_ENVIRONMENT.loader = FileSystemLoader('/')
+TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
+TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
+TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
+TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
 
-def render(target_path, template_file, config_dir):
-	template_file = os.path.realpath(template_file)
+def render(errand_name, config_dir):
+	template_file = os.path.join('jobs', errand_name + '.sh.erb')
 	config = compile_config(config_dir)
-	target_dir = os.path.dirname(target_path)
-	if target_dir != '':
-		mkdir_p(target_dir)
+	target_path = errand_name + '.sh'
 	with open(target_path, 'wb') as target:
 		target.write(TEMPLATE_ENVIRONMENT.get_template(template_file).render(config))
+	return target_path
 
 def mkdir_p(dir):
    try:
@@ -94,26 +115,29 @@ def merge_property_array(properties, new_properties):
 				properties[name] = value
 
 def compile_config(config_dir):
+	context = get_file_properties(os.path.join(config_dir, 'tile.yml'))
+	build.validate_config(context)
+	build.add_defaults(context)
+	build.upgrade_config(context)
+
 	properties = {}
-	config1 = get_file_properties(os.path.join(config_dir, 'tile.yml'))
-	config2 = get_file_properties(os.path.join(config_dir, 'missing-properties.yml'))
+	missing = get_file_properties(os.path.join(config_dir, 'missing-properties.yml'))
 	merge_properties(properties, get_cf_properties())
-	merge_properties(properties, config1)
-	merge_property_array(properties, config1.get('properties', []))
-	for form in config1.get('forms', []):
+	merge_properties(properties, context)
+	merge_property_array(properties, context.get('properties', []))
+	for form in context.get('forms', []):
 		merge_property_array(properties, form.get('properties', []))
-	for package in config1.get('packages', []):
-		merge_properties(package, config2.get(package['name'], {}))
+	for package in context.get('packages', []):
+		merge_properties(package, missing.get(package['name'], {}))
 		merge_properties(package, properties['security'])
 		merge_properties(properties, { package['name'].replace('-','_'): package })
-	merge_properties(properties, config2)
+	merge_properties(properties, missing)
 
-	for collection_form in config1.get('service_plan_forms', []):
-		merge_property_array(properties, form.get('properties', []))
+	properties['org'] = properties.get('org', properties['name'] + '-org')
+	properties['space'] = properties.get('space', properties['name'] + '-space')
 
 	return {
+		'context': context,
 		'properties': properties,
-		'JSON': { 'dump': json.dumps },
-		'plans': properties.get('dynamic_service_plans', {}),
-		'service_plan_forms': properties.get('service_plan_forms', {})
+		'missing': missing,
 	}

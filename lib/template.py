@@ -21,7 +21,6 @@ import sys
 import errno
 import base64
 import yaml
-import pipes
 
 from jinja2 import Environment, FileSystemLoader, exceptions
 
@@ -42,12 +41,26 @@ def render_hyphens(input):
 def render_yaml(input):
 	return yaml.safe_dump(input, default_flow_style=False)
 
+def render_shell_string(input):
+	return '<%= Shellwords.escape ' + input + ' %>'
+
+def render_plans_json(input):
+	return ('<%\n'
+	'		plans = { }\n'
+	'		p("' + input + '").each do |plan|\n'
+	'			plan_name = plan[\'name\']\n'
+	'			plans[plan_name] = plan\n'
+	'		end\n'
+	'	%>\n'
+	'	export ' + input.upper() + '=<%= Shellwords.escape JSON.dump(plans) %>')
+
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
 TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
-TEMPLATE_ENVIRONMENT.filters['shellescape'] = pipes.quote
+TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
+TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
 
 def render(target_path, template_file, config):
 	target_dir = os.path.dirname(target_path)

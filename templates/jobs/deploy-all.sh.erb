@@ -23,50 +23,33 @@ function equals_ignore_case() {
 
 function import_opsmgr_variables() {
 	export SCHEME=https
-	export ADMIN_USER=<%= Shellwords.escape properties.cf.admin_user %>
-	export ADMIN_PASSWORD=<%= Shellwords.escape properties.cf.admin_password %>
-	export DOMAIN=<%= Shellwords.escape properties.domain %>
-	export APP_DOMAIN=<%= Shellwords.escape properties.app_domains[0] %>
-	export CF_ORG=<%= Shellwords.escape properties.org %>
-	export CF_ORG_QUOTA=<%= Shellwords.escape properties.org_quota %>
-	export CF_SPACE=<%= Shellwords.escape properties.space %>
+	export ADMIN_USER={{ 'properties.cf.admin_user' | shell_string }}
+	export ADMIN_PASSWORD={{ 'properties.cf.admin_password' | shell_string }}
+	export DOMAIN={{ 'properties.domain' | shell_string }}
+	export APP_DOMAIN={{ 'properties.app_domains[0]' | shell_string }}
+	export CF_ORG={{ 'properties.org' | shell_string }}
+	export CF_ORG_QUOTA={{ 'properties.org_quota' | shell_string }}
+	export CF_SPACE={{ 'properties.space' | shell_string }}
 	export CF_TARGET=$SCHEME://api.${DOMAIN}
-	export CF_SKIP_SSL=<%= Shellwords.escape properties.ssl.skip_cert_verify %>
-	export SECURITY_USER_NAME=<%= Shellwords.escape properties.security.user %>
-	export SECURITY_USER_PASSWORD=<%= Shellwords.escape properties.security.password %>
-	export APPLY_OPEN_SECURITY_GROUP=<%= Shellwords.escape properties.apply_open_security_group %>
-	export ALLOW_PAID_SERVICE_PLANS=<%= Shellwords.escape Shellwords.escape properties.allow_paid_service_plans %>
+	export CF_SKIP_SSL={{ 'properties.ssl.skip_cert_verify' | shell_string }}
+	export SECURITY_USER_NAME={{ 'properties.security.user' | shell_string }}
+	export SECURITY_USER_PASSWORD={{ 'properties.security.password' | shell_string }}
+	export APPLY_OPEN_SECURITY_GROUP={{ 'properties.apply_open_security_group' | shell_string }}
+	export ALLOW_PAID_SERVICE_PLANS={{ 'properties.allow_paid_service_plans' | shell_string }}
+
 	{% if context.dynamic_service_plans is defined %}
-	<%
-		plans = { }
-		if properties.dynamic_service_plans
-			p("dynamic_service_plans").each do |plan|
-				plan_name = plan['name']
-				plans[plan_name] = plan
-			end
-		end
-	%>
-	export DYNAMIC_PLANS=<%= Shellwords.escape JSON.dump(plans) %>
+	{{ 'dynamic_service_plans' | plans_json }}
     {% endif %}
 	{% for service_plan_form in context.service_plan_forms %}
-	<%
-		plans = { }
-		if properties.{{ service_plan_form.name }}
-			p("{{ service_plan_form.name }}").each do |plan|
-				plan_name = plan['name']
-				plans[plan_name] = plan
-			end
-		end
-	%>
-	export {{ service_plan_form.name | upper }}=<%= Shellwords.escape JSON.dump(plans) %>
+	{{ service_plan_form.name | plans_json }}
 	{% endfor %}
 
 	{% for property in context.all_properties %}
-	export {{ property.name | upper }}=<%= Shellwords.escape properties.{{ property.name }}  %>
+	export {{ property.name | upper }}={{ ( 'properties.' + property.name ) | shell_string }}
 	{% endfor %}
 	{% for package in context.packages if package.type == 'docker-bosh' %}
-	export {{ package.name | upper }}_HOST=<%= Shellwords.escape properties.{{ package.name }}.host %>
-	export {{ package.name | upper }}_HOSTS=<%= Shellwords.escape properties.{{ package.name }}.hosts %>
+	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
+	export {{ package.name | upper }}_HOSTS={{ ( 'properties.' + package.name + '.hosts' ) | shell_string }}
 	{% endfor %}
 }
 
@@ -166,7 +149,7 @@ function add_env_vars() {
 
 	# Dynamic plans (if defined)
 	{% if context.dynamic_service_plans is defined %}
-	cf set-env $1 PLANS "$DYNAMIC_PLANS"
+	cf set-env $1 PLANS "$DYNAMIC_SERVICE_PLANS"
 	{% endif %}
 
     # Custom Service Plans
@@ -348,7 +331,7 @@ export SVC_NAME="{{ service.name }}"
 export SVC_PLAN="{{ service.plan or '' }}"
 provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
 {% endfor %}
-export SVC_NAME=<%= Shellwords.escape properties.{{ package.name }}.persistence_store_type %>
+export SVC_NAME={{ ( 'properties.' + package.name + '.persistence_store_type' ) | shell_string }}
 export SVC_PLAN=""
 provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
 start_app {{ package.name | hyphens }} "$APP_NAME"
@@ -356,21 +339,21 @@ start_app {{ package.name | hyphens }} "$APP_NAME"
 
 {% if package.is_broker %}
 export BROKER_NAME={{ package.name | hyphens }}
-export BROKER_USER=<%= Shellwords.escape properties.{{ package.name }}.user %>
-export BROKER_PASS=<%= Shellwords.escape properties.{{ package.name }}.password %>
+export BROKER_USER={{ ( 'properties.' + package.name + '.user' ) | shell_string }}
+export BROKER_PASS={{ ( 'properties.' + package.name + '.password' ) | shell_string }}
 export BROKER_SERVICES="{{ package.internal_service_names }}"
 {% if package.is_external_broker %}
-export BROKER_URL=<%= Shellwords.escape properties.{{ package.name }}.url %>
+export BROKER_URL={{ ( 'properties.' + package.name + '.url' ) | shell_string }}
 {% else %}
 export BROKER_URL=$SCHEME://${APP_HOST}.${APP_DOMAIN}
 {% endif %}
-export GLOBAL_ACCESS=<%= Shellwords.escape properties.{{ package.name }}.enable_global_access_to_plans %>
+export GLOBAL_ACCESS={{ ( 'properties.' + package.name + '.enable_global_access_to_plans' ) | shell_string }}
 register_broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL" "$GLOBAL_ACCESS" "$BROKER_SERVICES"
 {% endif %}
 
 {% if package.is_buildpack %}
 export BUILDPACK_NAME={{ package.name }}
-export BUILDPACK_ORDER=<%= Shellwords.escape properties.{{ package.name }}.buildpack_order %>
+export BUILDPACK_ORDER={{ ( 'properties.' + package.name + '.buildpack_order' ) | shell_string }}
 export BUILDPACK_FILE=$PACKAGE_PATH/{{ package.name }}/{{ package.path }}
 push_buildpack "$BUILDPACK_NAME" "$BUILDPACK_ORDER" "$BUILDPACK_FILE"
 {% endif %}

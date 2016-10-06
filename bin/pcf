@@ -261,9 +261,9 @@ def logs_cmd(install_id=None):
 @click.argument('tile_repo')
 @click.argument('errand_name')
 def test_errand_cmd(tile_repo, errand_name):
-	errand_file = os.path.join(tile_repo, 'release/jobs', errand_name, 'templates', errand_name + '.sh.erb')
-	rendered_errand = errand_name + '.sh'
-	erb.render(rendered_errand, errand_file, tile_repo)
+	print >> sys.stderr, 'test-errand is currently disabled while we work on improving it (issue #134)'
+	sys.exit(1)
+	rendered_errand = erb.render(errand_name, tile_repo)
 	env = os.environ
 	env['PACKAGE_PATH'] = os.path.join(tile_repo, 'release/blobs')
 	os.execlpe('bash', 'bash', rendered_errand, env)
