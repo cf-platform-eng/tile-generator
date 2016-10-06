@@ -1,6 +1,9 @@
 #!/bin/sh
 
+MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
 echo "Tile generator is now pip-installable"
 echo "Please follow the updated installation instructions at:"
 echo "http://cf-platform-eng.github.io/isv-portal/tile-generator"
+echo "and remove ${MY_DIR} from your \$PATH" 
 exit 1
