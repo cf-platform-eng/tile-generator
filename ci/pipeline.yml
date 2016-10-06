@@ -1,5 +1,29 @@
 ---
 
+groups:
+
+- name: all
+  jobs:
+  - build-base-image
+  - unit-tests
+  - create-dev
+  - package-tile-generator
+  - install-tile-generator
+  - build-tile
+  - acceptance-tests
+  - claim-pcf
+  - deploy-tile
+  - deployment-tests
+  - remove-tile
+  - release-pcf
+  - publish-release
+
+- name: version
+  jobs:
+  - create-patch
+  - create-minor
+  - create-major
+
 resource_types:
 
 - name: slack-notification
