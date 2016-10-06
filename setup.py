@@ -67,7 +67,7 @@ setup(
         'Jinja2>=2.8',
         'PyYAML>=3.1',
         'docker-py>=1.6.0',
-        'requests>=2.9.1',
+        'requests>=2.9.1,<2.11',
         'mock>=2.0.0',
     ],
     include_package_data = True,
