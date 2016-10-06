@@ -8,20 +8,70 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
     tag: latest
 
+- name: pypi
+  type: docker-image
+  source:
+    repository: cfplatformeng/concourse-pypi-resource
+
 resources:
 
 - name: tile-generator-repo
   type: git
   source:
-    branch: master
+    ignore_paths: [ "ci/*-tests", "sample/missing-properties.yml" ]
+    branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
-- name: dockerfile-repo
+- name: tile-generator-tag
   type: git
   source:
-    paths: [ "ci/Dockerfile", "ci/requirements.txt" ]
-    branch: master
+    branch: {{github-branch}}
+    uri: git@github.com:cf-platform-eng/tile-generator.git
+    private_key: {{github-semver-private-key}}
+
+- name: tile-generator-github-release
+  type: github-release
+  source:
+    user: cf-platform-eng
+    repository: tile-generator
+    access_token: {{github-release-token}}
+
+- name: tile-generator-pypi-release
+  type: pypi
+  source:
+    name: tile-generator
+    username: {{pypi-user}}
+    password: {{pypi-password}}
+    test: true
+
+- name: tile-generator-tests
+  type: git
+  source:
+    paths: [ "ci/*-tests", "ci/scripts", "sample/missing-properties.yml" ]
+    branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: base-pipeline-dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/docker-tile-pipeline" ]
+    branch: {{github-branch}}
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/docker-tile-generator" ]
+    branch: {{github-branch}}
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-package
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: tile-generator-(?P<version>.*).tar.gz
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
 
 - name: generated-tile
   type: s3
@@ -47,10 +97,18 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
-- name: ci-docker-image
+- name: base-pipeline-docker-image
   type: docker-image
   source:
-    repository: guidowb/tile-pipeline
+    repository: guidowb/base-pipeline
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: tile-generator-docker-image
+  type: docker-image
+  source:
+    repository: guidowb/tile-generator
     email: {{docker-hub-email}}
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
@@ -76,33 +134,42 @@ resources:
   source:
     url: {{slack-hook}}
 
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:cf-platform-eng/tile-generator
+    branch: version
+    file: version
+    private_key: {{github-semver-private-key}}
+
 jobs:
 
-- name: build-docker
+- name: build-base-image
   plan:
-  - get: dockerfile-repo
+  - get: base-pipeline-dockerfile-repo
     trigger: true
-  - put: ci-docker-image
+  - put: base-pipeline-docker-image
     params:
-      build: dockerfile-repo/ci
+      build: base-pipeline-dockerfile-repo/ci/docker-tile-pipeline
 
 - name: unit-tests
   plan:
   - aggregate:
-    - get: ci-docker-image
-      passed: [ build-docker ]
+    - get: base-pipeline-docker-image
+      passed: [ build-base-image ]
       trigger: true
     - get: tile-generator-repo
       trigger: true
   - task: run-unit-tests
+    image: base-pipeline-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: tile-generator-repo
       run:
         path: tile-generator-repo/ci/scripts/run-unittests.sh
-        args: [ "tile-generator-repo/lib" ]
+        args: [ "tile-generator-repo/tile_generator" ]
     on_failure:
       aggregate:
       - put: slack-alert
@@ -112,22 +179,146 @@ jobs:
           text: '(master) Unit tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: build-tile
+- name: create-dev
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: base-pipeline-docker-image
       passed: [ unit-tests ]
       trigger: true
-    - get: redis-boshrelease
     - get: tile-generator-repo
       passed: [ unit-tests ]
       trigger: true
-    - get: tile-history
-      trigger: false
-  - task: build-sample-apps
+  - put: version
+    params:
+      pre: dev
+
+- name: create-patch
+  plan:
+  - put: version
+    params:
+      bump: patch
+
+- name: create-minor
+  plan:
+  - put: version
+    params:
+      bump: minor
+
+- name: create-major
+  plan:
+  - put: version
+    params:
+      bump: major
+
+- name: package-tile-generator
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ create-dev ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ create-dev ]
+      trigger: true
+    - get: version
+      trigger: true
+  - task: build-package
+    image: base-pipeline-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: version
+      outputs:
+      - name: tile-generator-dist
+      run:
+        dir: tile-generator-repo
+        path: sh
+        args:
+        - -c 
+        - cp ../version/version version.txt && python setup.py sdist && cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-`cat version.txt`.tar.gz
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Tile Generator package build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+  - aggregate:
+      - put: tile-generator-package
+        params:
+          file: tile-generator-dist/tile-generator-*.tar.gz
+      - put: tile-generator-tag
+        params:
+          repository: tile-generator-repo
+          only_tag: true
+          tag: version/version
+          tag_prefix: v
+
+- name: install-tile-generator
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      trigger: true
+    - get: tile-generator-package
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: version
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-dockerfile-repo
+      trigger: true
+  - task: prepare-docker-build
+    image: base-pipeline-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-dockerfile-repo
+      - name: tile-generator-package
+      outputs:
+      - name: docker-build-dir
+      run:
+        path: sh
+        args:
+        - -c
+        - cp tile-generator-package/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Tile Generator docker build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+  - put: tile-generator-docker-image
+    params:
+      build: docker-build-dir
+
+- name: build-tile
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: redis-boshrelease
+    - get: tile-history
+      trigger: false
+    - get: tile-generator-repo
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: version
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ install-tile-generator ]
+      trigger: true
+  - task: build-sample-apps
+    image: tile-generator-docker-image
+    config:
+      platform: linux
       inputs:
       - name: tile-generator-repo
       - name: redis-boshrelease
@@ -153,9 +344,9 @@ jobs:
     params:
       save: true
   - task: populate-docker-cache
+    image: tile-generator-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: app-docker-image
       outputs:
@@ -172,9 +363,9 @@ jobs:
           text: '(master) Sample app docker build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - task: build-sample-tile
+    image: tile-generator-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
       inputs:
       - name: tile-generator-repo
       - name: sample-tile-build
@@ -203,24 +394,32 @@ jobs:
 - name: acceptance-tests
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-generator-docker-image
+      passed: [ build-tile ]
+      trigger: true
+    - get: tile-generator-tests
+      trigger: true
+    - get: generated-tile
       passed: [ build-tile ]
       trigger: true
     - get: tile-generator-repo
       passed: [ build-tile ]
       trigger: true
-    - get: generated-tile
+    - get: version
+      passed: [ build-tile ]
+      trigger: true
+    - get: tile-generator-package
       passed: [ build-tile ]
       trigger: true
   - task: run-acceptance-tests
+    image: tile-generator-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
       inputs:
-      - name: tile-generator-repo
+      - name: tile-generator-tests
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-acceptancetests.sh
+        path: tile-generator-tests/ci/scripts/run-acceptancetests.sh
         args: [ "generated-tile" ]
     on_failure:
       aggregate:
@@ -234,26 +433,35 @@ jobs:
 - name: claim-pcf
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-generator-docker-image
       passed: [ acceptance-tests ]
       trigger: true
-    - get: tile-generator-repo
+    - get: tile-generator-tests
       passed: [ acceptance-tests ]
       trigger: true
     - get: generated-tile
       passed: [ acceptance-tests ]
       trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: version
+      passed: [ acceptance-tests ]
+      trigger: true
     - put: pcf-environment
       params:
         acquire: true
+    - get: tile-generator-package
+      passed: [ acceptance-tests ]
+      trigger: true
 
 - name: deploy-tile
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-generator-docker-image
       passed: [ claim-pcf ]
       trigger: true
-    - get: tile-generator-repo
+    - get: tile-generator-tests
       passed: [ claim-pcf ]
       trigger: true
     - get: generated-tile
@@ -261,16 +469,25 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ claim-pcf ]
+    - get: tile-generator-repo
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: version
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ claim-pcf ]
+      trigger: true
   - task: run-deploy-tile
+    image: tile-generator-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
       inputs:
-      - name: tile-generator-repo
+      - name: tile-generator-tests
       - name: pcf-environment
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-deploytile.sh
+        path: tile-generator-tests/ci/scripts/run-deploytile.sh
         args: [ "generated-tile", "pcf-environment" ]
     on_failure:
       aggregate:
@@ -287,10 +504,10 @@ jobs:
 - name: deployment-tests
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-generator-docker-image
       passed: [ deploy-tile ]
       trigger: true
-    - get: tile-generator-repo
+    - get: tile-generator-tests
       passed: [ deploy-tile ]
       trigger: true
     - get: generated-tile
@@ -298,16 +515,25 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ deploy-tile ]
+    - get: tile-generator-repo
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: version
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ deploy-tile ]
+      trigger: true
   - task: run-deployment-tests
+    image: tile-generator-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
       inputs:
-      - name: tile-generator-repo
+      - name: tile-generator-tests
       - name: pcf-environment
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
+        path: tile-generator-tests/ci/scripts/run-deploymenttests.sh
         args: [ "generated-tile", "pcf-environment" ]
     on_failure:
       aggregate:
@@ -324,10 +550,10 @@ jobs:
 - name: remove-tile
   plan:
   - aggregate:
-    - get: ci-docker-image
+    - get: tile-generator-docker-image
       passed: [ deployment-tests ]
       trigger: true
-    - get: tile-generator-repo
+    - get: tile-generator-tests
       passed: [ deployment-tests ]
       trigger: true
     - get: generated-tile
@@ -335,16 +561,25 @@ jobs:
       trigger: true
     - get: pcf-environment
       passed: [ deployment-tests ]
+    - get: tile-generator-repo
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: version
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ deployment-tests ]
+      trigger: true
   - task: remove-tile
+    image: tile-generator-docker-image
     config:
       platform: linux
-      image: "docker:///guidowb/tile-pipeline"
       inputs:
-      - name: tile-generator-repo
+      - name: tile-generator-tests
       - name: pcf-environment
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        path: tile-generator-tests/ci/scripts/run-removetile.sh
         args: [ "generated-tile", "pcf-environment" ]
     on_failure:
       aggregate:
@@ -358,11 +593,39 @@ jobs:
           text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
+- name: publish-release
+  plan:
+  - aggregate:
+    - get: tile-generator-package
+      passed: [ remove-tile ]
+      trigger: true
+    - get: version
+      passed: [ remove-tile ]
+      trigger: true
+  - aggregate:
+    - put: tile-generator-github-release
+      params:
+        name: version/version
+        tag: version/version
+        tag_prefix: v
+        globs:
+        - tile-generator-package/tile-generator-*.tar.gz
+    - put: tile-generator-pypi-release
+      params:
+        glob: tile-generator-package/tile-generator-*.tar.gz
+
 - name: release-pcf
   plan:
-  - get: pcf-environment
-    passed: [ remove-tile ]
-    trigger: true
+  - aggregate:
+    - get: pcf-environment
+      passed: [ remove-tile ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ remove-tile ]
+      trigger: true
+    - get: version
+      passed: [ remove-tile ]
+      trigger: true
   - put: pcf-environment
     params:
       release: pcf-environment

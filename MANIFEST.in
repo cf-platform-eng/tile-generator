@@ -1,0 +1,5 @@
+recursive-include tile_generator/templates *
+include LICENSE
+include NOTICE
+include README.md
+include version.txt

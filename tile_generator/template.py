@@ -25,7 +25,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader, exceptions
 
 PATH = os.path.dirname(os.path.realpath(__file__))
-TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, '..', 'templates'))
+TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, 'templates'))
 
 def render_base64(file):
 	try:

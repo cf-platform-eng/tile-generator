@@ -22,9 +22,8 @@ POOL_DIR="$( cd "$2" && pwd )"
 MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
 REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
-BIN_DIR="$( cd "${REPO_DIR}/bin" && pwd )"
 
-PCF="${BIN_DIR}/pcf"
+PCF="pcf"
 
 TILE_FILE=`cd "${TILE_DIR}"; ls *.pivotal`
 if [ -z "${TILE_FILE}" ]; then
