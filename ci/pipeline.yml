@@ -258,6 +258,7 @@ jobs:
   plan:
   - aggregate:
     - get: base-pipeline-docker-image
+      passed: [ package-tile-generator ]
       trigger: true
     - get: tile-generator-package
       passed: [ package-tile-generator ]
