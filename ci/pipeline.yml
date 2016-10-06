@@ -18,7 +18,7 @@ resources:
 - name: tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "ci/*-tests" ]
+    ignore_paths: [ "ci/*-tests", "sample/missing-properties.yml" ]
     branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -47,7 +47,7 @@ resources:
 - name: tile-generator-tests
   type: git
   source:
-    paths: [ "ci/*-tests", "ci/scripts" ]
+    paths: [ "ci/*-tests", "ci/scripts", "sample/missing-properties.yml" ]
     branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
