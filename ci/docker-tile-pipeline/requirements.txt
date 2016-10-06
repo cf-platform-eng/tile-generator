@@ -4,3 +4,4 @@ PyYAML>=3.11
 Jinja2>=2.8
 click>=6.2
 docker-py>=1.6.0
+pypandoc
