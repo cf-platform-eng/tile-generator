@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo "Tile generator is now pip-installable"
+echo "Please follow the updated installation instructions at:"
+echo "http://cf-platform-eng.github.io/isv-portal/tile-generator"
+exit 1
