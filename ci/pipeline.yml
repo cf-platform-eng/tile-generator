@@ -42,7 +42,6 @@ resources:
     name: tile-generator
     username: {{pypi-user}}
     password: {{pypi-password}}
-    test: true
 
 - name: tile-generator-tests
   type: git
