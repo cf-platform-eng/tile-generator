@@ -436,7 +436,7 @@ def last_install(lower=0, upper=1, check=install_exists):
 		return lower
 	if check(upper):
 		return last_install(upper, upper * 2, check=check)
-	middle = (lower + upper + 1) / 2
+	middle = (lower + upper + 1) // 2
 	if check(middle):
 		return last_install(middle, upper, check=check)
 	else:
