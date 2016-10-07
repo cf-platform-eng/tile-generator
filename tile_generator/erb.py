@@ -67,11 +67,11 @@ def render(errand_name, config_dir):
 	return target_path
 
 def mkdir_p(dir):
-   try:
-      os.makedirs(dir)
-   except os.error, e:
-      if e.errno != errno.EEXIST:
-         raise
+	try:
+		os.makedirs(dir)
+	except os.error, e:
+		if e.errno != errno.EEXIST:
+			raise
 
 def get_file_properties(filename):
 	try:

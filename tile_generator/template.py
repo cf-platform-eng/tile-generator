@@ -76,8 +76,8 @@ def path(template_file):
 	return os.path.join(TEMPLATE_PATH, template_file)
 
 def mkdir_p(dir):
-   try:
-      os.makedirs(dir)
-   except os.error, e:
-      if e.errno != errno.EEXIST:
-         raise
+	try:
+		os.makedirs(dir)
+	except os.error, e:
+		if e.errno != errno.EEXIST:
+			raise

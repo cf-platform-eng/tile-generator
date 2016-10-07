@@ -120,27 +120,27 @@ def bosh_extract(output, properties):
 	return result
 
 class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath, clobber=False):
-    	self.clobber = clobber
-        self.newPath = os.path.expanduser(newPath)
+	"""Context manager for changing the current working directory"""
+	def __init__(self, newPath, clobber=False):
+		self.clobber = clobber
+		self.newPath = os.path.expanduser(newPath)
 
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        if self.clobber and os.path.isdir(self.newPath):
+	def __enter__(self):
+		self.savedPath = os.getcwd()
+		if self.clobber and os.path.isdir(self.newPath):
 			shutil.rmtree(self.newPath)
-        mkdir_p(self.newPath)
-        os.chdir(self.newPath)
+		mkdir_p(self.newPath)
+		os.chdir(self.newPath)
 
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
+	def __exit__(self, etype, value, traceback):
+		os.chdir(self.savedPath)
 
 def mkdir_p(dir):
-   try:
-      os.makedirs(dir)
-   except os.error, e:
-      if e.errno != errno.EEXIST:
-         raise
+	try:
+		os.makedirs(dir)
+	except os.error, e:
+		if e.errno != errno.EEXIST:
+			raise
 
 def download(url, filename):
 	# [mboldt:20160908] Using urllib.urlretrieve gave an "Access
