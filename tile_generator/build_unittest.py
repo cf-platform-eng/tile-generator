@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import unittest
-import build
+from . import build
 import sys
 from contextlib import contextmanager
 from StringIO import StringIO

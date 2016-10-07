@@ -17,7 +17,7 @@
 import unittest
 import mock
 import requests
-import opsmgr
+from . import opsmgr
 import sys
 from contextlib import contextmanager
 from StringIO import StringIO
@@ -64,7 +64,7 @@ def build_json_response(body):
 	return response
 
 
-@mock.patch('opsmgr.get')
+@mock.patch('tile_generator.opsmgr.get')
 class TestGetChanges17(unittest.TestCase):
 	def test_default_errands(self, mock_get):
 		resp_not_found = requests.Response()
@@ -192,7 +192,7 @@ class TestGetChanges17(unittest.TestCase):
 		self.assertEquals(delete_errands[1]['name'], 'delete-cleanup')
 		self.assertTrue(delete_errands[1]['pre_delete'])
 
-@mock.patch('opsmgr.get')
+@mock.patch('tile_generator.opsmgr.get')
 class TestGetChanges18(unittest.TestCase):
 	def test_default_install_errands(self, mock_get):
 		mock_get.side_effect = [
