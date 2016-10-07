@@ -14,13 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import unittest
 import mock
 import requests
 from . import opsmgr
 import sys
 from contextlib import contextmanager
-from StringIO import StringIO
+from io import StringIO, BytesIO
 
 @contextmanager
 def capture_output():
@@ -47,20 +48,20 @@ class TestInstallTriangulation(unittest.TestCase):
 		return id > 10 and id <= 20
 
 	def test_correctly_handles_no_installs(self):
-		self.assertEquals(opsmgr.last_install(check=self.no_install_exists), 0)
+		self.assertEqual(opsmgr.last_install(check=self.no_install_exists), 0)
 
 	def test_correctly_handles_first_install(self):
-		self.assertEquals(opsmgr.last_install(check=self.first_install_exists), 1)
+		self.assertEqual(opsmgr.last_install(check=self.first_install_exists), 1)
 
 	def test_correctly_handles_twenty_installs(self):
-		self.assertEquals(opsmgr.last_install(check=self.twenty_installs_exist), 20)
+		self.assertEqual(opsmgr.last_install(check=self.twenty_installs_exist), 20)
 
 
 def build_json_response(body):
 	response = requests.Response()
 	response.status_code = 200
 	response.encoding = 'application/json'
-	response.raw = StringIO(body)
+	response.raw = BytesIO(body)
 	return response
 
 
@@ -82,24 +83,24 @@ class TestGetChanges17(unittest.TestCase):
 		product_changes = opsmgr.get_changes()
 
 		changes = product_changes['product_changes']
-		self.assertEquals(len(changes), 3)
+		self.assertEqual(len(changes), 3)
 
 		update_one = changes[1]
-		self.assertEquals(update_one['action'], 'update')
-		self.assertEquals(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
+		self.assertEqual(update_one['action'], 'update')
+		self.assertEqual(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
 
 		update_one_errands = update_one['errands']
-		self.assertEquals(len(update_one_errands), 1)
-		self.assertEquals(update_one_errands[0]['name'], 'deploy-all')
+		self.assertEqual(len(update_one_errands), 1)
+		self.assertEqual(update_one_errands[0]['name'], 'deploy-all')
 		self.assertTrue(update_one_errands[0]['post_deploy'])
 
 		update_two = changes[2]
-		self.assertEquals(update_two['action'], 'update')
-		self.assertEquals(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
+		self.assertEqual(update_two['action'], 'update')
+		self.assertEqual(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
 
 		update_two_errands = update_two['errands']
-		self.assertEquals(len(update_two_errands), 1)
-		self.assertEquals(update_two_errands[0]['name'], 'deploy-all')
+		self.assertEqual(len(update_two_errands), 1)
+		self.assertEqual(update_two_errands[0]['name'], 'deploy-all')
 		self.assertTrue(update_two_errands[0]['post_deploy'])
 
 	def test_custom_deploy_errands(self, mock_get):
@@ -118,19 +119,19 @@ class TestGetChanges17(unittest.TestCase):
 		product_changes = opsmgr.get_changes(deploy_errands= ['deploy-all', 'configure-broker', 'missing'])
 
 		changes = product_changes['product_changes']
-		self.assertEquals(len(changes), 3)
+		self.assertEqual(len(changes), 3)
 
 		update_one = changes[1]
-		self.assertEquals(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
-		self.assertEquals(len(update_one['errands']), 1)
+		self.assertEqual(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
+		self.assertEqual(len(update_one['errands']), 1)
 
 		update_two = changes[2]
-		self.assertEquals(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
+		self.assertEqual(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
 		change_two_errands = update_two['errands']
-		self.assertEquals(len(change_two_errands), 2)
-		self.assertEquals(change_two_errands[0]['name'], 'deploy-all')
+		self.assertEqual(len(change_two_errands), 2)
+		self.assertEqual(change_two_errands[0]['name'], 'deploy-all')
 		self.assertTrue(change_two_errands[0]['post_deploy'])
-		self.assertEquals(change_two_errands[1]['name'], 'configure-broker')
+		self.assertEqual(change_two_errands[1]['name'], 'configure-broker')
 		self.assertTrue(change_two_errands[1]['post_deploy'])
 
 	def test_default_delete_errands(self, mock_get):
@@ -149,15 +150,15 @@ class TestGetChanges17(unittest.TestCase):
 		product_changes = opsmgr.get_changes()
 
 		changes = product_changes['product_changes']
-		self.assertEquals(len(changes), 3)
+		self.assertEqual(len(changes), 3)
 
 		delete = changes[0]
-		self.assertEquals(delete['action'], 'delete')
-		self.assertEquals(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
+		self.assertEqual(delete['action'], 'delete')
+		self.assertEqual(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
 
 		delete_errands = delete['errands']
-		self.assertEquals(len(delete_errands), 1)
-		self.assertEquals(delete_errands[0]['name'], 'delete-all')
+		self.assertEqual(len(delete_errands), 1)
+		self.assertEqual(delete_errands[0]['name'], 'delete-all')
 		self.assertTrue(delete_errands[0]['pre_delete'])
 
 	def test_custom_delete_errands(self, mock_get):
@@ -179,17 +180,17 @@ class TestGetChanges17(unittest.TestCase):
 		)
 
 		changes = product_changes['product_changes']
-		self.assertEquals(len(changes), 3)
+		self.assertEqual(len(changes), 3)
 
 		delete = changes[0]
-		self.assertEquals(delete['action'], 'delete')
-		self.assertEquals(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
+		self.assertEqual(delete['action'], 'delete')
+		self.assertEqual(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
 
 		delete_errands = delete['errands']
-		self.assertEquals(len(delete_errands), 2)
-		self.assertEquals(delete_errands[0]['name'], 'delete-all')
+		self.assertEqual(len(delete_errands), 2)
+		self.assertEqual(delete_errands[0]['name'], 'delete-all')
 		self.assertTrue(delete_errands[0]['pre_delete'])
-		self.assertEquals(delete_errands[1]['name'], 'delete-cleanup')
+		self.assertEqual(delete_errands[1]['name'], 'delete-cleanup')
 		self.assertTrue(delete_errands[1]['pre_delete'])
 
 @mock.patch('tile_generator.opsmgr.get')
@@ -202,15 +203,15 @@ class TestGetChanges18(unittest.TestCase):
 		product_changes = opsmgr.get_changes()
 		changes = product_changes['product_changes']
 
-		self.assertEquals(len(changes), 1)
+		self.assertEqual(len(changes), 1)
 
 		install = changes[0]
-		self.assertEquals(install['guid'], 'service-broker-one-8a46337545b088152272')
-		self.assertEquals(install['action'], 'install')
+		self.assertEqual(install['guid'], 'service-broker-one-8a46337545b088152272')
+		self.assertEqual(install['action'], 'install')
 
 		install_errands = install['errands']
-		self.assertEquals(len(install_errands), 1)
-		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertEqual(len(install_errands), 1)
+		self.assertEqual(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
 
 	def test_custom_install_errands(self, mock_get):
@@ -221,17 +222,17 @@ class TestGetChanges18(unittest.TestCase):
 		product_changes = opsmgr.get_changes(['deploy-all', 'config-broker'])
 		changes = product_changes['product_changes']
 
-		self.assertEquals(len(changes), 1)
+		self.assertEqual(len(changes), 1)
 
 		install = changes[0]
-		self.assertEquals(install['guid'], 'service-broker-one-8a46337545b088152272')
-		self.assertEquals(install['action'], 'install')
+		self.assertEqual(install['guid'], 'service-broker-one-8a46337545b088152272')
+		self.assertEqual(install['action'], 'install')
 
 		install_errands = install['errands']
-		self.assertEquals(len(install_errands), 2)
-		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertEqual(len(install_errands), 2)
+		self.assertEqual(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
-		self.assertEquals(install_errands[1]['name'], 'config-broker')
+		self.assertEqual(install_errands[1]['name'], 'config-broker')
 		self.assertTrue(install_errands[1]['post_deploy'])
 
 	def test_default_update_errands(self, mock_get):
@@ -242,15 +243,15 @@ class TestGetChanges18(unittest.TestCase):
 		product_changes = opsmgr.get_changes()
 		changes = product_changes['product_changes']
 
-		self.assertEquals(len(changes), 1)
+		self.assertEqual(len(changes), 1)
 
 		install = changes[0]
-		self.assertEquals(install['guid'], 'service-broker-two-e8e9996bf23a455fbee6')
-		self.assertEquals(install['action'], 'update')
+		self.assertEqual(install['guid'], 'service-broker-two-e8e9996bf23a455fbee6')
+		self.assertEqual(install['action'], 'update')
 
 		install_errands = install['errands']
-		self.assertEquals(len(install_errands), 1)
-		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertEqual(len(install_errands), 1)
+		self.assertEqual(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
 
 	def test_custom_update_errands(self, mock_get):
@@ -261,17 +262,17 @@ class TestGetChanges18(unittest.TestCase):
 		product_changes = opsmgr.get_changes(['deploy-all', 'config-broker'])
 		changes = product_changes['product_changes']
 
-		self.assertEquals(len(changes), 1)
+		self.assertEqual(len(changes), 1)
 
 		install = changes[0]
-		self.assertEquals(install['guid'], 'service-broker-two-e8e9996bf23a455fbee6')
-		self.assertEquals(install['action'], 'update')
+		self.assertEqual(install['guid'], 'service-broker-two-e8e9996bf23a455fbee6')
+		self.assertEqual(install['action'], 'update')
 
 		install_errands = install['errands']
-		self.assertEquals(len(install_errands), 2)
-		self.assertEquals(install_errands[0]['name'], 'deploy-all')
+		self.assertEqual(len(install_errands), 2)
+		self.assertEqual(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
-		self.assertEquals(install_errands[1]['name'], 'config-broker')
+		self.assertEqual(install_errands[1]['name'], 'config-broker')
 		self.assertTrue(install_errands[1]['post_deploy'])
 
 	def test_default_delete_errands(self, mock_get):
@@ -282,23 +283,23 @@ class TestGetChanges18(unittest.TestCase):
 		product_changes = opsmgr.get_changes()
 		changes = product_changes['product_changes']
 
-		self.assertEquals(len(changes), 2)
+		self.assertEqual(len(changes), 2)
 
 		delete_one = changes[0]
-		self.assertEquals(delete_one['guid'], 'key-value-tile-ce5a27ce8a93145ed200')
-		self.assertEquals(delete_one['action'], 'delete')
+		self.assertEqual(delete_one['guid'], 'key-value-tile-ce5a27ce8a93145ed200')
+		self.assertEqual(delete_one['action'], 'delete')
 
 		delete_one_errands = delete_one['errands']
-		self.assertEquals(len(delete_one_errands), 1)
-		self.assertEquals(delete_one_errands[0]['name'], 'delete-all')
+		self.assertEqual(len(delete_one_errands), 1)
+		self.assertEqual(delete_one_errands[0]['name'], 'delete-all')
 		self.assertTrue(delete_one_errands[0]['pre_delete'])
 
 		delete_two = changes[1]
-		self.assertEquals(delete_two['guid'], 'db-on-demand-c8ace318b641342d8420')
-		self.assertEquals(delete_two['action'], 'delete')
+		self.assertEqual(delete_two['guid'], 'db-on-demand-c8ace318b641342d8420')
+		self.assertEqual(delete_two['action'], 'delete')
 
 		delete_two_errands = delete_two['errands']
-		self.assertEquals(len(delete_two_errands), 0)
+		self.assertEqual(len(delete_two_errands), 0)
 
 	def test_custom_delete_errands(self, mock_get):
 		mock_get.side_effect = [
@@ -311,29 +312,29 @@ class TestGetChanges18(unittest.TestCase):
 		])
 		changes = product_changes['product_changes']
 
-		self.assertEquals(len(changes), 2)
+		self.assertEqual(len(changes), 2)
 
 		delete_one = changes[0]
-		self.assertEquals(delete_one['guid'], 'key-value-tile-ce5a27ce8a93145ed200')
-		self.assertEquals(delete_one['action'], 'delete')
+		self.assertEqual(delete_one['guid'], 'key-value-tile-ce5a27ce8a93145ed200')
+		self.assertEqual(delete_one['action'], 'delete')
 
 		delete_one_errands = delete_one['errands']
-		self.assertEquals(len(delete_one_errands), 0)
+		self.assertEqual(len(delete_one_errands), 0)
 
 		delete_two = changes[1]
-		self.assertEquals(delete_two['guid'], 'db-on-demand-c8ace318b641342d8420')
-		self.assertEquals(delete_two['action'], 'delete')
+		self.assertEqual(delete_two['guid'], 'db-on-demand-c8ace318b641342d8420')
+		self.assertEqual(delete_two['action'], 'delete')
 
 		delete_two_errands = delete_two['errands']
-		self.assertEquals(len(delete_two_errands), 2)
-		self.assertEquals(delete_two_errands[0]['name'], 'delete_subdeployments_on_demand_service_broker')
+		self.assertEqual(len(delete_two_errands), 2)
+		self.assertEqual(delete_two_errands[0]['name'], 'delete_subdeployments_on_demand_service_broker')
 		self.assertTrue(delete_two_errands[0]['pre_delete'])
-		self.assertEquals(delete_two_errands[1]['name'], 'unregister_on_demand_service_broker')
+		self.assertEqual(delete_two_errands[1]['name'], 'unregister_on_demand_service_broker')
 		self.assertTrue(delete_two_errands[1]['pre_delete'])
 
 
 api_responses_1_7 = {}
-api_responses_1_7['deployed_products'] = """
+api_responses_1_7['deployed_products'] = b"""
 [
     {
         "guid": "service-broker-one-9ed445129ddee5b24bff",
@@ -352,7 +353,7 @@ api_responses_1_7['deployed_products'] = """
     }
 ]
 """
-api_responses_1_7['staged_products'] = """
+api_responses_1_7['staged_products'] = b"""
 [
     {
         "guid": "service-broker-one-9ed445129ddee5b24bff",
@@ -366,7 +367,7 @@ api_responses_1_7['staged_products'] = """
     }
 ]
 """
-api_responses_1_7['broker_one_manifest'] = """
+api_responses_1_7['broker_one_manifest'] = b"""
 {
     "manifest": {
         "jobs": [
@@ -429,7 +430,7 @@ api_responses_1_7['broker_one_manifest'] = """
     }
 }
 """
-api_responses_1_7['tile_two_manifest'] = """
+api_responses_1_7['tile_two_manifest'] = b"""
 {
     "manifest": {
         "jobs": [
@@ -520,7 +521,7 @@ api_responses_1_7['tile_two_manifest'] = """
     }
 }
 """
-api_responses_1_7['deleting_manifest'] = """
+api_responses_1_7['deleting_manifest'] = b"""
 {
     "manifest": {
         "jobs": [
@@ -613,7 +614,7 @@ api_responses_1_7['deleting_manifest'] = """
 """
 
 api_responses_1_8 = {}
-api_responses_1_8['pending_changes_install'] = """
+api_responses_1_8['pending_changes_install'] = b"""
 {
     "product_changes": [
         {
@@ -633,7 +634,7 @@ api_responses_1_8['pending_changes_install'] = """
     ]
 }
 """
-api_responses_1_8['pending_changes_update'] = """
+api_responses_1_8['pending_changes_update'] = b"""
 {
     "product_changes": [
         {
@@ -653,7 +654,7 @@ api_responses_1_8['pending_changes_update'] = """
     ]
 }
 """
-api_responses_1_8['pending_changes_delete'] = """
+api_responses_1_8['pending_changes_delete'] = b"""
 {
     "product_changes": [
         {

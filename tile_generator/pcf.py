@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# no unicode_literals here because http://click.pocoo.org/python3/
+from __future__ import absolute_import, division, print_function#, unicode_literals
 import os
 import sys
 import yaml
@@ -26,8 +28,8 @@ import subprocess
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(PATH, os.path.join('..', 'lib')))
-import opsmgr
-import erb
+from . import opsmgr
+from . import erb
 
 @click.group()
 def cli():
@@ -41,18 +43,18 @@ def ssh_cmd():
 def products_cmd():
 	products = opsmgr.get_products()
 	for product in products:
-		print "-", product["name"], product["product_version"], "(installed)" if product["installed"] else ""
+		print("-", product["name"], product["product_version"], "(installed)" if product["installed"] else "")
 
 @cli.command('changes')
 def deployed_cmd():
 	try:
 		changes = opsmgr.get_changes()
 		for p in changes['product_changes']:
-			print p['action'], p['guid']
+			print(p['action'], p['guid'])
 			for e in p['errands']:
-				print '-', e['name']
+				print('-', e['name'])
 	except:
-		print >> sys.stderr, 'This command is only available for PCF 1.7 and beyond.'
+		print('This command is only available for PCF 1.7 and beyond.', file=sys.stderr)
 		sys.exit(1)
 
 @cli.command('is-available')
@@ -62,7 +64,7 @@ def is_available_cmd(product, version):
 	products = opsmgr.get_products()
 	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) ]
 	if len(matches) < 1:
-		print >> sys.stderr, 'No match found for product', product, 'version', version
+		print('No match found for product', product, 'version', version, file=sys.stderr)
 		sys.exit(1)
 
 @cli.command('is-installed')
@@ -72,7 +74,7 @@ def is_installed_cmd(product, version):
 	products = opsmgr.get_products()
 	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) and p['installed'] ]
 	if len(matches) < 1:
-		print >> sys.stderr, 'Product', product, 'version', version, 'is not installed'
+		print('Product', product, 'version', version, 'is not installed', file=sys.stderr)
 		sys.exit(1)
 
 @cli.command('configure')
@@ -91,16 +93,16 @@ def settings_cmd(product):
 	if product is not None:
 		settings = [ p for p in settings['products'] if p['identifier'] == product ]
 		if len(settings) < 1:
-			print >> sys.stderr, 'No settings found for product', product
+			print('No settings found for product', product, file=sys.stderr)
 			sys.exit(1)
 		settings = settings[0]
-	print json.dumps(settings, indent=4)
+	print(json.dumps(settings, indent=4))
 
 @cli.command('cf-info')
 def cf_info_cmd():
 	cfinfo = opsmgr.get_cfinfo()
 	for key in sorted(cfinfo):
-		print '-', key + ':', cfinfo[key]
+		print('-', key + ':', cfinfo[key])
 
 @cli.command('import')
 @click.argument('zipfile')
@@ -162,20 +164,20 @@ def cleanup_cmd(product):
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	for match in matches:
-		print >> sys.stderr, '- attempting to delete', match['name']
+		print('- attempting to delete', match['name'], file=sys.stderr)
 		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	if len(matches) < 1:
 		sys.exit(0)
 	if len(matches) > 1:
-		print >> sys.stderr, '- more than one match remains installed'
+		print('- more than one match remains installed', file=sys.stderr)
 		sys.exit(1)
 	#
 	# Attempt 2 - Uninstall deployed version
 	#
 	match = matches[0]
-	print >> sys.stderr, '- product was deployed, applying changes to uninstall it'
+	print('- product was deployed, applying changes to uninstall it', file=sys.stderr)
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
 	products = opsmgr.get('/api/installation_settings/products').json()
@@ -186,18 +188,18 @@ def cleanup_cmd(product):
 	# Attempt 3 - Re-deploy with errands disabled, then uninstall
 	#
 	match = matches[0]
-	print >> sys.stderr, '- uninstall appears to have failed'
-	print >> sys.stderr, '- re-deploying with disabled errands'
+	print('- uninstall appears to have failed', file=sys.stderr)
+	print('- re-deploying with disabled errands', file=sys.stderr)
 	opsmgr.disable_errands(product)
 	apply_changes_cmd()
-	print >> sys.stderr, '- uninstalling with disabled errands'
+	print('- uninstalling with disabled errands', file=sys.stderr)
 	opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	if len(matches) > 0:
-		print >> sys.stderr, '- failed to uninstall'
+		print('- failed to uninstall', file=sys.stderr)
 		sys.exit(1)
 
 @cli.command('apply-changes')
@@ -210,7 +212,7 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 	try:
 		changes = opsmgr.get_changes(deploy_errand_list, delete_errand_list)
 		if len(changes['product_changes']) == 0:
-			print >> sys.stderr, 'Nothing to do'
+			print('Nothing to do', file=sys.stderr)
 			return
 		for p in changes['product_changes']:
 			post_deploy = serialize_errands(p, 'post_deploy', 'post_deploy_errands')
@@ -231,7 +233,7 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 		response = opsmgr.post('/api/installation?ignore_warnings=1', body, check=False)
 		if response.status_code == 422 and "Install in progress" in response.json()["errors"]:
 			if in_progress is None:
-				print >> sys.stderr, 'Waiting for in-progress installation to complete'
+				print('Waiting for in-progress installation to complete', file=sys.stderr)
 				in_progress = opsmgr.last_install()
 			time.sleep(10)
 			if opsmgr.install_exists(in_progress + 1):
@@ -261,7 +263,7 @@ def logs_cmd(install_id=None):
 @click.argument('tile_repo')
 @click.argument('errand_name')
 def test_errand_cmd(tile_repo, errand_name):
-	print >> sys.stderr, 'test-errand is currently disabled while we work on improving it (issue #134)'
+	print('test-errand is currently disabled while we work on improving it (issue #134)', file=sys.stderr)
 	sys.exit(1)
 	rendered_errand = erb.render(errand_name, tile_repo)
 	env = os.environ
@@ -289,11 +291,11 @@ def target_cmd(org, space):
 @cli.command('version')
 def version_cmd():
 	version = opsmgr.get_version()
-	print '.'.join([ str(x) for x in version ])
+	print('.'.join([ str(x) for x in version ]))
 
 if __name__ == '__main__':
 	try:
 		cli()
 	except Exception as e:
-		print >> sys.stderr, e
+		print(e, file=sys.stderr)
 		sys.exit(1)

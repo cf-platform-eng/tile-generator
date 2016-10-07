@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# no unicode_literals here because http://click.pocoo.org/python3/
+from __future__ import absolute_import, division, print_function#, unicode_literals
 import click
 import sys
 import os
@@ -23,8 +25,8 @@ import yaml
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(PATH, os.path.join('..', 'lib')))
-import build
-import template
+from . import build
+from . import template
 
 CONFIG_FILE = "tile.yml"
 HISTORY_FILE = "tile-history.yml"
@@ -40,7 +42,7 @@ def init_cmd(name):
 		os.mkdir(name)
 		os.chdir(name)
 	if os.path.isfile(CONFIG_FILE):
-		print >>sys.stderr, 'Already initialized.'
+		print('Already initialized.', file=sys.stderr)
 		sys.exit(0)
 	name = os.path.basename(os.getcwd())
 	template.render(CONFIG_FILE, CONFIG_FILE, { 'name': name })
@@ -56,12 +58,12 @@ def build_cmd(version, verbose, docker_cache):
 	config['version'] = build.update_version(history, version)
 	if docker_cache is not None:
 		config['docker_cache'] = docker_cache
-	print 'name:', config.get('name', '<unspecified>')
-	print 'icon:', config.get('icon_file', '<unspecified>')
-	print 'label:', config.get('label', '<unspecified>')
-	print 'description:', config.get('description', '<unspecified>')
-	print 'version:', config.get('version', '<unspecified>')
-	print
+	print('name:', config.get('name', '<unspecified>'))
+	print('icon:', config.get('icon_file', '<unspecified>'))
+	print('label:', config.get('label', '<unspecified>'))
+	print('description:', config.get('description', '<unspecified>'))
+	print('version:', config.get('version', '<unspecified>'))
+	print()
 	build.build(config, verbose)
 	write_history(history)
 
@@ -70,7 +72,7 @@ def read_config():
 		with open(CONFIG_FILE) as config_file:
 			return read_yaml(config_file)
 	except IOError as e:
-		print >> sys.stderr, 'Not a tile repository. Use "tile init" in the root of your repository to create one.'
+		print('Not a tile repository. Use "tile init" in the root of your repository to create one.', file=sys.stderr)
 		sys.exit(1)
 
 def read_history():

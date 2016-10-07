@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import unittest
 from . import build
 import sys
 from contextlib import contextmanager
-from StringIO import StringIO
+from io import StringIO
 
 @contextmanager
 def capture_output():
@@ -40,68 +41,68 @@ class TestMemoryCalculation(unittest.TestCase):
 
 	def test_correctly_handles_default(self):
 		build.update_memory(self.context, {})
-		self.assertEquals(self.context['total_memory'], 1024)
-		self.assertEquals(self.context['max_memory'], 1024)
+		self.assertEqual(self.context['total_memory'], 1024)
+		self.assertEqual(self.context['max_memory'], 1024)
 
 	def test_correctly_interprets_m(self):
 		build.update_memory(self.context, { 'memory': '50m' })
-		self.assertEquals(self.context['total_memory'], 50)
-		self.assertEquals(self.context['max_memory'], 50)
+		self.assertEqual(self.context['total_memory'], 50)
+		self.assertEqual(self.context['max_memory'], 50)
 
 	def test_correctly_interprets_M(self):
 		build.update_memory(self.context, { 'memory': '60M' })
-		self.assertEquals(self.context['total_memory'], 60)
-		self.assertEquals(self.context['max_memory'], 60)
+		self.assertEqual(self.context['total_memory'], 60)
+		self.assertEqual(self.context['max_memory'], 60)
 
 	def test_correctly_interprets_mb(self):
 		build.update_memory(self.context, { 'memory': '70mb' })
-		self.assertEquals(self.context['total_memory'], 70)
-		self.assertEquals(self.context['max_memory'], 70)
+		self.assertEqual(self.context['total_memory'], 70)
+		self.assertEqual(self.context['max_memory'], 70)
 
 	def test_correctly_interprets_MB(self):
 		build.update_memory(self.context, { 'memory': '80MB' })
-		self.assertEquals(self.context['total_memory'], 80)
-		self.assertEquals(self.context['max_memory'], 80)
+		self.assertEqual(self.context['total_memory'], 80)
+		self.assertEqual(self.context['max_memory'], 80)
 
 	def test_correctly_interprets_g(self):
 		build.update_memory(self.context, { 'memory': '5g' })
-		self.assertEquals(self.context['total_memory'], 5120)
-		self.assertEquals(self.context['max_memory'], 5120)
+		self.assertEqual(self.context['total_memory'], 5120)
+		self.assertEqual(self.context['max_memory'], 5120)
 
 	def test_correctly_interprets_G(self):
 		build.update_memory(self.context, { 'memory': '6G' })
-		self.assertEquals(self.context['total_memory'], 6144)
-		self.assertEquals(self.context['max_memory'], 6144)
+		self.assertEqual(self.context['total_memory'], 6144)
+		self.assertEqual(self.context['max_memory'], 6144)
 
 	def test_correctly_interprets_gb(self):
 		build.update_memory(self.context, { 'memory': '7gb' })
-		self.assertEquals(self.context['total_memory'], 7168)
-		self.assertEquals(self.context['max_memory'], 7168)
+		self.assertEqual(self.context['total_memory'], 7168)
+		self.assertEqual(self.context['max_memory'], 7168)
 
 	def test_correctly_interprets_GB(self):
 		build.update_memory(self.context, { 'memory': '8GB' })
-		self.assertEquals(self.context['total_memory'], 8192)
-		self.assertEquals(self.context['max_memory'], 8192)
+		self.assertEqual(self.context['total_memory'], 8192)
+		self.assertEqual(self.context['max_memory'], 8192)
 
 	def test_correctly_ignores_whitespace(self):
 		build.update_memory(self.context, { 'memory': '9 GB' })
-		self.assertEquals(self.context['total_memory'], 9216)
-		self.assertEquals(self.context['max_memory'], 9216)
+		self.assertEqual(self.context['total_memory'], 9216)
+		self.assertEqual(self.context['max_memory'], 9216)
 
 	def test_correctly_computes_total(self):
 		self.context['total_memory'] = 1024
 		build.update_memory(self.context, { 'memory': '1GB' })
-		self.assertEquals(self.context['total_memory'], 2048)
+		self.assertEqual(self.context['total_memory'], 2048)
 
 	def test_adjusts_max_if_bigger(self):
 		self.context['max_memory'] = 512
 		build.update_memory(self.context, { 'memory': '1GB' })
-		self.assertEquals(self.context['max_memory'], 1024)
+		self.assertEqual(self.context['max_memory'], 1024)
 
 	def test_leaves_max_if_smaller(self):
 		self.context['max_memory'] = 2048
 		build.update_memory(self.context, { 'memory': '1GB' })
-		self.assertEquals(self.context['max_memory'], 2048)
+		self.assertEqual(self.context['max_memory'], 2048)
 
 	def test_fails_without_unit(self):
 		with self.assertRaises(SystemExit):
@@ -114,14 +115,14 @@ class TestMemoryCalculation(unittest.TestCase):
 	def test_defaults_to_twice_total_size(self):
 		self.context['total_memory'] = 2048
 		build.validate_memory_quota(self.context)
-		self.assertEquals(self.context['org_quota'], 4096)
+		self.assertEqual(self.context['org_quota'], 4096)
 
 	def test_accepts_minimum_quota(self):
 		self.context['total_memory'] = 2048
 		self.context['max_memory'] = 1024
 		self.context['org_quota'] = 3072
 		build.validate_memory_quota(self.context)
-		self.assertEquals(self.context['org_quota'], 3072)
+		self.assertEqual(self.context['org_quota'], 3072)
 
 	def test_rejects_insufficient_quota(self):
 		self.context['total_memory'] = 2048
@@ -220,25 +221,25 @@ class TestVersionMethods(unittest.TestCase):
 		self.assertFalse(build.is_semver('11.2.25dev1'))
 
 	def test_initial_version(self):
-		self.assertEquals(build.update_version({}, None), '0.0.1')
+		self.assertEqual(build.update_version({}, None), '0.0.1')
 
 	def test_default_version_update(self):
-		self.assertEquals(build.update_version({ 'version': '1.2.3' }, None), '1.2.4')
+		self.assertEqual(build.update_version({ 'version': '1.2.3' }, None), '1.2.4')
 
 	def test_patch_version_update(self):
-		self.assertEquals(build.update_version({ 'version': '1.2.3' }, 'patch'), '1.2.4')
+		self.assertEqual(build.update_version({ 'version': '1.2.3' }, 'patch'), '1.2.4')
 
 	def test_minor_version_update(self):
-		self.assertEquals(build.update_version({ 'version': '1.2.3' }, 'minor'), '1.3.0')
+		self.assertEqual(build.update_version({ 'version': '1.2.3' }, 'minor'), '1.3.0')
 
 	def test_major_version_update(self):
-		self.assertEquals(build.update_version({ 'version': '1.2.3' }, 'major'), '2.0.0')
+		self.assertEqual(build.update_version({ 'version': '1.2.3' }, 'major'), '2.0.0')
 
 	def test_explicit_version_update(self):
-		self.assertEquals(build.update_version({ 'version': '1.2.3' }, '5.0.1'), '5.0.1')
+		self.assertEqual(build.update_version({ 'version': '1.2.3' }, '5.0.1'), '5.0.1')
 
 	def test_annotated_version_update(self):
-		self.assertEquals(build.update_version({ 'version': '1.2.3-alpha.1' }, '1.2.4'), '1.2.4')
+		self.assertEqual(build.update_version({ 'version': '1.2.3-alpha.1' }, '1.2.4'), '1.2.4')
 
 	def test_illegal_old_version_update(self):
 		with self.assertRaises(SystemExit):
@@ -262,23 +263,23 @@ class TestVersionMethods(unittest.TestCase):
 	def test_saves_initial_version(self):
 		history = {}
 		build.update_version(history, '0.0.1')
-		self.assertEquals(history.get('version'), '0.0.1')
-		self.assertEquals(len(history.get('history', [])), 0)
+		self.assertEqual(history.get('version'), '0.0.1')
+		self.assertEqual(len(history.get('history', [])), 0)
 
 	def test_saves_initial_history(self):
 		history = { 'version': '0.0.1' }
 		build.update_version(history, '0.0.2')
-		self.assertEquals(history.get('version'), '0.0.2')
-		self.assertEquals(len(history.get('history')), 1)
-		self.assertEquals(history.get('history')[0], '0.0.1')
+		self.assertEqual(history.get('version'), '0.0.2')
+		self.assertEqual(len(history.get('history')), 1)
+		self.assertEqual(history.get('history')[0], '0.0.1')
 
 	def test_saves_additional_history(self):
 		history = { 'version': '0.0.2', 'history': [ '0.0.1' ] }
 		build.update_version(history, '0.0.3')
-		self.assertEquals(history.get('version'), '0.0.3')
-		self.assertEquals(len(history.get('history')), 2)
-		self.assertEquals(history.get('history')[0], '0.0.1')
-		self.assertEquals(history.get('history')[1], '0.0.2')
+		self.assertEqual(history.get('version'), '0.0.3')
+		self.assertEqual(len(history.get('history')), 2)
+		self.assertEqual(history.get('history')[0], '0.0.1')
+		self.assertEqual(history.get('history')[1], '0.0.2')
 
 if __name__ == '__main__':
 	unittest.main()

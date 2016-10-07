@@ -16,16 +16,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
 import errno
 import base64
 import yaml
 import json
-import opsmgr
+from . import opsmgr
 import random
 import string
-import build
+from . import build
 
 from jinja2 import Environment, FileSystemLoader, exceptions, contextfilter
 
@@ -69,7 +70,7 @@ def render(errand_name, config_dir):
 def mkdir_p(dir):
 	try:
 		os.makedirs(dir)
-	except os.error, e:
+	except os.error as e:
 		if e.errno != errno.EEXIST:
 			raise
 
@@ -82,7 +83,7 @@ def get_file_properties(filename):
 			else:
 				return properties
 	except IOError as e:
-		print >> sys.stderr, filename, 'not found'
+		print(filename, 'not found', file=sys.stderr)
 		sys.exit(1)
 
 def get_cf_properties():

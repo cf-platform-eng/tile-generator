@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
 import errno
@@ -23,14 +24,19 @@ import requests
 import shutil
 import subprocess
 import tarfile
-import template
-import urllib
+from . import template
+try:
+	# Python 3
+	from urllib.request import urlretrieve
+except ImportError:
+	# Python 2
+	from urllib import urlretrieve
 import zipfile
 import yaml
 import re
 import datetime
 
-from util import *
+from .util import *
 
 class BoshReleases:
 
@@ -45,15 +51,15 @@ class BoshReleases:
 		# self.context['bosh_releases'] = [] # FIXME Get rid of this contex entry, move info into BoshRelease instances.
 
 	def add_package(self, package):
-		print "tile adding package", package['name']
+		print("tile adding package", package['name'])
 		typename = package.get('type', None)
 		if typename is None:
-			print >>sys.stderr, 'Package', package['name'], 'does not have a type'
+			print('Package', package['name'], 'does not have a type', file=sys.stderr)
 			sys.exit(1)
 		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
 		if typedef is None:
-			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
-			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
+			print('Package', package['name'], 'has unknown type', typename, file=sys.stderr)
+			print('Valid types are:', ', '.join([ t['typename'] for t in package_types]), file=sys.stderr)
 			sys.exit(1)
 		flags = typedef.get('flags', [])
 		# The tempaltes expect the flags in the package map.
@@ -96,17 +102,17 @@ class BoshReleases:
 		# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
 		if self.context['requires_docker_bosh']:
 			with cd('releases'):
-				print 'tile import release docker'
+				print('tile import release docker')
 				docker_release = download_docker_release()
 				self.context['docker_release'] = docker_release
-		print 'tile generate metadata'
+		print('tile generate metadata')
 		template.render('metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
-		print 'tile generate content-migrations'
+		print('tile generate content-migrations')
 		template.render('content_migrations/' + release_name + '.yml', 'tile/content-migrations.yml', self.context)
-		print 'tile generate migrations'
+		print('tile generate migrations')
 		migrations = 'migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
 		template.render(migrations, 'tile/migration.js', self.context)
-		print 'tile generate package'
+		print('tile generate package')
 		pivotal_file = release_name + '-' + release_version + '.pivotal'
 		with zipfile.ZipFile(pivotal_file, 'w') as f:
 			if self.context['requires_docker_bosh']:
@@ -114,15 +120,15 @@ class BoshReleases:
 				f.write(os.path.join('releases', docker_release['file']))
 			for name in self.releases:
 				release = self.releases[name]
-				print 'tile import release', name
+				print('tile import release', name)
 				mkdir_p('releases')
 				shutil.copy(release.tarball, os.path.join('releases', release.file))
 				f.write(os.path.join('releases', release.file))
 			f.write(os.path.join('metadata', release_name + '.yml'))
 			f.write(os.path.join('content_migrations', release_name + '.yml'))
 			f.write(migrations)
-		print
-		print 'created tile', pivotal_file
+		print()
+		print('created tile', pivotal_file)
 
 
 class BoshRelease:
@@ -162,9 +168,9 @@ class BoshRelease:
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):
 		if self.has_flag('is_bosh_release'):
-			print "tile", self.name, "bosh release already built"
+			print("tile", self.name, "bosh release already built")
 			return {}
-		print "tile building bosh release for", self.name
+		print("tile building bosh release for", self.name)
 		self.__bosh('init', 'release')
 		template.render('src/templates/all_open.json', 'src/templates/all_open.json', self.context)
 		template.render('src/common/utils.sh', 'src/common/utils.sh', self.context)
@@ -303,7 +309,7 @@ class BoshRelease:
 			for file in files:
 				filename = file.get('name', os.path.basename(file['path']))
 				file['name'] = filename
-				urllib.urlretrieve(file['path'], os.path.join(target_dir, filename))
+				urlretrieve(file['path'], os.path.join(target_dir, filename))
 				package_context['files'] += [ filename ]
 			for docker_image in package.get('docker_images', []):
 				filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
@@ -312,7 +318,7 @@ class BoshRelease:
 		if package.get('is_app', False):
 			manifest = package.get('manifest', { 'name': name })
 			if manifest.get('random-route', False):
-				print >> sys.stderr, 'Illegal manifest option in package', name + ': random-route is not supported'
+				print('Illegal manifest option in package', name + ': random-route is not supported', file=sys.stderr)
 				sys.exit(1)
 			manifest_file = os.path.join(target_dir, 'manifest.yml')
 			with open(manifest_file, 'wb') as f:
@@ -332,7 +338,7 @@ class BoshRelease:
 
 	def __bosh(self, *argv):
 		argv = list(argv)
-		print 'bosh', ' '.join(argv)
+		print('bosh', ' '.join(argv))
 		command = [ 'bosh', '--no-color', '--non-interactive' ] + argv
 		try:
 			return subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=self.release_dir)
@@ -341,5 +347,5 @@ class BoshRelease:
 				return e.output
 			if argv[0] == 'generate' and 'already exists' in e.output:
 				return e.output
-			print e.output
+			print(e.output)
 			sys.exit(e.returncode)

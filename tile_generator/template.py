@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
 import errno
@@ -32,7 +33,7 @@ def render_base64(file):
 		with open(os.path.realpath(os.path.join('..', file)), 'rb') as f:
 			return base64.b64encode(f.read())
 	except Exception as e:
-		print >> sys.stderr, e
+		print(e, file=sys.stderr)
 		sys.exit(1)
 
 def render_hyphens(input):
@@ -78,6 +79,6 @@ def path(template_file):
 def mkdir_p(dir):
 	try:
 		os.makedirs(dir)
-	except os.error, e:
+	except os.error as e:
 		if e.errno != errno.EEXIST:
 			raise

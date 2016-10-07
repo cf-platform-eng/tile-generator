@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
 import errno
@@ -23,15 +24,20 @@ import requests
 import shutil
 import subprocess
 import tarfile
-import template
-import urllib
+from . import template
+try:
+	# Python 3
+	from urllib.request import urlretrieve
+except ImportError:
+	# Python 2
+	from urllib import urlretrieve
 import zipfile
 import yaml
 import re
 import datetime
 
-from bosh import *
-from util import *
+from .bosh import *
+from .util import *
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
@@ -70,18 +76,18 @@ def validate_config(config):
 	try:
 		validname = re.compile('[a-z][a-z0-9]+(-[a-z0-9]+)*$')
 		if validname.match(config['name']) is None:
-			print >> sys.stderr, 'product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens'
+			print('product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 			sys.exit(1)
 	except KeyError as e:
-		print >> sys.stderr, 'tile.yml is missing mandatory property', e
+		print('tile.yml is missing mandatory property', e, file=sys.stderr)
 		sys.exit(1)
 	for package in config.get('packages', []):
 		try:
 			if validname.match(package['name']) is None:
-				print >> sys.stderr, 'package name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens'
+				print('package name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 				sys.exit(1)
 		except KeyError as e:
-			print >> sys.stderr, 'package is missing mandatory property', e
+			print('package is missing mandatory property', e, file=sys.stderr)
 			sys.exit(1)
 	return config
 
@@ -90,13 +96,13 @@ def upgrade_config(config):
 	for package in config.get('packages', []):
 		auto_services = package.get('auto_services', None)
 		if auto_services is not None:
-			if isinstance(auto_services, basestring):
+			if isinstance(auto_services, str):
 				package['auto_services'] = [ { 'name': s } for s in auto_services.split()]
 	# v0.9 expected a string manifest for docker-bosh releases
 	for package in config.get('packages', []):
 		if package.get('type') == 'docker-bosh':
 			manifest = package.get('manifest')
-			if manifest is not None and isinstance(manifest, basestring):
+			if manifest is not None and isinstance(manifest, str):
 				package['manifest'] = yaml.safe_load(manifest)
 
 def add_defaults(context):
@@ -122,10 +128,10 @@ def default_stemcell(context):
 	stemcell_criteria = context.get('stemcell_criteria', {})
 	stemcell_criteria['os'] = stemcell_criteria.get('os', 'ubuntu-trusty')
 	stemcell_criteria['version'] = stemcell_criteria.get('version', latest_stemcell(stemcell_criteria['os']))
-	print 'stemcell_criteria:'
-	print '  os:', stemcell_criteria['os']
-	print '  version:', stemcell_criteria['version']
-	print
+	print('stemcell_criteria:')
+	print('  os:', stemcell_criteria['os'])
+	print('  version:', stemcell_criteria['version'])
+	print()
 	return stemcell_criteria
 
 def latest_stemcell(os):
@@ -147,10 +153,10 @@ def validate_memory_quota(context):
 		# For most cases this is generous, but there's no harm in it
 		context['org_quota'] = context['total_memory'] * 2
 	elif specified < required:
-		print >> sys.stderr, 'Specified org quota of', specified, 'MB is insufficient'
-		print >> sys.stderr, 'Required quota is at least the total package size of', context['total_memory'], 'MB'
-		print >> sys.stderr, 'Plus enough room for blue/green deployment of the largest app:', context['max_memory'], 'MB'
-		print >> sys.stderr, 'For a total of:', required, 'MB'
+		print('Specified org quota of', specified, 'MB is insufficient', file=sys.stderr)
+		print('Required quota is at least the total package size of', context['total_memory'], 'MB', file=sys.stderr)
+		print('Plus enough room for blue/green deployment of the largest app:', context['max_memory'], 'MB', file=sys.stderr)
+		print('For a total of:', required, 'MB', file=sys.stderr)
 		sys.exit(1)
 
 # FIXME dead code, remove.
@@ -166,12 +172,12 @@ def create_bosh_release(context):
 	for package in packages:
 		typename = package.get('type', None)
 		if typename is None:
-			print >>sys.stderr, 'Package', package['name'], 'does not have a type'
+			print('Package', package['name'], 'does not have a type', file=sys.stderr)
 			sys.exit(1)
 		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
 		if typedef is None:
-			print >>sys.stderr, 'Package', package['name'], 'has unknown type', typename
-			print >>sys.stderr, 'Valid types are:', ', '.join([ t['typename'] for t in package_types])
+			print('Package', package['name'], 'has unknown type', typename, file=sys.stderr)
+			print('Valid types are:', ', '.join([ t['typename'] for t in package_types]), file=sys.stderr)
 			sys.exit(1)
 		for flag in typedef['flags']:
 			package[flag] = True
@@ -204,7 +210,7 @@ def create_bosh_release(context):
 	])
 	context['requires_docker_bosh'] = requires_docker_bosh
 	context['requires_cf_cli'] = requires_cf_cli
-	print
+	print()
 
 # FIXME dead code, remove.
 def add_bosh_job(context, package, job_type, post_deploy=False, pre_delete=False):
@@ -289,7 +295,7 @@ def add_package(dir, context, package, alternate_template=None):
 		for file in files:
 			filename = file.get('name', os.path.basename(file['path']))
 			file['name'] = filename
-			urllib.urlretrieve(file['path'], os.path.join(target_dir, filename))
+			urlretrieve(file['path'], os.path.join(target_dir, filename))
 			package_context['files'] += [ filename ]
 		for docker_image in package.get('docker_images', []):
 			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
@@ -298,7 +304,7 @@ def add_package(dir, context, package, alternate_template=None):
 	if package.get('is_app', False):
 		manifest = package.get('manifest', { 'name': name })
 		if manifest.get('random-route', False):
-			print >> sys.stderr, 'Illegal manifest option in package', name + ': random-route is not supported'
+			print('Illegal manifest option in package', name + ': random-route is not supported', file=sys.stderr)
 			sys.exit(1)
 		manifest_file = os.path.join(target_dir, 'manifest.yml')
 		with open(manifest_file, 'wb') as f:
@@ -354,20 +360,20 @@ def create_tile(context):
 	release = context['release']
 	release['file'] = os.path.basename(release['tarball'])
 	with cd('releases'):
-		print 'tile import release', release['name']
+		print('tile import release', release['name'])
 		shutil.copy(release['tarball'], release['file'])
 		if context.get('requires_docker_bosh', False):
-			print 'tile import release docker'
+			print('tile import release docker')
 			docker_release = download_docker_release()
 			context['docker_release'] = docker_release
-	print 'tile generate metadata'
+	print('tile generate metadata')
 	template.render('metadata/' + release['name'] + '.yml', 'tile/metadata.yml', context)
-	print 'tile generate content-migrations'
+	print('tile generate content-migrations')
 	template.render('content_migrations/' + release['name'] + '.yml', 'tile/content-migrations.yml', context)
-	print 'tile generate migrations'
+	print('tile generate migrations')
 	migrations = 'migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
 	template.render(migrations, 'tile/migration.js', context)
-	print 'tile generate package'
+	print('tile generate package')
 	pivotal_file = release['name'] + '-' + release['version'] + '.pivotal'
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		f.write(os.path.join('releases', release['file']))
@@ -375,14 +381,14 @@ def create_tile(context):
 			docker_release = context['docker_release']
 			f.write(os.path.join('releases', docker_release['file']))
 		for bosh_release in context.get('bosh_releases', []):
-			print 'tile import release', bosh_release['name']
+			print('tile import release', bosh_release['name'])
 			shutil.copy(bosh_release['tarball'], os.path.join('releases', bosh_release['file']))
 			f.write(os.path.join('releases', bosh_release['file']))
 		f.write(os.path.join('metadata', release['name'] + '.yml'))
 		f.write(os.path.join('content_migrations', release['name'] + '.yml'))
 		f.write(migrations)
-	print
-	print 'created tile', pivotal_file
+	print()
+	print('created tile', pivotal_file)
 
 # FIXME dead code, remove.
 def add_bosh_release(context, package):
@@ -407,7 +413,7 @@ def add_bosh_release(context, package):
 # FIXME dead code, remove.
 def bosh(*argv):
 	argv = list(argv)
-	print 'bosh', ' '.join(argv)
+	print('bosh', ' '.join(argv))
 	command = [ 'bosh', '--no-color', '--non-interactive' ] + argv
 	try:
 		return subprocess.check_output(command, stderr=subprocess.STDOUT)
@@ -416,7 +422,7 @@ def bosh(*argv):
 			return e.output
 		if argv[0] == 'generate' and 'already exists' in e.output:
 			return e.output
-		print e.output
+		print(e.output)
 		sys.exit(e.returncode)
 
 # FIXME dead code, remove.
@@ -425,8 +431,8 @@ def bash(*argv):
 	try:
 		return subprocess.check_output(argv, stderr=subprocess.STDOUT)
 	except subprocess.CalledProcessError as e:
-		print ' '.join(argv), 'failed'
-		print e.output
+		print(' '.join(argv), 'failed')
+		print(e.output)
 		sys.exit(e.returncode)
 
 def is_semver(version):
@@ -447,8 +453,8 @@ def update_version(history, version):
 	if not is_semver(version):
 		semver = history.get('version', '0.0.0')
 		if not is_unannotated_semver(semver):
-			print >>sys.stderr, 'The prior version was', semver
-			print >>sys.stderr, 'To auto-increment, the prior version must be in semver format (x.y.z), and must not include a label.'
+			print('The prior version was', semver, file=sys.stderr)
+			print('To auto-increment, the prior version must be in semver format (x.y.z), and must not include a label.', file=sys.stderr)
 			sys.exit(1)
 		semver = semver.split('.')
 		if version == 'patch':
@@ -461,7 +467,7 @@ def update_version(history, version):
 			semver[1] = '0'
 			semver[2] = '0'
 		else:
-			print >>sys.stderr, 'Argument must specify "patch", "minor", "major", or a valid semver version (x.y.z)'
+			print('Argument must specify "patch", "minor", "major", or a valid semver version (x.y.z)', file=sys.stderr)
 			sys.exit(1)
 		version = '.'.join(semver)
 	history['version'] = version

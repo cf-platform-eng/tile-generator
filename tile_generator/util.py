@@ -16,12 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import errno
 import os
 import requests
 import shutil
 import sys
-import urllib
+try:
+	# Python 3
+	from urllib.request import urlretrieve
+except ImportError:
+	# Python 2
+	from urllib import urlretrieve
 
 # FIXME this wants to be a dict with 'typename' as the key.
 package_types = [
@@ -98,16 +104,16 @@ def download_docker_image(docker_image, target_file, cache=None):
 		if cache is not None:
 			cached_file = os.path.join(cache, docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
 			if os.path.isfile(cached_file):
-				print 'using cached version of', docker_image
-				urllib.urlretrieve(cached_file, target_file)
+				print('using cached version of', docker_image)
+				urlretrieve(cached_file, target_file)
 				return
-			print >> sys.stderr, docker_image, 'not found in cache', cache
+			print(docker_image, 'not found in cache', cache, file=sys.stderr)
 			sys.exit(1)
 		if isinstance(e, KeyError):
-			print >> sys.stderr, 'docker not configured on this machine (or environment variables are not properly set)'
+			print('docker not configured on this machine (or environment variables are not properly set)', file=sys.stderr)
 		else:
-			print >> sys.stderr, docker_image, 'not found on local machine'
-			print >> sys.stderr, 'you must either pull the image, or download it and use the --docker-cache option'
+			print(docker_image, 'not found on local machine', file=sys.stderr)
+			print('you must either pull the image, or download it and use the --docker-cache option', file=sys.stderr)
 		sys.exit(1)
 
 
@@ -138,7 +144,7 @@ class cd:
 def mkdir_p(dir):
 	try:
 		os.makedirs(dir)
-	except os.error, e:
+	except os.error as e:
 		if e.errno != errno.EEXIST:
 			raise
 
@@ -158,7 +164,7 @@ def update_memory(context, manifest):
 	memory = manifest.get('memory', '1G')
 	unit = memory.lstrip('0123456789').lstrip(' ').lower()
 	if unit not in [ 'g', 'gb', 'm', 'mb' ]:
-		print >> sys.stderr, 'invalid memory size unit', unit, 'in', memory
+		print('invalid memory size unit', unit, 'in', memory, file=sys.stderr)
 		sys.exit(1)
 	memory = int(memory[:-len(unit)])
 	if unit in [ 'g', 'gb' ]:

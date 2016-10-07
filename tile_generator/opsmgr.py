@@ -16,12 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import yaml
 import json
 import requests
 import time
-from urlparse import urlparse
+try:
+	# Python 3
+	from urllib.parse import urlparse
+except ImportError:
+	# Python 2
+	from urlparse import urlparse
 import subprocess
 import pty
 import os
@@ -42,11 +48,11 @@ def get_credentials():
 			creds['opsmgr']['username']
 			creds['opsmgr']['password']
 	except KeyError as e:
-		print >> sys.stderr, 'metadata file is missing a value:', e.message
+		print('metadata file is missing a value:', e.message, file=sys.stderr)
 		sys.exit(1)
 	except IOError as e:
-		print >> sys.stderr, 'Not a Concourse PCF pool resource.'
-		print >> sys.stderr, 'Execute this from within the pool repository root, after a successful claim/acquire.'
+		print('Not a Concourse PCF pool resource.', file=sys.stderr)
+		print('Execute this from within the pool repository root, after a successful claim/acquire.', file=sys.stderr)
 		sys.exit(1)
 	return creds
 
@@ -131,12 +137,12 @@ def delete(url, check=True):
 
 def check_response(response, check=True):
 	if check and response.status_code != requests.codes.ok:
-		print >> sys.stderr, '-', response.status_code
+		print('-', response.status_code, file=sys.stderr)
 		try:
 			errors = response.json()["errors"]
-			print >> sys.stderr, '- '+('\n- '.join(json.dumps(errors, indent=4).splitlines()))
+			print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
 		except:
-			print >> sys.stderr, response.text
+			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
 def ssh():
@@ -156,8 +162,8 @@ def ssh():
 			subprocess.check_call(command)
 			sys.exit(0)
 		except subprocess.CalledProcessError as error:
-			print 'Command failed with exit code', error.returncode
-			print error.output
+			print('Command failed with exit code', error.returncode)
+			print(error.output)
 			sys.exit(error.returncode)
 	else:
 		output = os.read(tty, 4096)
@@ -194,9 +200,9 @@ def get_products():
 
 def flatten(properties):
 	flattened = {}
-	for key1, value1 in properties.iteritems():
-		if type(value1) is dict and value1.keys() != ['secret']:
-			for key2, value2 in value1.iteritems():
+	for key1, value1 in properties.items():
+		if type(value1) is dict and list(value1.keys()) != ['secret']:
+			for key2, value2 in value1.items():
 				flattened[key1 + '_' + key2] = value2
 		else:
 			flattened[key1] = value1
@@ -205,14 +211,14 @@ def flatten(properties):
 def get_version():
 	diag = get('/api/v0/diagnostic_report').json()
 	version = diag['versions']['release_version']
-	print 'Ops Manager version', version
+	print('Ops Manager version', version)
 	return [ int(x) for x in version.split('.') ]
 
 def get_job_guid(job_identifier, jobs_settings):
 	for job in jobs_settings:
 		if job.get('identifier', None) == job_identifier:
 			return job['guid']
-	print >> sys.stderr, 'Could not find job with identifier', job_identifier
+	print('Could not find job with identifier', job_identifier, file=sys.stderr)
 	sys.exit(1)
 
 def configure(product, properties, strict=False):
@@ -220,7 +226,7 @@ def configure(product, properties, strict=False):
 	infrastructure = settings['infrastructure']
 	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
 	if len(product_settings) < 1:
-		print >> sys.stderr, 'Product', product, 'does not appear to be installed'
+		print('Product', product, 'does not appear to be installed', file=sys.stderr)
 		sys.exit(1)
 	product_settings = product_settings[0]
 	properties = properties if properties is not None else {}
@@ -229,14 +235,14 @@ def configure(product, properties, strict=False):
 	#
 	cf = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
 	if len(cf) < 1:
-		print >> sys.stderr, 'Required product Elastic Runtime is missing'
+		print('Required product Elastic Runtime is missing', file=sys.stderr)
 		sys.exit(1)
 	#
 	# Use the Elastic Runtime stemcell (unless the --strict option was used)
 	#
 	if not strict:
 		stemcell = cf[0]['stemcell']
-		print '- Using stemcell', stemcell['name'], 'version', stemcell['version']
+		print('- Using stemcell', stemcell['name'], 'version', stemcell['version'])
 		product_settings['stemcell'] = stemcell
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	#
@@ -271,8 +277,8 @@ def configure(product, properties, strict=False):
 			if p.get('value', None) is None:
 				missing_properties += [ key ]
 	if len(missing_properties) > 0:
-		print >> sys.stderr, 'Input file is missing required properties:'
-		print >> sys.stderr, '- ' + '\n- '.join(missing_properties)
+		print('Input file is missing required properties:', file=sys.stderr)
+		print('- ' + '\n- '.join(missing_properties), file=sys.stderr)
 		sys.exit(1)
 	#
 	# Update using the appropriate API for the Ops Manager version
@@ -288,12 +294,12 @@ def configure(product, properties, strict=False):
 		}
 		scoped_properties = {}
 		resource_config = {}
-		for job, job_properties in jobs_properties.iteritems():
+		for job, job_properties in jobs_properties.items():
 			if 'resource_config' in job_properties:
 				job_resource_config = job_properties.pop('resource_config')
 				job_guid = get_job_guid(job, product_settings.get('jobs', []))
 				resource_config[job_guid] = job_resource_config
-			for name, value in job_properties.iteritems():
+			for name, value in job_properties.items():
 				key = '.'.join(('', job, name))
 				scoped_properties[key] = value
 		for key in properties:
@@ -305,22 +311,22 @@ def configure(product, properties, strict=False):
 		url = '/api/v0/staged/products/' + product_settings['guid']
 		put_json(url + '/networks_and_azs', networks_and_azs)
 		put_json(url + '/properties', properties)
-		for job_guid, job_resource_config in resource_config.iteritems():
+		for job_guid, job_resource_config in resource_config.items():
 			resource_config_url = url + '/jobs/' + job_guid + '/resource_config'
 			merged_job_resource_config = get(resource_config_url).json()
 			merged_job_resource_config.update(job_resource_config)
 			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
 	elif version[:2] == [1, 7]:
 		if job_properties:
-			print >> sys.stderr, 'Setting job-specific properties is not supported for PCF 1.7.'
+			print('Setting job-specific properties is not supported for PCF 1.7.', file=sys.stderr)
 			sys.exit(1)
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	else:
-		print "PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version))
+		print("PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version)))
 		try:
 			post_yaml('/api/installation_settings', 'installation[file]', settings)
 		except:
-			print >> 'Configuration failed, probably due to incompatible PCF version.'
+			print(file='Configuration failed, probably due to incompatible PCF version.')
 			sys.exit(1)
 
 def get_changes(deploy_errands = None, delete_errands = None):
@@ -386,7 +392,7 @@ def get_cfinfo():
 	settings = get('/api/installation_settings').json()
 	settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
 	if len(settings) < 1:
-		print >> sys.stderr, 'Elastic Runtime is not installed'
+		print('Elastic Runtime is not installed', file=sys.stderr)
 		sys.exit(1)
 	settings = settings[0]
 	jobs = settings['jobs']
@@ -409,7 +415,7 @@ def logs(install_id):
 	if install_id is None:
 		install_id = last_install()
 		if install_id == 0:
-			print >> sys.stderr, 'No installation has ever been performed'
+			print('No installation has ever been performed', file=sys.stderr)
 			sys.exit(1)
 	lines_shown = 0
 	running = True
@@ -419,12 +425,12 @@ def logs(install_id):
 		log_lines = get('/api/installation/' + str(install_id) + '/logs').json()['logs'].splitlines()
 		for line in log_lines[lines_shown:]:
 			if not line.startswith('{'):
-				print ' ', line
+				print(' ', line)
 		lines_shown = len(log_lines)
 		if running:
 			time.sleep(1)
 	if not install_status.startswith('succ'):
-		print >> sys.stderr, '- install finished with status:', install_status
+		print('- install finished with status:', install_status, file=sys.stderr)
 		sys.exit(1)
 
 def install_exists(id):
