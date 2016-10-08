@@ -21,15 +21,10 @@ from __future__ import absolute_import, division, print_function#, unicode_liter
 import click
 import sys
 import os
-import yaml
 
-PATH = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(PATH, os.path.join('..', 'lib')))
 from . import build
+from . import config
 from . import template
-
-CONFIG_FILE = "tile.yml"
-HISTORY_FILE = "tile-history.yml"
 
 @click.group()
 def cli():
@@ -52,46 +47,15 @@ def init_cmd(name):
 @click.option('--verbose', is_flag=True)
 @click.option('--docker-cache', type=str, default=None)
 def build_cmd(version, verbose, docker_cache):
-	config = read_config()
-	history = read_history()
-	config['history'] = history
-	config['version'] = build.update_version(history, version)
-	if docker_cache is not None:
-		config['docker_cache'] = docker_cache
-	print('name:', config.get('name', '<unspecified>'))
-	print('icon:', config.get('icon_file', '<unspecified>'))
-	print('label:', config.get('label', '<unspecified>'))
-	print('description:', config.get('description', '<unspecified>'))
-	print('version:', config.get('version', '<unspecified>'))
+	cfg = config.get(version=version, docker_cache=docker_cache)
+	print('name:', cfg.get('name', '<unspecified>'))
+	print('icon:', cfg.get('icon_file', '<unspecified>'))
+	print('label:', cfg.get('label', '<unspecified>'))
+	print('description:', cfg.get('description', '<unspecified>'))
+	print('version:', cfg.get('version', '<unspecified>'))
 	print()
-	build.build(config, verbose)
-	write_history(history)
-
-def read_config():
-	try:
-		with open(CONFIG_FILE) as config_file:
-			return read_yaml(config_file)
-	except IOError as e:
-		print('Not a tile repository. Use "tile init" in the root of your repository to create one.', file=sys.stderr)
-		sys.exit(1)
-
-def read_history():
-	try:
-		with open(HISTORY_FILE) as history_file:
-			return read_yaml(history_file)
-	except IOError as e:
-		return {}
-
-def write_history(history):
-	with open(HISTORY_FILE, 'wb') as history_file:
-		write_yaml(history_file, history)
-
-def read_yaml(file):
-	return yaml.safe_load(file)
-
-def write_yaml(file, data):
-	file.write('---\n')
-	file.write(yaml.safe_dump(data, default_flow_style=False))
+	build.build(cfg, verbose)
+	config.commit(cfg)
 
 if __name__ == "__main__":
 	cli()
