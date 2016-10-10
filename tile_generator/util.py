@@ -72,23 +72,6 @@ package_types = [
 	}
 ]
 
-# FIXME we shouldn't treat the docker bosh release specially.
-DOCKER_BOSHRELEASE_VERSION = '23'
-def download_docker_release():
-	release_name = 'docker'
-	release_version = DOCKER_BOSHRELEASE_VERSION
-	release_file = release_name + '-boshrelease-' + release_version + '.tgz'
-	release_tarball = release_file
-	if not os.path.isfile(release_tarball):
-		url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease?v=' + release_version
-		download(url, release_tarball)
-	return {
-		'tarball': release_tarball,
-		'name': release_name,
-		'version': release_version,
-		'file': release_file,
-	}
-
 def download_docker_image(docker_image, target_file, cache=None):
 	try:
 		from docker.client import Client

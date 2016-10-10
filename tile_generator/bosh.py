@@ -38,6 +38,28 @@ import datetime
 
 from .util import *
 
+def read_release_manifest(bosh_release_tarball):
+	with tarfile.open(bosh_release_tarball) as tar:
+		manifest_file = tar.extractfile('./release.MF')
+		manifest = yaml.safe_load(manifest_file)
+		manifest_file.close()
+		return manifest
+
+# FIXME we shouldn't treat the docker bosh release specially.
+def download_docker_release(version=None):
+	version_param = '?v=' + version if version else ''
+	url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param
+	localfile = 'docker-boshrelease.tgz'
+	download(url, localfile)
+	manifest = read_release_manifest(localfile)
+	print("Downloaded docker version", manifest['version'], file=sys.stderr)
+	return {
+		'tarball': localfile,
+		'name': manifest['name'],
+		'version': manifest['version'],
+		'file': localfile,
+	}
+
 class BoshReleases:
 
 	def __init__(self, context):
@@ -103,7 +125,7 @@ class BoshReleases:
 		if self.context['requires_docker_bosh']:
 			with cd('releases'):
 				print('tile import release docker')
-				docker_release = download_docker_release()
+				docker_release = download_docker_release(version=self.context.get('docker_bosh_version', None))
 				self.context['docker_release'] = docker_release
 		print('tile generate metadata')
 		template.render('metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
@@ -155,12 +177,9 @@ class BoshRelease:
 			with cd('..'):
 				self.tarball = os.path.realpath(self.packages[0]['path'])
 				self.file = os.path.basename(self.tarball)
-				with tarfile.open(self.tarball) as tar:
-					manifest_file = tar.extractfile('./release.MF')
-					manifest = yaml.safe_load(manifest_file)
-					manifest_file.close()
-					self.name = manifest['name']
-					self.version = manifest['version']
+				manifest = read_release_manifest(self.tarball)
+				self.name = manifest['name']
+				self.version = manifest['version']
 		if 'is_app' in flags:
 			manifest = package.get('manifest', { 'name': package['name'] })
 			update_memory(self.context, manifest)
