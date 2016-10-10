@@ -25,23 +25,17 @@ import requests
 CONFIG_FILE = "tile.yml"
 HISTORY_FILE = "tile-history.yml"
 
-def read(version=None, docker_cache=None, verbose=False):
-	return Config().read(version, docker_cache)
-
 class Config(dict):
 
 	def __init__(self, *arg, **kw):
 		super(Config, self).__init__(*arg, **kw)
 
-	def read(self, version=None, docker_cache=None, verbose=False):
+	def read(self):
 		self.read_config()
 		self.validate()
 		self.add_defaults()
 		self.upgrade()
 		self.read_history()
-		self.set_version(version)
-		self.set_verbose(verbose)
-		self.set_docker_cache(docker_cache)
 		return self
 
 	def commit(self):

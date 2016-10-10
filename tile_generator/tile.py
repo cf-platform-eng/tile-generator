@@ -22,8 +22,8 @@ import sys
 import os
 
 from . import build
-from . import config
 from . import template
+from .config import Config
 
 @click.group()
 def cli():
@@ -46,7 +46,10 @@ def init_cmd(name):
 @click.option('--verbose', is_flag=True)
 @click.option('--docker-cache', type=str, default=None)
 def build_cmd(version, verbose, docker_cache):
-	cfg = config.read(version=version, docker_cache=docker_cache, verbose=verbose)
+	cfg = Config().read()
+	cfg.set_version(version)
+	cfg.set_verbose(verbose)
+	cfg.set_docker_cache(docker_cache)
 	print('name:', cfg.get('name', '<unspecified>'))
 	print('icon:', cfg.get('icon_file', '<unspecified>'))
 	print('label:', cfg.get('label', '<unspecified>'))
