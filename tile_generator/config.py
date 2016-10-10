@@ -43,7 +43,7 @@ def commit(config):
 
 def validate_config(config):
 	try:
-		validname = re.compile('[a-z][a-z0-9]+(-[a-z0-9]+)*$')
+		validname = re.compile('[a-z][a-z0-9]*(-[a-z0-9]+)*$')
 		if validname.match(config['name']) is None:
 			print('product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 			sys.exit(1)
