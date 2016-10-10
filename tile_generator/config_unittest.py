@@ -114,5 +114,71 @@ class TestVersionMethods(unittest.TestCase):
 		self.assertEquals(history.get('history')[0], '0.0.1')
 		self.assertEquals(history.get('history')[1], '0.0.2')
 
+class TestConfigValidation(unittest.TestCase):
+
+	def test_requires_product_name(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({})
+
+	def test_accepts_valid_product_name(self):
+		config.validate_config({'name': 'validname'})
+
+	def test_accepts_valid_product_name_with_hyphen(self):
+		config.validate_config({'name': 'valid-name'})
+
+	def test_accepts_valid_product_name_with_hyphens(self):
+		config.validate_config({'name': 'valid-name-too'})
+
+	def test_accepts_valid_product_name_with_number(self):
+		config.validate_config({'name': 'valid-name-2'})
+
+	def test_refuses_spaces_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'an invalid name'})
+
+	def test_refuses_capital_letters_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'Invalid'})
+
+	def test_refuses_underscores_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'invalid_name'})
+
+	def test_refuses_product_name_starting_with_number(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': '1-invalid-name'})
+
+	def test_requires_package_names(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'validname', 'packages': [{'name': 'validname'}, {}]})
+
+	def test_accepts_valid_package_name(self):
+		config.validate_config({'name': 'validname', 'packages': [{'name': 'validname'}]})
+
+	def test_accepts_valid_package_name_with_hyphen(self):
+		config.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name'}]})
+
+	def test_accepts_valid_package_name_with_hyphens(self):
+		config.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name-too'}]})
+
+	def test_accepts_valid_package_name_with_number(self):
+		config.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name-2'}]})
+
+	def test_refuses_spaces_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'validname', 'packages': [{'name': 'invalid name'}]})
+
+	def test_refuses_capital_letters_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'validname', 'packages': [{'name': 'Invalid'}]})
+
+	def test_refuses_underscores_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'validname', 'packages': [{'name': 'invalid_name'}]})
+
+	def test_refuses_package_name_starting_with_number(self):
+		with self.assertRaises(SystemExit):
+			config.validate_config({'name': 'validname', 'packages': [{'name': '1-invalid-name'}]})
+
 if __name__ == '__main__':
 	unittest.main()
