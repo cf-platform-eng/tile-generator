@@ -38,6 +38,13 @@ import datetime
 
 from .util import *
 
+def read_release_manifest(bosh_release_tarball):
+	with tarfile.open(bosh_release_tarball) as tar:
+		manifest_file = tar.extractfile('./release.MF')
+		manifest = yaml.safe_load(manifest_file)
+		manifest_file.close()
+		return manifest
+
 class BoshReleases:
 
 	def __init__(self, context):
@@ -155,12 +162,9 @@ class BoshRelease:
 			with cd('..'):
 				self.tarball = os.path.realpath(self.packages[0]['path'])
 				self.file = os.path.basename(self.tarball)
-				with tarfile.open(self.tarball) as tar:
-					manifest_file = tar.extractfile('./release.MF')
-					manifest = yaml.safe_load(manifest_file)
-					manifest_file.close()
-					self.name = manifest['name']
-					self.version = manifest['version']
+				manifest = read_release_manifest(self.tarball)
+				self.name = manifest['name']
+				self.version = manifest['version']
 		if 'is_app' in flags:
 			manifest = package.get('manifest', { 'name': package['name'] })
 			update_memory(self.context, manifest)
