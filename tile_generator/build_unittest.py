@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 import unittest
 from . import build
 import sys
 from contextlib import contextmanager
-from io import StringIO
+from StringIO import StringIO
 
 @contextmanager
 def capture_output():
