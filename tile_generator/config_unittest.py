@@ -56,74 +56,74 @@ class TestVersionMethods(unittest.TestCase):
 
 	def test_initial_version(self):
 		config = Config(history={})
-		config.update_version(None)
+		config.set_version(None)
 		self.assertEquals(config['version'], '0.0.1')
 
 	def test_default_version_update(self):
 		config = Config(history={'version':'1.2.3'})
-		config.update_version(None)
+		config.set_version(None)
 		self.assertEquals(config['version'], '1.2.4')
 
 	def test_patch_version_update(self):
 		config = Config(history={'version':'1.2.3'})
-		config.update_version('patch')
+		config.set_version('patch')
 		self.assertEquals(config['version'], '1.2.4')
 
 	def test_minor_version_update(self):
 		config = Config(history={'version':'1.2.3'})
-		config.update_version('minor')
+		config.set_version('minor')
 		self.assertEquals(config['version'], '1.3.0')
 
 	def test_major_version_update(self):
 		config = Config(history={'version':'1.2.3'})
-		config.update_version('major')
+		config.set_version('major')
 		self.assertEquals(config['version'], '2.0.0')
 
 	def test_explicit_version_update(self):
 		config = Config(history={'version':'1.2.3'})
-		config.update_version('5.0.1')
+		config.set_version('5.0.1')
 		self.assertEquals(config['version'], '5.0.1')
 
 	def test_annotated_version_update(self):
 		config = Config(history={'version':'1.2.3-alpha.1'})
-		config.update_version('1.2.4')
+		config.set_version('1.2.4')
 		self.assertEquals(config['version'], '1.2.4')
 
 	def test_illegal_old_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				Config(history={'version':'nonsense'}).update_version('patch')
+				Config(history={'version':'nonsense'}).set_version('patch')
 		self.assertIn('prior version must be in semver format', err.getvalue())
 
 	def test_illegal_new_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				Config(history={'version':'1.2.3'}).update_version('nonsense')
+				Config(history={'version':'1.2.3'}).set_version('nonsense')
 		self.assertIn('Argument must specify', err.getvalue())
 
 	def test_illegal_annotated_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				Config(history={'version':'1.2.3-alpha.1'}).update_version(None)
+				Config(history={'version':'1.2.3-alpha.1'}).set_version(None)
 		self.assertIn('The prior version was 1.2.3-alpha.1', err.getvalue())
 		self.assertIn('and must not include a label', err.getvalue())
 
 	def test_saves_initial_version(self):
 		history = {}
-		Config(history=history).update_version('0.0.1')
+		Config(history=history).set_version('0.0.1')
 		self.assertEquals(history.get('version'), '0.0.1')
 		self.assertEquals(len(history.get('history', [])), 0)
 
 	def test_saves_initial_history(self):
 		history = { 'version': '0.0.1' }
-		Config(history=history).update_version('0.0.2')
+		Config(history=history).set_version('0.0.2')
 		self.assertEquals(history.get('version'), '0.0.2')
 		self.assertEquals(len(history.get('history')), 1)
 		self.assertEquals(history.get('history')[0], '0.0.1')
 
 	def test_saves_additional_history(self):
 		history = { 'version': '0.0.2', 'history': [ '0.0.1' ] }
-		Config(history=history).update_version('0.0.3')
+		Config(history=history).set_version('0.0.3')
 		self.assertEquals(history.get('version'), '0.0.3')
 		self.assertEquals(len(history.get('history')), 2)
 		self.assertEquals(history.get('history')[0], '0.0.1')

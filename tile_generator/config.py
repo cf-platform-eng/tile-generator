@@ -39,10 +39,9 @@ class Config(dict):
 		self.add_defaults()
 		self.upgrade()
 		self.read_history()
-		self.update_version(version)
-		self['verbose'] = verbose
-		if docker_cache is not None:
-			self['docker_cache'] = docker_cache
+		self.set_version(version)
+		self.set_verbose(verbose)
+		self.set_docker_cache(docker_cache)
 		return self
 
 	def commit(self):
@@ -66,6 +65,13 @@ class Config(dict):
 			except KeyError as e:
 				print('package is missing mandatory property', e, file=sys.stderr)
 				sys.exit(1)
+
+	def set_verbose(self, verbose=True):
+		self['verbose'] = verbose
+
+	def set_docker_cache(self, docker_cache=None):
+		if docker_cache is not None:
+			self['docker_cache'] = docker_cache
 
 	def add_defaults(self):
 		self['stemcell_criteria'] = self.default_stemcell()
@@ -132,7 +138,7 @@ class Config(dict):
 		except IOError as e:
 			return {}
 
-	def update_version(self, version):
+	def set_version(self, version):
 		if version is None:
 			version = 'patch'
 		history = self.get('history', {})
