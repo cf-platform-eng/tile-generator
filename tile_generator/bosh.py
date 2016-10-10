@@ -45,6 +45,19 @@ def read_release_manifest(bosh_release_tarball):
 		manifest_file.close()
 		return manifest
 
+# FIXME we shouldn't treat the docker bosh release specially.
+def download_docker_release():
+	url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease'
+	localfile = 'docker-boshrelease.tgz'
+	download(url, localfile)
+	manifest = read_release_manifest(localfile)
+	return {
+		'tarball': localfile,
+		'name': manifest['name'],
+		'version': manifest['version'],
+		'file': localfile,
+	}
+
 class BoshReleases:
 
 	def __init__(self, context):
