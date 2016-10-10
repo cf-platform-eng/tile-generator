@@ -7,6 +7,7 @@ icon_file: resources/icon.png
 # Global defaults (all optional)
 # org: test-org                       # Optional
 # space: test-space                   # Optional
+# docker_bosh_version: '28'           # Optional, default: latest release
 org_quota: 4096                       # Optional, memory quota in mb
 apply_open_security_group: true       # Apply open security group, default: false
 allow_paid_service_plans: true        # Allow paid service plans, default: false

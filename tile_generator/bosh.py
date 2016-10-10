@@ -46,11 +46,13 @@ def read_release_manifest(bosh_release_tarball):
 		return manifest
 
 # FIXME we shouldn't treat the docker bosh release specially.
-def download_docker_release():
-	url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease'
+def download_docker_release(version=None):
+	version_param = '?v=' + version if version else ''
+	url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param
 	localfile = 'docker-boshrelease.tgz'
 	download(url, localfile)
 	manifest = read_release_manifest(localfile)
+	print("Downloaded docker version", manifest['version'], file=sys.stderr)
 	return {
 		'tarball': localfile,
 		'name': manifest['name'],
@@ -123,7 +125,7 @@ class BoshReleases:
 		if self.context['requires_docker_bosh']:
 			with cd('releases'):
 				print('tile import release docker')
-				docker_release = download_docker_release()
+				docker_release = download_docker_release(version=self.context.get('docker_bosh_version', None))
 				self.context['docker_release'] = docker_release
 		print('tile generate metadata')
 		template.render('metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
