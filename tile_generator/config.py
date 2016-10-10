@@ -90,10 +90,6 @@ class Config(dict):
 		stemcell_criteria = self.get('stemcell_criteria', {})
 		stemcell_criteria['os'] = stemcell_criteria.get('os', 'ubuntu-trusty')
 		stemcell_criteria['version'] = stemcell_criteria.get('version', self.latest_stemcell(stemcell_criteria['os']))
-		print('stemcell_criteria:')
-		print('  os:', stemcell_criteria['os'])
-		print('  version:', stemcell_criteria['version'])
-		print()
 		return stemcell_criteria
 
 	def latest_stemcell(self, os):

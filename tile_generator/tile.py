@@ -52,6 +52,8 @@ def build_cmd(version, verbose, docker_cache):
 	print('label:', cfg.get('label', '<unspecified>'))
 	print('description:', cfg.get('description', '<unspecified>'))
 	print('version:', cfg.get('version', '<unspecified>'))
+	stemcell = cfg.get('stemcell_criteria', {})
+	print('stemcell:', stemcell.get('os', '<unspecified>'), stemcell.get('version', '<unspecified>'))
 	print()
 	build.build(cfg)
 	cfg.commit()
