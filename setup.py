@@ -37,8 +37,10 @@ def get_version():
 		with open(version_file) as f:
 			return f.read()
 	except:
-		print("Error: please create a file", version_file, "with the tile-generator version in it.", file=sys.stderr)
-		raise
+		version = '0.0.0'
+		print("Warning: Generating default version", version, file=sys.stderr)
+		print("To override this, please create a file", version_file, "with the tile-generator version in it.", file=sys.stderr)
+		return version
 
 setup(
 	name = "tile-generator",
