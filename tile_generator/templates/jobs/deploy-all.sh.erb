@@ -39,7 +39,7 @@ function import_opsmgr_variables() {
 
 	{% if context.dynamic_service_plans is defined %}
 	{{ 'dynamic_service_plans' | plans_json }}
-    {% endif %}
+	{% endif %}
 	{% for service_plan_form in context.service_plan_forms %}
 	{{ service_plan_form.name | plans_json }}
 	{% endfor %}
