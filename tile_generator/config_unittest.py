@@ -132,6 +132,9 @@ class TestConfigValidation(unittest.TestCase):
 	def test_accepts_valid_product_name_with_number(self):
 		config.validate_config({'name': 'valid-name-2'})
 
+	def test_accepts_valid_product_name_with_one_letter_prefix(self):
+		config.validate_config({'name': 'p-tile'})
+
 	def test_refuses_spaces_in_product_name(self):
 		with self.assertRaises(SystemExit):
 			config.validate_config({'name': 'an invalid name'})
