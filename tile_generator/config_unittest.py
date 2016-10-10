@@ -16,6 +16,7 @@
 
 import unittest
 from . import config
+from .config import Config
 import sys
 from contextlib import contextmanager
 from StringIO import StringIO
@@ -54,61 +55,75 @@ class TestVersionMethods(unittest.TestCase):
 		self.assertFalse(config.is_semver('11.2.25dev1'))
 
 	def test_initial_version(self):
-		self.assertEquals(config.update_version({}, None), '0.0.1')
+		config = Config(history={})
+		config.update_version(None)
+		self.assertEquals(config['version'], '0.0.1')
 
 	def test_default_version_update(self):
-		self.assertEquals(config.update_version({ 'version': '1.2.3' }, None), '1.2.4')
+		config = Config(history={'version':'1.2.3'})
+		config.update_version(None)
+		self.assertEquals(config['version'], '1.2.4')
 
 	def test_patch_version_update(self):
-		self.assertEquals(config.update_version({ 'version': '1.2.3' }, 'patch'), '1.2.4')
+		config = Config(history={'version':'1.2.3'})
+		config.update_version('patch')
+		self.assertEquals(config['version'], '1.2.4')
 
 	def test_minor_version_update(self):
-		self.assertEquals(config.update_version({ 'version': '1.2.3' }, 'minor'), '1.3.0')
+		config = Config(history={'version':'1.2.3'})
+		config.update_version('minor')
+		self.assertEquals(config['version'], '1.3.0')
 
 	def test_major_version_update(self):
-		self.assertEquals(config.update_version({ 'version': '1.2.3' }, 'major'), '2.0.0')
+		config = Config(history={'version':'1.2.3'})
+		config.update_version('major')
+		self.assertEquals(config['version'], '2.0.0')
 
 	def test_explicit_version_update(self):
-		self.assertEquals(config.update_version({ 'version': '1.2.3' }, '5.0.1'), '5.0.1')
+		config = Config(history={'version':'1.2.3'})
+		config.update_version('5.0.1')
+		self.assertEquals(config['version'], '5.0.1')
 
 	def test_annotated_version_update(self):
-		self.assertEquals(config.update_version({ 'version': '1.2.3-alpha.1' }, '1.2.4'), '1.2.4')
+		config = Config(history={'version':'1.2.3-alpha.1'})
+		config.update_version('1.2.4')
+		self.assertEquals(config['version'], '1.2.4')
 
 	def test_illegal_old_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				config.update_version({ 'version': 'nonsense' }, 'patch')
+				Config(history={'version':'nonsense'}).update_version('patch')
 		self.assertIn('prior version must be in semver format', err.getvalue())
 
 	def test_illegal_new_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				config.update_version({ 'version': '1.2.3' }, 'nonsense')
+				Config(history={'version':'1.2.3'}).update_version('nonsense')
 		self.assertIn('Argument must specify', err.getvalue())
 
 	def test_illegal_annotated_version_update(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				config.update_version({ 'version': '1.2.3-alpha.1' }, None)
+				Config(history={'version':'1.2.3-alpha.1'}).update_version(None)
 		self.assertIn('The prior version was 1.2.3-alpha.1', err.getvalue())
 		self.assertIn('and must not include a label', err.getvalue())
 
 	def test_saves_initial_version(self):
 		history = {}
-		config.update_version(history, '0.0.1')
+		Config(history=history).update_version('0.0.1')
 		self.assertEquals(history.get('version'), '0.0.1')
 		self.assertEquals(len(history.get('history', [])), 0)
 
 	def test_saves_initial_history(self):
 		history = { 'version': '0.0.1' }
-		config.update_version(history, '0.0.2')
+		Config(history=history).update_version('0.0.2')
 		self.assertEquals(history.get('version'), '0.0.2')
 		self.assertEquals(len(history.get('history')), 1)
 		self.assertEquals(history.get('history')[0], '0.0.1')
 
 	def test_saves_additional_history(self):
 		history = { 'version': '0.0.2', 'history': [ '0.0.1' ] }
-		config.update_version(history, '0.0.3')
+		Config(history=history).update_version('0.0.3')
 		self.assertEquals(history.get('version'), '0.0.3')
 		self.assertEquals(len(history.get('history')), 2)
 		self.assertEquals(history.get('history')[0], '0.0.1')
@@ -118,70 +133,70 @@ class TestConfigValidation(unittest.TestCase):
 
 	def test_requires_product_name(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({})
+			Config().validate()
 
 	def test_accepts_valid_product_name(self):
-		config.validate_config({'name': 'validname'})
+		Config(name='validname').validate()
 
 	def test_accepts_valid_product_name_with_hyphen(self):
-		config.validate_config({'name': 'valid-name'})
+		Config(name='valid-name').validate()
 
 	def test_accepts_valid_product_name_with_hyphens(self):
-		config.validate_config({'name': 'valid-name-too'})
+		Config(name='valid-name-too').validate()
 
 	def test_accepts_valid_product_name_with_number(self):
-		config.validate_config({'name': 'valid-name-2'})
+		Config(name='valid-name-2').validate()
 
 	def test_accepts_valid_product_name_with_one_letter_prefix(self):
-		config.validate_config({'name': 'p-tile'})
+		Config(name='p-tile').validate()
 
 	def test_refuses_spaces_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'an invalid name'})
+			Config(name='an invalid name').validate()
 
 	def test_refuses_capital_letters_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'Invalid'})
+			Config(name='Invalid').validate()
 
 	def test_refuses_underscores_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'invalid_name'})
+			Config(name='invalid_name').validate()
 
 	def test_refuses_product_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': '1-invalid-name'})
+			Config(name='1-invalid-name').validate()
 
 	def test_requires_package_names(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'validname', 'packages': [{'name': 'validname'}, {}]})
+			Config(name='validname', packages=[{'name': 'validname'}, {}]).validate()
 
 	def test_accepts_valid_package_name(self):
-		config.validate_config({'name': 'validname', 'packages': [{'name': 'validname'}]})
+		Config(name='validname', packages=[{'name': 'validname'}]).validate()
 
 	def test_accepts_valid_package_name_with_hyphen(self):
-		config.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name'}]})
+		Config(name='validname', packages=[{'name': 'valid-name'}]).validate()
 
 	def test_accepts_valid_package_name_with_hyphens(self):
-		config.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name-too'}]})
+		Config(name='validname', packages=[{'name': 'valid-name-too'}]).validate()
 
 	def test_accepts_valid_package_name_with_number(self):
-		config.validate_config({'name': 'validname', 'packages': [{'name': 'valid-name-2'}]})
+		Config(name='validname', packages=[{'name': 'valid-name-2'}]).validate()
 
 	def test_refuses_spaces_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'validname', 'packages': [{'name': 'invalid name'}]})
+			Config(name='validname', packages=[{'name': 'invalid name'}]).validate()
 
 	def test_refuses_capital_letters_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'validname', 'packages': [{'name': 'Invalid'}]})
+			Config(name='validname', packages=[{'name': 'Invalid'}]).validate()
 
 	def test_refuses_underscores_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'validname', 'packages': [{'name': 'invalid_name'}]})
+			Config(name='validname', packages=[{'name': 'invalid_name'}]).validate()
 
 	def test_refuses_package_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
-			config.validate_config({'name': 'validname', 'packages': [{'name': '1-invalid-name'}]})
+			Config(name='validname', packages=[{'name': '1-invalid-name'}]).validate()
 
 if __name__ == '__main__':
 	unittest.main()
