@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 from setuptools import setup
 import os
 import sys
@@ -37,10 +37,7 @@ def get_version():
 		with open(version_file) as f:
 			return f.read()
 	except:
-		version = '0.0.0'
-		print("Warning: Generating default version", version, file=sys.stderr)
-		print("To override this, please create a file", version_file, "with the tile-generator version in it.", file=sys.stderr)
-		return version
+		return '0.0.0'
 
 setup(
 	name = "tile-generator",
