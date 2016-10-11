@@ -38,7 +38,7 @@ class Config(dict):
 		self.read_history()
 		return self
 
-	def commit(self):
+	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
 			write_yaml(history_file, self['history'])
 

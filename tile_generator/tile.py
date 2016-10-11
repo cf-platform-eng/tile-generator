@@ -59,7 +59,7 @@ def build_cmd(version, verbose, docker_cache):
 	print('stemcell:', stemcell.get('os', '<unspecified>'), stemcell.get('version', '<unspecified>'))
 	print()
 	build.build(cfg)
-	cfg.commit()
+	cfg.save_history()
 
 if __name__ == "__main__":
 	cli()
