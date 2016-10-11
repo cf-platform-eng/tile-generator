@@ -79,16 +79,9 @@ class BoshReleases:
 			print('Package', package['name'], 'does not have a type', file=sys.stderr)
 			sys.exit(1)
 		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
-		if typedef is None:
-			print('Package', package['name'], 'has unknown type', typename, file=sys.stderr)
-			print('Valid types are:', ', '.join([ t['typename'] for t in package_types]), file=sys.stderr)
-			sys.exit(1)
 		flags = typedef.get('flags', [])
-		# The tempaltes expect the flags in the package map.
-		for flag in flags:
-			package[flag] = True
 		jobs = typedef.get('jobs', [])
-		bosh_release_name = package['name'] if 'is_bosh_release' in flags else self.context['name']
+		bosh_release_name = package['name'] if package.get('is_bosh_release', False) else self.context['name']
 		if not bosh_release_name in self.releases:
 			release = BoshRelease(bosh_release_name, self.context)
 			self.releases[bosh_release_name] = release

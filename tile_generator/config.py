@@ -76,7 +76,11 @@ class Config(dict):
 
 	def normalize_packages(self):
 		for package in self.get('packages', []):
-			pass
+			typename = package['type']
+			typedef = package_types[typename]
+			flags = typedef.get('flags', [])
+			for flag in flags:
+				package[flag] = True
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
@@ -98,6 +102,7 @@ class Config(dict):
 					sys.exit(1)
 				if package['type'] not in package_types:
 					print('package', package['name'], 'has invalid type', package['type'], file=sys.stderr)
+					print('valid types are:', ', '.join([ t for t in package_types]), file=sys.stderr)
 					sys.exit(1)
 			except KeyError as e:
 				if str(e) == '\'name\'':
