@@ -19,6 +19,7 @@
 from __future__ import absolute_import, division, print_function
 import click
 import sys
+import json
 import os
 
 from . import build
@@ -60,6 +61,13 @@ def build_cmd(version, verbose, docker_cache):
 	print()
 	build.build(cfg)
 	cfg.save_history()
+
+@cli.command('expand')
+@click.argument('version', 'patch', required=False)
+def expand_cmd(version):
+	cfg = Config().read()
+	cfg.set_version(version)
+	print(json.dumps(cfg, indent=4))
 
 if __name__ == "__main__":
 	cli()
