@@ -75,9 +75,6 @@ class BoshReleases:
 	def add_package(self, package):
 		print("tile adding package", package['name'])
 		typename = package.get('type', None)
-		if typename is None:
-			print('Package', package['name'], 'does not have a type', file=sys.stderr)
-			sys.exit(1)
 		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
 		flags = typedef.get('flags', [])
 		jobs = typedef.get('jobs', [])

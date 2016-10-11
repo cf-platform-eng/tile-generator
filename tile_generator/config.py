@@ -42,8 +42,10 @@ HISTORY_FILE = "tile-history.yml"
 # handle new syntax in the rest of the code, while still maintaining backward
 # compatibility
 #
-# Normalize Packages - Processes all packages that contain Elastic Runtime artifacts
-# and creates a bosh release specification to deploy them.
+# Process Packages - Normalizes all package desctiptions and sorts them into the
+# appropriate bosh releases depending on their types
+
+# TODO - Remove jobs and requires flags (after rest of code is made independent of it)
 
 package_types = {
 	'app':               { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app' ] },
@@ -72,15 +74,37 @@ class Config(dict):
 		self.validate()
 		self.add_defaults()
 		self.upgrade()
-		self.normalize_packages()
+		self.process_packages()
 
-	def normalize_packages(self):
+	def process_packages(self):
 		for package in self.get('packages', []):
+			name = package['name']
 			typename = package['type']
 			typedef = package_types[typename]
 			flags = typedef.get('flags', [])
+			jobs = typedef.get('jobs', [])
 			for flag in flags:
 				package[flag] = True
+			release = self.release_for_package(package)
+			release['packages'][name] = package
+			# TODO - Remove original package definition (after rest of code is made independent of it)
+
+	def release_for_package(self, package):
+		release_name = self['name'] if package.get('is_cf', False) else package['name']
+		release = self['releases'].get(release_name, None)
+		if release is None:
+			release = { 'name': release_name, 'packages': {}, 'jobs': {} }
+			if package.get('is_cf', False):
+				release['jobs']['deploy-all'] = { 'name': 'deploy-all' }
+				release['jobs']['delete-all'] = { 'name': 'delete-all' }
+				release['requires_cf_cli'] = True
+			if package.get('is_docker_bosh', False):
+				release['jobs']['docker-bosh'] = { 'name': 'docker-bosh', 'package': package }
+				release['requires_docker_bosh'] = True
+			self['releases'][release_name] = release
+		release['packages'] = release.get('packages', {})
+		release['jobs'] = release.get('jobs', {})
+		return release
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
@@ -123,6 +147,7 @@ class Config(dict):
 		self['all_properties'] = self.get('properties', [])
 		self['total_memory'] = 0
 		self['max_memory'] = 0
+		self['releases'] = self.get('releases', {})
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
 			for property in properties:
