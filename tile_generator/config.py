@@ -243,8 +243,7 @@ def read_yaml(file):
 	return yaml.safe_load(file)
 
 def write_yaml(file, data):
-	file.write('---\n')
-	file.write(yaml.safe_dump(data, default_flow_style=False))
+	file.write(yaml.safe_dump(data, default_flow_style=False, explicit_start=True))
 
 def is_semver(version):
 	valid = re.compile('[0-9]+\\.[0-9]+\\.[0-9]+([\\-+][0-9a-zA-Z]+(\\.[0-9a-zA-Z]+)*)*$')

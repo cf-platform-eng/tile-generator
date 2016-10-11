@@ -19,11 +19,12 @@
 from __future__ import absolute_import, division, print_function
 import click
 import sys
-import json
+import yaml
 import os
 
 from . import build
 from . import template
+from . import config
 from .config import Config
 
 @click.group()
@@ -67,7 +68,7 @@ def build_cmd(version, verbose, docker_cache):
 def expand_cmd(version):
 	cfg = Config().read()
 	cfg.set_version(version)
-	print(json.dumps(cfg, indent=4))
+	config.write_yaml(sys.stdout, dict(cfg))
 
 if __name__ == "__main__":
 	cli()
