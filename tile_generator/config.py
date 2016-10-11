@@ -25,6 +25,23 @@ import requests
 CONFIG_FILE = "tile.yml"
 HISTORY_FILE = "tile-history.yml"
 
+# The Config object describes exactly what the Tile Generator is going to generate.
+# It starts with a minimal configuration passed in as keyword arguments or read
+# from tile.yml, then is gradually transformed into a complete configuration
+# through the following phases:
+#
+# Validate - ensure that all mandatory fields are present, and that any values
+# provided meet the constraints for that specific property
+#
+# Add Defaults - Completes the configuration by inserting defaults for any properties
+# not specified in tile.yml. Doing this here allows the remainder of the code to
+# safely assume presence of properties (i.e. use config['property'])
+#
+# Upgrade - Maintains backward compatibility for deprecated tile.yml syntax by
+# translating it into currently supported syntax. Doing so here allows us to only
+# handle new syntax in the rest of the code, while still maintaining backward
+# compatibility
+
 class Config(dict):
 
 	def __init__(self, *arg, **kw):
@@ -32,11 +49,14 @@ class Config(dict):
 
 	def read(self):
 		self.read_config()
+		self.transform()
+		return self
+
+	def transform(self):
 		self.validate()
 		self.add_defaults()
 		self.upgrade()
 		self.read_history()
-		return self
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
