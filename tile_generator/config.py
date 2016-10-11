@@ -41,6 +41,21 @@ HISTORY_FILE = "tile-history.yml"
 # translating it into currently supported syntax. Doing so here allows us to only
 # handle new syntax in the rest of the code, while still maintaining backward
 # compatibility
+#
+# Normalize Packages - Processes all packages that contain Elastic Runtime artifacts
+# and creates a bosh release specification to deploy them.
+
+package_types = {
+	'app':               { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app' ] },
+	'app-broker':        { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app' ] },
+	'external-broker':   { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_broker', 'is_external_broker' ] },
+	'buildpack':         { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_buildpack' ] },
+	'docker-bosh':       { 'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ], 'jobs':  [ 'docker-bosh' ] },
+	'docker-app':        { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app', 'is_docker_app', 'is_docker' ] },
+	'docker-app-broker': { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app', 'is_docker_app', 'is_docker' ] },
+	'blob':              { 'flags': [ 'is_cf', 'is_blob' ] },
+	'bosh-release':      { 'flags': [ 'is_bosh_release' ] },
+}
 
 class Config(dict):
 
@@ -49,6 +64,7 @@ class Config(dict):
 
 	def read(self):
 		self.read_config()
+		self.read_history()
 		self.transform()
 		return self
 
@@ -56,7 +72,11 @@ class Config(dict):
 		self.validate()
 		self.add_defaults()
 		self.upgrade()
-		self.read_history()
+		self.normalize_packages()
+
+	def normalize_packages(self):
+		for package in self.get('packages', []):
+			pass
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
@@ -76,8 +96,14 @@ class Config(dict):
 				if validname.match(package['name']) is None:
 					print('package name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 					sys.exit(1)
+				if package['type'] not in package_types:
+					print('package', package['name'], 'has invalid type', package['type'], file=sys.stderr)
+					sys.exit(1)
 			except KeyError as e:
-				print('package is missing mandatory property', e, file=sys.stderr)
+				if str(e) == '\'name\'':
+					print('package is missing mandatory property', e, file=sys.stderr)
+				else:
+					print('package', package['name'], 'is missing mandatory property', e, file=sys.stderr)
 				sys.exit(1)
 
 	def set_verbose(self, verbose=True):

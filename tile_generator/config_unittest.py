@@ -168,35 +168,49 @@ class TestConfigValidation(unittest.TestCase):
 
 	def test_requires_package_names(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': 'validname'}, {}]).validate()
+			with capture_output() as (out,err):
+				Config(name='validname', packages=[{'name': 'validname', 'type': 'app'}, {'type': 'app'}]).validate()
+		self.assertIn('package is missing mandatory property \'name\'', err.getvalue())
+
+	def test_requires_package_types(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out,err):
+				Config(name='validname', packages=[{'name': 'validname', 'type': 'app'}, {'name': 'name'}]).validate()
+		self.assertIn('package name is missing mandatory property \'type\'', err.getvalue())
+
+	def test_refuses_invalid_type(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out,err):
+				Config(name='validname', packages=[{'name': 'validname', 'type': 'nonsense'}]).validate()
+		self.assertIn('package validname has invalid type nonsense', err.getvalue())
 
 	def test_accepts_valid_package_name(self):
-		Config(name='validname', packages=[{'name': 'validname'}]).validate()
+		Config(name='validname', packages=[{'name': 'validname', 'type': 'app'}]).validate()
 
 	def test_accepts_valid_package_name_with_hyphen(self):
-		Config(name='validname', packages=[{'name': 'valid-name'}]).validate()
+		Config(name='validname', packages=[{'name': 'valid-name', 'type': 'app'}]).validate()
 
 	def test_accepts_valid_package_name_with_hyphens(self):
-		Config(name='validname', packages=[{'name': 'valid-name-too'}]).validate()
+		Config(name='validname', packages=[{'name': 'valid-name-too', 'type': 'app'}]).validate()
 
 	def test_accepts_valid_package_name_with_number(self):
-		Config(name='validname', packages=[{'name': 'valid-name-2'}]).validate()
+		Config(name='validname', packages=[{'name': 'valid-name-2', 'type': 'app'}]).validate()
 
 	def test_refuses_spaces_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': 'invalid name'}]).validate()
+			Config(name='validname', packages=[{'name': 'invalid name', 'type': 'app'}]).validate()
 
 	def test_refuses_capital_letters_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': 'Invalid'}]).validate()
+			Config(name='validname', packages=[{'name': 'Invalid', 'type': 'app'}]).validate()
 
 	def test_refuses_underscores_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': 'invalid_name'}]).validate()
+			Config(name='validname', packages=[{'name': 'invalid_name', 'type': 'app'}]).validate()
 
 	def test_refuses_package_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': '1-invalid-name'}]).validate()
+			Config(name='validname', packages=[{'name': '1-invalid-name', 'type': 'app'}]).validate()
 
 if __name__ == '__main__':
 	unittest.main()
