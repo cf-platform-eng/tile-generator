@@ -206,7 +206,7 @@ class Config(dict):
 			with open(HISTORY_FILE) as history_file:
 				self['history'] = read_yaml(history_file)
 		except IOError as e:
-			return {}
+			self['history'] = {}
 
 	def set_version(self, version):
 		if version is None:
