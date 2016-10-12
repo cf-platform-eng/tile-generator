@@ -217,7 +217,14 @@ function deploy_app() {
 function start_app() {
 	PKG_NAME="$1"
 	APP_NAME="$2"
-	cf start ${APP_NAME}
+	echo cf start ${APP_NAME}
+	$CF start ${APP_NAME}
+	result="$?"
+	if [ "$result" -ne "0" ]; then
+		echo cf logs ${APP_NAME} --recent
+		$CF logs ${APP_NAME} --recent
+		exit $result
+	fi
 	wait_till_running ${APP_NAME}
 	delete_older_versions ${PKG_NAME} ${APP_NAME}
 }
