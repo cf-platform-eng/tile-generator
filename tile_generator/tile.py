@@ -37,11 +37,11 @@ def init_cmd(name):
 	if name is not None:
 		os.mkdir(name)
 		os.chdir(name)
-	if os.path.isfile(CONFIG_FILE):
+	if os.path.isfile(config.CONFIG_FILE):
 		print('Already initialized.', file=sys.stderr)
 		sys.exit(0)
 	name = os.path.basename(os.getcwd())
-	template.render(CONFIG_FILE, CONFIG_FILE, { 'name': name })
+	template.render(config.CONFIG_FILE, config.CONFIG_FILE, { 'name': name })
 
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
