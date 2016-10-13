@@ -142,16 +142,3 @@ def download(url, filename):
 		for chunk in response.iter_content(chunk_size=1024):
 			if chunk:
 				file.write(chunk)
-
-def update_memory(context, manifest):
-	memory = manifest.get('memory', '1G')
-	unit = memory.lstrip('0123456789').lstrip(' ').lower()
-	if unit not in [ 'g', 'gb', 'm', 'mb' ]:
-		print('invalid memory size unit', unit, 'in', memory, file=sys.stderr)
-		sys.exit(1)
-	memory = int(memory[:-len(unit)])
-	if unit in [ 'g', 'gb' ]:
-		memory *= 1024
-	context['total_memory'] += memory
-	if memory > context['max_memory']:
-		context['max_memory'] = memory

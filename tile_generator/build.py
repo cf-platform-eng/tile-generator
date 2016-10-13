@@ -48,20 +48,5 @@ def build(config):
 		packages = config.get('packages', [])
 		for package in packages:
 			releases.add_package(package)
-	validate_memory_quota(config)
 	with cd('product', clobber=True):
 		releases.create_tile()
-
-def validate_memory_quota(context):
-	required = context['total_memory'] + context['max_memory']
-	specified = context.get('org_quota', None)
-	if specified is None:
-		# We default to twice the total size
-		# For most cases this is generous, but there's no harm in it
-		context['org_quota'] = context['total_memory'] * 2
-	elif specified < required:
-		print('Specified org quota of', specified, 'MB is insufficient', file=sys.stderr)
-		print('Required quota is at least the total package size of', context['total_memory'], 'MB', file=sys.stderr)
-		print('Plus enough room for blue/green deployment of the largest app:', context['max_memory'], 'MB', file=sys.stderr)
-		print('For a total of:', required, 'MB', file=sys.stderr)
-		sys.exit(1)

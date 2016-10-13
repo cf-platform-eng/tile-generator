@@ -30,7 +30,7 @@ HISTORY_FILE = "tile-history.yml"
 # from tile.yml, then is gradually transformed into a complete configuration
 # through the following phases:
 #
-# Validate - ensure that all mandatory fields are present, and that any values
+# Validate Config - Ensure that all mandatory fields are present, and that any values
 # provided meet the constraints for that specific property
 #
 # Add Defaults - Completes the configuration by inserting defaults for any properties
@@ -44,7 +44,9 @@ HISTORY_FILE = "tile-history.yml"
 #
 # Process Packages - Normalizes all package desctiptions and sorts them into the
 # appropriate bosh releases depending on their types
-
+#
+# Validate Releases - Ensure that all generated releases are sane
+#
 # TODO - Remove jobs and requires flags (after rest of code is made independent of it)
 
 package_types = {
@@ -75,6 +77,7 @@ class Config(dict):
 		self.add_defaults()
 		self.upgrade()
 		self.process_packages()
+		self.validate_releases()
 
 	def process_packages(self):
 		for package in self.get('packages', []):
@@ -88,6 +91,9 @@ class Config(dict):
 			release = self.release_for_package(package)
 			release['packages'][name] = package
 			# TODO - Remove original package definition (after rest of code is made independent of it)
+			if 'is_app' in flags:
+				manifest = package.get('manifest', { 'name': package['name'] })
+				self.update_memory(release, manifest)
 
 	def release_for_package(self, package):
 		release_name = self['name'] if package.get('is_cf', False) else package['name']
@@ -95,9 +101,12 @@ class Config(dict):
 		if release is None:
 			release = { 'name': release_name, 'packages': {}, 'jobs': {} }
 			if package.get('is_cf', False):
+				release['is_cf'] = True
 				release['jobs']['deploy-all'] = { 'name': 'deploy-all' }
 				release['jobs']['delete-all'] = { 'name': 'delete-all' }
 				release['requires_cf_cli'] = True
+				release['max_memory'] = 0
+				release['total_memory'] = 0
 			if package.get('is_docker_bosh', False):
 				release['jobs']['docker-bosh'] = { 'name': 'docker-bosh', 'package': package }
 				release['requires_docker_bosh'] = True
@@ -105,6 +114,11 @@ class Config(dict):
 		release['packages'] = release.get('packages', {})
 		release['jobs'] = release.get('jobs', {})
 		return release
+
+	def validate_releases(self):
+		for name, release in self.get('releases', {}).items():
+			if release.get('is_cf', False):
+				self.validate_memory_quota(release)
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
@@ -238,6 +252,35 @@ class Config(dict):
 			version = '.'.join(semver)
 		history['version'] = version
 		self['version'] = version
+
+	def update_memory(self, release, manifest):
+		memory = manifest.get('memory', '1G')
+		unit = memory.lstrip('0123456789').lstrip(' ').lower()
+		if unit not in [ 'g', 'gb', 'm', 'mb' ]:
+			print('invalid memory size unit', unit, 'in', memory, file=sys.stderr)
+			sys.exit(1)
+		memory = int(memory[:-len(unit)])
+		if unit in [ 'g', 'gb' ]:
+			memory *= 1024
+		release['total_memory'] += memory
+		if memory > release['max_memory']:
+			release['max_memory'] = memory
+
+	def validate_memory_quota(self, release):
+		required = release['total_memory'] + release['max_memory']
+		specified = self.get('org_quota', None)
+		if specified is None:
+			# We default to twice the total size
+			# For most cases this is generous, but there's no harm in it
+			release['org_quota'] = release['total_memory'] * 2
+			if self.get('org_quota', 0) < release['org_quota']:
+				self['org_quota'] = release['org_quota']
+		elif specified < required:
+			print('Specified org quota of', specified, 'MB is insufficient', file=sys.stderr)
+			print('Required quota is at least the total package size of', release['total_memory'], 'MB', file=sys.stderr)
+			print('Plus enough room for blue/green deployment of the largest app:', release['max_memory'], 'MB', file=sys.stderr)
+			print('For a total of:', required, 'MB', file=sys.stderr)
+			sys.exit(1)
 
 def read_yaml(file):
 	return yaml.safe_load(file)

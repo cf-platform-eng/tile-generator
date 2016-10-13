@@ -170,9 +170,6 @@ class BoshRelease:
 				manifest = read_release_manifest(self.tarball)
 				self.name = manifest['name']
 				self.version = manifest['version']
-		if 'is_app' in flags:
-			manifest = package.get('manifest', { 'name': package['name'] })
-			update_memory(self.context, manifest)
 
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):

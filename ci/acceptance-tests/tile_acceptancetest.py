@@ -34,6 +34,19 @@ class VerifyTile(unittest.TestCase):
 		self.assertEqual(len(files), 1)
 		read_yaml(files[0]) # Ensure corrent yaml syntax
 
+class VerifyProperties(unittest.TestCase):
+
+	def setUp(self):
+		self.assertTrue(os.path.exists('product/metadata'))
+		files = glob.glob('product/metadata/*.yml')
+		self.assertEqual(len(files), 1)
+		self.config = read_yaml(files[0])
+
+	def test_has_correct_memory_quota(self):
+		blueprints = self.config['property_blueprints']
+		org_quota = [ p for p in blueprints if p['name'] == 'org_quota' ][0]
+		self.assertEqual(org_quota['default'], 2560)
+
 def read_yaml(filename):
 	with open(filename, 'rb') as file:
 		return yaml.safe_load(file)
