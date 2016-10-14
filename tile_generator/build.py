@@ -45,8 +45,10 @@ DOCKER_BOSHRELEASE_VERSION = '23'
 def build(config):
 	releases = BoshReleases(config)
 	with cd('release', clobber=True):
-		packages = config.get('packages', [])
-		for package in packages:
-			releases.add_package(package)
+		for release_name, release in config.get('releases', {}).items():
+			bosh_release = releases.add_release(release)
+			packages = release.get('packages', {})
+			for package_name, package in packages.items():
+				releases.add_package(bosh_release, package)
 	with cd('product', clobber=True):
 		releases.create_tile()

@@ -72,17 +72,18 @@ class BoshReleases:
 		self.context['requires_docker_bosh'] = False
 		# self.context['bosh_releases'] = [] # FIXME Get rid of this contex entry, move info into BoshRelease instances.
 
-	def add_package(self, package):
+	def add_release(self, release):
+		bosh_release_name = release['name']
+		release = BoshRelease(bosh_release_name, self.context)
+		self.releases[bosh_release_name] = release
+		return release
+
+	def add_package(self, release, package):
 		print("tile adding package", package['name'])
 		typename = package.get('type', None)
 		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
 		flags = typedef.get('flags', [])
 		jobs = typedef.get('jobs', [])
-		bosh_release_name = package['name'] if package.get('is_bosh_release', False) else self.context['name']
-		if not bosh_release_name in self.releases:
-			release = BoshRelease(bosh_release_name, self.context)
-			self.releases[bosh_release_name] = release
-		release = self.releases[bosh_release_name]
 		release.add_package(package, flags, jobs)
 		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
 		self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
@@ -176,7 +177,6 @@ class BoshRelease:
 		if self.has_flag('is_bosh_release'):
 			print("tile", self.name, "bosh release already built")
 			return {}
-		print("tile building bosh release for", self.name)
 		self.__bosh('init', 'release')
 		template.render('src/templates/all_open.json', 'src/templates/all_open.json', self.context)
 		template.render('src/common/utils.sh', 'src/common/utils.sh', self.context)
