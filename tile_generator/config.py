@@ -17,6 +17,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import, division, print_function#, unicode_literals
+from collections import OrderedDict
 import sys
 import yaml
 import re
@@ -99,7 +100,10 @@ class Config(dict):
 		release_name = self['name'] if package.get('is_cf', False) else package['name']
 		release = self['releases'].get(release_name, None)
 		if release is None:
-			release = { 'name': release_name, 'packages': {}, 'jobs': {} }
+			release = {
+				'name': release_name,
+				'packages': OrderedDict(),
+				'jobs': OrderedDict() }
 			if package.get('is_cf', False):
 				release['is_cf'] = True
 				release['jobs']['deploy-all'] = { 'name': 'deploy-all' }
@@ -161,7 +165,7 @@ class Config(dict):
 		self['all_properties'] = self.get('properties', [])
 		self['total_memory'] = 0
 		self['max_memory'] = 0
-		self['releases'] = self.get('releases', {})
+		self['releases'] = self.get('releases', OrderedDict())
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
 			for property in properties:
