@@ -46,11 +46,11 @@ def read_release_manifest(bosh_release_tarball):
 		return manifest
 
 # FIXME we shouldn't treat the docker bosh release specially.
-def download_docker_release(version=None):
+def download_docker_release(version=None, cache=None):
 	version_param = '?v=' + version if version else ''
 	url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param
 	localfile = 'docker-boshrelease.tgz'
-	download(url, localfile)
+	download(url, localfile, cache)
 	manifest = read_release_manifest(localfile)
 	print("Downloaded docker version", manifest['version'], file=sys.stderr)
 	return {
@@ -116,7 +116,7 @@ class BoshReleases:
 		if self.context['requires_docker_bosh']:
 			with cd('releases'):
 				print('tile import release docker')
-				docker_release = download_docker_release(version=self.context.get('docker_bosh_version', None))
+				docker_release = download_docker_release(version=self.context.get('docker_bosh_version', None), cache=self.context.get('cache', None))
 				self.context['docker_release'] = docker_release
 		print('tile generate metadata')
 		template.render('metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
@@ -315,11 +315,11 @@ class BoshRelease:
 			for file in files:
 				filename = file.get('name', os.path.basename(file['path']))
 				file['name'] = filename
-				urlretrieve(file['path'], os.path.join(target_dir, filename))
+				download(file['path'], os.path.join(target_dir, filename), cache=self.context.get('cache', None))
 				package_context['files'] += [ filename ]
 			for docker_image in package.get('docker_images', []):
 				filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-				download_docker_image(docker_image, os.path.join(target_dir, filename), cache=self.context.get('docker_cache', None))
+				download_docker_image(docker_image, os.path.join(target_dir, filename), cache=self.context.get('cache', None))
 				package_context['files'] += [ filename ]
 		if package.get('is_app', False):
 			manifest = package.get('manifest', { 'name': name })

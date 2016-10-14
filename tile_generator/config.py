@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import, division, print_function#, unicode_literals
 from collections import OrderedDict
+import os.path
 import sys
 import yaml
 import re
@@ -156,9 +157,11 @@ class Config(dict):
 	def set_verbose(self, verbose=True):
 		self['verbose'] = verbose
 
-	def set_docker_cache(self, docker_cache=None):
-		if docker_cache is not None:
-			self['docker_cache'] = docker_cache
+	def set_cache(self, cache=None):
+		if cache is not None:
+			cache = os.path.realpath(os.path.expanduser(cache))
+			self['docker_cache'] = cache
+			self['cache'] = cache
 
 	def add_defaults(self):
 		self['stemcell_criteria'] = self.default_stemcell()

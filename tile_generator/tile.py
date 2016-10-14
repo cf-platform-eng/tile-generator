@@ -46,12 +46,12 @@ def init_cmd(name):
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
 @click.option('--verbose', is_flag=True)
-@click.option('--docker-cache', type=str, default=None)
-def build_cmd(version, verbose, docker_cache):
+@click.option('--docker-cache', '--cache', type=str, default=None)
+def build_cmd(version, verbose, cache):
 	cfg = Config().read()
 	cfg.set_version(version)
 	cfg.set_verbose(verbose)
-	cfg.set_docker_cache(docker_cache)
+	cfg.set_cache(cache)
 	print('name:', cfg.get('name', '<unspecified>'))
 	print('icon:', cfg.get('icon_file', '<unspecified>'))
 	print('label:', cfg.get('label', '<unspecified>'))

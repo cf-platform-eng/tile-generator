@@ -19,6 +19,7 @@
 from __future__ import absolute_import, division, print_function
 import errno
 import os
+import os.path
 import requests
 import shutil
 import sys
@@ -131,14 +132,25 @@ def mkdir_p(dir):
 		if e.errno != errno.EEXIST:
 			raise
 
-def download(url, filename):
+def download(url, filename, cache=None):
 	# [mboldt:20160908] Using urllib.urlretrieve gave an "Access
 	# Denied" page when trying to download docker boshrelease.
 	# I don't know why. requests.get works. Do what works.
 	# urllib.urlretrieve(url, filename)
-	response = requests.get(url, stream=True)
-	response.raise_for_status()
-	with open(filename, 'wb') as file:
-		for chunk in response.iter_content(chunk_size=1024):
-			if chunk:
-				file.write(chunk)
+	if cache is not None:
+		basename = os.path.basename(filename)
+		cachename = os.path.join(cache, basename)
+	 	if os.path.isfile(cachename):
+			print('using cached version of', basename)
+			shutil.copy(cachename, filename)
+			return
+	if url.startswith("http:") or url.startswith("https"):
+		response = requests.get(url, stream=True)
+		response.raise_for_status()
+		with open(filename, 'wb') as file:
+			for chunk in response.iter_content(chunk_size=1024):
+				if chunk:
+					file.write(chunk)
+	else:
+		shutil.copy(url, filename)
+
