@@ -97,7 +97,7 @@ class Config(dict):
 				self.update_memory(release, manifest)
 
 	def release_for_package(self, package):
-		release_name = self['name'] if package.get('is_cf', False) else package['name']
+		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
 		release = self['releases'].get(release_name, None)
 		if release is None:
 			release = {
