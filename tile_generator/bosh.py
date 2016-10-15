@@ -65,18 +65,10 @@ class BoshReleases:
 	def __init__(self, context):
 		self.context = context
 		# FIXME pass in target dir instead of relying on CWD.
-		# self.releases_dir = releases_dir
-		self.releases = {} # Map from name to BoshRelease object.
 		# self.requires_cf_cli = False
 		# self.requires_docker_bosh = False
 		self.context['requires_docker_bosh'] = False
 		# self.context['bosh_releases'] = [] # FIXME Get rid of this contex entry, move info into BoshRelease instances.
-
-	def add_release(self, release):
-		bosh_release_name = release['name']
-		release = BoshRelease(bosh_release_name, self.context)
-		self.releases[bosh_release_name] = release
-		return release
 
 	def add_package(self, release, package):
 		print("tile adding package", package['name'])
@@ -100,12 +92,11 @@ class BoshReleases:
 				}
 			]
 
-	def create_tile(self):
+	def create_tile(self, releases):
 		release_info = {}
-		for name in self.releases:
-			release = self.releases[name]
+		for name, release in releases.items():
 			with cd(release.release_dir):
-				release_info.update(self.releases[name].pre_create_tile())
+				release_info.update(release.pre_create_tile())
 		if 'tarball' in release_info:
 			release_info['file'] = os.path.basename(release_info['tarball'])
 		self.context['release'] = release_info
@@ -131,8 +122,7 @@ class BoshReleases:
 			if self.context['requires_docker_bosh']:
 				docker_release = self.context['docker_release']
 				f.write(os.path.join('releases', docker_release['file']))
-			for name in self.releases:
-				release = self.releases[name]
+			for name, release in releases.items():
 				print('tile import release', name)
 				mkdir_p('releases')
 				shutil.copy(release.tarball, os.path.join('releases', release.file))
