@@ -46,11 +46,11 @@ def build(config):
 	releases = BoshReleases(config)
 	bosh_releases = {}
 	with cd('release', clobber=True):
-		for release_name, release in config.get('releases', {}).items():
+		for release in config.get('releases', []):
+			release_name = release['name']
 			bosh_release = BoshRelease(release_name, config)
 			bosh_releases[release_name] = bosh_release
-			packages = release.get('packages', {})
-			for package_name, package in packages.items():
+			for package in release.get('packages', []):
 				releases.add_package(bosh_release, package)
 	with cd('product', clobber=True):
 		releases.create_tile(bosh_releases)

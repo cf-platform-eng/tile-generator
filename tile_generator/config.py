@@ -17,7 +17,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import, division, print_function#, unicode_literals
-from collections import OrderedDict
 import os.path
 import sys
 import yaml
@@ -91,7 +90,7 @@ class Config(dict):
 			for flag in flags:
 				package[flag] = True
 			release = self.release_for_package(package)
-			release['packages'][name] = package
+			release['packages'] = release.get('packages', []) + [ package ]
 			# TODO - Remove original package definition (after rest of code is made independent of it)
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
@@ -99,29 +98,33 @@ class Config(dict):
 
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
-		release = self['releases'].get(release_name, None)
+		release = self.release_by_name(release_name)
 		if release is None:
 			release = {
 				'name': release_name,
-				'packages': OrderedDict(),
-				'jobs': OrderedDict() }
+				'packages': [],
+				'jobs': [] }
 			if package.get('is_cf', False):
 				release['is_cf'] = True
-				release['jobs']['deploy-all'] = { 'name': 'deploy-all' }
-				release['jobs']['delete-all'] = { 'name': 'delete-all' }
+				release['jobs'] += [{ 'name': 'deploy-all' }]
+				release['jobs'] += [{ 'name': 'delete-all' }]
 				release['requires_cf_cli'] = True
 				release['max_memory'] = 0
 				release['total_memory'] = 0
 			if package.get('is_docker_bosh', False):
-				release['jobs']['docker-bosh'] = { 'name': 'docker-bosh', 'package': package }
+				release['jobs'] += [{ 'name': 'docker-bosh', 'package': package }]
 				release['requires_docker_bosh'] = True
-			self['releases'][release_name] = release
-		release['packages'] = release.get('packages', {})
-		release['jobs'] = release.get('jobs', {})
+			self['releases'] = self.get('releases', []) + [ release ]
 		return release
 
+	def release_by_name(self, name):
+		for release in self.get('releases', []):
+			if release['name'] == name:
+				return release
+		return None
+
 	def validate_releases(self):
-		for name, release in self.get('releases', {}).items():
+		for release in self.get('releases', []):
 			if release.get('is_cf', False):
 				self.validate_memory_quota(release)
 
@@ -168,7 +171,6 @@ class Config(dict):
 		self['all_properties'] = self.get('properties', [])
 		self['total_memory'] = 0
 		self['max_memory'] = 0
-		self['releases'] = self.get('releases', OrderedDict())
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
 			for property in properties:
