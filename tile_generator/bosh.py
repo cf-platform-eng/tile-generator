@@ -177,14 +177,6 @@ class BoshRelease:
 		mkdir_p(self.release_dir)
 		self.__bosh('init', 'release')
 		template.render(
-			os.path.join(self.release_dir, 'src/templates/all_open.json'),
-			'src/templates/all_open.json',
-			self.context)
-		# template.render(
-		# 	os.path.join(self.release_dir, 'src/common/utils.sh'),
-		# 	'src/common/utils.sh',
-		# 	self.context)
-		template.render(
 			os.path.join(self.release_dir, 'config/final.yml'),
 			'config/final.yml',
 			self.context)
