@@ -48,6 +48,8 @@ HISTORY_FILE = "tile-history.yml"
 #
 # Validate Releases - Ensure that all generated releases are sane
 #
+# Add Dependencies - Add all auto-dependencies for the packages and releases
+#
 # TODO - Remove jobs and requires flags (after rest of code is made independent of it)
 
 package_types = {
@@ -79,6 +81,7 @@ class Config(dict):
 		self.upgrade()
 		self.process_packages()
 		self.validate_releases()
+		self.add_dependencies()
 
 	def process_packages(self):
 		for package in self.get('packages', []):
@@ -92,6 +95,12 @@ class Config(dict):
 			release = self.release_for_package(package)
 			release['packages'] = release.get('packages', []) + [ package ]
 			# TODO - Remove original package definition (after rest of code is made independent of it)
+			if package.get('is_cf', False):
+				release['is_cf'] = True
+				release['requires_cf_cli'] = True
+			if package.get('is_docker_bosh', False):
+				release['requires_docker_bosh'] = True
+				release['jobs'] += [{ 'name': 'docker-bosh', 'package': package }]
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
 				self.update_memory(release, manifest)
@@ -104,16 +113,6 @@ class Config(dict):
 				'name': release_name,
 				'packages': [],
 				'jobs': [] }
-			if package.get('is_cf', False):
-				release['is_cf'] = True
-				release['jobs'] += [{ 'name': 'deploy-all' }]
-				release['jobs'] += [{ 'name': 'delete-all' }]
-				release['requires_cf_cli'] = True
-				release['max_memory'] = 0
-				release['total_memory'] = 0
-			if package.get('is_docker_bosh', False):
-				release['jobs'] += [{ 'name': 'docker-bosh', 'package': package }]
-				release['requires_docker_bosh'] = True
 			self['releases'] = self.get('releases', []) + [ release ]
 		return release
 
@@ -127,6 +126,14 @@ class Config(dict):
 		for release in self.get('releases', []):
 			if release.get('is_cf', False):
 				self.validate_memory_quota(release)
+
+	def add_dependencies(self):
+		for release in self.get('releases', []):
+			if release.get('requires_docker_bosh', False):
+				pass
+			if release.get('requires_cf_cli', False):
+				release['jobs'] += [{ 'name': 'deploy-all' }]
+				release['jobs'] += [{ 'name': 'delete-all' }]
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
@@ -271,23 +278,25 @@ class Config(dict):
 		memory = int(memory[:-len(unit)])
 		if unit in [ 'g', 'gb' ]:
 			memory *= 1024
-		release['total_memory'] += memory
-		if memory > release['max_memory']:
+		release['total_memory'] = release.get('total_memory', 0) + memory
+		if memory > release.get('max_memory', 0):
 			release['max_memory'] = memory
 
 	def validate_memory_quota(self, release):
-		required = release['total_memory'] + release['max_memory']
+		total_memory = release.get('total_memory', 0)
+		max_memory = release.get('max_memory', 0)
+		required = total_memory + max_memory
 		specified = self.get('org_quota', None)
 		if specified is None:
 			# We default to twice the total size
 			# For most cases this is generous, but there's no harm in it
-			release['org_quota'] = release['total_memory'] * 2
+			release['org_quota'] = total_memory * 2
 			if self.get('org_quota', 0) < release['org_quota']:
 				self['org_quota'] = release['org_quota']
 		elif specified < required:
 			print('Specified org quota of', specified, 'MB is insufficient', file=sys.stderr)
-			print('Required quota is at least the total package size of', release['total_memory'], 'MB', file=sys.stderr)
-			print('Plus enough room for blue/green deployment of the largest app:', release['max_memory'], 'MB', file=sys.stderr)
+			print('Required quota is at least the total package size of', total_memory, 'MB', file=sys.stderr)
+			print('Plus enough room for blue/green deployment of the largest app:', max_memory, 'MB', file=sys.stderr)
 			print('For a total of:', required, 'MB', file=sys.stderr)
 			sys.exit(1)
 
