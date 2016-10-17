@@ -142,11 +142,11 @@ class BoshReleases:
 
 class BoshRelease:
 
-	def __init__(self, name, context):
+	def __init__(self, release, context):
+		self.name = release['name']
 		# TODO - To allow for multiple bosh releases to be built
-		# self.release_dir = os.path.join('release', name)
+		# self.release_dir = os.path.join('release', self.name)
 		self.release_dir = 'release'
-		self.name = name
 		self.flags = []
 		self.jobs = []
 		self.packages = []

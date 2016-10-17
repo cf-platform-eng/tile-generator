@@ -48,7 +48,7 @@ def build(config):
 	mkdir_p('release', clobber=True)
 	for release in config.get('releases', []):
 		release_name = release['name']
-		bosh_release = BoshRelease(release_name, config)
+		bosh_release = BoshRelease(release, config)
 		bosh_releases[release_name] = bosh_release
 		for package in release.get('packages', []):
 			releases.add_package(bosh_release, package)
