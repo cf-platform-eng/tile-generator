@@ -3,8 +3,10 @@ name: {{ job_name }}
 templates:
 {% if errand %}
   {{ job_name }}.sh.erb: bin/run
+  opsmgr-env.sh.erb: bin/opsmgr-env.sh
 {% else %}
   {{ job_name }}.sh.erb: bin/{{ job_name }}_ctl
+  opsmgr-env.sh.erb: bin/opsmgr-env.sh
 {% endif %}
 packages:
 {% if not package %}
@@ -23,9 +25,6 @@ packages:
 - common
 {% endif %}
 {% endif %}
-{% if package.is_docker_bosh %}
-properties: {}
-{% else %}
 properties:
   domain:
     description: 'CloudFoundry system domain'
@@ -43,7 +42,6 @@ properties:
     description: 'Username of the CF admin user'
   cf.admin_password:
     description: 'Password of the CF admin user'
-{% if job_type == "deploy-all" %}
   org_quota:
     description: 'Org Memory Quota for the Application'
     default: 1024
@@ -105,5 +103,3 @@ properties:
     description: '(All) Hostnames for the container'
 {% endif %}
 {% endfor %}
-{% endif %}
-{% endif %}

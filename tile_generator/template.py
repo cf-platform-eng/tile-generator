@@ -47,13 +47,13 @@ def render_shell_string(input):
 
 def render_plans_json(input):
 	return ('<%\n'
-	'		plans = { }\n'
-	'		p("' + input + '").each do |plan|\n'
-	'			plan_name = plan[\'name\']\n'
-	'			plans[plan_name] = plan\n'
-	'		end\n'
-	'	%>\n'
-	'	export ' + input.upper() + '=<%= Shellwords.escape JSON.dump(plans) %>')
+	'	plans = { }\n'
+	'	p("' + input + '").each do |plan|\n'
+	'		plan_name = plan[\'name\']\n'
+	'		plans[plan_name] = plan\n'
+	'	end\n'
+	'%>\n'
+	'' + input.upper() + '=<%= Shellwords.escape JSON.dump(plans) %>')
 
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)

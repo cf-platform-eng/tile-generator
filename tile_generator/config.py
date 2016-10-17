@@ -161,6 +161,15 @@ class Config(dict):
 				property['default'] = default
 			property['configurable'] = property.get('configurable', False)
 			property['optional'] = property.get('optional', False)
+		for package in self.get('packages', []):
+			if package['type'] == 'docker-bosh':
+				manifest = package['manifest']
+				if isinstance(manifest, str):
+					package['manifest'] = yaml.safe_load(manifest)
+				for container in package['manifest']['containers']:
+					envfile = container.get('env_file', [])
+					envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr-env.sh'.format(package['name']))
+					container['env_file'] = envfile
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
