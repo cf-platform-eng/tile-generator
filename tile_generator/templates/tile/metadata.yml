@@ -228,7 +228,7 @@ form_types:
   property_inputs:
 {% endif %}
   - reference: .properties.{{ package.name }}_buildpack_order
-    label: "{{ package.label or package.name }} Buildpack Order"
+    label: {{ package.label or package.name }} Buildpack Order
     description: 'Enter order for the {{ package.label or package.name }} buildpack'
 {% endfor %}
 {% for package in packages if package.is_external_broker %}
@@ -242,13 +242,13 @@ form_types:
   property_inputs:
 {% endif %}
   - reference: .properties.{{ package.name }}_url
-    label: 'Service Broker Application URI for {{ package.label or package.name }}'
+    label: Service Broker Application URI for {{ package.label or package.name }}
     description: 'Enter the External uri/endpoint (with http or https protocol) for the Service Broker'
   - reference: .properties.{{ package.name }}_user
-    label: 'Service Broker Username for {{ package.label or package.name }}'
+    label: Service Broker Username for {{ package.label or package.name }}
     description: 'Enter the username for accessing the Service Broker'
   - reference: .properties.{{ package.name }}_password
-    label: 'Service Broker Password for {{ package.label or package.name }}'
+    label: Service Broker Password for {{ package.label or package.name }}
     description: 'Enter the password for accessing the Service Broker'
 {% endfor %}
 {% for package in packages if package.is_broker %}
@@ -262,7 +262,7 @@ form_types:
   property_inputs:
 {% endif %}
   - reference: .properties.{{ package.name }}_enable_global_access_to_plans
-    label: "Enable global access to plans of service {{ package.label or package.name }}"
+    label: Enable global access to plans of service {{ package.label or package.name }}
     description: "Enable global access to plans in the marketplace"
 {% endfor %}
 {% for package in packages if package.configurable_persistence %}
@@ -276,7 +276,7 @@ form_types:
   property_inputs:
 {% endif %}
   - reference: .properties.{{ package.name }}_persistence_store_type
-    label: 'Persistence service to use for {{ package.label or package.name }}'
+    label: Persistence service to use for {{ package.label or package.name }}
     description: "Select MySQL or Mongo Service Binding or None for saving state"
 {% endfor %}
 

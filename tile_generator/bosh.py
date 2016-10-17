@@ -120,14 +120,22 @@ class BoshReleases:
 		with zipfile.ZipFile(pivotal_file, 'w') as f:
 			if self.context['requires_docker_bosh']:
 				docker_release = self.context['docker_release']
-				f.write(os.path.join('product/releases', docker_release['file']))
+				f.write(
+					os.path.join('product/releases', docker_release['file']),
+					os.path.join('releases', docker_release['file']))
 			for name, release in releases.items():
 				print('tile import release', name)
 				shutil.copy(release.tarball, os.path.join('product/releases', release.file))
-				f.write(os.path.join('product/releases', release.file))
-			f.write(os.path.join('product/metadata', release_name + '.yml'))
-			f.write(os.path.join('product/content_migrations', release_name + '.yml'))
-			f.write(migrations)
+				f.write(
+					os.path.join('product/releases', release.file),
+					os.path.join('releases', release.file))
+			f.write(
+				os.path.join('product/metadata', release_name + '.yml'),
+				os.path.join('metadata', release_name + '.yml'))
+			f.write(
+				os.path.join('product/content_migrations', release_name + '.yml'),
+				os.path.join('content_migrations', release_name + '.yml'))
+			f.write(migrations, migrations.lstrip('product/'))
 		print()
 		print('created tile', pivotal_file)
 
@@ -135,7 +143,6 @@ class BoshReleases:
 class BoshRelease:
 
 	def __init__(self, name, context):
-		# TODO - This really should read
 		# self.release_dir = os.path.join('release', name)
 		self.release_dir = 'release'
 		self.name = name
