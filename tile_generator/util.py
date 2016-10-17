@@ -109,25 +109,28 @@ def bosh_extract(output, properties):
 				result[p['label']] = l.split(':', 1)[-1].strip()
 	return result
 
-class cd:
-	"""Context manager for changing the current working directory"""
-	def __init__(self, newPath, clobber=False):
-		self.clobber = clobber
-		self.newPath = os.path.expanduser(newPath)
+# class cd:
+# 	"""Context manager for changing the current working directory"""
+# 	def __init__(self, newPath, clobber=False):
+# 		self.clobber = clobber
+# 		self.newPath = os.path.expanduser(newPath)
 
-	def __enter__(self):
-		self.savedPath = os.getcwd()
-		if self.clobber and os.path.isdir(self.newPath):
-			shutil.rmtree(self.newPath)
-		mkdir_p(self.newPath)
-		os.chdir(self.newPath)
+# 	def __enter__(self):
+# 		self.savedPath = os.getcwd()
+# 		if self.clobber and os.path.isdir(self.newPath):
+# 			shutil.rmtree(self.newPath)
+# 		mkdir_p(self.newPath)
+# 		os.chdir(self.newPath)
 
-	def __exit__(self, etype, value, traceback):
-		os.chdir(self.savedPath)
+# 	def __exit__(self, etype, value, traceback):
+# 		os.chdir(self.savedPath)
 
-def mkdir_p(dir):
+def mkdir_p(dir, clobber=False):
+	if os.path.isdir(dir):
+		shutil.rmtree(dir)
 	try:
 		os.makedirs(dir)
+		return dir
 	except os.error as e:
 		if e.errno != errno.EEXIST:
 			raise

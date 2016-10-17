@@ -30,7 +30,7 @@ TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, 'templates'))
 
 def render_base64(file):
 	try:
-		with open(os.path.realpath(os.path.join('..', file)), 'rb') as f:
+		with open(os.path.realpath(file), 'rb') as f:
 			return base64.b64encode(f.read())
 	except Exception as e:
 		print(e, file=sys.stderr)

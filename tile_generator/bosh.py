@@ -49,7 +49,7 @@ def read_release_manifest(bosh_release_tarball):
 def download_docker_release(version=None, cache=None):
 	version_param = '?v=' + version if version else ''
 	url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param
-	localfile = 'docker-boshrelease.tgz'
+	localfile = 'product/releases/docker-boshrelease.tgz'
 	download(url, localfile, cache)
 	manifest = read_release_manifest(localfile)
 	print("Downloaded docker version", manifest['version'], file=sys.stderr)
@@ -57,7 +57,7 @@ def download_docker_release(version=None, cache=None):
 		'tarball': localfile,
 		'name': manifest['name'],
 		'version': manifest['version'],
-		'file': localfile,
+		'file': os.path.basename(localfile),
 	}
 
 class BoshReleases:
@@ -95,40 +95,38 @@ class BoshReleases:
 	def create_tile(self, releases):
 		release_info = {}
 		for name, release in releases.items():
-			with cd(release.release_dir):
-				release_info.update(release.pre_create_tile())
+			release_info.update(release.pre_create_tile())
 		if 'tarball' in release_info:
 			release_info['file'] = os.path.basename(release_info['tarball'])
 		self.context['release'] = release_info
 		# Can we just compute release_info instead of parsing from bosh in pre_create_tile?
 		release_name = release_info.get('name', self.context.get('name', None))
 		release_version = release_info.get('version', self.context.get('version', None))
+		mkdir_p('product/releases')
 		# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
 		if self.context['requires_docker_bosh']:
-			with cd('releases'):
-				print('tile import release docker')
-				docker_release = download_docker_release(version=self.context.get('docker_bosh_version', None), cache=self.context.get('cache', None))
-				self.context['docker_release'] = docker_release
+			print('tile import release docker')
+			docker_release = download_docker_release(version=self.context.get('docker_bosh_version', None), cache=self.context.get('cache', None))
+			self.context['docker_release'] = docker_release
 		print('tile generate metadata')
-		template.render('metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
+		template.render('product/metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
 		print('tile generate content-migrations')
-		template.render('content_migrations/' + release_name + '.yml', 'tile/content-migrations.yml', self.context)
+		template.render('product/content_migrations/' + release_name + '.yml', 'tile/content-migrations.yml', self.context)
 		print('tile generate migrations')
-		migrations = 'migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
+		migrations = 'product/migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
 		template.render(migrations, 'tile/migration.js', self.context)
 		print('tile generate package')
-		pivotal_file = release_name + '-' + release_version + '.pivotal'
+		pivotal_file = os.path.join('product', release_name + '-' + release_version + '.pivotal')
 		with zipfile.ZipFile(pivotal_file, 'w') as f:
 			if self.context['requires_docker_bosh']:
 				docker_release = self.context['docker_release']
-				f.write(os.path.join('releases', docker_release['file']))
+				f.write(os.path.join('product/releases', docker_release['file']))
 			for name, release in releases.items():
 				print('tile import release', name)
-				mkdir_p('releases')
-				shutil.copy(release.tarball, os.path.join('releases', release.file))
-				f.write(os.path.join('releases', release.file))
-			f.write(os.path.join('metadata', release_name + '.yml'))
-			f.write(os.path.join('content_migrations', release_name + '.yml'))
+				shutil.copy(release.tarball, os.path.join('product/releases', release.file))
+				f.write(os.path.join('product/releases', release.file))
+			f.write(os.path.join('product/metadata', release_name + '.yml'))
+			f.write(os.path.join('product/content_migrations', release_name + '.yml'))
 			f.write(migrations)
 		print()
 		print('created tile', pivotal_file)
@@ -137,7 +135,9 @@ class BoshReleases:
 class BoshRelease:
 
 	def __init__(self, name, context):
-		self.release_dir = os.getcwd() # FIXME parameterize
+		# TODO - This really should read
+		# self.release_dir = os.path.join('release', name)
+		self.release_dir = 'release'
 		self.name = name
 		self.flags = []
 		self.jobs = []
@@ -155,22 +155,31 @@ class BoshRelease:
 		# FIXME this is pretty ugly...would like a subclass for is_bosh_release, but
 		# want minimal code change for now.
 		if 'is_bosh_release' in flags:
-			with cd('..'):
-				self.tarball = os.path.realpath(self.packages[0]['path'])
-				self.file = os.path.basename(self.tarball)
-				manifest = read_release_manifest(self.tarball)
-				self.name = manifest['name']
-				self.version = manifest['version']
+			self.tarball = os.path.realpath(self.packages[0]['path'])
+			self.file = os.path.basename(self.tarball)
+			manifest = read_release_manifest(self.tarball)
+			self.name = manifest['name']
+			self.version = manifest['version']
 
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):
 		if self.has_flag('is_bosh_release'):
 			print("tile", self.name, "bosh release already built")
 			return {}
+		mkdir_p(self.release_dir)
 		self.__bosh('init', 'release')
-		template.render('src/templates/all_open.json', 'src/templates/all_open.json', self.context)
-		template.render('src/common/utils.sh', 'src/common/utils.sh', self.context)
-		template.render('config/final.yml', 'config/final.yml', self.context)
+		template.render(
+			os.path.join(self.release_dir, 'src/templates/all_open.json'),
+			'src/templates/all_open.json',
+			self.context)
+		# template.render(
+		# 	os.path.join(self.release_dir, 'src/common/utils.sh'),
+		# 	'src/common/utils.sh',
+		# 	self.context)
+		template.render(
+			os.path.join(self.release_dir, 'config/final.yml'),
+			'config/final.yml',
+			self.context)
 		for package in self.packages:
 			self.add_blob_package(package)
 		for job in self.jobs:
@@ -222,7 +231,10 @@ class BoshRelease:
 		self.add_src_package(
 		{
 			'name': 'common',
-			'files': []
+			'files': [{
+				'name': 'utils.sh',
+				'path': template.path('src/common/utils.sh')
+			}]
 		},
 		alternate_template='common'
 	)
@@ -242,17 +254,17 @@ class BoshRelease:
 			'errand': is_errand,
 		}
 		template.render(
-			os.path.join('jobs', job_name, 'spec'),
+			os.path.join(self.release_dir, 'jobs', job_name, 'spec'),
 			os.path.join('jobs', 'spec'),
 			job_context
 		)
 		template.render(
-			os.path.join('jobs', job_name, 'templates', job_name + '.sh.erb'),
+			os.path.join(self.release_dir, 'jobs', job_name, 'templates', job_name + '.sh.erb'),
 			os.path.join('jobs', job_type + '.sh.erb'),
 			job_context
 		)
 		template.render(
-			os.path.join('jobs', job_name, 'monit'),
+			os.path.join(self.release_dir, 'jobs', job_name, 'monit'),
 			os.path.join('jobs', 'monit'),
 			job_context
 		)
@@ -278,8 +290,8 @@ class BoshRelease:
 		name = package['name'].lower().replace('-','_')
 		package['name'] = name
 		self.__bosh('generate', 'package', name)
-		target_dir = os.path.realpath(os.path.join(dir, name))
-		package_dir = os.path.realpath(os.path.join('packages', name))
+		target_dir = os.path.realpath(os.path.join(self.release_dir, dir, name))
+		package_dir = os.path.realpath(os.path.join(self.release_dir, 'packages', name))
 		mkdir_p(target_dir)
 		template_dir = 'packages'
 		if alternate_template is not None:
@@ -289,28 +301,27 @@ class BoshRelease:
 			'package': package,
 			'files': []
 		}
-		with cd('..'):
-			files = package.get('files', [])
-			path = package.get('path', None)
-			if path is not None:
-				files += [ { 'path': path } ]
-				package['path'] = os.path.basename(path)
-			manifest = package.get('manifest', None)
-			manifest_path = None
-			if type(manifest) is dict:
-				manifest_path = manifest.get('path', None)
-			if manifest_path is not None:
-				files += [ { 'path': manifest_path } ]
-				package['manifest']['path'] = os.path.basename(manifest_path)
-			for file in files:
-				filename = file.get('name', os.path.basename(file['path']))
-				file['name'] = filename
-				download(file['path'], os.path.join(target_dir, filename), cache=self.context.get('cache', None))
-				package_context['files'] += [ filename ]
-			for docker_image in package.get('docker_images', []):
-				filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-				download_docker_image(docker_image, os.path.join(target_dir, filename), cache=self.context.get('cache', None))
-				package_context['files'] += [ filename ]
+		files = package.get('files', [])
+		path = package.get('path', None)
+		if path is not None:
+			files += [ { 'path': path } ]
+			package['path'] = os.path.basename(path)
+		manifest = package.get('manifest', None)
+		manifest_path = None
+		if type(manifest) is dict:
+			manifest_path = manifest.get('path', None)
+		if manifest_path is not None:
+			files += [ { 'path': manifest_path } ]
+			package['manifest']['path'] = os.path.basename(manifest_path)
+		for file in files:
+			filename = file.get('name', os.path.basename(file['path']))
+			file['name'] = filename
+			download(file['path'], os.path.join(target_dir, filename), cache=self.context.get('cache', None))
+			package_context['files'] += [ filename ]
+		for docker_image in package.get('docker_images', []):
+			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
+			download_docker_image(docker_image, os.path.join(target_dir, filename), cache=self.context.get('cache', None))
+			package_context['files'] += [ filename ]
 		if package.get('is_app', False):
 			manifest = package.get('manifest', { 'name': name })
 			if manifest.get('random-route', False):

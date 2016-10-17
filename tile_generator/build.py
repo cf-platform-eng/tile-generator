@@ -45,12 +45,12 @@ DOCKER_BOSHRELEASE_VERSION = '23'
 def build(config):
 	releases = BoshReleases(config)
 	bosh_releases = {}
-	with cd('release', clobber=True):
-		for release in config.get('releases', []):
-			release_name = release['name']
-			bosh_release = BoshRelease(release_name, config)
-			bosh_releases[release_name] = bosh_release
-			for package in release.get('packages', []):
-				releases.add_package(bosh_release, package)
-	with cd('product', clobber=True):
-		releases.create_tile(bosh_releases)
+	mkdir_p('release', clobber=True)
+	for release in config.get('releases', []):
+		release_name = release['name']
+		bosh_release = BoshRelease(release_name, config)
+		bosh_releases[release_name] = bosh_release
+		for package in release.get('packages', []):
+			releases.add_package(bosh_release, package)
+	mkdir_p('product', clobber=True)
+	releases.create_tile(bosh_releases)
