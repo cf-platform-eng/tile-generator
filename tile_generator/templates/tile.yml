@@ -24,6 +24,7 @@ apply_open_security_group: true         # Apply open security group, default: fa
 packages:
 - name: my-application
   type: app
+#  label: My fabulous appplication      # Package name for use in human-readable labels in OpsManager
   manifest:
     path: resources/my-application-1.0.0.jar
 #   command: python app.py
