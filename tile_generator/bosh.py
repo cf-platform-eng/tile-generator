@@ -78,18 +78,6 @@ class BoshReleases:
 		release.add_package(package, flags)
 		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
 		self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
-		# FIXME Move this out of global context into the BoshRelease class.
-		# Cf related comment in BoshRelease.add_packge.
-		if release.has_flag('is_bosh_release'):
-			self.context['bosh_releases'] = self.context.get('bosh_releases', []) + [
-				{
-					'tarball': release.tarball,
-					'file': release.file,
-					'name': release.name,
-					'version': release.version,
-
-				}
-			]
 
 	def create_tile(self, releases):
 		release_info = {}
@@ -150,6 +138,7 @@ class BoshRelease:
 		self.jobs = release.get('jobs', [])
 		self.packages = []
 		self.context = context
+		self.config = release
 
 	def has_flag(self, flag):
 		return flag in self.flags
@@ -159,18 +148,24 @@ class BoshRelease:
 		self.flags += flags
 		# FIXME this is pretty ugly...would like a subclass for is_bosh_release, but
 		# want minimal code change for now.
-		if 'is_bosh_release' in flags:
-			self.tarball = os.path.realpath(self.packages[0]['path'])
+
+	# Build the bosh release, if needed.
+	def pre_create_tile(self):
+		if self.config.get('is_bosh_release', False):
+			print("tile", self.name, "bosh release already built")
+			self.tarball = os.path.realpath(self.config['path'])
 			self.file = os.path.basename(self.tarball)
 			manifest = read_release_manifest(self.tarball)
 			self.name = manifest['name']
 			self.version = manifest['version']
-
-	# Build the bosh release, if needed.
-	def pre_create_tile(self):
-		if self.has_flag('is_bosh_release'):
-			print("tile", self.name, "bosh release already built")
-			return {}
+			release_info = {
+				'name': self.name,
+				'version': self.version,
+				'file': self.file,
+				'tarball': self.tarball,
+			}
+			self.context['bosh_releases'] = self.context.get('bosh_releases', []) + [ release_info ]
+			return release_info
 		mkdir_p(self.release_dir)
 		self.__bosh('init', 'release')
 		template.render(
@@ -186,7 +181,7 @@ class BoshRelease:
 				post_deploy=job['name'].startswith('+'),
 				pre_delete=job['name'].startswith('-')
 			)
-		if self.has_flag('requires_cf_cli'):
+		if self.config.get('requires_cf_cli', False):
 			self.add_cf_cli()
 		self.add_common_utils()
 		self.__bosh('upload', 'blobs')
