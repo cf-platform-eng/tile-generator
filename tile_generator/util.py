@@ -30,49 +30,6 @@ except ImportError:
 	# Python 2
 	from urllib import urlretrieve
 
-# FIXME this wants to be a dict with 'typename' as the key.
-package_types = [
-	# A + at the start of the job type indicates it is a post-deploy errand
-	# A - at the start of the job type indicates it is a pre-delete errand
-	{
-		'typename': 'app',
-		'flags': [ 'requires_cf_cli', 'is_app' ],
-	},
-	{
-		'typename': 'app-broker',
-		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app' ],
-	},
-	{
-		'typename': 'external-broker',
-		'flags': [ 'requires_cf_cli', 'is_broker', 'is_external_broker' ],
-	},
-	{
-		'typename': 'buildpack',
-		'flags': [ 'requires_cf_cli', 'is_buildpack' ],
-	},
-	{
-		'typename': 'docker-bosh',
-		'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ],
-		'jobs':  [ 'docker-bosh' ],
-	},
-	{
-		'typename': 'docker-app',
-		'flags': [ 'requires_cf_cli', 'is_app', 'is_docker_app', 'is_docker' ],
-	},
-	{
-		'typename': 'docker-app-broker',
-		'flags': [ 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app', 'is_docker_app', 'is_docker' ],
-	},
-	{
-		'typename': 'blob',
-		'flags': [ 'is_blob' ],
-	},
-	{
-		'typename': 'bosh-release',
-		'flags': [ 'is_bosh_release' ],
-	}
-]
-
 def download_docker_image(docker_image, target_file, cache=None):
 	try:
 		from docker.client import Client
