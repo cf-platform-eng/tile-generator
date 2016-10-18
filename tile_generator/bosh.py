@@ -64,20 +64,10 @@ class BoshReleases:
 
 	def __init__(self, context):
 		self.context = context
-		# FIXME pass in target dir instead of relying on CWD.
-		# self.requires_cf_cli = False
-		# self.requires_docker_bosh = False
-		# self.context['requires_docker_bosh'] = False
-		# self.context['bosh_releases'] = [] # FIXME Get rid of this contex entry, move info into BoshRelease instances.
 
 	def add_package(self, release, package):
 		print("tile adding package", package['name'])
-		typename = package.get('type', None)
-		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
-		flags = typedef.get('flags', [])
-		release.add_package(package, flags)
-		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
-		# self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
+		release.add_package(package)
 
 	def create_tile(self, releases):
 		release_info = {}
@@ -134,20 +124,13 @@ class BoshRelease:
 		# TODO - To allow for multiple bosh releases to be built
 		# self.release_dir = os.path.join('release', self.name)
 		self.release_dir = 'release'
-		self.flags = []
 		self.jobs = release.get('jobs', [])
 		self.packages = []
 		self.context = context
 		self.config = release
 
-	def has_flag(self, flag):
-		return flag in self.flags
-
-	def add_package(self, package, flags):
+	def add_package(self, package):
 		self.packages.append(package)
-		# self.flags += flags
-		# FIXME this is pretty ugly...would like a subclass for is_bosh_release, but
-		# want minimal code change for now.
 
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):
