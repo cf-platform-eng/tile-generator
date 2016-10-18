@@ -105,7 +105,6 @@ class BoshRelease:
 				post_deploy=job['name'].startswith('+'),
 				pre_delete=job['name'].startswith('-')
 			)
-		self.add_common_utils()
 		self.__bosh('upload', 'blobs')
 		output = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'])
 		release_info = bosh_extract(output, [
@@ -118,19 +117,6 @@ class BoshRelease:
 		self.file = os.path.basename(self.tarball)
 		release_info['file'] = self.file
 		return release_info
-
-	def add_common_utils(self):
-		self.add_package(
-		{
-			'name': 'common',
-			'files': [{
-				'name': 'utils.sh',
-				'path': template.path('src/common/utils.sh')
-			}],
-			'template': 'common',
-			'dir': 'src'
-		}
-	)
 
 	def add_bosh_job(self, package, job_type, post_deploy=False, pre_delete=False):
 		is_errand = post_deploy or pre_delete

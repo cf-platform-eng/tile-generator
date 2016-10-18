@@ -139,6 +139,15 @@ class Config(dict):
 		for release in self.get('releases', []):
 			if release.get('requires_docker_bosh', False):
 				self['requires_docker_bosh'] = True
+				release['packages'] += [{
+					'name': 'common',
+					'files': [{
+						'name': 'utils.sh',
+						'path': template.path('src/common/utils.sh')
+					}],
+					'template': 'common',
+					'dir': 'src'
+				}]
 			if release.get('requires_cf_cli', False):
 				release['jobs'] += [{ 'name': '+deploy-all' }]
 				release['jobs'] += [{ 'name': '-delete-all' }]
