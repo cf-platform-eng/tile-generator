@@ -59,9 +59,8 @@ def create_tile(context, releases):
 	if 'tarball' in release_info:
 		release_info['file'] = os.path.basename(release_info['tarball'])
 	context['release'] = release_info
-	# Can we just compute release_info instead of parsing from bosh in pre_create_tile?
-	release_name = release_info.get('name', context.get('name', None))
-	release_version = release_info.get('version', context.get('version', None))
+	tile_name = context['name']
+	tile_version = context['version']
 	mkdir_p('product/releases')
 	# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
 	if context['requires_docker_bosh']:
@@ -69,14 +68,14 @@ def create_tile(context, releases):
 		docker_release = download_docker_release(version=context.get('docker_bosh_version', None), cache=context.get('cache', None))
 		context['docker_release'] = docker_release
 	print('tile generate metadata')
-	template.render('product/metadata/' + release_name + '.yml', 'tile/metadata.yml', context)
+	template.render('product/metadata/' + tile_name + '.yml', 'tile/metadata.yml', context)
 	print('tile generate content-migrations')
-	template.render('product/content_migrations/' + release_name + '.yml', 'tile/content-migrations.yml', context)
+	template.render('product/content_migrations/' + tile_name + '.yml', 'tile/content-migrations.yml', context)
 	print('tile generate migrations')
 	migrations = 'product/migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
 	template.render(migrations, 'tile/migration.js', context)
 	print('tile generate package')
-	pivotal_file = os.path.join('product', release_name + '-' + release_version + '.pivotal')
+	pivotal_file = os.path.join('product', tile_name + '-' + tile_version + '.pivotal')
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		if context['requires_docker_bosh']:
 			docker_release = context['docker_release']
@@ -90,11 +89,11 @@ def create_tile(context, releases):
 				os.path.join('product/releases', release.file),
 				os.path.join('releases', release.file))
 		f.write(
-			os.path.join('product/metadata', release_name + '.yml'),
-			os.path.join('metadata', release_name + '.yml'))
+			os.path.join('product/metadata', tile_name + '.yml'),
+			os.path.join('metadata', tile_name + '.yml'))
 		f.write(
-			os.path.join('product/content_migrations', release_name + '.yml'),
-			os.path.join('content_migrations', release_name + '.yml'))
+			os.path.join('product/content_migrations', tile_name + '.yml'),
+			os.path.join('content_migrations', tile_name + '.yml'))
 		f.write(migrations, migrations.lstrip('product/'))
 	print()
 	print('created tile', pivotal_file)
