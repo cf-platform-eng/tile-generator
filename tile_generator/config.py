@@ -108,7 +108,13 @@ class Config(dict):
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
 		release = self.release_by_name(release_name)
-		if release is None:
+		if package.get('is_bosh_release', False):
+			if release is not None:
+				print('duplicate bosh release', release_name, 'in configuration', file=sys.stderr)
+				sys.exit(1)
+			release = package
+			self['releases'] = self.get('releases', []) + [ release ]
+		elif release is None:
 			release = {
 				'name': release_name,
 				'packages': [],
