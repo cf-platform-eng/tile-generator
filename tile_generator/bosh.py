@@ -97,7 +97,7 @@ class BoshRelease:
 			'config/final.yml',
 			self.context)
 		for package in self.packages:
-			self.add_blob_package(package)
+			self.add_package(package)
 		for job in self.jobs:
 			self.add_bosh_job(
 				job.get('package', None),
@@ -122,7 +122,7 @@ class BoshRelease:
 		return release_info
 
 	def add_cf_cli(self):
-		self.add_blob_package(
+		self.add_package(
 			{
 				'name': 'cf_cli',
 				'files': [{
@@ -132,7 +132,8 @@ class BoshRelease:
 					'name': 'all_open.json',
 					'path': template.path('src/templates/all_open.json')
 				}],
-				'template': 'cf_cli'
+				'template': 'cf_cli',
+				'dir': 'blobs'
 			}
 		)
 		self.context['requires_product_versions'] = self.context.get('requires_product_versions', []) + [
@@ -143,14 +144,15 @@ class BoshRelease:
 		]
 
 	def add_common_utils(self):
-		self.add_src_package(
+		self.add_package(
 		{
 			'name': 'common',
 			'files': [{
 				'name': 'utils.sh',
 				'path': template.path('src/common/utils.sh')
 			}],
-			'template': 'common'
+			'template': 'common',
+			'dir': 'src'
 		}
 	)
 
@@ -194,16 +196,11 @@ class BoshRelease:
 		if pre_delete:
 			self.context['pre_delete_errands'] = self.context.get('pre_delete_errands', []) + [{ 'name': job_name }]
 
-	def add_src_package(self, package):
-		self.add_package_to_bosh('src', package)
-
-	def add_blob_package(self, package):
-		self.add_package_to_bosh('blobs', package)
-
-	def add_package_to_bosh(self, dir, package):
+	def add_package(self, package):
 		# Hmm...this possible renaming might break stuff...can we do it earlier?
 		name = package['name'].lower().replace('-','_')
 		package['name'] = name
+		dir = package.get('dir', 'blobs')
 		self.__bosh('generate', 'package', name)
 		target_dir = os.path.realpath(os.path.join(self.release_dir, dir, name))
 		package_dir = os.path.realpath(os.path.join(self.release_dir, 'packages', name))
