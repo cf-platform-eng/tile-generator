@@ -67,7 +67,7 @@ class BoshReleases:
 		# FIXME pass in target dir instead of relying on CWD.
 		# self.requires_cf_cli = False
 		# self.requires_docker_bosh = False
-		self.context['requires_docker_bosh'] = False
+		# self.context['requires_docker_bosh'] = False
 		# self.context['bosh_releases'] = [] # FIXME Get rid of this contex entry, move info into BoshRelease instances.
 
 	def add_package(self, release, package):
@@ -77,7 +77,7 @@ class BoshReleases:
 		flags = typedef.get('flags', [])
 		release.add_package(package, flags)
 		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
-		self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
+		# self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
 
 	def create_tile(self, releases):
 		release_info = {}
@@ -145,7 +145,7 @@ class BoshRelease:
 
 	def add_package(self, package, flags):
 		self.packages.append(package)
-		self.flags += flags
+		# self.flags += flags
 		# FIXME this is pretty ugly...would like a subclass for is_bosh_release, but
 		# want minimal code change for now.
 

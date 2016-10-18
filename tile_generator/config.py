@@ -136,7 +136,7 @@ class Config(dict):
 	def add_dependencies(self):
 		for release in self.get('releases', []):
 			if release.get('requires_docker_bosh', False):
-				pass
+				self['requires_docker_bosh'] = True
 			if release.get('requires_cf_cli', False):
 				release['jobs'] += [{ 'name': '+deploy-all' }]
 				release['jobs'] += [{ 'name': '-delete-all' }]
