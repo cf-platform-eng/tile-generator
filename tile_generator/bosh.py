@@ -82,7 +82,7 @@ class BoshRelease:
 			self.name = manifest['name']
 			self.version = manifest['version']
 			release_info = {
-				'name': self.name,
+				'release_name': self.name,
 				'version': self.version,
 				'file': self.file,
 				'tarball': self.tarball,
@@ -111,13 +111,14 @@ class BoshRelease:
 		self.__bosh('upload', 'blobs')
 		output = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'])
 		release_info = bosh_extract(output, [
-			{ 'label': 'name', 'pattern': 'Release name' },
+			{ 'label': 'release_name', 'pattern': 'Release name' },
 			{ 'label': 'version', 'pattern': 'Release version' },
 			{ 'label': 'manifest', 'pattern': 'Release manifest' },
 			{ 'label': 'tarball', 'pattern': 'Release tarball' },
 		])
 		self.tarball = release_info['tarball']
 		self.file = os.path.basename(self.tarball)
+		release_info['file'] = self.file
 		return release_info
 
 	def add_cf_cli(self):

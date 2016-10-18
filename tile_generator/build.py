@@ -43,22 +43,19 @@ REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
 DOCKER_BOSHRELEASE_VERSION = '23'
 
 def build(config):
-	bosh_releases = {}
 	mkdir_p('release', clobber=True)
 	for release in config.get('releases', []):
 		release_name = release['name']
 		bosh_release = BoshRelease(release, config)
-		bosh_releases[release_name] = bosh_release
+		release.update(bosh_release.pre_create_tile())
 	mkdir_p('product', clobber=True)
-	create_tile(config, bosh_releases)
+	create_tile(config)
 
-def create_tile(context, releases):
+def create_tile(context):
 	release_info = {}
-	for name, release in releases.items():
-		release_info.update(release.pre_create_tile())
 	if 'tarball' in release_info:
 		release_info['file'] = os.path.basename(release_info['tarball'])
-	context['release'] = release_info
+	context['release'] = context.get('releases')[0]
 	tile_name = context['name']
 	tile_version = context['version']
 	mkdir_p('product/releases')
@@ -82,12 +79,12 @@ def create_tile(context, releases):
 			f.write(
 				os.path.join('product/releases', docker_release['file']),
 				os.path.join('releases', docker_release['file']))
-		for name, release in releases.items():
-			print('tile import release', name)
-			shutil.copy(release.tarball, os.path.join('product/releases', release.file))
+		for release in context.get('releases', []):
+			print('tile import release', release['name'])
+			shutil.copy(release['tarball'], os.path.join('product/releases', release['file']))
 			f.write(
-				os.path.join('product/releases', release.file),
-				os.path.join('releases', release.file))
+				os.path.join('product/releases', release['file']),
+				os.path.join('releases', release['file']))
 		f.write(
 			os.path.join('product/metadata', tile_name + '.yml'),
 			os.path.join('metadata', tile_name + '.yml'))

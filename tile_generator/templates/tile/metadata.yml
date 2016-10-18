@@ -10,21 +10,18 @@ rank: 1
 serial: true
 
 releases:
+{% for release in releases %}
 {% if release.file %}
 - file: {{ release.file }}
-  name: {{ release.name }}
+  name: {{ release.release_name }}
   version: '{{ release.version }}'
 {% endif %}
+{% endfor %}
 {% if requires_docker_bosh %}
 - file: {{ docker_release.file }}
   name: {{ docker_release.name }}
   version: '{{ docker_release.version }}'
 {% endif %}
-{% for bosh_release in bosh_releases %}
-- file: {{ bosh_release.file }}
-  name: {{ bosh_release.name }}
-  version: '{{ bosh_release.version }}'
-{% endfor %}
 
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
