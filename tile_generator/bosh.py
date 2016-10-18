@@ -105,8 +105,6 @@ class BoshRelease:
 				post_deploy=job['name'].startswith('+'),
 				pre_delete=job['name'].startswith('-')
 			)
-		if self.config.get('requires_cf_cli', False):
-			self.add_cf_cli()
 		self.add_common_utils()
 		self.__bosh('upload', 'blobs')
 		output = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'])
@@ -120,28 +118,6 @@ class BoshRelease:
 		self.file = os.path.basename(self.tarball)
 		release_info['file'] = self.file
 		return release_info
-
-	def add_cf_cli(self):
-		self.add_package(
-			{
-				'name': 'cf_cli',
-				'files': [{
-					'name': 'cf-linux-amd64.tgz',
-					'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
-				},{
-					'name': 'all_open.json',
-					'path': template.path('src/templates/all_open.json')
-				}],
-				'template': 'cf_cli',
-				'dir': 'blobs'
-			}
-		)
-		self.context['requires_product_versions'] = self.context.get('requires_product_versions', []) + [
-			{
-				'name': 'cf',
-				'version': '~> 1.5'
-			}
-		]
 
 	def add_common_utils(self):
 		self.add_package(

@@ -22,6 +22,7 @@ import sys
 import yaml
 import re
 import requests
+from . import template
 
 CONFIG_FILE = "tile.yml"
 HISTORY_FILE = "tile-history.yml"
@@ -141,6 +142,24 @@ class Config(dict):
 			if release.get('requires_cf_cli', False):
 				release['jobs'] += [{ 'name': '+deploy-all' }]
 				release['jobs'] += [{ 'name': '-delete-all' }]
+				release['packages'] += [{
+					'name': 'cf_cli',
+					'files': [{
+						'name': 'cf-linux-amd64.tgz',
+						'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
+					},{
+						'name': 'all_open.json',
+						'path': template.path('src/templates/all_open.json')
+					}],
+					'template': 'cf_cli',
+					'dir': 'blobs'
+				}]
+				self['requires_product_versions'] = self.get('requires_product_versions', []) + [
+					{
+						'name': 'cf',
+						'version': '~> 1.5'
+					}
+				]
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
