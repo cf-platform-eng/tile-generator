@@ -43,15 +43,18 @@ REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
 DOCKER_BOSHRELEASE_VERSION = '23'
 
 def build(config):
+	build_bosh_releases(config)
+	build_tile(config)
+
+def build_bosh_releases(config):
 	mkdir_p('release', clobber=True)
 	for release in config.get('releases', []):
 		release_name = release['name']
 		bosh_release = BoshRelease(release, config)
 		release.update(bosh_release.pre_create_tile())
-	mkdir_p('product', clobber=True)
-	create_tile(config)
 
-def create_tile(context):
+def build_tile(context):
+	mkdir_p('product', clobber=True)
 	context['release'] = context.get('releases')[0]
 	tile_name = context['name']
 	tile_version = context['version']
