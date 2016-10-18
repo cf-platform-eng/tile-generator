@@ -52,9 +52,6 @@ def build(config):
 	create_tile(config)
 
 def create_tile(context):
-	release_info = {}
-	if 'tarball' in release_info:
-		release_info['file'] = os.path.basename(release_info['tarball'])
 	context['release'] = context.get('releases')[0]
 	tile_name = context['name']
 	tile_version = context['version']
