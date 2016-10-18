@@ -65,34 +65,34 @@ class BoshReleases:
 	def __init__(self, context):
 		self.context = context
 
-	def create_tile(self, releases):
+	def create_tile(self, context, releases):
 		release_info = {}
 		for name, release in releases.items():
 			release_info.update(release.pre_create_tile())
 		if 'tarball' in release_info:
 			release_info['file'] = os.path.basename(release_info['tarball'])
-		self.context['release'] = release_info
+		context['release'] = release_info
 		# Can we just compute release_info instead of parsing from bosh in pre_create_tile?
-		release_name = release_info.get('name', self.context.get('name', None))
-		release_version = release_info.get('version', self.context.get('version', None))
+		release_name = release_info.get('name', context.get('name', None))
+		release_version = release_info.get('version', context.get('version', None))
 		mkdir_p('product/releases')
 		# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
-		if self.context['requires_docker_bosh']:
+		if context['requires_docker_bosh']:
 			print('tile import release docker')
-			docker_release = download_docker_release(version=self.context.get('docker_bosh_version', None), cache=self.context.get('cache', None))
-			self.context['docker_release'] = docker_release
+			docker_release = download_docker_release(version=context.get('docker_bosh_version', None), cache=context.get('cache', None))
+			context['docker_release'] = docker_release
 		print('tile generate metadata')
-		template.render('product/metadata/' + release_name + '.yml', 'tile/metadata.yml', self.context)
+		template.render('product/metadata/' + release_name + '.yml', 'tile/metadata.yml', context)
 		print('tile generate content-migrations')
-		template.render('product/content_migrations/' + release_name + '.yml', 'tile/content-migrations.yml', self.context)
+		template.render('product/content_migrations/' + release_name + '.yml', 'tile/content-migrations.yml', context)
 		print('tile generate migrations')
 		migrations = 'product/migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
-		template.render(migrations, 'tile/migration.js', self.context)
+		template.render(migrations, 'tile/migration.js', context)
 		print('tile generate package')
 		pivotal_file = os.path.join('product', release_name + '-' + release_version + '.pivotal')
 		with zipfile.ZipFile(pivotal_file, 'w') as f:
-			if self.context['requires_docker_bosh']:
-				docker_release = self.context['docker_release']
+			if context['requires_docker_bosh']:
+				docker_release = context['docker_release']
 				f.write(
 					os.path.join('product/releases', docker_release['file']),
 					os.path.join('releases', docker_release['file']))

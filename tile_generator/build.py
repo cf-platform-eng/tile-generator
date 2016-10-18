@@ -51,4 +51,4 @@ def build(config):
 		bosh_release = BoshRelease(release, config)
 		bosh_releases[release_name] = bosh_release
 	mkdir_p('product', clobber=True)
-	releases.create_tile(bosh_releases)
+	releases.create_tile(config, bosh_releases)
