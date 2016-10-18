@@ -50,7 +50,5 @@ def build(config):
 		release_name = release['name']
 		bosh_release = BoshRelease(release, config)
 		bosh_releases[release_name] = bosh_release
-		for package in release.get('packages', []):
-			releases.add_package(bosh_release, package)
 	mkdir_p('product', clobber=True)
 	releases.create_tile(bosh_releases)

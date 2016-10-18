@@ -93,7 +93,6 @@ class Config(dict):
 			for flag in flags:
 				package[flag] = True
 			release = self.release_for_package(package)
-			release['packages'] = release.get('packages', []) + [ package ]
 			# TODO - Remove original package definition (after rest of code is made independent of it)
 			if package.get('is_cf', False):
 				release['is_cf'] = True
@@ -114,12 +113,14 @@ class Config(dict):
 				sys.exit(1)
 			release = package
 			self['releases'] = self.get('releases', []) + [ release ]
-		elif release is None:
-			release = {
-				'name': release_name,
-				'packages': [],
-				'jobs': [] }
-			self['releases'] = self.get('releases', []) + [ release ]
+		else:
+			if release is None:
+				release = {
+					'name': release_name,
+					'packages': [],
+					'jobs': [] }
+				self['releases'] = self.get('releases', []) + [ release ]
+			release['packages'] = release.get('packages', []) + [ package ]
 		return release
 
 	def release_by_name(self, name):

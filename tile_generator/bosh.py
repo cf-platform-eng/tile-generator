@@ -65,10 +65,6 @@ class BoshReleases:
 	def __init__(self, context):
 		self.context = context
 
-	def add_package(self, release, package):
-		print("tile adding package", package['name'])
-		release.add_package(package)
-
 	def create_tile(self, releases):
 		release_info = {}
 		for name, release in releases.items():
@@ -125,12 +121,9 @@ class BoshRelease:
 		# self.release_dir = os.path.join('release', self.name)
 		self.release_dir = 'release'
 		self.jobs = release.get('jobs', [])
-		self.packages = []
+		self.packages = release.get('packages', [])
 		self.context = context
 		self.config = release
-
-	def add_package(self, package):
-		self.packages.append(package)
 
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):
