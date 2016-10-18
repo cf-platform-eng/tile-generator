@@ -131,9 +131,9 @@ class BoshRelease:
 				},{
 					'name': 'all_open.json',
 					'path': template.path('src/templates/all_open.json')
-				}]
-			},
-			alternate_template='cf_cli'
+				}],
+				'template': 'cf_cli'
+			}
 		)
 		self.context['requires_product_versions'] = self.context.get('requires_product_versions', []) + [
 			{
@@ -149,9 +149,9 @@ class BoshRelease:
 			'files': [{
 				'name': 'utils.sh',
 				'path': template.path('src/common/utils.sh')
-			}]
-		},
-		alternate_template='common'
+			}],
+			'template': 'common'
+		}
 	)
 
 	def add_bosh_job(self, package, job_type, post_deploy=False, pre_delete=False):
@@ -194,13 +194,13 @@ class BoshRelease:
 		if pre_delete:
 			self.context['pre_delete_errands'] = self.context.get('pre_delete_errands', []) + [{ 'name': job_name }]
 
-	def add_src_package(self, package, alternate_template=None):
-		self.add_package_to_bosh('src', package, alternate_template)
+	def add_src_package(self, package):
+		self.add_package_to_bosh('src', package)
 
-	def add_blob_package(self, package, alternate_template=None):
-		self.add_package_to_bosh('blobs', package, alternate_template)
+	def add_blob_package(self, package):
+		self.add_package_to_bosh('blobs', package)
 
-	def add_package_to_bosh(self, dir, package, alternate_template=None):
+	def add_package_to_bosh(self, dir, package):
 		# Hmm...this possible renaming might break stuff...can we do it earlier?
 		name = package['name'].lower().replace('-','_')
 		package['name'] = name
@@ -209,6 +209,7 @@ class BoshRelease:
 		package_dir = os.path.realpath(os.path.join(self.release_dir, 'packages', name))
 		mkdir_p(target_dir)
 		template_dir = 'packages'
+		alternate_template = package.get('template', None)
 		if alternate_template is not None:
 			template_dir = os.path.join(template_dir, alternate_template)
 		package_context = {
