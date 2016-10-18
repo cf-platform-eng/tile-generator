@@ -75,7 +75,7 @@ class BoshRelease:
 	# Build the bosh release, if needed.
 	def pre_create_tile(self):
 		if self.config.get('is_bosh_release', False):
-			print("tile", self.name, "bosh release already built")
+			print("bosh release", self.name, "already built")
 			self.tarball = os.path.realpath(self.config['path'])
 			self.file = os.path.basename(self.tarball)
 			manifest = read_release_manifest(self.tarball)
@@ -89,6 +89,7 @@ class BoshRelease:
 			}
 			self.context['bosh_releases'] = self.context.get('bosh_releases', []) + [ release_info ]
 			return release_info
+		print("bosh release", self.name, "needs to be built")
 		mkdir_p(self.release_dir)
 		self.__bosh('init', 'release')
 		template.render(
