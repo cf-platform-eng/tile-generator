@@ -209,10 +209,20 @@ def flatten(properties):
 	return flattened
 
 def get_version():
-	diag = get('/api/v0/diagnostic_report').json()
-	version = diag['versions']['release_version']
-	print('Ops Manager version', version)
-	return [ int(x) for x in version.split('.') ]
+	# 1.7 and 1.8 have version in the diagnostic report.
+	response = get('/api/v0/diagnostic_report', check=False)
+	if response.status_code == requests.codes.ok:
+		diag = response.json()
+		version = diag['versions']['release_version']
+		return [ int(x) for x in version.split('.') ]
+	# 1.6 (and maybe earlier?) has the version in the p-bosh (Ops Manager Director) product.
+	products = get('/api/products').json()
+	for product in products:
+		if product['name'] == 'p-bosh':
+			version = product['product_version']
+			return [ int(x) for x in version.split('.') ]
+	print('Error: could not determine Ops Manager version.', file=sys.stderr)
+	sys.exit(1)
 
 def get_job_guid(job_identifier, jobs_settings):
 	for job in jobs_settings:
@@ -316,9 +326,9 @@ def configure(product, properties, strict=False):
 			merged_job_resource_config = get(resource_config_url).json()
 			merged_job_resource_config.update(job_resource_config)
 			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
-	elif version[:2] == [1, 7]:
+	elif version[:2] == [1, 7] or version[:2] == [1, 6]:
 		if job_properties:
-			print('Setting job-specific properties is not supported for PCF 1.7.', file=sys.stderr)
+			print('Setting job-specific properties is only supported for PCF 1.8+', file=sys.stderr)
 			sys.exit(1)
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	else:
