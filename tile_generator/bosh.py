@@ -75,8 +75,7 @@ class BoshReleases:
 		typename = package.get('type', None)
 		typedef = ([ t for t in package_types if t['typename'] == typename ] + [ None ])[0]
 		flags = typedef.get('flags', [])
-		jobs = typedef.get('jobs', [])
-		release.add_package(package, flags, jobs)
+		release.add_package(package, flags)
 		# self.requires_cf_cli |= release.has_flag('requires_cf_cli')
 		self.context['requires_docker_bosh'] = self.context.get('requires_docker_bosh', False) | release.has_flag('requires_docker_bosh')
 		# FIXME Move this out of global context into the BoshRelease class.
@@ -148,18 +147,16 @@ class BoshRelease:
 		# self.release_dir = os.path.join('release', self.name)
 		self.release_dir = 'release'
 		self.flags = []
-		self.jobs = []
+		self.jobs = release.get('jobs', [])
 		self.packages = []
 		self.context = context
 
 	def has_flag(self, flag):
 		return flag in self.flags
 
-	def add_package(self, package, flags, jobs):
+	def add_package(self, package, flags):
 		self.packages.append(package)
 		self.flags += flags
-		for job in jobs:
-			self.jobs.append({'name': job, 'package': package})
 		# FIXME this is pretty ugly...would like a subclass for is_bosh_release, but
 		# want minimal code change for now.
 		if 'is_bosh_release' in flags:
@@ -184,15 +181,13 @@ class BoshRelease:
 			self.add_blob_package(package)
 		for job in self.jobs:
 			self.add_bosh_job(
-				job['package'],
+				job.get('package', None),
 				job['name'].lstrip('+-'),
 				post_deploy=job['name'].startswith('+'),
 				pre_delete=job['name'].startswith('-')
 			)
 		if self.has_flag('requires_cf_cli'):
 			self.add_cf_cli()
-			self.add_bosh_job(None, 'deploy-all', post_deploy=True)
-			self.add_bosh_job(None, 'delete-all', pre_delete=True)
 		self.add_common_utils()
 		self.__bosh('upload', 'blobs')
 		output = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'])

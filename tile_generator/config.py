@@ -132,8 +132,8 @@ class Config(dict):
 			if release.get('requires_docker_bosh', False):
 				pass
 			if release.get('requires_cf_cli', False):
-				release['jobs'] += [{ 'name': 'deploy-all' }]
-				release['jobs'] += [{ 'name': 'delete-all' }]
+				release['jobs'] += [{ 'name': '+deploy-all' }]
+				release['jobs'] += [{ 'name': '-delete-all' }]
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
