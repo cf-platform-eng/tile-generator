@@ -100,7 +100,11 @@ class Config(dict):
 				release['requires_cf_cli'] = True
 			if package.get('is_docker_bosh', False):
 				release['requires_docker_bosh'] = True
-				release['jobs'] += [{ 'name': 'docker-bosh', 'package': package }]
+				release['jobs'] += [{
+					'name': 'docker-bosh-' + package['name'],
+					'type': 'docker-bosh',
+					'package': package
+				}]
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
 				self.update_memory(release, manifest)
@@ -154,8 +158,18 @@ class Config(dict):
 					'dir': 'src'
 				}]
 			if release.get('requires_cf_cli', False):
-				release['jobs'] += [{ 'name': '+deploy-all' }]
-				release['jobs'] += [{ 'name': '-delete-all' }]
+				release['jobs'] += [{
+					'name': 'deploy-all',
+					'type': 'deploy-all',
+					'is_errand': True
+				}]
+				release['jobs'] += [{
+					'name': 'delete-all',
+					'type': 'delete-all',
+					'is_errand': True
+				}]
+				self['post_deploy_errands'] = self.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
+				self['pre_delete_errands'] = self.get('pre_delete_errands', []) + [{ 'name': 'delete-all' }]
 				release['packages'] += [{
 					'name': 'cf_cli',
 					'files': [{

@@ -94,12 +94,7 @@ class BoshRelease:
 		for package in self.packages:
 			self.add_package(package)
 		for job in self.jobs:
-			self.add_job(
-				job.get('package', None),
-				job['name'].lstrip('+-'),
-				post_deploy=job['name'].startswith('+'),
-				pre_delete=job['name'].startswith('-')
-			)
+			self.add_job(job)
 		self.__bosh('upload', 'blobs')
 		output = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'])
 		release_info = bosh_extract(output, [
@@ -111,13 +106,12 @@ class BoshRelease:
 		self.tarball = release_info['tarball']
 		return self.tarball
 
-	def add_job(self, package, job_type, post_deploy=False, pre_delete=False):
-		is_errand = post_deploy or pre_delete
+	def add_job(self, job):
 
-		# TODO - Name mangling should happen in config
-		job_name = job_type
-		if package is not None:
-			job_name += '-' + package['name']
+		job_name = job['name']
+		job_type = job.get('type', job['name'])
+		is_errand = job.get('is_errand', False)
+		package = job.get('package', None)
 
 		self.__bosh('generate', 'job', job_name)
 		job_context = {
@@ -142,18 +136,6 @@ class BoshRelease:
 			os.path.join('jobs', 'monit'),
 			job_context
 		)
-
-		# TODO - Context modification should be removed
-		# Templates should iterate through config instead
-		self.context['jobs'] = self.context.get('jobs', []) + [{
-			'name': job_name,
-			'type': job_type,
-			'package': package,
-		}]
-		if post_deploy:
-			self.context['post_deploy_errands'] = self.context.get('post_deploy_errands', []) + [{ 'name': job_name }]
-		if pre_delete:
-			self.context['pre_delete_errands'] = self.context.get('pre_delete_errands', []) + [{ 'name': job_name }]
 
 	def add_package(self, package):
 		# TODO - Name mangling should happen in config
