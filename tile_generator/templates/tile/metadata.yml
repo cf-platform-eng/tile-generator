@@ -17,11 +17,6 @@ releases:
   version: '{{ release.version }}'
 {% endif %}
 {% endfor %}
-{% if requires_docker_bosh %}
-- file: {{ docker_release.file }}
-  name: {{ docker_release.name }}
-  version: '{{ docker_release.version }}'
-{% endif %}
 
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
