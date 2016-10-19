@@ -137,7 +137,7 @@ def delete(url, check=True):
 
 def check_response(response, check=True):
 	if check and response.status_code != requests.codes.ok:
-		print('-', response.status_code, file=sys.stderr)
+		print('-', response.status_code, response.request.url, file=sys.stderr)
 		try:
 			errors = response.json()["errors"]
 			print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
