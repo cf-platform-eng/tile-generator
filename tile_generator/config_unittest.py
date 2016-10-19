@@ -313,12 +313,13 @@ class TestMemoryCalculation(unittest.TestCase):
 
 class TestDefaultOptions(unittest.TestCase):
 	def test_purge_service_broker_is_true_by_default(self):
-		config = Config({})
+		config = Config({'name': 'tile-generator-unittest'})
 		config.add_defaults()
 		self.assertTrue(config['purge_service_brokers'])
 
 	def test_purge_service_broker_is_overridden(self):
-		config = Config({'purge_service_brokers': False})
+		config = Config({'purge_service_brokers': False,
+				 'name': 'tile-generator-unittest'})
 		config.add_defaults()
 		self.assertFalse(config['purge_service_brokers'])
 
