@@ -107,12 +107,10 @@ class BoshRelease:
 		return self.tarball
 
 	def add_job(self, job):
-
 		job_name = job['name']
 		job_type = job.get('type', job['name'])
 		is_errand = job.get('is_errand', False)
 		package = job.get('package', None)
-
 		self.__bosh('generate', 'job', job_name)
 		job_context = {
 			'job_name': job_name,

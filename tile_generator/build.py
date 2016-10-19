@@ -59,8 +59,6 @@ def build_bosh_releases(config):
 def build_tile(context):
 	mkdir_p('product', clobber=True)
 	mkdir_p('product/releases')
-	# TODO - This must go!
-	context['release'] = context.get('releases')[0]
 	tile_name = context['name']
 	tile_version = context['version']
 	print('tile generate metadata')
