@@ -38,58 +38,53 @@ import datetime
 
 from .util import *
 
-def read_release_manifest(bosh_release_tarball):
-	with tarfile.open(bosh_release_tarball) as tar:
-		manifest_file = tar.extractfile('./release.MF')
-		manifest = yaml.safe_load(manifest_file)
-		manifest_file.close()
-		return manifest
-
-# FIXME we shouldn't treat the docker bosh release specially.
-def download_docker_release(version=None, cache=None):
-	version_param = '?v=' + version if version else ''
-	url = 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param
-	localfile = 'product/releases/docker-boshrelease.tgz'
-	download(url, localfile, cache)
-	manifest = read_release_manifest(localfile)
-	print("Downloaded docker version", manifest['version'], file=sys.stderr)
-	return {
-		'tarball': localfile,
-		'name': manifest['name'],
-		'version': manifest['version'],
-		'file': os.path.basename(localfile),
-	}
-
 class BoshRelease:
 
 	def __init__(self, release, context):
 		self.name = release['name']
-		# TODO - To allow for multiple bosh releases to be built
-		# self.release_dir = os.path.join('release', self.name)
-		self.release_dir = 'release'
+		self.release_dir = os.path.join('release', self.name)
+		self.path = release.get('path', None)
 		self.jobs = release.get('jobs', [])
 		self.packages = release.get('packages', [])
 		self.context = context
 		self.config = release
+		self.tarball = None
 
-	# Build the bosh release, if needed.
-	def pre_create_tile(self):
-		if self.config.get('is_bosh_release', False):
-			print("bosh release", self.name, "already built")
-			self.tarball = os.path.realpath(self.config['path'])
-			self.file = os.path.basename(self.tarball)
-			manifest = read_release_manifest(self.tarball)
-			self.name = manifest['name']
-			self.version = manifest['version']
-			release_info = {
-				'release_name': self.name,
-				'version': self.version,
-				'file': self.file,
-				'tarball': self.tarball,
-			}
-			self.context['bosh_releases'] = self.context.get('bosh_releases', []) + [ release_info ]
-			return release_info
-		print("bosh release", self.name, "needs to be built")
+	def get_metadata(self):
+		tarball = self.get_tarball()
+		manifest = self.get_manifest(tarball)
+		return {
+			'release_name': manifest['name'],
+			'version': manifest['version'],
+			'tarball': tarball,
+			'file': os.path.basename(tarball),
+		}
+
+	def get_manifest(self, tarball):
+		with tarfile.open(tarball) as tar:
+			manifest_file = tar.extractfile('./release.MF')
+			manifest = yaml.safe_load(manifest_file)
+			manifest_file.close()
+			return manifest
+
+	def get_tarball(self):
+		if self.tarball is not None and os.path.isfile(self.tarball):
+			return self.tarball
+		if self.path is not None:
+			print('bosh download release', self.name)
+			return self.download_tarball()
+		return self.build_tarball()
+
+	def download_tarball(self):
+		mkdir_p(self.release_dir)
+		tarball = os.path.join(self.release_dir, self.name + '-boshrelease.tgz')
+		download(self.path, tarball, self.context.get('cache', None))
+		manifest = self.get_manifest(tarball)
+		self.tarball = os.path.join(self.release_dir, manifest['name'] + '-' + manifest['version'] + '.tgz')
+		os.rename(tarball, self.tarball)
+		return self.tarball
+
+	def build_tarball(self):
 		mkdir_p(self.release_dir)
 		self.__bosh('init', 'release')
 		template.render(
@@ -99,7 +94,7 @@ class BoshRelease:
 		for package in self.packages:
 			self.add_package(package)
 		for job in self.jobs:
-			self.add_bosh_job(
+			self.add_job(
 				job.get('package', None),
 				job['name'].lstrip('+-'),
 				post_deploy=job['name'].startswith('+'),
@@ -114,11 +109,9 @@ class BoshRelease:
 			{ 'label': 'tarball', 'pattern': 'Release tarball' },
 		])
 		self.tarball = release_info['tarball']
-		self.file = os.path.basename(self.tarball)
-		release_info['file'] = self.file
-		return release_info
+		return self.tarball
 
-	def add_bosh_job(self, package, job_type, post_deploy=False, pre_delete=False):
+	def add_job(self, package, job_type, post_deploy=False, pre_delete=False):
 		is_errand = post_deploy or pre_delete
 		job_name = job_type
 		if package is not None:

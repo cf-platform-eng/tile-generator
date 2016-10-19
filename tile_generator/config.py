@@ -138,7 +138,12 @@ class Config(dict):
 	def add_dependencies(self):
 		for release in self.get('releases', []):
 			if release.get('requires_docker_bosh', False):
-				self['requires_docker_bosh'] = True
+				version = None
+				version_param = '?v=' + version if version else ''
+				self['releases'] += [{
+					'name': 'docker-boshrelease',
+					'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
+				}]
 				release['packages'] += [{
 					'name': 'common',
 					'files': [{

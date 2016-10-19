@@ -51,20 +51,18 @@ def build_bosh_releases(config):
 	for release in config.get('releases', []):
 		release_name = release['name']
 		bosh_release = BoshRelease(release, config)
-		release.update(bosh_release.pre_create_tile())
+		tarball = bosh_release.get_tarball()
+		metadata = bosh_release.get_metadata()
+		release.update(metadata)
+	print()
 
 def build_tile(context):
 	mkdir_p('product', clobber=True)
+	mkdir_p('product/releases')
 	# TODO - This must go!
 	context['release'] = context.get('releases')[0]
 	tile_name = context['name']
 	tile_version = context['version']
-	mkdir_p('product/releases')
-	# FIXME Don't treat the docker bosh release specially; just add it as another BoshRelease.
-	if context['requires_docker_bosh']:
-		print('tile import release docker')
-		docker_release = download_docker_release(version=context.get('docker_bosh_version', None), cache=context.get('cache', None))
-		context['docker_release'] = docker_release
 	print('tile generate metadata')
 	template.render('product/metadata/' + tile_name + '.yml', 'tile/metadata.yml', context)
 	print('tile generate content-migrations')
@@ -75,13 +73,8 @@ def build_tile(context):
 	print('tile generate package')
 	pivotal_file = os.path.join('product', tile_name + '-' + tile_version + '.pivotal')
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
-		if context['requires_docker_bosh']:
-			docker_release = context['docker_release']
-			f.write(
-				os.path.join('product/releases', docker_release['file']),
-				os.path.join('releases', docker_release['file']))
 		for release in context.get('releases', []):
-			print('tile import release', release['name'])
+			print('tile include release', release['release_name'] + '-' + release['version'])
 			shutil.copy(release['tarball'], os.path.join('product/releases', release['file']))
 			f.write(
 				os.path.join('product/releases', release['file']),
