@@ -67,7 +67,7 @@ def bosh_extract(output, properties):
 	return result
 
 def mkdir_p(dir, clobber=False):
-	if os.path.isdir(dir):
+	if clobber and os.path.isdir(dir):
 		shutil.rmtree(dir)
 	try:
 		os.makedirs(dir)
