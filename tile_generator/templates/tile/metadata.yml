@@ -30,7 +30,7 @@ property_blueprints:
 - name: org
   type: string
   configurable: true
-  default: {{ org or name + '-org' }}
+  default: {{ org }}
 - name: org_quota
   type: integer
   configurable: true
@@ -38,15 +38,15 @@ property_blueprints:
 - name: space
   type: string
   configurable: true
-  default: {{ space or name + '-space' }}
+  default: {{ space }}
 - name: apply_open_security_group
   type: boolean
   configurable: true
-  default: {{ apply_open_security_group or false }}
+  default: {{ apply_open_security_group }}
 - name: allow_paid_service_plans
   type: boolean
   configurable: true
-  default: {{ allow_paid_service_plans or false }}
+  default: {{ allow_paid_service_plans }}
 {% if dynamic_service_plans %}
 #
 # Properties for on-demand service plans

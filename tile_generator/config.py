@@ -218,6 +218,10 @@ class Config(dict):
 		self['all_properties'] = self.get('properties', [])
 		self['total_memory'] = 0
 		self['max_memory'] = 0
+		self['org'] = self.get('org', None) or self['name'] + '-org'
+		self['space'] = self.get('space', None) or self['name'] + '-space'
+		self['apply_open_security_group'] = self.get('apply_open_security_group', False)
+		self['allow_paid_service_plans'] = self.get('allow_paid_service_plans', False)
 		self['purge_service_brokers'] = self.get('purge_service_brokers', True)
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
