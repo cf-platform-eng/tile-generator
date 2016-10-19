@@ -295,7 +295,7 @@ job_types:
    - name: ephemeral_disk
      type: integer
      configurable: true
-     default: 10240
+     default: {{ compilation_vm_disk_size }}
    - name: persistent_disk
      type: integer
      configurable: true
