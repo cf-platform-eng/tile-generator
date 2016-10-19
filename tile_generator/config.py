@@ -107,6 +107,8 @@ class Config(dict):
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
 				self.update_memory(release, manifest)
+				if not 'is_docker' in flags:
+					self.update_compilation_vm_disk_size(manifest)
 
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
@@ -235,6 +237,7 @@ class Config(dict):
 		self['space'] = self.get('space', None) or self['name'] + '-space'
 		self['apply_open_security_group'] = self.get('apply_open_security_group', False)
 		self['allow_paid_service_plans'] = self.get('allow_paid_service_plans', False)
+		self['compilation_vm_disk_size'] = 10240
 		self['purge_service_brokers'] = self.get('purge_service_brokers', True)
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
@@ -357,6 +360,11 @@ class Config(dict):
 			print('Plus enough room for blue/green deployment of the largest app:', max_memory, 'MB', file=sys.stderr)
 			print('For a total of:', required, 'MB', file=sys.stderr)
 			sys.exit(1)
+
+	def update_compilation_vm_disk_size(self, manifest):
+		package_file = manifest.get('path')
+		package_size = os.path.getsize(package_file)
+		self['compilation_vm_disk_size'] = max(self['compilation_vm_disk_size'], 4 * package_size)
 
 def read_yaml(file):
 	return yaml.safe_load(file)

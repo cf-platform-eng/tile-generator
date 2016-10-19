@@ -20,6 +20,7 @@ from .config import Config
 import sys
 from contextlib import contextmanager
 from StringIO import StringIO
+import mock
 
 @contextmanager
 def capture_output():
@@ -322,6 +323,27 @@ class TestDefaultOptions(unittest.TestCase):
 				 'name': 'tile-generator-unittest'})
 		config.add_defaults()
 		self.assertFalse(config['purge_service_brokers'])
+
+@mock.patch('os.path.getsize')
+class TestVMDiskSize(unittest.TestCase):
+	def test_min_vm_disk_size(self, mock_getsize):
+		mock_getsize.return_value = 0
+		config = Config({'name': 'tile-generator-unittest'})
+		manifest = {'path': 'foo'}
+		config.add_defaults()
+		expected_size = config['compilation_vm_disk_size']
+		config.update_compilation_vm_disk_size(manifest)
+		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
+
+	def test_big_default_vm_disk_size(self, mock_getsize):
+		config = Config({'name': 'tile-generator-unittest'})
+		manifest = {'path': 'foo'}
+		config.add_defaults()
+		package_size = config['compilation_vm_disk_size']
+		mock_getsize.return_value = package_size
+		expected_size = 4 * package_size
+		config.update_compilation_vm_disk_size(manifest)
+		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
 
 if __name__ == '__main__':
 	unittest.main()
