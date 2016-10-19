@@ -76,9 +76,8 @@ class BoshRelease:
 		return self.build_tarball()
 
 	def download_tarball(self):
-		# TODO - Figure out why some releases aren't pulled from the cache
 		mkdir_p(self.release_dir)
-		tarball = os.path.join(self.release_dir, self.name + '-boshrelease.tgz')
+		tarball = os.path.join(self.release_dir, self.name + '.tgz')
 		download(self.path, tarball, self.context.get('cache', None))
 		manifest = self.get_manifest(tarball)
 		self.tarball = os.path.join(self.release_dir, manifest['name'] + '-' + manifest['version'] + '.tgz')
