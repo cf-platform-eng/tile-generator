@@ -328,11 +328,8 @@ def configure(product, properties, strict=False):
 			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
 	elif version[:2] == [1, 7] or version[:2] == [1, 6]:
 		if job_properties:
-			print('Warning: setting job-specific properties is only supported for PCF 1.8+', file=sys.stderr)
-			print('         job-specific properties will not be set', file=sys.stderr)
-		if resource_config:
-			print('Warning: setting job resource config is only supported for PCF 1.8+', file=sys.stderr)
-			print('         job resource config will not be set', file=sys.stderr)
+			print('Warning: setting job-specific properties and resource config is only supported for PCF 1.8+', file=sys.stderr)
+			print('         job-specific properties and resource config will not be set', file=sys.stderr)
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	else:
 		print("PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version)))
