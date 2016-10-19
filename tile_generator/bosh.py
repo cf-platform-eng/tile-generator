@@ -96,14 +96,7 @@ class BoshRelease:
 		for job in self.jobs:
 			self.add_job(job)
 		self.__bosh('upload', 'blobs')
-		output = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'])
-		release_info = bosh_extract(output, [
-			{ 'label': 'release_name', 'pattern': 'Release name' },
-			{ 'label': 'version', 'pattern': 'Release version' },
-			{ 'label': 'manifest', 'pattern': 'Release manifest' },
-			{ 'label': 'tarball', 'pattern': 'Release tarball' },
-		])
-		self.tarball = release_info['tarball']
+		self.tarball = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'], capture='Release tarball')
 		return self.tarball
 
 	def add_job(self, job):
@@ -195,12 +188,19 @@ class BoshRelease:
 			package_context
 		)
 
-	def __bosh(self, *argv):
+	def __bosh(self, *argv, **kw):
 		argv = list(argv)
 		print('bosh', ' '.join(argv))
 		command = [ 'bosh', '--no-color', '--non-interactive' ] + argv
+		capture = kw.get('capture', None)
 		try:
-			return subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=self.release_dir)
+			output = subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=self.release_dir)
+			if capture is not None:
+				for l in output.split('\n'):
+					if l.startswith(capture):
+						output = l.split(':', 1)[-1].strip()
+						break
+			return output
 		except subprocess.CalledProcessError as e:
 			if argv[0] == 'init' and argv[1] == 'release' and 'Release already initialized' in e.output:
 				return e.output

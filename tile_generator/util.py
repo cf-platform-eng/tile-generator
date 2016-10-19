@@ -30,14 +30,6 @@ except ImportError:
 	# Python 2
 	from urllib import urlretrieve
 
-def bosh_extract(output, properties):
-	result = {}
-	for l in output.split('\n'):
-		for p in properties:
-			if l.startswith(p['pattern']):
-				result[p['label']] = l.split(':', 1)[-1].strip()
-	return result
-
 def mkdir_p(dir, clobber=False):
 	if clobber and os.path.isdir(dir):
 		shutil.rmtree(dir)
