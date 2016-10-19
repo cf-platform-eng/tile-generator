@@ -76,6 +76,7 @@ class BoshRelease:
 		return self.build_tarball()
 
 	def download_tarball(self):
+		# TODO - Figure out why some releases aren't pulled from the cache
 		mkdir_p(self.release_dir)
 		tarball = os.path.join(self.release_dir, self.name + '-boshrelease.tgz')
 		download(self.path, tarball, self.context.get('cache', None))
@@ -113,6 +114,8 @@ class BoshRelease:
 
 	def add_job(self, package, job_type, post_deploy=False, pre_delete=False):
 		is_errand = post_deploy or pre_delete
+
+		# TODO - Name mangling should happen in config
 		job_name = job_type
 		if package is not None:
 			job_name += '-' + package['name']
@@ -141,6 +144,8 @@ class BoshRelease:
 			job_context
 		)
 
+		# TODO - Context modification should be removed
+		# Templates should iterate through config instead
 		self.context['jobs'] = self.context.get('jobs', []) + [{
 			'name': job_name,
 			'type': job_type,
@@ -152,7 +157,7 @@ class BoshRelease:
 			self.context['pre_delete_errands'] = self.context.get('pre_delete_errands', []) + [{ 'name': job_name }]
 
 	def add_package(self, package):
-		# Hmm...this possible renaming might break stuff...can we do it earlier?
+		# TODO - Name mangling should happen in config
 		name = package['name'].lower().replace('-','_')
 		package['name'] = name
 		dir = package.get('dir', 'blobs')
