@@ -11,9 +11,15 @@ groups:
   - install-tile-generator
   - build-tile
   - acceptance-tests
-  - deploy-tile
-  - deployment-tests
-  - remove-tile
+  - deploy-tile-1-6
+  - deployment-tests-1-6
+  - remove-tile-1-6
+  - deploy-tile-1-7
+  - deployment-tests-1-7
+  - remove-tile-1-7
+  - deploy-tile-1-8
+  - deployment-tests-1-8
+  - remove-tile-1-8
   - publish-release
 
 - name: version
@@ -142,10 +148,26 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
 
-- name: pcf-environment
+- name: pcf-environment-1-6
   type: pool
   source:
-    uri: git@github.com:cf-platform-eng/pipeline-resource-pool
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf1_6
+    private_key: {{github-pool-private-key}}
+
+- name: pcf-environment-1-7
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf1_7
+    private_key: {{github-pool-private-key}}
+
+- name: pcf-environment-1-8
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
     branch: master
     pool: pcf
     private_key: {{github-pool-private-key}}
@@ -452,7 +474,7 @@ jobs:
           text: '(master) Acceptance tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: deploy-tile
+- name: deploy-tile-1-6
   plan:
   - aggregate:
     - get: tile-generator-docker-image
@@ -473,7 +495,7 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
-    - put: pcf-environment
+    - put: pcf-environment-1-6
       params:
         acquire: true
   - task: run-deploy-tile
@@ -482,16 +504,16 @@ jobs:
       platform: linux
       inputs:
       - name: tile-generator-tests
-      - name: pcf-environment
+      - name: pcf-environment-1-6
       - name: generated-tile
       run:
         path: tile-generator-tests/ci/scripts/run-deploytile.sh
-        args: [ "generated-tile", "pcf-environment" ]
+        args: [ "generated-tile", "pcf-environment-1-6" ]
     on_failure:
       aggregate:
-      - put: pcf-environment
+      - put: pcf-environment-1-6
         params:
-          release: pcf-environment
+          release: pcf-environment-1-6
       - put: slack-alert
         params:
           channel: {{slack-channel}}
@@ -499,28 +521,28 @@ jobs:
           text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: deployment-tests
+- name: deployment-tests-1-6
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deploy-tile ]
+      passed: [ deploy-tile-1-6 ]
       trigger: true
     - get: tile-generator-tests
-      passed: [ deploy-tile ]
+      passed: [ deploy-tile-1-6 ]
       trigger: true
     - get: generated-tile
-      passed: [ deploy-tile ]
+      passed: [ deploy-tile-1-6 ]
       trigger: true
-    - get: pcf-environment
-      passed: [ deploy-tile ]
+    - get: pcf-environment-1-6
+      passed: [ deploy-tile-1-6 ]
     - get: tile-generator-repo
-      passed: [ deploy-tile ]
+      passed: [ deploy-tile-1-6 ]
       trigger: true
     - get: version
-      passed: [ deploy-tile ]
+      passed: [ deploy-tile-1-6 ]
       trigger: true
     - get: tile-generator-package
-      passed: [ deploy-tile ]
+      passed: [ deploy-tile-1-6 ]
       trigger: true
   - task: run-deployment-tests
     image: tile-generator-docker-image
@@ -528,16 +550,16 @@ jobs:
       platform: linux
       inputs:
       - name: tile-generator-tests
-      - name: pcf-environment
+      - name: pcf-environment-1-6
       - name: generated-tile
       run:
         path: tile-generator-tests/ci/scripts/run-deploymenttests.sh
-        args: [ "generated-tile", "pcf-environment" ]
+        args: [ "generated-tile", "pcf-environment-1-6" ]
     on_failure:
       aggregate:
-      - put: pcf-environment
+      - put: pcf-environment-1-6
         params:
-          release: pcf-environment
+          release: pcf-environment-1-6
       - put: slack-alert
         params:
           channel: {{slack-channel}}
@@ -545,28 +567,28 @@ jobs:
           text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: remove-tile
+- name: remove-tile-1-6
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deployment-tests ]
+      passed: [ deployment-tests-1-6 ]
       trigger: true
     - get: tile-generator-tests
-      passed: [ deployment-tests ]
+      passed: [ deployment-tests-1-6 ]
       trigger: true
     - get: generated-tile
-      passed: [ deployment-tests ]
+      passed: [ deployment-tests-1-6 ]
       trigger: true
-    - get: pcf-environment
-      passed: [ deployment-tests ]
+    - get: pcf-environment-1-6
+      passed: [ deployment-tests-1-6 ]
     - get: tile-generator-repo
-      passed: [ deployment-tests ]
+      passed: [ deployment-tests-1-6 ]
       trigger: true
     - get: version
-      passed: [ deployment-tests ]
+      passed: [ deployment-tests-1-6 ]
       trigger: true
     - get: tile-generator-package
-      passed: [ deployment-tests ]
+      passed: [ deployment-tests-1-6 ]
       trigger: true
   - task: remove-tile
     image: tile-generator-docker-image
@@ -574,15 +596,293 @@ jobs:
       platform: linux
       inputs:
       - name: tile-generator-tests
-      - name: pcf-environment
+      - name: pcf-environment-1-6
       - name: generated-tile
       run:
         path: tile-generator-tests/ci/scripts/run-removetile.sh
-        args: [ "generated-tile", "pcf-environment" ]
+        args: [ "generated-tile", "pcf-environment-1-6" ]
     ensure:
-      put: pcf-environment
+      put: pcf-environment-1-6
       params:
-        release: pcf-environment
+        release: pcf-environment-1-6
+    on_failure:
+      put: slack-alert
+      params:
+        channel: {{slack-channel}}
+        icon_emoji: ':concourse:'
+        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        username: Tile Generator
+
+- name: deploy-tile-1-7
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-tests
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: version
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ acceptance-tests ]
+      trigger: true
+    - put: pcf-environment-1-7
+      params:
+        acquire: true
+  - task: run-deploy-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-tests
+      - name: pcf-environment-1-7
+      - name: generated-tile
+      run:
+        path: tile-generator-tests/ci/scripts/run-deploytile.sh
+        args: [ "generated-tile", "pcf-environment-1-7" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-7
+        params:
+          release: pcf-environment-1-7
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: deployment-tests-1-7
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deploy-tile-1-7 ]
+      trigger: true
+    - get: tile-generator-tests
+      passed: [ deploy-tile-1-7 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deploy-tile-1-7 ]
+      trigger: true
+    - get: pcf-environment-1-7
+      passed: [ deploy-tile-1-7 ]
+    - get: tile-generator-repo
+      passed: [ deploy-tile-1-7 ]
+      trigger: true
+    - get: version
+      passed: [ deploy-tile-1-7 ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ deploy-tile-1-7 ]
+      trigger: true
+  - task: run-deployment-tests
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-tests
+      - name: pcf-environment-1-7
+      - name: generated-tile
+      run:
+        path: tile-generator-tests/ci/scripts/run-deploymenttests.sh
+        args: [ "generated-tile", "pcf-environment-1-7" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-7
+        params:
+          release: pcf-environment-1-7
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: remove-tile-1-7
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deployment-tests-1-7 ]
+      trigger: true
+    - get: tile-generator-tests
+      passed: [ deployment-tests-1-7 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deployment-tests-1-7 ]
+      trigger: true
+    - get: pcf-environment-1-7
+      passed: [ deployment-tests-1-7 ]
+    - get: tile-generator-repo
+      passed: [ deployment-tests-1-7 ]
+      trigger: true
+    - get: version
+      passed: [ deployment-tests-1-7 ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ deployment-tests-1-7 ]
+      trigger: true
+  - task: remove-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-tests
+      - name: pcf-environment-1-7
+      - name: generated-tile
+      run:
+        path: tile-generator-tests/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment-1-7" ]
+    ensure:
+      put: pcf-environment-1-7
+      params:
+        release: pcf-environment-1-7
+    on_failure:
+      put: slack-alert
+      params:
+        channel: {{slack-channel}}
+        icon_emoji: ':concourse:'
+        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        username: Tile Generator
+
+- name: deploy-tile-1-8
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-tests
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: version
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ acceptance-tests ]
+      trigger: true
+    - put: pcf-environment-1-8
+      params:
+        acquire: true
+  - task: run-deploy-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-tests
+      - name: pcf-environment-1-8
+      - name: generated-tile
+      run:
+        path: tile-generator-tests/ci/scripts/run-deploytile.sh
+        args: [ "generated-tile", "pcf-environment-1-8" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-8
+        params:
+          release: pcf-environment-1-8
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: deployment-tests-1-8
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deploy-tile-1-8 ]
+      trigger: true
+    - get: tile-generator-tests
+      passed: [ deploy-tile-1-8 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deploy-tile-1-8 ]
+      trigger: true
+    - get: pcf-environment-1-8
+      passed: [ deploy-tile-1-8 ]
+    - get: tile-generator-repo
+      passed: [ deploy-tile-1-8 ]
+      trigger: true
+    - get: version
+      passed: [ deploy-tile-1-8 ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ deploy-tile-1-8 ]
+      trigger: true
+  - task: run-deployment-tests
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-tests
+      - name: pcf-environment-1-8
+      - name: generated-tile
+      run:
+        path: tile-generator-tests/ci/scripts/run-deploymenttests.sh
+        args: [ "generated-tile", "pcf-environment-1-8" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-8
+        params:
+          release: pcf-environment-1-8
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: remove-tile-1-8
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deployment-tests-1-8 ]
+      trigger: true
+    - get: tile-generator-tests
+      passed: [ deployment-tests-1-8 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deployment-tests-1-8 ]
+      trigger: true
+    - get: pcf-environment-1-8
+      passed: [ deployment-tests-1-8 ]
+    - get: tile-generator-repo
+      passed: [ deployment-tests-1-8 ]
+      trigger: true
+    - get: version
+      passed: [ deployment-tests-1-8 ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ deployment-tests-1-8 ]
+      trigger: true
+  - task: remove-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-tests
+      - name: pcf-environment-1-8
+      - name: generated-tile
+      run:
+        path: tile-generator-tests/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment-1-8" ]
+    ensure:
+      put: pcf-environment-1-8
+      params:
+        release: pcf-environment-1-8
     on_failure:
       put: slack-alert
       params:
@@ -595,10 +895,10 @@ jobs:
   plan:
   - aggregate:
     - get: tile-generator-package
-      passed: [ remove-tile ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
       trigger: true
     - get: version
-      passed: [ remove-tile ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
       trigger: true
   - aggregate:
     - put: tile-generator-github-release
