@@ -363,7 +363,7 @@ class Config(dict):
 
 	def update_compilation_vm_disk_size(self, manifest):
 		package_file = manifest.get('path')
-		package_size = os.path.getsize(package_file)
+		package_size = os.path.getsize(package_file) // (1024 * 1024) # bytes to megabytes
 		self['compilation_vm_disk_size'] = max(self['compilation_vm_disk_size'], 4 * package_size)
 
 def read_yaml(file):

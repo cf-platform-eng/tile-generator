@@ -340,7 +340,7 @@ class TestVMDiskSize(unittest.TestCase):
 		manifest = {'path': 'foo'}
 		config.add_defaults()
 		package_size = config['compilation_vm_disk_size']
-		mock_getsize.return_value = package_size
+		mock_getsize.return_value = package_size * 1024 * 1024 # megabytes to bytes.
 		expected_size = 4 * package_size
 		config.update_compilation_vm_disk_size(manifest)
 		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
