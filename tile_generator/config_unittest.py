@@ -312,7 +312,7 @@ class TestMemoryCalculation(unittest.TestCase):
 			config.validate_memory_quota(release)
 
 class TestDefaultOptions(unittest.TestCase):
-	def test_pruge_service_broker_is_true_by_default(self):
+	def test_purge_service_broker_is_true_by_default(self):
 		config = Config({})
 		config.add_defaults()
 		self.assertTrue(config['purge_service_brokers'])
