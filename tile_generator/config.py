@@ -94,7 +94,6 @@ class Config(dict):
 			for flag in flags:
 				package[flag] = True
 			release = self.release_for_package(package)
-			# TODO - Remove original package definition (after rest of code is made independent of it)
 			if package.get('is_cf', False):
 				release['is_cf'] = True
 				release['requires_cf_cli'] = True
