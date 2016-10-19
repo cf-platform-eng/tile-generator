@@ -44,7 +44,7 @@ HISTORY_FILE = "tile-history.yml"
 # handle new syntax in the rest of the code, while still maintaining backward
 # compatibility
 #
-# Process Packages - Normalizes all package desctiptions and sorts them into the
+# Process Packages - Normalizes all package descriptions and sorts them into the
 # appropriate bosh releases depending on their types
 #
 # Validate Releases - Ensure that all generated releases are sane
