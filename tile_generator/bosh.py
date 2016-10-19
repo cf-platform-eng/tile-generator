@@ -192,7 +192,7 @@ class BoshRelease:
 			package_context['files'] += [ filename ]
 		for docker_image in package.get('docker_images', []):
 			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-			download_docker_image(docker_image, os.path.join(target_dir, filename), cache=self.context.get('cache', None))
+			download('docker:'+docker_image, os.path.join(target_dir, filename), cache=self.context.get('cache', None))
 			package_context['files'] += [ filename ]
 		if package.get('is_app', False):
 			manifest = package.get('manifest', { 'name': name })

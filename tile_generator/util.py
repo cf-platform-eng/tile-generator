@@ -30,34 +30,6 @@ except ImportError:
 	# Python 2
 	from urllib import urlretrieve
 
-def download_docker_image(docker_image, target_file, cache=None):
-	try:
-		from docker.client import Client
-		from docker.utils import kwargs_from_env
-		kwargs = kwargs_from_env()
-		kwargs['tls'] = False
-		docker_cli = Client(**kwargs)
-		image = docker_cli.get_image(docker_image)
-		image_tar = open(target_file,'w')
-		image_tar.write(image.data)
-		image_tar.close()
-	except Exception as e:
-		if cache is not None:
-			cached_file = os.path.join(cache, docker_image.lower().replace('/','-').replace(':','-') + '.tgz')
-			if os.path.isfile(cached_file):
-				print('using cached version of', docker_image)
-				urlretrieve(cached_file, target_file)
-				return
-			print(docker_image, 'not found in cache', cache, file=sys.stderr)
-			sys.exit(1)
-		if isinstance(e, KeyError):
-			print('docker not configured on this machine (or environment variables are not properly set)', file=sys.stderr)
-		else:
-			print(docker_image, 'not found on local machine', file=sys.stderr)
-			print('you must either pull the image, or download it and use the --docker-cache option', file=sys.stderr)
-		sys.exit(1)
-
-
 def bosh_extract(output, properties):
 	result = {}
 	for l in output.split('\n'):
@@ -77,24 +49,42 @@ def mkdir_p(dir, clobber=False):
 			raise
 
 def download(url, filename, cache=None):
-	# [mboldt:20160908] Using urllib.urlretrieve gave an "Access
-	# Denied" page when trying to download docker boshrelease.
-	# I don't know why. requests.get works. Do what works.
-	# urllib.urlretrieve(url, filename)
 	if cache is not None:
 		basename = os.path.basename(filename)
 		cachename = os.path.join(cache, basename)
 	 	if os.path.isfile(cachename):
-			print('using cached version of', basename)
+			print('- using cached version of', basename)
 			shutil.copy(cachename, filename)
 			return
 	if url.startswith("http:") or url.startswith("https"):
+		# [mboldt:20160908] Using urllib.urlretrieve gave an "Access
+		# Denied" page when trying to download docker boshrelease.
+		# I don't know why. requests.get works. Do what works.
 		response = requests.get(url, stream=True)
 		response.raise_for_status()
 		with open(filename, 'wb') as file:
 			for chunk in response.iter_content(chunk_size=1024):
 				if chunk:
 					file.write(chunk)
+	if url.startswith("docker:"):
+		docker_image = url.lstrip("docker:").lstrip("/").lstrip("/")
+		try:
+			from docker.client import Client
+			from docker.utils import kwargs_from_env
+			kwargs = kwargs_from_env()
+			kwargs['tls'] = False
+			docker_cli = Client(**kwargs)
+			image = docker_cli.get_image(docker_image)
+			image_tar = open(filename,'w')
+			image_tar.write(image.data)
+			image_tar.close()
+		except KeyError as e:
+			print('docker not configured on this machine (or environment variables are not properly set)', file=sys.stderr)
+			sys.exit(1)
+		except:
+			print(docker_image, 'not found on local machine', file=sys.stderr)
+			print('you must either pull the image, or download it and use the --cache option', file=sys.stderr)
+			sys.exit(1)
 	else:
 		shutil.copy(url, filename)
 
