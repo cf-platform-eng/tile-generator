@@ -66,7 +66,7 @@ def download(url, filename, cache=None):
 			for chunk in response.iter_content(chunk_size=1024):
 				if chunk:
 					file.write(chunk)
-	if url.startswith("docker:"):
+	elif url.startswith("docker:"):
 		docker_image = url.lstrip("docker:").lstrip("/").lstrip("/")
 		try:
 			from docker.client import Client
