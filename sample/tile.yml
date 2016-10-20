@@ -46,6 +46,57 @@ forms:
       default: true
     - name: country_elsewhere
       label: Elsewhere
+  # - name: example_collection
+  #   type: collection
+  #   configurable: true
+  #   property_blueprints:
+  #     - name: album
+  #       type: string
+  #     - name: artist
+  #       type: string
+  #     - name: explicit
+  #       type: boolean
+  #   default:
+  #     - album: Christmas Carols
+  #       artist: Ops Manatee
+  #       explicit: true
+  - name: example_selector
+    type: selector
+    label: Food Choices
+    configurable: true
+    default: Pizza
+    option_templates:
+      - name: pizza_option
+        select_value: Pizza
+        property_blueprints:
+          - name: pepperoni
+            type: boolean
+            label: Pepperoni
+            configurable: true
+          - name: pineapple
+            label: Pineapple
+            type: boolean
+            configurable: true
+          - name: other_toppings
+            label: Other Toppings
+            type: string
+            configurable: true
+            optional: true
+      - name: filet_mignon_option
+        select_value: Filet Mignon
+        property_blueprints:
+          - name: rarity_dropdown
+            label: Pepperoni
+            type: dropdown_select
+            configurable: true
+            default: rare
+            options:
+              - name: rare
+                label: 'Rare'
+              - name: medium
+                label: 'Medium'
+              - name: well-done
+                label: 'Well done'
 - name: account-info-1
   label: Account Info
   description: Example Account Information Form
@@ -124,6 +175,8 @@ packages:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
+
+unused_packages:
 
 - name: service-broker1               # Broker with minimal configuration, i.e. all default values
   type: app-broker
