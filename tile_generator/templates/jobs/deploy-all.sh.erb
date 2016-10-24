@@ -325,6 +325,14 @@ apply_open_security_group "$APPLY_OPEN_SECURITY_GROUP"
 # Deploy package {{ package.name }}
 #
 
+{% if package.pre_deploy %}
+{{ package.pre_deploy | render }}
+{% endif %}
+
+{% if package.deploy %}
+{{ package.deploy | render }}
+{% else %}
+
 {% if package.is_app %}
 export PKG_NAME={{ package.name }}
 export APP_NAME={{ package.name | hyphens }}-{{ context.version }}
@@ -363,6 +371,12 @@ export BUILDPACK_NAME={{ package.name }}
 export BUILDPACK_ORDER={{ ( 'properties.' + package.name + '.buildpack_order' ) | shell_string }}
 export BUILDPACK_FILE=$PACKAGE_PATH/{{ package.name }}/{{ package.path }}
 push_buildpack "$BUILDPACK_NAME" "$BUILDPACK_ORDER" "$BUILDPACK_FILE"
+{% endif %}
+
+{% endif %}
+
+{% if package.post_deploy %}
+{{ package.pre_deploy | render }}
 {% endif %}
 
 {% endfor %}

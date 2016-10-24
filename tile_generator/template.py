@@ -23,7 +23,7 @@ import errno
 import base64
 import yaml
 
-from jinja2 import Environment, FileSystemLoader, exceptions
+from jinja2 import Template, Environment, FileSystemLoader, exceptions, contextfilter
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, 'templates'))
@@ -55,6 +55,11 @@ def render_plans_json(input):
 	'	%>\n'
 	'	export ' + input.upper() + '=<%= Shellwords.escape JSON.dump(plans) %>')
 
+@contextfilter
+def render(context, input):
+	template = Template(input)
+	return template.render(context)
+
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
@@ -62,6 +67,7 @@ TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
 TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
 TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
+TEMPLATE_ENVIRONMENT.filters['render'] = render
 
 def render(target_path, template_file, config):
 	target_dir = os.path.dirname(target_path)
