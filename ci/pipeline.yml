@@ -535,6 +535,7 @@ jobs:
       trigger: true
     - get: pcf-environment-1-6
       passed: [ deploy-tile-1-6 ]
+      trigger: true
     - get: tile-generator-repo
       passed: [ deploy-tile-1-6 ]
       trigger: true
@@ -581,6 +582,7 @@ jobs:
       trigger: true
     - get: pcf-environment-1-6
       passed: [ deployment-tests-1-6 ]
+      trigger: true
     - get: tile-generator-repo
       passed: [ deployment-tests-1-6 ]
       trigger: true
@@ -674,6 +676,7 @@ jobs:
       trigger: true
     - get: pcf-environment-1-7
       passed: [ deploy-tile-1-7 ]
+      trigger: true
     - get: tile-generator-repo
       passed: [ deploy-tile-1-7 ]
       trigger: true
@@ -720,6 +723,7 @@ jobs:
       trigger: true
     - get: pcf-environment-1-7
       passed: [ deployment-tests-1-7 ]
+      trigger: true
     - get: tile-generator-repo
       passed: [ deployment-tests-1-7 ]
       trigger: true
@@ -813,6 +817,7 @@ jobs:
       trigger: true
     - get: pcf-environment-1-8
       passed: [ deploy-tile-1-8 ]
+      trigger: true
     - get: tile-generator-repo
       passed: [ deploy-tile-1-8 ]
       trigger: true
@@ -859,6 +864,7 @@ jobs:
       trigger: true
     - get: pcf-environment-1-8
       passed: [ deployment-tests-1-8 ]
+      trigger: true
     - get: tile-generator-repo
       passed: [ deployment-tests-1-8 ]
       trigger: true
