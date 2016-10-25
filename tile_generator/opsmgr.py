@@ -198,16 +198,6 @@ def get_products():
 			product['guid'] = installed[0]['guid']
 	return available_products
 
-def flatten(properties):
-	flattened = {}
-	for key1, value1 in properties.items():
-		if type(value1) is dict and list(value1.keys()) != ['secret']:
-			for key2, value2 in value1.items():
-				flattened[key1 + '_' + key2] = value2
-		else:
-			flattened[key1] = value1
-	return flattened
-
 def get_version():
 	# 1.7 and 1.8 have version in the diagnostic report.
 	response = get('/api/v0/diagnostic_report', check=False)
@@ -277,7 +267,6 @@ def configure(product, properties, strict=False, skip_validation=False):
 			else:
 				if job_property.get('value', None) is None:
 					missing_properties.append('.'.join(('jobs', job['identifier'], property_name)))
-	properties = flatten(properties)
 	for p in product_settings.get('properties', []):
 		key = p['identifier']
 		value = properties.get(key, None)
