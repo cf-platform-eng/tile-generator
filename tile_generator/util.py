@@ -23,6 +23,7 @@ import os.path
 import requests
 import shutil
 import sys
+import re
 try:
 	# Python 3
 	from urllib.request import urlretrieve
@@ -48,6 +49,29 @@ def download(url, filename, cache=None):
 			print('- using cached version of', basename)
 			shutil.copy(cachename, filename)
 			return
+	# Special url to find a file associated with a github release.
+	# github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz
+	# will find the file named meta-buildpack-0.0.3.tgz in the latest
+	# release for https://github.com/cf-platform-eng/meta-buildpack
+	if url.startswith("github:"):
+		repo_name = url.lstrip("github:").lstrip("/").lstrip("/")
+		file_name = os.path.basename(repo_name)
+		repo_name = os.path.dirname(repo_name)
+		url = "https://api.github.com/repos/" + repo_name + "/releases/latest"
+		response = requests.get(url, stream=True)
+		response.raise_for_status()
+		release = response.json()
+		assets = release.get('assets', [])
+		url = None
+		pattern = re.compile('.*\\.'.join(file_name.rsplit('.', 1))+'\\Z')
+		for asset in assets:
+			if pattern.match(asset['name']) is not None:
+				url = asset['browser_download_url']
+				break
+		if url is None:
+			print('no matching asset found for repo', repo_name, 'file', file_name, file=sys.stderr)
+			sys.exit(1)
+		# Fallthrough intentional, we now proceed to download the URL we found
 	if url.startswith("http:") or url.startswith("https"):
 		# [mboldt:20160908] Using urllib.urlretrieve gave an "Access
 		# Denied" page when trying to download docker boshrelease.
