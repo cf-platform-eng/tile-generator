@@ -78,11 +78,13 @@ def is_installed_cmd(product, version):
 
 @cli.command('configure')
 @click.argument('product')
-@click.argument('properties_file')
+@click.argument('properties_file', None, required=False)
 @click.option('--strict', is_flag=True)
 def configure_cmd(product, properties_file, strict=False):
-	with open(properties_file) as f:
-		properties = yaml.safe_load(f)
+	properties = {}
+	if properties_file is not None:
+		with open(properties_file) as f:
+			properties = yaml.safe_load(f)
 	opsmgr.configure(product, properties, strict)
 
 @cli.command('settings')
