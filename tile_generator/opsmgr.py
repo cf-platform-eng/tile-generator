@@ -231,7 +231,7 @@ def get_job_guid(job_identifier, jobs_settings):
 	print('Could not find job with identifier', job_identifier, file=sys.stderr)
 	sys.exit(1)
 
-def configure(product, properties, strict=False):
+def configure(product, properties, strict=False, skip_validation=False):
 	settings = get('/api/installation_settings').json()
 	infrastructure = settings['infrastructure']
 	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
@@ -286,7 +286,7 @@ def configure(product, properties, strict=False):
 		else:
 			if p.get('value', None) is None:
 				missing_properties += [ key ]
-	if len(missing_properties) > 0:
+	if not skip_validation and len(missing_properties) > 0:
 		print('Input file is missing required properties:', file=sys.stderr)
 		print('- ' + '\n- '.join(missing_properties), file=sys.stderr)
 		sys.exit(1)
