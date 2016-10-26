@@ -84,7 +84,7 @@ class Config(dict):
 
 	def process_packages(self):
 		for package in self.get('packages', []):
-			name = package['name']
+			package['name'] = package['name'].lower().replace('-','_')
 			typename = package['type']
 			typedef = package_types[typename]
 			flags = typedef.get('flags', [])

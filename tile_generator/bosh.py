@@ -129,9 +129,7 @@ class BoshRelease:
 		)
 
 	def add_package(self, package):
-		# TODO - Name mangling should happen in config
-		name = package['name'].lower().replace('-','_')
-		package['name'] = name
+		name = package['name']
 		dir = package.get('dir', 'blobs')
 		self.__bosh('generate', 'package', name)
 		target_dir = os.path.realpath(os.path.join(self.release_dir, dir, name))
