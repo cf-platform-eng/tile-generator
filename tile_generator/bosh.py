@@ -101,10 +101,11 @@ class BoshRelease:
 
 	def add_job(self, job):
 		job_name = job['name']
-		job_type = job.get('type', job['name'])
-		is_errand = job.get('is_errand', False)
+		job_type = job.get('type', job_name)
+		job_template = job.get('template', job_type)
+		is_errand = job.get('lifecycle', None) == 'errand'
 		package = job.get('package', None)
-		self.__bosh('generate', 'job', job_name)
+		self.__bosh('generate', 'job', job_type)
 		job_context = {
 			'job_name': job_name,
 			'job_type': job_type,
@@ -113,17 +114,17 @@ class BoshRelease:
 			'errand': is_errand,
 		}
 		template.render(
-			os.path.join(self.release_dir, 'jobs', job_name, 'spec'),
+			os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
 			os.path.join('jobs', 'spec'),
 			job_context
 		)
 		template.render(
-			os.path.join(self.release_dir, 'jobs', job_name, 'templates', job_name + '.sh.erb'),
-			os.path.join('jobs', job_type + '.sh.erb'),
+			os.path.join(self.release_dir, 'jobs', job_type, 'templates', job_type + '.sh.erb'),
+			os.path.join('jobs', job_template + '.sh.erb'),
 			job_context
 		)
 		template.render(
-			os.path.join(self.release_dir, 'jobs', job_name, 'monit'),
+			os.path.join(self.release_dir, 'jobs', job_type, 'monit'),
 			os.path.join('jobs', 'monit'),
 			job_context
 		)

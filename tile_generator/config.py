@@ -54,12 +54,15 @@ HISTORY_FILE = "tile-history.yml"
 # Normalize File Lists - Packages specify the files they use in many different
 # ways depending on the package type. We normalize all these so that the rest of
 # the code can rely on a single format
+#
+# Normalize Jobs - Ensure that job type and template are set for every job
 
 package_types = {
 	'app':               { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app' ] },
 	'app-broker':        { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app' ] },
 	'external-broker':   { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_broker', 'is_external_broker' ] },
 	'buildpack':         { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_buildpack' ] },
+	'decorator':         { 'flags': [ 'is_cf', 'requires_cf_cli', 'requires_meta_buildpack', 'is_buildpack', 'is_decorator' ] },
 	'docker-bosh':       { 'flags': [ 'requires_docker_bosh', 'is_docker_bosh', 'is_docker' ] },
 	'docker-app':        { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app', 'is_docker_app', 'is_docker' ] },
 	'docker-app-broker': { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app', 'is_broker', 'is_broker_app', 'is_docker_app', 'is_docker' ] },
@@ -86,6 +89,7 @@ class Config(dict):
 		self.validate_releases()
 		self.add_dependencies()
 		self.normalize_file_lists()
+		self.normalize_jobs()
 
 	def process_packages(self):
 		for package in self.get('packages', []):
@@ -104,9 +108,11 @@ class Config(dict):
 				release['requires_docker_bosh'] = True
 				release['jobs'] += [{
 					'name': 'docker-bosh-' + package['name'],
-					'type': 'docker-bosh',
+					'template': 'docker-bosh',
 					'package': package
 				}]
+			if package.get('is_decorator', False):
+				release['requires_meta_buildpack'] = True				
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
 				self.update_memory(release, manifest)
@@ -134,6 +140,12 @@ class Config(dict):
 				file['name'] = file.get('name', os.path.basename(file['path']))
 			package['files'] = files
 
+	def normalize_jobs(self):
+		for release in self.get('releases', []):
+			for job in release.get('jobs', []):
+				job['type'] = job.get('type', job['name'])
+				job['template'] = job.get('template', job['type'])
+	
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
 		release = self.release_by_name(release_name)
@@ -165,14 +177,11 @@ class Config(dict):
 				self.validate_memory_quota(release)
 
 	def add_dependencies(self):
+		requires_docker_bosh = False
+		requires_meta_buildpack = False
 		for release in self.get('releases', []):
 			if release.get('requires_docker_bosh', False):
-				version = None
-				version_param = '?v=' + version if version else ''
-				self['releases'] += [{
-					'name': 'docker-boshrelease',
-					'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
-				}]
+				requires_docker_bosh = True
 				release['packages'] += [{
 					'name': 'common',
 					'files': [{
@@ -182,16 +191,20 @@ class Config(dict):
 					'template': 'common',
 					'dir': 'src'
 				}]
+			if release.get('requires_meta_buildpack', False):
+				requires_meta_buildpack = True
 			if release.get('requires_cf_cli', False):
 				release['jobs'] += [{
 					'name': 'deploy-all',
 					'type': 'deploy-all',
-					'is_errand': True
+					'lifecycle': 'errand',
+					'post_deploy': True
 				}]
 				release['jobs'] += [{
 					'name': 'delete-all',
 					'type': 'delete-all',
-					'is_errand': True
+					'lifecycle': 'errand',
+					'pre_delete': True
 				}]
 				self['post_deploy_errands'] = self.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
 				self['pre_delete_errands'] = self.get('pre_delete_errands', []) + [{ 'name': 'delete-all' }]
@@ -213,6 +226,30 @@ class Config(dict):
 						'version': '~> 1.5'
 					}
 				]
+		if requires_docker_bosh:
+			version = None
+			version_param = '?v=' + version if version else ''
+			self['releases'] += [{
+				'name': 'docker-boshrelease',
+				'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
+			}]
+		# if requires_meta_buildpack:
+		# 	self['releases'] += [{
+		# 		'name': 'meta-buildpack',
+		# 		'path': 'github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz',
+		# 		'jobs': [
+		# 			{
+		# 				'name': 'deploy-all',
+		# 				'type': 'deploy-all',
+		# 				'is_errand': True
+		# 			},
+		# 			{
+		# 				'name': 'delete-all',
+		# 				'type': 'delete-all',
+		# 				'is_errand': True
+		# 			}
+		# 		]
+		# 	}]
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:

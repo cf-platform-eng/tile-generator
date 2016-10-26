@@ -314,9 +314,9 @@ job_types:
     configurable: true
     default: 1
 {% for release in releases %}
-{% for job in release.jobs if job.type == 'docker-bosh' %}
+{% for job in release.jobs if job.template and job.template == 'docker-bosh' %}
 #
-# {{ job.type }} job for {{ job.package.name }}
+# {{ job.template }} job for {{ job.package.name }}
 #
 - name: {{ job.name }}
   resource_label: {{ job.name }}
@@ -326,7 +326,7 @@ job_types:
     release: docker
   - name: docker
     release: docker
-  - name: {{ job.name }}
+  - name: {{ job.type }}
     release: {{ release.name }}
   resource_definitions:
   - name: ram
@@ -417,16 +417,16 @@ job_types:
 {% endfor %}
 {% endfor %}
 {% for release in releases if not release.type == 'bosh-release' %}
-{% for job in release.jobs if not job.type == 'docker-bosh' %}
+{% for job in release.jobs if not job.template == 'docker-bosh' %}
 #
-# {{ job.name }} job
+# {{ job.type }} job
 #
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: true
   templates:
-  - name: {{ job.name }}
-    release: {{ release.name }}
+  - name: {{ job.type }}
+    release: {{ release.release_name }}
   resource_definitions:
   - name: ram
     type: integer
@@ -517,11 +517,8 @@ job_types:
 {% endfor %}
 
 post_deploy_errands:
-{% for errand in post_deploy_errands %}
-- name: {{ errand.name }}
-{% endfor %}
-{% for package in packages if package.type == 'bosh-release' %}
-{% for job in package.jobs %}
+{% for release in releases %}
+{% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.post_deploy %}
 - name: {{ job.name }}
 {% endif %}
@@ -529,11 +526,8 @@ post_deploy_errands:
 {% endfor %}
 
 pre_delete_errands:
-{% for errand in pre_delete_errands %}
-- name: {{ errand.name }}
-{% endfor %}
-{% for package in packages if package.type == 'bosh-release' %}
-{% for job in package.jobs %}
+{% for release in releases %}
+{% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.pre_delete %}
 - name: {{ job.name }}
 {% endif %}
