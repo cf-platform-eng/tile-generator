@@ -50,8 +50,6 @@ HISTORY_FILE = "tile-history.yml"
 # Validate Releases - Ensure that all generated releases are sane
 #
 # Add Dependencies - Add all auto-dependencies for the packages and releases
-#
-# TODO - Remove jobs and requires flags (after rest of code is made independent of it)
 
 package_types = {
 	'app':               { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app' ] },
