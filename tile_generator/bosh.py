@@ -139,32 +139,16 @@ class BoshRelease:
 		alternate_template = package.get('template', None)
 		if alternate_template is not None:
 			template_dir = os.path.join(template_dir, alternate_template)
+		# Download files for package
+		for file in package.get('files', []):
+			download(file['path'], os.path.join(target_dir, file['name']), cache=self.context.get('cache', None))
+		# Construct context for template rendering
 		package_context = {
 			'context': self.context,
 			'package': package,
-			'files': []
+			'files': [ file['name'] for file in package.get('files', []) ]
 		}
-		files = package.get('files', [])
-		path = package.get('path', None)
-		if path is not None:
-			files += [ { 'path': path } ]
-			package['path'] = os.path.basename(path)
-		manifest = package.get('manifest', None)
-		manifest_path = None
-		if type(manifest) is dict:
-			manifest_path = manifest.get('path', None)
-		if manifest_path is not None:
-			files += [ { 'path': manifest_path } ]
-			package['manifest']['path'] = os.path.basename(manifest_path)
-		for file in files:
-			filename = file.get('name', os.path.basename(file['path']))
-			file['name'] = filename
-			download(file['path'], os.path.join(target_dir, filename), cache=self.context.get('cache', None))
-			package_context['files'] += [ filename ]
-		for docker_image in package.get('docker_images', []):
-			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-			download('docker:'+docker_image, os.path.join(target_dir, filename), cache=self.context.get('cache', None))
-			package_context['files'] += [ filename ]
+		# Render cf manifest for apps
 		if package.get('is_app', False):
 			manifest = package.get('manifest', { 'name': name })
 			if manifest.get('random-route', False):

@@ -50,6 +50,10 @@ HISTORY_FILE = "tile-history.yml"
 # Validate Releases - Ensure that all generated releases are sane
 #
 # Add Dependencies - Add all auto-dependencies for the packages and releases
+#
+# Normalize File Lists - Packages specify the files they use in many different
+# ways depending on the package type. We normalize all these so that the rest of
+# the code can rely on a single format
 
 package_types = {
 	'app':               { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app' ] },
@@ -81,6 +85,7 @@ class Config(dict):
 		self.process_packages()
 		self.validate_releases()
 		self.add_dependencies()
+		self.normalize_file_lists()
 
 	def process_packages(self):
 		for package in self.get('packages', []):
@@ -107,6 +112,27 @@ class Config(dict):
 				self.update_memory(release, manifest)
 				if not 'is_docker' in flags:
 					self.update_compilation_vm_disk_size(manifest)
+
+	def normalize_file_lists(self):
+		for package in self.get('packages', []):
+			if package.get('is_bosh_release', False):
+				continue
+			files = package.get('files', [])
+			path = package.get('path', None)
+			if path is not None:
+				files += [ { 'path': path } ]
+				package['path'] = os.path.basename(path)
+			manifest = package.get('manifest', {})
+			manifest_path = manifest.get('path', None)
+			if manifest_path is not None:
+				files += [ { 'path': manifest_path } ]
+				package['manifest']['path'] = os.path.basename(manifest_path)
+			for docker_image in package.get('docker_images', []):
+				filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
+				files += [ { 'path': 'docker:' + docker_image, 'name': filename } ]
+			for file in files:
+				file['name'] = file.get('name', os.path.basename(file['path']))
+			package['files'] = files
 
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
@@ -281,6 +307,12 @@ class Config(dict):
 				manifest = package.get('manifest')
 				if manifest is not None and isinstance(manifest, str):
 					package['manifest'] = yaml.safe_load(manifest)
+		# first releases required manifests to be multi-line strings, now we want them to be dicts
+		for package in self.get('packages', []):
+			manifest = package.get('manifest', None)
+			if manifest is not None and type(manifest) is not dict:
+				manifest = read_yaml(manifest)
+				package['manifest'] = manifest
 
 	def read_config(self):
 		try:
