@@ -152,9 +152,9 @@ function add_env_vars() {
 	cf set-env $1 PLANS "$DYNAMIC_SERVICE_PLANS"
 	{% endif %}
 
-    # Custom Service Plans
+	# Custom Service Plans
 	{% for service_plan_form in context.service_plan_forms %}
-    cf set-env $1 {{service_plan_form.name | upper }} "${{service_plan_form.name | upper}}"
+	cf set-env $1 {{service_plan_form.name | upper }} "${{service_plan_form.name | upper}}"
 	{% endfor %}
 
 	# Custom variables from tile.yml
