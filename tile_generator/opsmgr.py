@@ -358,8 +358,8 @@ def build_changes_1_7(deploy_errands, delete_errands):
 	staged = [p for p in get('/api/v0/staged/products').json()]
 	install = [p for p in staged if p["guid"] not in [g["guid"] for g in deployed]]
 	delete = [p for p in deployed if p["guid"] not in [g["guid"] for g in staged]]
-	# update = [p for p in deployed if p["guid"] in [g["guid"] for g in staged]]
-	update = []
+	update = [p for p in deployed if p["guid"] in [g["guid"] for g in staged if not g["guid"].startswith('cf-')]]
+	# update = []
 	for p in install + update:
 		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
 		errands = [j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand']

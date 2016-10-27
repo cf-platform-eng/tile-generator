@@ -83,16 +83,27 @@ class TestGetChanges17(unittest.TestCase):
 		product_changes = opsmgr.get_changes()
 
 		changes = product_changes['product_changes']
-		self.assertEqual(len(changes), 2)
+		self.assertEqual(len(changes), 3)
 
-		update_one = changes[0]
-		self.assertEqual(update_one['action'], 'install')
+		update_one = changes[1]
+		self.assertEqual(update_one['action'], 'update')
 		self.assertEqual(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
 
 		update_one_errands = update_one['errands']
 		self.assertEqual(len(update_one_errands), 1)
 		self.assertEqual(update_one_errands[0]['name'], 'deploy-all')
 		self.assertTrue(update_one_errands[0]['post_deploy'])
+
+		update_two = changes[2]
+		self.assertEqual(update_two['action'], 'update')
+		self.assertEqual(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
+
+		update_two_errands = update_two['errands']
+		self.assertEqual(len(update_two_errands), 2)
+		self.assertEqual(update_two_errands[0]['name'], 'deploy-all')
+		self.assertTrue(update_two_errands[0]['post_deploy'])
+		self.assertEqual(update_two_errands[1]['name'], 'configure-broker')
+		self.assertTrue(update_two_errands[1]['post_deploy'])
 
 	def test_custom_deploy_errands(self, mock_get):
 		resp_not_found = requests.Response()
@@ -110,15 +121,20 @@ class TestGetChanges17(unittest.TestCase):
 		product_changes = opsmgr.get_changes(deploy_errands= ['deploy-all', 'configure-broker', 'missing'])
 
 		changes = product_changes['product_changes']
-		self.assertEqual(len(changes), 2)
+		self.assertEqual(len(changes), 3)
 
-		update_one = changes[0]
+		update_one = changes[1]
 		self.assertEqual(update_one['guid'], 'service-broker-one-9ed445129ddee5b24bff')
 		self.assertEqual(len(update_one['errands']), 1)
-		update_one_errands = update_one['errands']
-		self.assertEqual(len(update_one_errands), 1)
-		self.assertEqual(update_one_errands[0]['name'], 'deploy-all')
-		self.assertTrue(update_one_errands[0]['post_deploy'])
+
+		update_two = changes[2]
+		self.assertEqual(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
+		change_two_errands = update_two['errands']
+		self.assertEqual(len(change_two_errands), 2)
+		self.assertEqual(change_two_errands[0]['name'], 'deploy-all')
+		self.assertTrue(change_two_errands[0]['post_deploy'])
+		self.assertEqual(change_two_errands[1]['name'], 'configure-broker')
+		self.assertTrue(change_two_errands[1]['post_deploy'])
 
 	def test_default_delete_errands(self, mock_get):
 		resp_not_found = requests.Response()
@@ -136,9 +152,9 @@ class TestGetChanges17(unittest.TestCase):
 		product_changes = opsmgr.get_changes()
 
 		changes = product_changes['product_changes']
-		self.assertEqual(len(changes), 2)
+		self.assertEqual(len(changes), 3)
 
-		delete = changes[1]
+		delete = changes[0]
 		self.assertEqual(delete['action'], 'delete')
 		self.assertEqual(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
 
@@ -166,9 +182,9 @@ class TestGetChanges17(unittest.TestCase):
 		)
 
 		changes = product_changes['product_changes']
-		self.assertEqual(len(changes), 2)
+		self.assertEqual(len(changes), 3)
 
-		delete = changes[1]
+		delete = changes[0]
 		self.assertEqual(delete['action'], 'delete')
 		self.assertEqual(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
 
@@ -342,6 +358,11 @@ api_responses_1_7['diagnostic_report'] = b"""
 """
 api_responses_1_7['deployed_products'] = b"""
 [
+    {
+        "guid": "service-broker-one-9ed445129ddee5b24bff",
+        "installation_name": "service-broker-one-9ed445129ddee5b24bff",
+        "type": "service-broker-one"
+    },
     {
         "guid": "tile-two-ed10ef2a821e0e810f2c",
         "installation_name": "tile-two-ed10ef2a821e0e810f2c",
