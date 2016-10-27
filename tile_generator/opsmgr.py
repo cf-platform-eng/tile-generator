@@ -364,7 +364,7 @@ def build_changes_1_7(deploy_errands, delete_errands):
 		errands = [j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand']
 		p['errands'] = []
 		for e in errands:
-			if deploy_errands is None or e in deploy_errands:
+			if (deploy_errands is None or e in deploy_errands) and e != 'delete-all':
 				p['errands'].append({'name': e, 'post_deploy': True})
 	for p in delete:
 		p['errands'] = []
