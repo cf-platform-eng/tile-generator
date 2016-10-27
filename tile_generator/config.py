@@ -55,7 +55,8 @@ HISTORY_FILE = "tile-history.yml"
 # ways depending on the package type. We normalize all these so that the rest of
 # the code can rely on a single format
 #
-# Normalize Jobs - Ensure that job type and template are set for every job
+# Normalize Jobs - Ensure that job type, template, and properties are set for
+# every job
 
 package_types = {
 	'app':               { 'flags': [ 'is_cf', 'requires_cf_cli', 'is_app' ] },
@@ -145,7 +146,8 @@ class Config(dict):
 			for job in release.get('jobs', []):
 				job['type'] = job.get('type', job['name'])
 				job['template'] = job.get('template', job['type'])
-	
+				job['properties'] = job.get('properties', {})
+
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
 		release = self.release_by_name(release_name)
