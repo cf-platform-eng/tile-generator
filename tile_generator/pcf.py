@@ -45,16 +45,15 @@ def products_cmd():
 		print("-", product["name"], product["product_version"], "(installed)" if product["installed"] else "")
 
 @cli.command('changes')
-def deployed_cmd():
-	try:
-		changes = opsmgr.get_changes()
-		for p in changes['product_changes']:
-			print(p['action'], p['guid'])
-			for e in p['errands']:
-				print('-', e['name'])
-	except:
+def changes_cmd():
+	changes = opsmgr.get_changes()
+	if changes is None:
 		print('This command is only available for PCF 1.7 and beyond.', file=sys.stderr)
 		sys.exit(1)
+	for p in changes['product_changes']:
+		print(p['action'], p['guid'])
+		for e in p['errands']:
+			print('-', e['name'])
 
 @cli.command('is-available')
 @click.argument('product')
@@ -211,8 +210,8 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 	enabled_errands = []
 	deploy_errand_list = None if deploy_errands is None else deploy_errands.split(',')
 	delete_errand_list = None if delete_errands is None else delete_errands.split(',')
-	try:
-		changes = opsmgr.get_changes(deploy_errand_list, delete_errand_list)
+	changes = opsmgr.get_changes(deploy_errand_list, delete_errand_list)
+	if changes is not None:
 		if len(changes['product_changes']) == 0:
 			print('Nothing to do', file=sys.stderr)
 			return
@@ -221,13 +220,6 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 			enabled_errands.extend(post_deploy)
 			pre_delete = serialize_errands(p, 'pre_delete', 'pre_delete_errands')
 			enabled_errands.extend(pre_delete)
-
-	except:
-		# Assume we're talking to a PCF version prior to 1.7
-		# It does not support the get_changes APIs
-		# But it also does not require us to pass in the list of errands
-		# So this is perfectly fine
-		pass
 	body = '&'.join(enabled_errands)
 	in_progress = None
 	install_id = None

@@ -329,35 +329,27 @@ def configure(product, properties, strict=False, skip_validation=False):
 			sys.exit(1)
 
 def get_changes(deploy_errands = None, delete_errands = None):
-	if deploy_errands is None:
-		deploy_errands = ['deploy-all']
-	if delete_errands is None:
-		delete_errands = ['delete-all']
-
-	pending_changes_response = get('/api/v0/staged/pending_changes', check=False)
-	if pending_changes_response.status_code == requests.codes.ok:
-		return build_changes_1_8(deploy_errands, delete_errands, pending_changes_response)
-	elif pending_changes_response.status_code == requests.codes.not_found:
+	version = get_version()
+	if version[0] == 1 and version[1] >= 8:
+		return build_changes_1_8(deploy_errands, delete_errands)
+	elif version[0] == 1 and version[1] == 7:
 		return build_changes_1_7(deploy_errands, delete_errands)
 	else:
-		raise Exception(
-			"Unexpected response code from /api/v0/staged/pending_changes",
-			pending_changes_response.status_code
-		)
+		return None
 
-def build_changes_1_8(deploy_errands, delete_errands, pending_changes_response):
-	changes = pending_changes_response.json()
+def build_changes_1_8(deploy_errands, delete_errands):
+	changes = get('/api/v0/staged/pending_changes').json()
 	for product_change in changes['product_changes']:
 		if product_change['action'] in ['install', 'update']:
 			product_change['errands'] = [
 				e for e in product_change['errands']
-				if e['name'] in deploy_errands
+				if deploy_errands is None or e['name'] in deploy_errands
 			]
 	for product_change in changes['product_changes']:
 		if product_change['action'] == 'delete':
 			product_change['errands'] = [
 				e for e in product_change['errands']
-				if e['name'] in delete_errands
+				if delete_errands is None or e['name'] in delete_errands
 			]
 	return changes
 
@@ -371,11 +363,13 @@ def build_changes_1_7(deploy_errands, delete_errands):
 		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
 		errands = [j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand']
 		p['errands'] = []
-		for deploy_errand in deploy_errands:
-			if deploy_errand in errands:
-				p['errands'].append({'name': deploy_errand, 'post_deploy': True})
+		for e in errands:
+			if deploy_errands is None or e in deploy_errands:
+				p['errands'].append({'name': e, 'post_deploy': True})
 	for p in delete:
 		p['errands'] = []
+		if delete_errands is None:
+			delete_errands = [ 'delete-all' ]
 		for delete_errand in delete_errands:
 			p['errands'].append({'name': delete_errand, 'pre_delete': True})
 	changes = {'product_changes': [{
