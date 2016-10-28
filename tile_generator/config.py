@@ -235,23 +235,25 @@ class Config(dict):
 				'name': 'docker-boshrelease',
 				'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
 			}]
-		# if requires_meta_buildpack:
-		# 	self['releases'] += [{
-		# 		'name': 'meta-buildpack',
-		# 		'path': 'github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz',
-		# 		'jobs': [
-		# 			{
-		# 				'name': 'deploy-all',
-		# 				'type': 'deploy-all',
-		# 				'is_errand': True
-		# 			},
-		# 			{
-		# 				'name': 'delete-all',
-		# 				'type': 'delete-all',
-		# 				'is_errand': True
-		# 			}
-		# 		]
-		# 	}]
+		if requires_meta_buildpack:
+			self['releases'] += [{
+				'name': 'meta-buildpack',
+				'path': 'github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz',
+				'jobs': [
+					{
+						'name': 'deploy-meta-buildpack',
+						'type': 'deploy-all',
+						'lifecycle': 'errand',
+						'post_deploy': True
+					},
+					{
+						'name': 'delete-meta-buildpack',
+						'type': 'delete-all',
+						'lifecycle': 'errand',
+						'pre_delete': True
+					}
+				]
+			}]
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:

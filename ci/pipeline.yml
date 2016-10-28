@@ -2,31 +2,32 @@
 
 groups:
 
-- name: all
+- name: ci
   jobs:
   - build-base-image
   - unit-tests
-  - create-dev
   - package-tile-generator
   - install-tile-generator
   - build-tile
   - acceptance-tests
+  - claim-1-6
   - deploy-tile-1-6
   - deployment-tests-1-6
   - remove-tile-1-6
+  - claim-1-7
   - deploy-tile-1-7
   - deployment-tests-1-7
   - remove-tile-1-7
+  - claim-1-8
   - deploy-tile-1-8
   - deployment-tests-1-8
   - remove-tile-1-8
-  - publish-release
 
-- name: version
+- name: release
   jobs:
-  - create-patch
-  - create-minor
-  - create-major
+  - bump-minor
+  - bump-major
+  - create-release
 
 resource_types:
 
@@ -46,16 +47,18 @@ resources:
 - name: tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "ci/*-tests", "sample/missing-properties.yml" ]
+    ignore_paths: [ "ci/docker-tile-generator", "ci/docker-tile-pipeline" ]
     branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
-- name: tile-generator-tag
-  type: git
+- name: tile-generator-github-prerelease
+  type: github-release
   source:
-    branch: {{github-branch}}
-    uri: git@github.com:cf-platform-eng/tile-generator.git
-    private_key: {{github-semver-private-key}}
+    user: cf-platform-eng
+    repository: tile-generator
+    access_token: {{github-release-token}}
+    release: false
+    pre_release: true
 
 - name: tile-generator-github-release
   type: github-release
@@ -70,13 +73,6 @@ resources:
     name: tile-generator
     username: {{pypi-user}}
     password: {{pypi-password}}
-
-- name: tile-generator-tests
-  type: git
-  source:
-    paths: [ "ci/*-tests", "ci/scripts", "sample/missing-properties.yml" ]
-    branch: {{github-branch}}
-    uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: base-pipeline-dockerfile-repo
   type: git
@@ -127,12 +123,20 @@ resources:
 - name: base-pipeline-docker-image
   type: docker-image
   source:
-    repository: guidowb/base-pipeline
+    repository: cfplatformeng/tile-generator-pipeline
     email: {{docker-hub-email}}
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
 
 - name: tile-generator-docker-image
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator-prerelease
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: tile-generator-docker-image-release
   type: docker-image
   source:
     repository: cfplatformeng/tile-generator
@@ -143,7 +147,7 @@ resources:
 - name: app-docker-image
   type: docker-image
   source:
-    repository: guidowb/sample-cf-app
+    repository: cfplatformeng/tile-generator-sample-app
     email: {{docker-hub-email}}
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
@@ -222,48 +226,22 @@ jobs:
           text: '(master) Unit tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: create-dev
-  plan:
-  - aggregate:
-    - get: base-pipeline-docker-image
-      passed: [ unit-tests ]
-      trigger: true
-    - get: tile-generator-repo
-      passed: [ unit-tests ]
-      trigger: true
-  - put: version
-    params:
-      pre: dev
-
-- name: create-patch
-  plan:
-  - put: version
-    params:
-      bump: patch
-
-- name: create-minor
-  plan:
-  - put: version
-    params:
-      bump: minor
-
-- name: create-major
-  plan:
-  - put: version
-    params:
-      bump: major
-
 - name: package-tile-generator
   plan:
   - aggregate:
     - get: base-pipeline-docker-image
-      passed: [ create-dev ]
+      passed: [ unit-tests ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ create-dev ]
+      passed: [ unit-tests ]
       trigger: true
-    - get: version
-      trigger: true
+    - put: version
+      params:
+        pre: dev
+  - get: final-version
+    resource: version
+    params:
+      bump: final
   - task: build-package
     image: base-pipeline-docker-image
     config:
@@ -271,6 +249,7 @@ jobs:
       inputs:
       - name: tile-generator-repo
       - name: version
+      - name: final-version
       outputs:
       - name: tile-generator-dist
       run:
@@ -278,7 +257,7 @@ jobs:
         path: sh
         args:
         - -c 
-        - cp ../version/version version.txt && python setup.py sdist && cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-`cat version.txt`.tar.gz
+        - cp ../final-version/version version.txt && python setup.py sdist && cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-`cat version.txt`.tar.gz
     on_failure:
       aggregate:
       - put: slack-alert
@@ -291,14 +270,16 @@ jobs:
       - put: tile-generator-package
         params:
           file: tile-generator-dist/tile-generator-*.tar.gz
-      - put: tile-generator-tag
+      - put: tile-generator-github-prerelease
         params:
-          repository: tile-generator-repo
-          only_tag: true
+          name: version/version
           tag: version/version
           tag_prefix: v
+          globs:
+          - tile-generator-dist/tile-generator-*.tar.gz
 
 - name: install-tile-generator
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: base-pipeline-docker-image
@@ -312,7 +293,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ package-tile-generator ]
-      trigger: true
     - get: tile-generator-dockerfile-repo
       trigger: true
   - task: prepare-docker-build
@@ -344,6 +324,7 @@ jobs:
       tag_prefix: v
 
 - name: build-tile
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
@@ -357,7 +338,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ install-tile-generator ]
-      trigger: true
     - get: tile-generator-package
       passed: [ install-tile-generator ]
       trigger: true
@@ -438,12 +418,11 @@ jobs:
       file: generated-tile/*.pivotal
 
 - name: acceptance-tests
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
       passed: [ build-tile ]
-      trigger: true
-    - get: tile-generator-tests
       trigger: true
     - get: generated-tile
       passed: [ build-tile ]
@@ -453,7 +432,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ build-tile ]
-      trigger: true
     - get: tile-generator-package
       passed: [ build-tile ]
       trigger: true
@@ -462,10 +440,10 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-acceptancetests.sh
+        path: tile-generator-repo/ci/scripts/run-acceptancetests.sh
         args: [ "generated-tile" ]
     on_failure:
       aggregate:
@@ -476,13 +454,11 @@ jobs:
           text: '(master) Acceptance tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: deploy-tile-1-6
+- name: claim-1-6
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ acceptance-tests ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ acceptance-tests ]
       trigger: true
     - get: generated-tile
@@ -493,23 +469,44 @@ jobs:
       trigger: true
     - get: version
       passed: [ acceptance-tests ]
-      trigger: true
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
     - put: pcf-environment-1-6
       params:
         acquire: true
+
+- name: deploy-tile-1-6
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ claim-1-6 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-1-6 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-1-6 ]
+      trigger: true
+    - get: version
+      passed: [ claim-1-6 ]
+    - get: tile-generator-package
+      passed: [ claim-1-6 ]
+      trigger: true
+    - get: pcf-environment-1-6
+      passed: [ claim-1-6 ]
+      trigger: true
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-6
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-deploytile.sh
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
         args: [ "generated-tile", "pcf-environment-1-6" ]
     on_failure:
       aggregate:
@@ -524,12 +521,10 @@ jobs:
           username: Tile Generator
 
 - name: deployment-tests-1-6
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deploy-tile-1-6 ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ deploy-tile-1-6 ]
       trigger: true
     - get: generated-tile
@@ -543,7 +538,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ deploy-tile-1-6 ]
-      trigger: true
     - get: tile-generator-package
       passed: [ deploy-tile-1-6 ]
       trigger: true
@@ -552,11 +546,11 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-6
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-deploymenttests.sh
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
         args: [ "generated-tile", "pcf-environment-1-6" ]
     on_failure:
       aggregate:
@@ -571,12 +565,10 @@ jobs:
           username: Tile Generator
 
 - name: remove-tile-1-6
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deployment-tests-1-6 ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ deployment-tests-1-6 ]
       trigger: true
     - get: generated-tile
@@ -590,7 +582,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ deployment-tests-1-6 ]
-      trigger: true
     - get: tile-generator-package
       passed: [ deployment-tests-1-6 ]
       trigger: true
@@ -599,11 +590,11 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-6
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-removetile.sh
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
         args: [ "generated-tile", "pcf-environment-1-6" ]
     ensure:
       put: pcf-environment-1-6
@@ -617,13 +608,11 @@ jobs:
         text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
-- name: deploy-tile-1-7
+- name: claim-1-7
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ acceptance-tests ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ acceptance-tests ]
       trigger: true
     - get: generated-tile
@@ -634,23 +623,44 @@ jobs:
       trigger: true
     - get: version
       passed: [ acceptance-tests ]
-      trigger: true
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
     - put: pcf-environment-1-7
       params:
         acquire: true
+
+- name: deploy-tile-1-7
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ claim-1-7 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-1-7 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-1-7 ]
+      trigger: true
+    - get: version
+      passed: [ claim-1-7 ]
+    - get: tile-generator-package
+      passed: [ claim-1-7 ]
+      trigger: true
+    - get: pcf-environment-1-7
+      passed: [ claim-1-7 ]
+      trigger: true
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-7
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-deploytile.sh
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
         args: [ "generated-tile", "pcf-environment-1-7" ]
     on_failure:
       aggregate:
@@ -665,12 +675,10 @@ jobs:
           username: Tile Generator
 
 - name: deployment-tests-1-7
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deploy-tile-1-7 ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ deploy-tile-1-7 ]
       trigger: true
     - get: generated-tile
@@ -684,7 +692,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ deploy-tile-1-7 ]
-      trigger: true
     - get: tile-generator-package
       passed: [ deploy-tile-1-7 ]
       trigger: true
@@ -693,11 +700,11 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-7
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-deploymenttests.sh
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
         args: [ "generated-tile", "pcf-environment-1-7" ]
     on_failure:
       aggregate:
@@ -712,12 +719,10 @@ jobs:
           username: Tile Generator
 
 - name: remove-tile-1-7
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deployment-tests-1-7 ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ deployment-tests-1-7 ]
       trigger: true
     - get: generated-tile
@@ -731,7 +736,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ deployment-tests-1-7 ]
-      trigger: true
     - get: tile-generator-package
       passed: [ deployment-tests-1-7 ]
       trigger: true
@@ -740,11 +744,11 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-7
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-removetile.sh
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
         args: [ "generated-tile", "pcf-environment-1-7" ]
     ensure:
       put: pcf-environment-1-7
@@ -758,13 +762,11 @@ jobs:
         text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
-- name: deploy-tile-1-8
+- name: claim-1-8
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ acceptance-tests ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ acceptance-tests ]
       trigger: true
     - get: generated-tile
@@ -775,23 +777,44 @@ jobs:
       trigger: true
     - get: version
       passed: [ acceptance-tests ]
-      trigger: true
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
     - put: pcf-environment-1-8
       params:
         acquire: true
+
+- name: deploy-tile-1-8
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ claim-1-8 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-1-8 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-1-8 ]
+      trigger: true
+    - get: version
+      passed: [ claim-1-8 ]
+    - get: tile-generator-package
+      passed: [ claim-1-8 ]
+      trigger: true
+    - get: pcf-environment-1-8
+      passed: [ claim-1-8 ]
+      trigger: true
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-8
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-deploytile.sh
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
         args: [ "generated-tile", "pcf-environment-1-8" ]
     on_failure:
       aggregate:
@@ -806,12 +829,10 @@ jobs:
           username: Tile Generator
 
 - name: deployment-tests-1-8
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deploy-tile-1-8 ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ deploy-tile-1-8 ]
       trigger: true
     - get: generated-tile
@@ -825,7 +846,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ deploy-tile-1-8 ]
-      trigger: true
     - get: tile-generator-package
       passed: [ deploy-tile-1-8 ]
       trigger: true
@@ -834,11 +854,11 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-8
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-deploymenttests.sh
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
         args: [ "generated-tile", "pcf-environment-1-8" ]
     on_failure:
       aggregate:
@@ -853,12 +873,10 @@ jobs:
           username: Tile Generator
 
 - name: remove-tile-1-8
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ deployment-tests-1-8 ]
-      trigger: true
-    - get: tile-generator-tests
       passed: [ deployment-tests-1-8 ]
       trigger: true
     - get: generated-tile
@@ -872,7 +890,6 @@ jobs:
       trigger: true
     - get: version
       passed: [ deployment-tests-1-8 ]
-      trigger: true
     - get: tile-generator-package
       passed: [ deployment-tests-1-8 ]
       trigger: true
@@ -881,11 +898,11 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-tests
+      - name: tile-generator-repo
       - name: pcf-environment-1-8
       - name: generated-tile
       run:
-        path: tile-generator-tests/ci/scripts/run-removetile.sh
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
         args: [ "generated-tile", "pcf-environment-1-8" ]
     ensure:
       put: pcf-environment-1-8
@@ -899,15 +916,36 @@ jobs:
         text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
-- name: publish-release
+- name: create-release
   plan:
   - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
+      params:
+        save: true
     - get: tile-generator-package
       passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
-      trigger: true
     - get: version
       passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
-      trigger: true
+  - put: version
+    params:
+      bump: final
+  - task: rename-files
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-package
+      - name: version
+      outputs:
+      - name: renamed-files
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          FINAL_VERSION=`cat version/version`
+          cp tile-generator-package/tile-generator-*.tar.gz renamed-files/tile-generator-${FINAL_VERSION}.tar.gz
   - aggregate:
     - put: tile-generator-github-release
       params:
@@ -915,7 +953,29 @@ jobs:
         tag: version/version
         tag_prefix: v
         globs:
-        - tile-generator-package/tile-generator-*.tar.gz
+        - renamed-files/tile-generator-*.tar.gz
+    - put: tile-generator-docker-image-release
+      params:
+        import_file: tile-generator-docker-image/image
+        tag: version/version
+        tag_prefix: v
+        tag_as_latest: true
     - put: tile-generator-pypi-release
       params:
-        glob: tile-generator-package/tile-generator-*.tar.gz
+        glob: renamed-files/tile-generator-*.tar.gz
+  - put: version
+    params:
+      bump: patch
+
+- name: bump-minor
+  plan:
+  - put: version
+    params:
+      bump: minor
+
+- name: bump-major
+  plan:
+  - put: version
+    params:
+      bump: major
+

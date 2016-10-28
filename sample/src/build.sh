@@ -36,4 +36,7 @@ pip install --no-binary :all: --download vendor -r requirements.txt
 zip -r "${RESOURCES_DIR}/app.zip" *
 
 cd "${BUILDPACK_DIR}"
-zip -r "${RESOURCES_DIR}/buildpack.zip" *
+zip -r "${RESOURCES_DIR}/buildpack.zip" bin/detect bin/compile bin/release
+
+cd "${BUILDPACK_DIR}"
+zip -r "${RESOURCES_DIR}/decorator.zip" bin/detect bin/compile bin/decorate
