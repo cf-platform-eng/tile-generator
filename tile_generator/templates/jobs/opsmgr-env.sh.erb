@@ -1,0 +1,29 @@
+SCHEME=https
+ADMIN_USER={{ 'properties.cf.admin_user' | shell_string }}
+ADMIN_PASSWORD={{ 'properties.cf.admin_password' | shell_string }}
+DOMAIN={{ 'properties.domain' | shell_string }}
+APP_DOMAIN={{ 'properties.app_domains[0]' | shell_string }}
+CF_ORG={{ 'properties.org' | shell_string }}
+CF_ORG_QUOTA={{ 'properties.org_quota' | shell_string }}
+CF_SPACE={{ 'properties.space' | shell_string }}
+CF_TARGET=$SCHEME://api.${DOMAIN}
+CF_SKIP_SSL={{ 'properties.ssl.skip_cert_verify' | shell_string }}
+SECURITY_USER_NAME={{ 'properties.security.user' | shell_string }}
+SECURITY_USER_PASSWORD={{ 'properties.security.password' | shell_string }}
+APPLY_OPEN_SECURITY_GROUP={{ 'properties.apply_open_security_group' | shell_string }}
+ALLOW_PAID_SERVICE_PLANS={{ 'properties.allow_paid_service_plans' | shell_string }}
+
+{% if context.dynamic_service_plans is defined %}
+{{ 'dynamic_service_plans' | plans_json }}
+{% endif %}
+{% for service_plan_form in context.service_plan_forms %}
+{{ service_plan_form.name | plans_json }}
+{% endfor %}
+
+{% for property in context.all_properties %}
+{{ property.name | upper }}={{ property | property_value | shell_string }}
+{% endfor %}
+{% for package in context.packages if package.type == 'docker-bosh' %}
+{{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
+{{ package.name | upper }}_HOSTS={{ ( 'properties.' + package.name + '.hosts' ) | shell_string }}
+{% endfor %}

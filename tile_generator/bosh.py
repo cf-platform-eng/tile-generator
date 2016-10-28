@@ -124,6 +124,11 @@ class BoshRelease:
 			job_context
 		)
 		template.render(
+			os.path.join(self.release_dir, 'jobs', job_type, 'templates', 'opsmgr-env.sh.erb'),
+			os.path.join('jobs', 'opsmgr-env.sh.erb'),
+			job_context
+		)
+		template.render(
 			os.path.join(self.release_dir, 'jobs', job_type, 'monit'),
 			os.path.join('jobs', 'monit'),
 			job_context
