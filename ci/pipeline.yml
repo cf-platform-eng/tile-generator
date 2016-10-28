@@ -416,11 +416,12 @@ jobs:
       - name: sample-tile-build
       - name: tile-history
       - name: docker-cache
+      - name: version
       outputs:
       - name: generated-tile
       run:
         path: tile-generator-repo/ci/scripts/tile-build.sh
-        args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache" ]
+        args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache", "version" ]
     on_failure:
       aggregate:
       - put: slack-alert
