@@ -6,6 +6,7 @@ groups:
   jobs:
   - build-base-image
   - unit-tests
+  - bump-prerelease
   - package-tile-generator
   - install-tile-generator
   - build-tile
@@ -226,7 +227,7 @@ jobs:
           text: '(master) Unit tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: package-tile-generator
+- name: bump-prerelease
   plan:
   - aggregate:
     - get: base-pipeline-docker-image
@@ -235,13 +236,27 @@ jobs:
     - get: tile-generator-repo
       passed: [ unit-tests ]
       trigger: true
-    - put: version
-      params:
-        pre: dev
-  - get: final-version
-    resource: version
+  - put: version
     params:
-      bump: final
+      pre: dev
+
+- name: package-tile-generator
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ bump-prerelease ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ bump-prerelease ]
+      trigger: true
+    - get: version
+      passed: [ bump-prerelease ]
+      trigger: true
+    - get: final-version
+      resource: version
+      params:
+        bump: final
   - task: build-package
     image: base-pipeline-docker-image
     config:
@@ -253,11 +268,15 @@ jobs:
       outputs:
       - name: tile-generator-dist
       run:
-        dir: tile-generator-repo
         path: sh
         args:
-        - -c 
-        - cp ../final-version/version version.txt && python setup.py sdist && cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-`cat version.txt`.tar.gz
+        - -exc 
+        - |
+          cd tile-generator-repo
+          VERSION=`cat ../version/version`
+          cp ../final-version/version version.txt
+          python setup.py sdist
+          cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-${VERSION}.tar.gz
     on_failure:
       aggregate:
       - put: slack-alert
