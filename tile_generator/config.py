@@ -145,7 +145,7 @@ class Config(dict):
 			for job in release.get('jobs', []):
 				job['type'] = job.get('type', job['name'])
 				job['template'] = job.get('template', job['type'])
-	
+
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']
 		release = self.release_by_name(release_name)
@@ -233,23 +233,25 @@ class Config(dict):
 				'name': 'docker-boshrelease',
 				'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
 			}]
-		# if requires_meta_buildpack:
-		# 	self['releases'] += [{
-		# 		'name': 'meta-buildpack',
-		# 		'path': 'github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz',
-		# 		'jobs': [
-		# 			{
-		# 				'name': 'deploy-all',
-		# 				'type': 'deploy-all',
-		# 				'is_errand': True
-		# 			},
-		# 			{
-		# 				'name': 'delete-all',
-		# 				'type': 'delete-all',
-		# 				'is_errand': True
-		# 			}
-		# 		]
-		# 	}]
+		if requires_meta_buildpack:
+			self['releases'] += [{
+				'name': 'meta-buildpack',
+				'path': 'github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz',
+				'jobs': [
+					{
+						'name': 'deploy-meta-buildpack',
+						'type': 'deploy-all',
+						'lifecycle': 'errand',
+						'post_deploy': True
+					},
+					{
+						'name': 'delete-meta-buildpack',
+						'type': 'delete-all',
+						'lifecycle': 'errand',
+						'pre_delete': True
+					}
+				]
+			}]
 
 	def save_history(self):
 		with open(HISTORY_FILE, 'wb') as history_file:
