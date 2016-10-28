@@ -45,7 +45,7 @@ function import_opsmgr_variables() {
 	{% endfor %}
 
 	{% for property in context.all_properties %}
-	export {{ property.name | upper }}={{ ( 'properties.' + property.name ) | shell_string }}
+	export {{ property.name | upper }}={{ property | property_value | shell_string }}
 	{% endfor %}
 	{% for package in context.packages if package.type == 'docker-bosh' %}
 	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}

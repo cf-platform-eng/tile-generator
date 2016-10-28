@@ -479,7 +479,7 @@ job_types:
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
 {% for property in all_properties %}
-    {{ property.name }}: (( .properties.{{ property.name }}.value ))
+    {{ property | property | yaml | indent }}
 {% endfor %}
 {% if dynamic_service_plans %}
     dynamic_service_plans: (( .properties.dynamic_service_plans.value ))
