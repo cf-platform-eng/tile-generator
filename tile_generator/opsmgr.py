@@ -145,6 +145,10 @@ def check_response(response, check=True):
 			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
+def ssh_eat_output(output):
+	sys.stdout.write(output)
+	sys.stdout.flush()
+
 def ssh(commands = []):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
@@ -156,7 +160,9 @@ def ssh(commands = []):
 		'-o', 'StrictHostKeyChecking=no',
 		'ubuntu@' + host
 	]
+	prompt = host.split('.',1)[0]
 	commands += [ 'stty -echo' if len(commands) == 0 else 'exit' ]
+	commands = [ 'export PS1="' + prompt + '$ "' ] + commands
 	commands = [ creds.get('opsmgr').get('password') ] + commands
 	pid, tty = pty.fork()
 	if pid == 0:
@@ -189,8 +195,7 @@ def ssh(commands = []):
 				output = os.read(tty, 1024)
 				if len(output) == 0:
 					break
-				sys.stdout.write(output)
-				sys.stdout.flush()
+				ssh_eat_output(output)
 			elif tty in wlist:
 				os.write(tty, commands[0] + '\n')
 				commands = commands[1:]
