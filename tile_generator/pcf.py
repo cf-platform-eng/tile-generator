@@ -35,8 +35,13 @@ def cli():
 	pass
 
 @cli.command('ssh')
-def ssh_cmd():
-	opsmgr.ssh()
+@click.argument('argv', nargs=-1)
+def ssh_cmd(argv):
+	if len(argv) > 0:
+		commands = [ ' '.join(argv) ]
+	else:
+		commands = []
+	opsmgr.ssh(commands)
 
 @cli.command('products')
 def products_cmd():

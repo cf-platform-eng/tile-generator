@@ -145,7 +145,7 @@ def check_response(response, check=True):
 			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
-def ssh():
+def ssh(commands = []):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
 	host = urlparse(url).hostname
@@ -156,6 +156,8 @@ def ssh():
 		'-o', 'StrictHostKeyChecking=no',
 		'ubuntu@' + host
 	]
+	commands += [ 'stty -echo' if len(commands) == 0 else 'exit' ]
+	commands = [ creds.get('opsmgr').get('password') ] + commands
 	pid, tty = pty.fork()
 	if pid == 0:
 		try:
@@ -169,10 +171,12 @@ def ssh():
 		output = os.read(tty, 4096)
 		sys.stdout.write(output)
 		sys.stdout.flush()
-		os.write(tty, creds.get('opsmgr').get('password') + '\n')
-		os.write(tty, 'stty -echo\n')
 		while True:
-			rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
+			if len(commands) > 0:
+				wlist = [ tty ]
+			else:
+				wlist = []
+			rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], wlist, [])
 			if sys.stdin.fileno() in rlist:
 				input = os.read(sys.stdin.fileno(), 1024)
 				if len(input) == 0:
@@ -187,6 +191,9 @@ def ssh():
 					break
 				sys.stdout.write(output)
 				sys.stdout.flush()
+			elif tty in wlist:
+				os.write(tty, commands[0] + '\n')
+				commands = commands[1:]
 
 def get_products():
 	available_products = get('/api/products').json()
