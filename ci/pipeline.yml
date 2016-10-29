@@ -101,7 +101,7 @@ resources:
   type: s3
   source:
     bucket: {{s3-bucket}}
-    regexp: .*-(?P<version>.*)\.pivotal
+    regexp: test-tile-(?P<version>.*)\.pivotal
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
