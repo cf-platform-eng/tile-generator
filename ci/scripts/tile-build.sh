@@ -50,4 +50,4 @@ VERSION=`grep '^version:' ${SOURCE_DIR}/tile-history.yml | sed 's/^version: //'`
 HISTORY="tile-history-${VERSION}.yml"
 
 cp ${SOURCE_DIR}/product/*.pivotal ${TARGET_DIR}
-cp ${SOURCE_DIR}/tile-history.yml ${TARGET_DIR}/${HISTORY}.yml
+cp ${SOURCE_DIR}/tile-history.yml ${TARGET_DIR}/${HISTORY}
