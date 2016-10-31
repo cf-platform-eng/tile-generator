@@ -55,7 +55,7 @@ class VerifyBoshRelease(unittest.TestCase):
 
 	def test_all_jobs_have_template(self):
 		# 2 templates for each job: one to run the job, and one with the opsmgr env vars.
-		self.assertEqual(len(glob.glob('release/jobs/*/templates/*.sh.erb')), 2 * len(glob.glob('release/jobs/*')))
+		self.assertEqual(len(glob.glob('release/jobs/*/templates/*.erb')), 2 * len(glob.glob('release/jobs/*')))
 
 	def test_has_complete_cf_cli_package(self):
 		self.assertEqual(len(glob.glob('release/packages/cf_cli')), 1)
