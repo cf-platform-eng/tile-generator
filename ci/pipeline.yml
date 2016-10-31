@@ -976,7 +976,7 @@ jobs:
         - renamed-files/tile-generator-*.tar.gz
     - put: tile-generator-docker-image-release
       params:
-        import_file: tile-generator-docker-image/image
+        load: tile-generator-docker-image
         tag: version/version
         tag_prefix: v
         tag_as_latest: true
