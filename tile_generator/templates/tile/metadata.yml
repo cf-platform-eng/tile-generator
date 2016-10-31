@@ -64,6 +64,7 @@ property_blueprints:
     type: string
     unique: true
     configurable: true
+    unique: true
   {% for field in dynamic_service_plans %}
   - {{ field | yaml | indent }}
   {% endfor %}
