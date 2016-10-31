@@ -190,7 +190,7 @@ form_types:
       slug: false
   {% for field in service_plan_form.properties %}
     - reference: {{ field.name }}
-      label: {{ field.name }}
+      label: {{ field.label or field.name }}
       description: {{ field.description }}
       slug: false
   {% endfor %}
