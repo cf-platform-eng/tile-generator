@@ -45,7 +45,8 @@ def render_yaml(input):
 def render_shell_string(input):
 	return '<%= Shellwords.escape ' + input + ' %>'
 
-def render_plans_json(input):
+def plans_json(input, escape):
+	value = '=<%= Shellwords.escape JSON.dump(plans) %>' if escape else '=<%= JSON.dump(plans) %>'
 	return ('<%\n'
 	'	plans = { }\n'
 	'	p("' + input + '").each do |plan|\n'
@@ -53,7 +54,13 @@ def render_plans_json(input):
 	'		plans[plan_name] = plan\n'
 	'	end\n'
 	'%>\n'
-	'' + input.upper() + '=<%= Shellwords.escape JSON.dump(plans) %>')
+	'' + input.upper() + value)
+
+def render_plans_json(input):
+	return plans_json(input, True)
+
+def render_plans_json_noshell(input):
+	return plans_json(input, False)
 
 def render_property_value(property):
 	complex_types = (
@@ -102,6 +109,7 @@ TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
 TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
 TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
+TEMPLATE_ENVIRONMENT.filters['plans_json_noshell'] = render_plans_json_noshell
 TEMPLATE_ENVIRONMENT.filters['property'] = render_property
 TEMPLATE_ENVIRONMENT.filters['property_value'] = render_property_value
 TEMPLATE_ENVIRONMENT.filters['render'] = render

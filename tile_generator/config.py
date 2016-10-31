@@ -324,7 +324,7 @@ class Config(dict):
 					package['manifest'] = yaml.safe_load(manifest)
 				for container in package['manifest']['containers']:
 					envfile = container.get('env_file', [])
-					envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr-env.sh'.format(package['name']))
+					envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr.env'.format(package['name']))
 					container['env_file'] = envfile
 
 	def default_stemcell(self):

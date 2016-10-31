@@ -3,10 +3,10 @@ name: {{ job_type }}
 templates:
 {% if errand %}
   {{ job_type }}.sh.erb: bin/run
-  opsmgr-env.sh.erb: bin/opsmgr-env.sh
+  opsmgr.env.erb: bin/opsmgr.env
 {% else %}
   {{ job_type }}.sh.erb: bin/{{ job_type }}_ctl
-  opsmgr-env.sh.erb: bin/opsmgr-env.sh
+  opsmgr.env.erb: bin/opsmgr.env
 {% endif %}
 packages:
 {% if not package %}
