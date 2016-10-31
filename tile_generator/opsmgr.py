@@ -145,11 +145,8 @@ def check_response(response, check=True):
 			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
-def ssh_eat_output(output):
-	sys.stdout.write(output)
-	sys.stdout.flush()
-
-def ssh(commands = []):
+def ssh(commands = [], working_dir='/var/tempest/workspaces/default'):
+	interactive = len(commands) == 0
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
 	host = urlparse(url).hostname
@@ -160,10 +157,11 @@ def ssh(commands = []):
 		'-o', 'StrictHostKeyChecking=no',
 		'ubuntu@' + host
 	]
-	prompt = host.split('.',1)[0]
-	commands += [ 'stty -echo' if len(commands) == 0 else 'exit' ]
-	commands = [ 'export PS1="' + prompt + '$ "' ] + commands
-	commands = [ creds.get('opsmgr').get('password') ] + commands
+	prompt = host.split('.',1)[0] + '$ '
+	bootstrap = creds.get('opsmgr').get('password') + '\n'
+	bootstrap += 'cd ' + working_dir + '\n'
+	bootstrap += 'stty -echo; '
+	bootstrap += 'export PS1="' + prompt + '"\n'
 	pid, tty = pty.fork()
 	if pid == 0:
 		try:
@@ -174,31 +172,58 @@ def ssh(commands = []):
 			print(error.output)
 			sys.exit(error.returncode)
 	else:
-		output = os.read(tty, 4096)
-		sys.stdout.write(output)
-		sys.stdout.flush()
-		while True:
-			if len(commands) > 0:
-				wlist = [ tty ]
-			else:
-				wlist = []
-			rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], wlist, [])
-			if sys.stdin.fileno() in rlist:
-				input = os.read(sys.stdin.fileno(), 1024)
-				if len(input) == 0:
-					os.close(tty)
-					break
-				else:
-					os.write(tty, input)
-					os.fsync(tty)
-			elif tty in rlist:
-				output = os.read(tty, 1024)
-				if len(output) == 0:
-					break
-				ssh_eat_output(output)
-			elif tty in wlist:
+		output = os.read(tty, 4096) # Wait for the password prompt (and eat it)
+		os.write(tty, bootstrap) # Send the password
+		ssh_process_output(tty, prompt, show_output=False, show_prompt=interactive) # Eat until prompt
+		if interactive:
+			ssh_interactive(tty)
+		else:
+			while len(commands) > 0:
 				os.write(tty, commands[0] + '\n')
 				commands = commands[1:]
+				ssh_process_output(tty, prompt, show_output=True, show_prompt=False)
+			os.write(tty, 'exit\n')
+			ssh_process_output(tty, prompt, show_output=False, show_prompt=False)
+
+def ssh_interactive(tty):
+	while True:
+		rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
+		if sys.stdin.fileno() in rlist:
+			input = os.read(sys.stdin.fileno(), 1024)
+			if len(input) == 0:
+				break
+			else:
+				os.write(tty, input)
+				os.fsync(tty)
+		elif tty in rlist:
+			output = os.read(tty, 1024)
+			if len(output) == 0:
+				break
+			sys.stdout.write(output)
+			sys.stdout.flush()
+	os.close(tty)
+
+def ssh_process_output(tty, prompt, show_output=True, show_prompt=True):
+	prior = ''
+	eating = True
+	while eating:
+		output = os.read(tty, 1024)
+		if len(output) == 0:
+			return
+		output = prior + output
+		lines = output.splitlines(True)
+		for line in lines:
+			if line.startswith(prompt):
+				eating = False
+				if show_prompt:
+					os.write(sys.stdout.fileno(), line)
+			elif show_output and line.endswith('\n'):
+				os.write(sys.stdout.fileno(), line)
+		lastline = lines[-1]
+		if eating and not lastline.endswith('\n'):
+			prior = lastline
+		else:
+			prior = ''
 
 def get_products():
 	available_products = get('/api/products').json()
