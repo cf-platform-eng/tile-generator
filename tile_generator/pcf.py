@@ -43,6 +43,23 @@ def ssh_cmd(argv):
 		commands = []
 	opsmgr.ssh(commands)
 
+@cli.command('reboot')
+@click.option('--yes-i-am-sure', '-y', is_flag=True)
+def reboot_cmd(yes_i_am_sure=False):
+	if not yes_i_am_sure:
+		print('Rebooting in', end="")
+		for i in range(10, 0, -1):
+			sys.stdout.write(' ' +str(i))
+			sys.stdout.flush()
+			time.sleep(1)
+		print()
+	opsmgr.ssh(['sudo reboot now'], silent=True)
+	opsmgr.unlock()
+
+@cli.command('unlock')
+def unlock_cmd():
+	opsmgr.unlock()
+
 @cli.command('products')
 def products_cmd():
 	products = opsmgr.get_products()

@@ -91,11 +91,11 @@ def get(url, stream=False, check=True):
 	check_response(response, check=check)
 	return response
 
-def put(url, payload):
+def put(url, payload, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	response = requests.put(url, auth=auth(creds), verify=False, data=payload)
-	check_response(response)
+	check_response(response, check=check)
 	return response
 
 def put_json(url, payload):
@@ -145,7 +145,7 @@ def check_response(response, check=True):
 			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
-def ssh(commands = [], working_dir='/var/tempest/workspaces/default'):
+def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False):
 	interactive = len(commands) == 0
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
@@ -181,7 +181,7 @@ def ssh(commands = [], working_dir='/var/tempest/workspaces/default'):
 			while len(commands) > 0:
 				os.write(tty, commands[0] + '\n')
 				commands = commands[1:]
-				ssh_process_output(tty, prompt, show_output=True, show_prompt=False)
+				ssh_process_output(tty, prompt, show_output=not silent, show_prompt=False)
 			os.write(tty, 'exit\n')
 			ssh_process_output(tty, prompt, show_output=False, show_prompt=False)
 
@@ -478,3 +478,37 @@ def last_install(lower=0, upper=1, check=install_exists):
 		return last_install(middle, upper, check=check)
 	else:
 		return last_install(lower, middle - 1, check=check)
+
+def unlock():
+	creds = get_credentials()
+	passphrase = creds.get('opsmgr').get('password')
+	body = { 'passphrase': passphrase }
+	waiting = False
+	while True:
+		response = put('/api/v0/unlock', body, check=False)
+		if response.status_code == requests.codes.ok:
+			if waiting:
+				print(' ok')
+			return
+		if response.status_code == 404:
+			if waiting:
+				print(' ok')
+			print("Unlock not required for this version")
+			return
+		if response.status_code == 503 or response.status_code == 502:
+			if waiting:
+				sys.stdout.write('.')
+				sys.stdout.flush()
+			else:
+				sys.stdout.write('Waiting for ops manager ')
+				sys.stdout.flush()
+				waiting = True
+			time.sleep(5)
+			continue
+		print('-', response.status_code, response.request.url, file=sys.stderr)
+		try:
+			errors = response.json()["errors"]
+			print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
+		except:
+			print(response.text, file=sys.stderr)
+		sys.exit(1)
