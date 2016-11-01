@@ -145,7 +145,7 @@ def check_response(response, check=True):
 			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
-def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False):
+def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False, debug=False):
 	interactive = len(commands) == 0
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
@@ -174,11 +174,13 @@ def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=Fal
 	else:
 		output = os.read(tty, 4096) # Wait for the password prompt (and eat it)
 		os.write(tty, bootstrap) # Send the password
-		ssh_process_output(tty, prompt, show_output=False, show_prompt=interactive) # Eat until prompt
+		ssh_process_output(tty, prompt, show_output=False, show_prompt=interactive, debug=debug) # Eat until prompt
 		if interactive:
 			ssh_interactive(tty)
 		else:
 			while len(commands) > 0:
+				if debug:
+					print(commands[0])
 				os.write(tty, commands[0] + '\n')
 				commands = commands[1:]
 				ssh_process_output(tty, prompt, show_output=not silent, show_prompt=False)
@@ -203,7 +205,7 @@ def ssh_interactive(tty):
 			sys.stdout.flush()
 	os.close(tty)
 
-def ssh_process_output(tty, prompt, show_output=True, show_prompt=True):
+def ssh_process_output(tty, prompt, show_output=True, show_prompt=True, debug=False):
 	prior = ''
 	eating = True
 	while eating:
@@ -215,9 +217,9 @@ def ssh_process_output(tty, prompt, show_output=True, show_prompt=True):
 		for line in lines:
 			if line.startswith(prompt):
 				eating = False
-				if show_prompt:
+				if show_prompt or debug:
 					os.write(sys.stdout.fileno(), line)
-			elif show_output and line.endswith('\n'):
+			elif (show_output or debug) and line.endswith('\n'):
 				os.write(sys.stdout.fileno(), line)
 		lastline = lines[-1]
 		if eating and not lastline.endswith('\n'):
