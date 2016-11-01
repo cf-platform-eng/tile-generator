@@ -75,7 +75,7 @@ property_blueprints:
 - name: {{ service_plan_form.name }}
   type: collection
   configurable: true
-  optional: true
+  optional: {{ service_plan_form.optional if 'optional' in service_plan_form else 'true' }}
   property_blueprints:
   - name: guid
     type: uuid
