@@ -305,6 +305,27 @@ def target_cmd(org, space):
 		login += [ '-s', space ]
 	subprocess.call(login)
 
+@cli.command('curl')
+@click.argument('path')
+@click.option('--request', '-X', type=click.Choice('GET POST PUT DELETE'.split()), default='GET')
+@click.option('--data', '-d', default=None)
+def curl_cmd(path, request, data):
+	if data and os.path.isfile(data):
+		with open(data, 'r') as infile:
+			data = infile.read()
+	if request == 'GET':
+		response = opsmgr.get(path)
+	elif request == 'POST':
+		response = opsmgr.post(path, data)
+	elif request == 'PUT':
+		response = opsmgr.put(path, data)
+	elif request == 'DELETE':
+		response = opsmgr.delete(path)
+	else:
+		print('Unsupported request type: ' + request, file=sys.stderr)
+		sys.exit(1)
+	print(json.dumps(response.json(), indent=2))
+
 @cli.command('version')
 def version_cmd():
 	version = opsmgr.get_version()
