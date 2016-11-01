@@ -19,5 +19,6 @@ RUN apk add --no-cache ruby ruby-bundler
 RUN gem install bosh_cli --no-ri --no-rdoc
 
 RUN apk add --update bash
+RUN apk add --update openssh-client
 
 RUN rm -rf /var/cache/apk/*

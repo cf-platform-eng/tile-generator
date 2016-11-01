@@ -1,0 +1,127 @@
+---
+
+resources:
+
+resources:
+- name: timer
+  type: time
+  source:
+    interval: 20h
+    start: 12:00 AM -0700
+    stop: 4:00 AM -0700
+
+- name: tile-generator-docker-image
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: pcf-environment-1-6
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf1_6
+    private_key: {{github-pool-private-key}}
+
+- name: pcf-environment-1-7
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf1_7
+    private_key: {{github-pool-private-key}}
+
+- name: pcf-environment-1-8
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf
+    private_key: {{github-pool-private-key}}
+
+jobs:
+
+- name: reboot-1-6
+  plan:
+  - aggregate:
+    # - get: timer
+    #   trigger: true
+    - get: tile-generator-docker-image
+    - put: pcf-environment-1-6
+      params:
+        acquire: true
+  - task: reboot
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: pcf-environment-1-6
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cd pcf-environment-1-6
+          pcf ssh echo hello world
+          # pcf reboot -y
+    ensure:
+      put: pcf-environment-1-6
+      params:
+        release: pcf-environment-1-6
+
+- name: reboot-1-7
+  plan:
+  - aggregate:
+    - get: timer
+      trigger: true
+    - get: tile-generator-docker-image
+    - put: pcf-environment-1-7
+      params:
+        acquire: true
+  - task: reboot
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: pcf-environment-1-7
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cd pcf-environment-1-7
+          pcf reboot -y
+    ensure:
+      put: pcf-environment-1-7
+      params:
+        release: pcf-environment-1-7
+
+- name: reboot-1-8
+  plan:
+  - aggregate:
+    - get: timer
+      trigger: true
+    - get: tile-generator-docker-image
+    - put: pcf-environment-1-8
+      params:
+        acquire: true
+  - task: reboot
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: pcf-environment-1-8
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cd pcf-environment-1-8
+          pcf reboot -y
+    ensure:
+      put: pcf-environment-1-8
+      params:
+        release: pcf-environment-1-8
