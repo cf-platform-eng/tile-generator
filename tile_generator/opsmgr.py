@@ -91,11 +91,11 @@ def get(url, stream=False, check=True):
 	check_response(response, check=check)
 	return response
 
-def put(url, payload):
+def put(url, payload, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	response = requests.put(url, auth=auth(creds), verify=False, data=payload)
-	check_response(response)
+	check_response(response, check=check)
 	return response
 
 def put_json(url, payload):
@@ -145,7 +145,8 @@ def check_response(response, check=True):
 			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
-def ssh():
+def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False, debug=False):
+	interactive = len(commands) == 0
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
 	host = urlparse(url).hostname
@@ -156,6 +157,10 @@ def ssh():
 		'-o', 'StrictHostKeyChecking=no',
 		'ubuntu@' + host
 	]
+	prompt = host.split('.',1)[0] + '$ '
+	bootstrap = 'cd ' + working_dir + '; '
+	bootstrap += 'stty -echo; '
+	bootstrap += 'export PS1="' + prompt + '"\n'
 	pid, tty = pty.fork()
 	if pid == 0:
 		try:
@@ -166,27 +171,96 @@ def ssh():
 			print(error.output)
 			sys.exit(error.returncode)
 	else:
-		output = os.read(tty, 4096)
-		sys.stdout.write(output)
-		sys.stdout.flush()
-		os.write(tty, creds.get('opsmgr').get('password') + '\n')
-		os.write(tty, 'stty -echo\n')
-		while True:
-			rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
-			if sys.stdin.fileno() in rlist:
-				input = os.read(sys.stdin.fileno(), 1024)
-				if len(input) == 0:
-					os.close(tty)
-					break
-				else:
-					os.write(tty, input)
-					os.fsync(tty)
-			elif tty in rlist:
-				output = os.read(tty, 1024)
-				if len(output) == 0:
-					break
-				sys.stdout.write(output)
+		ssh_process_output(tty, '*password:', show_output=False, show_prompt=False, debug=debug) # Wait for the password prompt (and eat it)
+		os.write(tty, creds.get('opsmgr').get('password') + '\n') # Send the password
+		ssh_process_output(tty, '*$ ', show_output=False, show_prompt=False, debug=debug) # Wait for first shell prompt (and eat it)
+		os.write(tty, bootstrap) # Send the bootstrap sequence
+		ssh_process_output(tty, prompt, show_output=False, show_prompt=interactive, debug=debug) # Eat until prompt
+		if interactive:
+			ssh_interactive(tty)
+		else:
+			try:
+				while len(commands) > 0:
+					if debug:
+						print(commands[0])
+					os.write(tty, commands[0] + '\n')
+					commands = commands[1:]
+					ssh_process_output(tty, prompt, show_output=not silent, show_prompt=False)
+				os.write(tty, 'exit\n')
+				ssh_process_output(tty, prompt, show_output=False, show_prompt=False)
+			except:
+				# To allow 'exit' or 'reboot', the last command is allowed to close the connection and cause an I/O failure
+				if len(commands) > 0:
+					raise
+
+def ssh_interactive(tty):
+	while True:
+		rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
+		if sys.stdin.fileno() in rlist:
+			input = os.read(sys.stdin.fileno(), 1024)
+			if len(input) == 0:
+				break
+			else:
+				os.write(tty, input)
+				os.fsync(tty)
+		elif tty in rlist:
+			output = os.read(tty, 1024)
+			if len(output) == 0:
+				break
+			sys.stdout.write(output)
+			sys.stdout.flush()
+	os.close(tty)
+
+def ssh_process_output(tty, prompt, show_output=True, show_prompt=True, debug=False):
+	if debug:
+		print('?', prompt)
+	prior = ''
+	eating = True
+	while eating:
+		if debug:
+			sys.stdout.write('<')
+			sys.stdout.flush()
+		output = os.read(tty, 1024)
+		if len(output) == 0:
+			return
+		output = prior + output
+		lines = output.splitlines(True)
+		for line in lines:
+			if ssh_match(prompt, line):
+				eating = False
+				if show_prompt or debug:
+					if debug:
+						sys.stdout.write('=')
+						sys.stdout.flush()
+					sys.stdout.write(line)
+					sys.stdout.flush()
+					if debug:
+						sys.stdout.write('\n')
+						sys.stdout.flush()
+			elif (show_output or debug) and line.endswith('\n'):
+				if debug:
+					sys.stdout.write('>')
+					sys.stdout.flush()
+				sys.stdout.write(line)
 				sys.stdout.flush()
+		lastline = lines[-1]
+		if eating and not lastline.endswith('\n'):
+			if debug:
+				sys.stdout.write('/')
+				sys.stdout.flush()
+				sys.stdout.write(lastline)
+				sys.stdout.flush()
+				sys.stdout.write('\n')
+				sys.stdout.flush()
+			prior = lastline
+		else:
+			prior = ''
+
+def ssh_match(pattern, line):
+	if pattern.startswith('*'):
+		return pattern[1:] in line
+	else:
+		return line.startswith(pattern)
 
 def get_products():
 	available_products = get('/api/products').json()
@@ -197,16 +271,6 @@ def get_products():
 		if product['installed']:
 			product['guid'] = installed[0]['guid']
 	return available_products
-
-def flatten(properties):
-	flattened = {}
-	for key1, value1 in properties.items():
-		if type(value1) is dict and list(value1.keys()) != ['secret']:
-			for key2, value2 in value1.items():
-				flattened[key1 + '_' + key2] = value2
-		else:
-			flattened[key1] = value1
-	return flattened
 
 def get_version():
 	# 1.7 and 1.8 have version in the diagnostic report.
@@ -231,7 +295,7 @@ def get_job_guid(job_identifier, jobs_settings):
 	print('Could not find job with identifier', job_identifier, file=sys.stderr)
 	sys.exit(1)
 
-def configure(product, properties, strict=False):
+def configure(product, properties, strict=False, skip_validation=False):
 	settings = get('/api/installation_settings').json()
 	infrastructure = settings['infrastructure']
 	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
@@ -277,7 +341,6 @@ def configure(product, properties, strict=False):
 			else:
 				if job_property.get('value', None) is None:
 					missing_properties.append('.'.join(('jobs', job['identifier'], property_name)))
-	properties = flatten(properties)
 	for p in product_settings.get('properties', []):
 		key = p['identifier']
 		value = properties.get(key, None)
@@ -286,7 +349,7 @@ def configure(product, properties, strict=False):
 		else:
 			if p.get('value', None) is None:
 				missing_properties += [ key ]
-	if len(missing_properties) > 0:
+	if not skip_validation and len(missing_properties) > 0:
 		print('Input file is missing required properties:', file=sys.stderr)
 		print('- ' + '\n- '.join(missing_properties), file=sys.stderr)
 		sys.exit(1)
@@ -328,8 +391,8 @@ def configure(product, properties, strict=False):
 			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
 	elif version[:2] == [1, 7] or version[:2] == [1, 6]:
 		if job_properties:
-			print('Setting job-specific properties is only supported for PCF 1.8+', file=sys.stderr)
-			sys.exit(1)
+			print('Warning: setting job-specific properties and resource config is only supported for PCF 1.8+', file=sys.stderr)
+			print('         job-specific properties and resource config will not be set', file=sys.stderr)
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	else:
 		print("PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version)))
@@ -340,35 +403,27 @@ def configure(product, properties, strict=False):
 			sys.exit(1)
 
 def get_changes(deploy_errands = None, delete_errands = None):
-	if deploy_errands is None:
-		deploy_errands = ['deploy-all']
-	if delete_errands is None:
-		delete_errands = ['delete-all']
-
-	pending_changes_response = get('/api/v0/staged/pending_changes', check=False)
-	if pending_changes_response.status_code == requests.codes.ok:
-		return build_changes_1_8(deploy_errands, delete_errands, pending_changes_response)
-	elif pending_changes_response.status_code == requests.codes.not_found:
+	version = get_version()
+	if version[0] == 1 and version[1] >= 8:
+		return build_changes_1_8(deploy_errands, delete_errands)
+	elif version[0] == 1 and version[1] == 7:
 		return build_changes_1_7(deploy_errands, delete_errands)
 	else:
-		raise Exception(
-			"Unexpected response code from /api/v0/staged/pending_changes",
-			pending_changes_response.status_code
-		)
+		return None
 
-def build_changes_1_8(deploy_errands, delete_errands, pending_changes_response):
-	changes = pending_changes_response.json()
+def build_changes_1_8(deploy_errands, delete_errands):
+	changes = get('/api/v0/staged/pending_changes').json()
 	for product_change in changes['product_changes']:
 		if product_change['action'] in ['install', 'update']:
 			product_change['errands'] = [
 				e for e in product_change['errands']
-				if e['name'] in deploy_errands
+				if deploy_errands is None or e['name'] in deploy_errands
 			]
 	for product_change in changes['product_changes']:
 		if product_change['action'] == 'delete':
 			product_change['errands'] = [
 				e for e in product_change['errands']
-				if e['name'] in delete_errands
+				if delete_errands is None or e['name'] in delete_errands
 			]
 	return changes
 
@@ -377,16 +432,19 @@ def build_changes_1_7(deploy_errands, delete_errands):
 	staged = [p for p in get('/api/v0/staged/products').json()]
 	install = [p for p in staged if p["guid"] not in [g["guid"] for g in deployed]]
 	delete = [p for p in deployed if p["guid"] not in [g["guid"] for g in staged]]
-	update = [p for p in deployed if p["guid"] in [g["guid"] for g in staged]]
+	update = [p for p in deployed if p["guid"] in [g["guid"] for g in staged if not g["guid"].startswith('cf-')]]
+	# update = []
 	for p in install + update:
 		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
 		errands = [j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand']
 		p['errands'] = []
-		for deploy_errand in deploy_errands:
-			if deploy_errand in errands:
-				p['errands'].append({'name': deploy_errand, 'post_deploy': True})
+		for e in errands:
+			if (deploy_errands is None or e in deploy_errands) and e != 'delete-all':
+				p['errands'].append({'name': e, 'post_deploy': True})
 	for p in delete:
 		p['errands'] = []
+		if delete_errands is None:
+			delete_errands = [ 'delete-all' ]
 		for delete_errand in delete_errands:
 			p['errands'].append({'name': delete_errand, 'pre_delete': True})
 	changes = {'product_changes': [{
@@ -457,3 +515,37 @@ def last_install(lower=0, upper=1, check=install_exists):
 		return last_install(middle, upper, check=check)
 	else:
 		return last_install(lower, middle - 1, check=check)
+
+def unlock():
+	creds = get_credentials()
+	passphrase = creds.get('opsmgr').get('password')
+	body = { 'passphrase': passphrase }
+	waiting = False
+	while True:
+		response = put('/api/v0/unlock', body, check=False)
+		if response.status_code == requests.codes.ok:
+			if waiting:
+				print(' ok')
+			return
+		if response.status_code == 404:
+			if waiting:
+				print(' ok')
+			print("Unlock not required for this version")
+			return
+		if response.status_code == 503 or response.status_code == 502:
+			if waiting:
+				sys.stdout.write('.')
+				sys.stdout.flush()
+			else:
+				sys.stdout.write('Waiting for ops manager ')
+				sys.stdout.flush()
+				waiting = True
+			time.sleep(5)
+			continue
+		print('-', response.status_code, response.request.url, file=sys.stderr)
+		try:
+			errors = response.json()["errors"]
+			print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
+		except:
+			print(response.text, file=sys.stderr)
+		sys.exit(1)

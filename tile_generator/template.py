@@ -23,7 +23,7 @@ import errno
 import base64
 import yaml
 
-from jinja2 import Environment, FileSystemLoader, exceptions
+from jinja2 import Template, Environment, FileSystemLoader, exceptions, contextfilter
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, 'templates'))
@@ -45,15 +45,62 @@ def render_yaml(input):
 def render_shell_string(input):
 	return '<%= Shellwords.escape ' + input + ' %>'
 
-def render_plans_json(input):
+def plans_json(input, escape):
+	value = '=<%= Shellwords.escape JSON.dump(plans) %>' if escape else '=<%= JSON.dump(plans) %>'
 	return ('<%\n'
-	'		plans = { }\n'
-	'		p("' + input + '").each do |plan|\n'
-	'			plan_name = plan[\'name\']\n'
-	'			plans[plan_name] = plan\n'
-	'		end\n'
-	'	%>\n'
-	'	export ' + input.upper() + '=<%= Shellwords.escape JSON.dump(plans) %>')
+	'	plans = { }\n'
+	'	p("' + input + '").each do |plan|\n'
+	'		plan_name = plan[\'name\']\n'
+	'		plans[plan_name] = plan\n'
+	'	end\n'
+	'%>\n'
+	'' + input.upper() + value)
+
+def render_plans_json(input):
+	return plans_json(input, True)
+
+def render_plans_json_noshell(input):
+	return plans_json(input, False)
+
+def render_property_value(property):
+	complex_types = (
+		'simple_credentials',
+		'rsa_cert_credentials',
+		'rsa_pkey_credentials',
+		'salted_credentials',
+		'selector',
+	)
+	if property['type'] in complex_types:
+		return 'properties.{}.marshal_dump.to_json'.format(property['name'])
+	else:
+		return 'properties.' + property['name']
+
+def render_property(property):
+	"""Render a property for bosh manifest, according to its type."""
+	# This ain't the prettiest thing, but it should get the job done.
+	# I don't think we have anything more elegant available at bosh-manifest-generation time.
+	# See https://docs.pivotal.io/partners/product-template-reference.html for list
+	property_fields = {
+		'simple_credentials': ['identity', 'password'],
+		'rsa_cert_credentials': [ 'private_key_pem', 'cert_pem', 'public_key_pem', 'cert_and_private_key_pems' ],
+		'rsa_pkey_credentials': [ 'private_key_pem', 'public_key_pem', 'public_key_openssh', 'public_key_fingerprint' ],
+		'salted_credentials': [ 'salt', 'identity', 'password' ],
+		'selector': [ 'value', 'selected_option', 'nested context' ],
+	}
+	if 'type' in property and property['type'] in property_fields:
+		fields = {}
+		for field in property_fields[property['type']]:
+			fields[field] = '(( .properties.{}.{} ))'.format(property['name'], field)
+		out = { property['name']: fields }
+	else:
+		# Other types use 'value'.
+		out = { property['name']: '(( .properties.{}.value ))'.format(property['name']) }
+	return out
+
+@contextfilter
+def render(context, input):
+	template = Template(input)
+	return template.render(context)
 
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
@@ -62,6 +109,10 @@ TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
 TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
 TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
+TEMPLATE_ENVIRONMENT.filters['plans_json_noshell'] = render_plans_json_noshell
+TEMPLATE_ENVIRONMENT.filters['property'] = render_property
+TEMPLATE_ENVIRONMENT.filters['property_value'] = render_property_value
+TEMPLATE_ENVIRONMENT.filters['render'] = render
 
 def render(target_path, template_file, config):
 	target_dir = os.path.dirname(target_path)

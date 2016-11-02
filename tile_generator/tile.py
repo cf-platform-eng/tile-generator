@@ -42,6 +42,7 @@ def init_cmd(name):
 		sys.exit(0)
 	name = os.path.basename(os.getcwd())
 	template.render(config.CONFIG_FILE, config.CONFIG_FILE, { 'name': name })
+	template.render('.gitignore', 'gitignore', {})
 
 @cli.command('build')
 @click.argument('version', 'patch', required=False)

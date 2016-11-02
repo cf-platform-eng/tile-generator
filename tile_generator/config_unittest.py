@@ -324,6 +324,17 @@ class TestDefaultOptions(unittest.TestCase):
 		config.add_defaults()
 		self.assertFalse(config['purge_service_brokers'])
 
+	def test_normalize_jobs_default_job_properties(self):
+		config = Config({
+			'releases': [{
+				'jobs': [{
+					'name': 'my-job'
+				}]
+			}]
+		})
+		config.normalize_jobs()
+		self.assertEqual(config['releases'][0]['jobs'][0]['properties'], {})
+
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(unittest.TestCase):
 	def test_min_vm_disk_size(self, mock_getsize):

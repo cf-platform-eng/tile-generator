@@ -103,6 +103,14 @@ if target_org; then
 		{% for package in context.packages | reverse %}
 		# Delete package {{ package.name }}
 		#
+		{% if package.pre_delete %}
+		{{ package.pre_delete | render }}
+		{% endif %}
+
+		{% if package.delete %}
+		{{ package.delete | render }}
+		{% else %}
+
 		{% if package.is_broker %}
 		delete_service_broker {{ package.name | hyphens }}
 		{% endif %}
@@ -111,6 +119,12 @@ if target_org; then
 		{% endif %}
 		{% if package.is_buildpack %}
 		cf delete-buildpack -f {{ package.name }}
+		{% endif %}
+
+		{% endif %}
+
+		{% if package.post_delete %}
+		{{ package.pre_delete | render }}
 		{% endif %}
 
 		{% endfor %}

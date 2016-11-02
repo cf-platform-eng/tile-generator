@@ -101,10 +101,11 @@ class BoshRelease:
 
 	def add_job(self, job):
 		job_name = job['name']
-		job_type = job.get('type', job['name'])
-		is_errand = job.get('is_errand', False)
+		job_type = job.get('type', job_name)
+		job_template = job.get('template', job_type)
+		is_errand = job.get('lifecycle', None) == 'errand'
 		package = job.get('package', None)
-		self.__bosh('generate', 'job', job_name)
+		self.__bosh('generate', 'job', job_type)
 		job_context = {
 			'job_name': job_name,
 			'job_type': job_type,
@@ -113,25 +114,28 @@ class BoshRelease:
 			'errand': is_errand,
 		}
 		template.render(
-			os.path.join(self.release_dir, 'jobs', job_name, 'spec'),
+			os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
 			os.path.join('jobs', 'spec'),
 			job_context
 		)
 		template.render(
-			os.path.join(self.release_dir, 'jobs', job_name, 'templates', job_name + '.sh.erb'),
-			os.path.join('jobs', job_type + '.sh.erb'),
+			os.path.join(self.release_dir, 'jobs', job_type, 'templates', job_type + '.sh.erb'),
+			os.path.join('jobs', job_template + '.sh.erb'),
 			job_context
 		)
 		template.render(
-			os.path.join(self.release_dir, 'jobs', job_name, 'monit'),
+			os.path.join(self.release_dir, 'jobs', job_type, 'templates', 'opsmgr.env.erb'),
+			os.path.join('jobs', 'opsmgr.env.erb'),
+			job_context
+		)
+		template.render(
+			os.path.join(self.release_dir, 'jobs', job_type, 'monit'),
 			os.path.join('jobs', 'monit'),
 			job_context
 		)
 
 	def add_package(self, package):
-		# TODO - Name mangling should happen in config
-		name = package['name'].lower().replace('-','_')
-		package['name'] = name
+		name = package['name']
 		dir = package.get('dir', 'blobs')
 		self.__bosh('generate', 'package', name)
 		target_dir = os.path.realpath(os.path.join(self.release_dir, dir, name))
@@ -141,32 +145,16 @@ class BoshRelease:
 		alternate_template = package.get('template', None)
 		if alternate_template is not None:
 			template_dir = os.path.join(template_dir, alternate_template)
+		# Download files for package
+		for file in package.get('files', []):
+			download(file['path'], os.path.join(target_dir, file['name']), cache=self.context.get('cache', None))
+		# Construct context for template rendering
 		package_context = {
 			'context': self.context,
 			'package': package,
-			'files': []
+			'files': [ file['name'] for file in package.get('files', []) ]
 		}
-		files = package.get('files', [])
-		path = package.get('path', None)
-		if path is not None:
-			files += [ { 'path': path } ]
-			package['path'] = os.path.basename(path)
-		manifest = package.get('manifest', None)
-		manifest_path = None
-		if type(manifest) is dict:
-			manifest_path = manifest.get('path', None)
-		if manifest_path is not None:
-			files += [ { 'path': manifest_path } ]
-			package['manifest']['path'] = os.path.basename(manifest_path)
-		for file in files:
-			filename = file.get('name', os.path.basename(file['path']))
-			file['name'] = filename
-			download(file['path'], os.path.join(target_dir, filename), cache=self.context.get('cache', None))
-			package_context['files'] += [ filename ]
-		for docker_image in package.get('docker_images', []):
-			filename = docker_image.lower().replace('/','-').replace(':','-') + '.tgz'
-			download('docker:'+docker_image, os.path.join(target_dir, filename), cache=self.context.get('cache', None))
-			package_context['files'] += [ filename ]
+		# Render cf manifest for apps
 		if package.get('is_app', False):
 			manifest = package.get('manifest', { 'name': name })
 			if manifest.get('random-route', False):

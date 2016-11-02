@@ -5,8 +5,10 @@ city: New Jersey
 country: country_us
 username: SpongeBob
 password: { 'secret': SquarePants }
-# app2:
-#   persistence_store_type: none # p-mysql # Works, but turned off because this is not deployed in our PCF environments
+my_creds:
+  identity: username
+  password: p4ssw0rd
+#app2_persistence_store_type: none # p-mysql # Works, but turned off because this is not deployed in our PCF environments
 dynamic_service_plans:
 - name: plan1
   guid: plan1-id
@@ -41,3 +43,12 @@ custom_dynamic_service_plan_2:
   api_key2: api456
   num_of_license2: 60
 
+# Example of job-specific configuration, supported in PCF 1.8+.
+jobs:
+  redis_z1:
+    # Resource configuration is passed in like this:
+    resource_config:
+      persistent_disk:
+        size_mb: "10240"
+    # Job-specific properties can be passed in here as well, like this:
+#   property_name: property_value

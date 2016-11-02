@@ -45,7 +45,7 @@ function import_opsmgr_variables() {
 	{% endfor %}
 
 	{% for property in context.all_properties %}
-	export {{ property.name | upper }}={{ ( 'properties.' + property.name ) | shell_string }}
+	export {{ property.name | upper }}={{ property | property_value | shell_string }}
 	{% endfor %}
 	{% for package in context.packages if package.type == 'docker-bosh' %}
 	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
@@ -152,9 +152,9 @@ function add_env_vars() {
 	cf set-env $1 PLANS "$DYNAMIC_SERVICE_PLANS"
 	{% endif %}
 
-    # Custom Service Plans
+	# Custom Service Plans
 	{% for service_plan_form in context.service_plan_forms %}
-    cf set-env $1 {{service_plan_form.name | upper }} "${{service_plan_form.name | upper}}"
+	cf set-env $1 {{service_plan_form.name | upper }} "${{service_plan_form.name | upper}}"
 	{% endfor %}
 
 	# Custom variables from tile.yml
@@ -303,13 +303,54 @@ function push_buildpack() {
 	BUILDPACK_NAME="$1"
 	BUILDPACK_ORDER="$2"
 	BUILDPACK_FILE="$3"
+	BUILDPACK_VERSIONED=`echo "${BUILDPACK_FILE}" | sed 's/\.zip$/-v{{ context.version }}.zip/'`
+	cp "${BUILDPACK_FILE}" "${BUILDPACK_VERSIONED}"
 	$CF buildpacks | grep ${BUILDPACK_NAME} >/dev/null
 	if [ "$?" -eq "0" ]; then
-		cf update-buildpack $BUILDPACK_NAME -p $BUILDPACK_FILE --enable
+		cf update-buildpack $BUILDPACK_NAME -p $BUILDPACK_VERSIONED --enable
 	else
-		cf create-buildpack $BUILDPACK_NAME $BUILDPACK_FILE $BUILDPACK_ORDER --enable
+		cf create-buildpack $BUILDPACK_NAME $BUILDPACK_VERSIONED $BUILDPACK_ORDER --enable
 	fi
 }
+
+{% raw %}
+# Function for version comparison based on a code fragment from Stack Overflow
+# http://stackoverflow.com/questions/4023830/how-compare-two-strings-in-dot-separated-version-format-in-bash
+# By Dennis Williamson (http://stackoverflow.com/users/26428/dennis-williamson)
+#
+function is_newer() {
+	arg1=`echo "$1" | sed 's/\([0-9]+(\.[0-9]+)*\)/\1/'`
+	arg2=`echo "$2" | sed 's/\([0-9]+(\.[0-9]+)*\)/\1/'`
+    if [[ "$arg1" == "$arg2" ]]
+    then
+        return 0
+    fi
+    local IFS=.
+    local i ver1=($arg1) ver2=($arg2)
+    # fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            return 0
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            return 1
+        fi
+    done
+    return 0
+}
+{% endraw %}
 
 import_opsmgr_variables
 prepare_cf_cli
@@ -324,6 +365,14 @@ apply_open_security_group "$APPLY_OPEN_SECURITY_GROUP"
 {% for package in context.packages %}
 # Deploy package {{ package.name }}
 #
+
+{% if package.pre_deploy %}
+{{ package.pre_deploy | render }}
+{% endif %}
+
+{% if package.deploy %}
+{{ package.deploy | render }}
+{% else %}
 
 {% if package.is_app %}
 export PKG_NAME={{ package.name }}
@@ -363,6 +412,12 @@ export BUILDPACK_NAME={{ package.name }}
 export BUILDPACK_ORDER={{ ( 'properties.' + package.name + '.buildpack_order' ) | shell_string }}
 export BUILDPACK_FILE=$PACKAGE_PATH/{{ package.name }}/{{ package.path }}
 push_buildpack "$BUILDPACK_NAME" "$BUILDPACK_ORDER" "$BUILDPACK_FILE"
+{% endif %}
+
+{% endif %}
+
+{% if package.post_deploy %}
+{{ package.pre_deploy | render }}
 {% endif %}
 
 {% endfor %}

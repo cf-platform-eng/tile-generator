@@ -72,7 +72,7 @@ class TestGetChanges17(unittest.TestCase):
 		resp_not_found.status_code = 404
 
 		mock_get.side_effect = [
-			resp_not_found,
+			build_json_response(api_responses_1_7['diagnostic_report']),
 			build_json_response(api_responses_1_7['deployed_products']),
 			build_json_response(api_responses_1_7['staged_products']),
 			build_json_response(api_responses_1_7['broker_one_manifest']),
@@ -99,16 +99,18 @@ class TestGetChanges17(unittest.TestCase):
 		self.assertEqual(update_two['guid'], 'tile-two-ed10ef2a821e0e810f2c')
 
 		update_two_errands = update_two['errands']
-		self.assertEqual(len(update_two_errands), 1)
+		self.assertEqual(len(update_two_errands), 2)
 		self.assertEqual(update_two_errands[0]['name'], 'deploy-all')
 		self.assertTrue(update_two_errands[0]['post_deploy'])
+		self.assertEqual(update_two_errands[1]['name'], 'configure-broker')
+		self.assertTrue(update_two_errands[1]['post_deploy'])
 
 	def test_custom_deploy_errands(self, mock_get):
 		resp_not_found = requests.Response()
 		resp_not_found.status_code = 404
 
 		mock_get.side_effect = [
-			resp_not_found,
+			build_json_response(api_responses_1_7['diagnostic_report']),
 			build_json_response(api_responses_1_7['deployed_products']),
 			build_json_response(api_responses_1_7['staged_products']),
 			build_json_response(api_responses_1_7['broker_one_manifest']),
@@ -139,7 +141,7 @@ class TestGetChanges17(unittest.TestCase):
 		resp_not_found.status_code = 404
 
 		mock_get.side_effect = [
-			resp_not_found,
+			build_json_response(api_responses_1_7['diagnostic_report']),
 			build_json_response(api_responses_1_7['deployed_products']),
 			build_json_response(api_responses_1_7['staged_products']),
 			build_json_response(api_responses_1_7['broker_one_manifest']),
@@ -166,7 +168,7 @@ class TestGetChanges17(unittest.TestCase):
 		resp_not_found.status_code = 404
 
 		mock_get.side_effect = [
-			resp_not_found,
+			build_json_response(api_responses_1_7['diagnostic_report']),
 			build_json_response(api_responses_1_7['deployed_products']),
 			build_json_response(api_responses_1_7['staged_products']),
 			build_json_response(api_responses_1_7['broker_one_manifest']),
@@ -197,12 +199,12 @@ class TestGetChanges17(unittest.TestCase):
 class TestGetChanges18(unittest.TestCase):
 	def test_default_install_errands(self, mock_get):
 		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_install'])
 		]
 
 		product_changes = opsmgr.get_changes()
 		changes = product_changes['product_changes']
-
 		self.assertEqual(len(changes), 1)
 
 		install = changes[0]
@@ -210,12 +212,15 @@ class TestGetChanges18(unittest.TestCase):
 		self.assertEqual(install['action'], 'install')
 
 		install_errands = install['errands']
-		self.assertEqual(len(install_errands), 1)
+		self.assertEqual(len(install_errands), 2)
 		self.assertEqual(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
+		self.assertEqual(install_errands[1]['name'], 'config-broker')
+		self.assertTrue(install_errands[1]['post_deploy'])
 
 	def test_custom_install_errands(self, mock_get):
 		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_install'])
 		]
 
@@ -237,6 +242,7 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_default_update_errands(self, mock_get):
 		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_update'])
 		]
 
@@ -250,12 +256,15 @@ class TestGetChanges18(unittest.TestCase):
 		self.assertEqual(install['action'], 'update')
 
 		install_errands = install['errands']
-		self.assertEqual(len(install_errands), 1)
+		self.assertEqual(len(install_errands), 2)
 		self.assertEqual(install_errands[0]['name'], 'deploy-all')
 		self.assertTrue(install_errands[0]['post_deploy'])
+		self.assertEqual(install_errands[1]['name'], 'config-broker')
+		self.assertTrue(install_errands[1]['post_deploy'])
 
 	def test_custom_update_errands(self, mock_get):
 		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_update'])
 		]
 
@@ -277,6 +286,7 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_default_delete_errands(self, mock_get):
 		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_delete'])
 		]
 
@@ -299,10 +309,15 @@ class TestGetChanges18(unittest.TestCase):
 		self.assertEqual(delete_two['action'], 'delete')
 
 		delete_two_errands = delete_two['errands']
-		self.assertEqual(len(delete_two_errands), 0)
+		self.assertEqual(len(delete_two_errands), 2)
+		self.assertEqual(delete_two_errands[0]['name'], 'delete_subdeployments_on_demand_service_broker')
+		self.assertTrue(delete_two_errands[0]['pre_delete'])
+		self.assertEqual(delete_two_errands[1]['name'], 'unregister_on_demand_service_broker')
+		self.assertTrue(delete_two_errands[1]['pre_delete'])
 
 	def test_custom_delete_errands(self, mock_get):
 		mock_get.side_effect = [
+			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_delete'])
 		]
 
@@ -334,6 +349,13 @@ class TestGetChanges18(unittest.TestCase):
 
 
 api_responses_1_7 = {}
+api_responses_1_7['diagnostic_report'] = b"""
+{
+	"versions": {
+		"release_version": "1.7.14"
+	}
+}
+"""
 api_responses_1_7['deployed_products'] = b"""
 [
     {
@@ -438,23 +460,6 @@ api_responses_1_7['tile_two_manifest'] = b"""
                 "templates": [
                     {
                         "release": "tile-two",
-                        "name": "configure-broker"
-                    }
-                ],
-                "resource_pool": "configure-broker",
-                "properties": {},
-                "name": "configure-broker",
-                "update": {
-                    "max_in_flight": 1
-                },
-                "lifecycle": "errand",
-                "instances": 1,
-                "networks": []
-            },
-            {
-                "templates": [
-                    {
-                        "release": "tile-two",
                         "name": "deploy-all"
                     }
                 ],
@@ -475,6 +480,23 @@ api_responses_1_7['tile_two_manifest'] = b"""
                         "name": "default"
                     }
                 ]
+            },
+            {
+                "templates": [
+                    {
+                        "release": "tile-two",
+                        "name": "configure-broker"
+                    }
+                ],
+                "resource_pool": "configure-broker",
+                "properties": {},
+                "name": "configure-broker",
+                "update": {
+                    "max_in_flight": 1
+                },
+                "lifecycle": "errand",
+                "instances": 1,
+                "networks": []
             },
             {
                 "templates": [
@@ -614,6 +636,13 @@ api_responses_1_7['deleting_manifest'] = b"""
 """
 
 api_responses_1_8 = {}
+api_responses_1_8['diagnostic_report'] = b"""
+{
+	"versions": {
+		"release_version": "1.8.4"
+	}
+}
+"""
 api_responses_1_8['pending_changes_install'] = b"""
 {
     "product_changes": [

@@ -62,6 +62,7 @@ property_blueprints:
     unique: true
   - name: name
     type: string
+    unique: true
     configurable: true
   {% for field in dynamic_service_plans %}
   - {{ field | yaml | indent }}
@@ -74,7 +75,7 @@ property_blueprints:
 - name: {{ service_plan_form.name }}
   type: collection
   configurable: true
-  optional: true
+  optional: {{ service_plan_form.optional if 'optional' in service_plan_form else 'true' }}
   property_blueprints:
   - name: guid
     type: uuid
@@ -82,6 +83,7 @@ property_blueprints:
     unique: true
   - name: name
     type: string
+    unique: true
     configurable: true
   {% for field in service_plan_form.properties %}
   - {{ field | yaml | indent }}
@@ -188,7 +190,7 @@ form_types:
       slug: false
   {% for field in service_plan_form.properties %}
     - reference: {{ field.name }}
-      label: {{ field.name }}
+      label: {{ field.label or field.name }}
       description: {{ field.description }}
       slug: false
   {% endfor %}
@@ -314,9 +316,9 @@ job_types:
     configurable: true
     default: 1
 {% for release in releases %}
-{% for job in release.jobs if job.type == 'docker-bosh' %}
+{% for job in release.jobs if job.template and job.template == 'docker-bosh' %}
 #
-# {{ job.type }} job for {{ job.package.name }}
+# {{ job.template }} job for {{ job.package.name }}
 #
 - name: {{ job.name }}
   resource_label: {{ job.name }}
@@ -326,7 +328,7 @@ job_types:
     release: docker
   - name: docker
     release: docker
-  - name: {{ job.name }}
+  - name: {{ job.type }}
     release: {{ release.name }}
   resource_definitions:
   - name: ram
@@ -363,6 +365,56 @@ job_types:
     type: salted_credentials
   manifest: |
     {{ job.package.manifest | yaml | indent }}
+    domain: (( ..cf.cloud_controller.system_domain.value ))
+    app_domains:
+    - (( ..cf.cloud_controller.apps_domain.value ))
+    org: (( .properties.org.value ))
+    space: (( .properties.space.value ))
+    ssl:
+      skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
+    cf:
+      admin_user: (( ..cf.uaa.system_services_credentials.identity ))
+      admin_password: (( ..cf.uaa.system_services_credentials.password ))
+    org_quota: (( .properties.org_quota.value ))
+    apply_open_security_group: (( .properties.apply_open_security_group.value ))
+    allow_paid_service_plans: (( .properties.allow_paid_service_plans.value ))
+    security:
+      user: (( .{{ job.name }}.app_credentials.identity ))
+      password: (( .{{ job.name }}.app_credentials.password ))
+{% for property in all_properties %}
+    {{ property | property | yaml | indent }}
+{% endfor %}
+{% if dynamic_service_plans %}
+    dynamic_service_plans: (( .properties.dynamic_service_plans.value ))
+{% endif %}
+{% for service_plan_form in service_plan_forms %}
+    {{ service_plan_form.name }}: (( .properties.{{ service_plan_form.name }}.value ))
+{% endfor %}
+{% for package in packages %}
+    {{ package.name }}:
+      name: {{ package.name }}
+{% if package.configurable_persistence %}
+      persistence_store_type: (( .properties.{{ package.name }}_persistence_store_type.value ))
+{% endif %}
+{% if package.is_external_broker %}
+      url: (( .properties.{{ package.name }}_url.value ))
+      user: (( .properties.{{ package.name }}_user.value ))
+      password: (( .properties.{{ package.name }}_password.value ))
+{% elif package.is_broker %}
+      user: (( .{{ job.name }}.app_credentials.identity ))
+      password: (( .{{ job.name }}.app_credentials.password ))
+{% endif %}
+{% if package.is_broker %}
+      enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
+{% endif %}
+{% if package.is_buildpack %}
+      buildpack_order: (( .properties.{{ package.name }}_buildpack_order.value ))
+{% endif %}
+{% if package.is_docker_bosh %}
+      host: (( .docker-bosh-{{ package.name }}.first_ip ))
+      hosts: (( .docker-bosh-{{ package.name }}.ips ))
+{% endif %}
+{% endfor %}
 {% endfor %}
 {% endfor %}
 {% for release in releases if release.type == 'bosh-release' %}
@@ -417,16 +469,16 @@ job_types:
 {% endfor %}
 {% endfor %}
 {% for release in releases if not release.type == 'bosh-release' %}
-{% for job in release.jobs if not job.type == 'docker-bosh' %}
+{% for job in release.jobs if not job.template == 'docker-bosh' %}
 #
-# {{ job.name }} job
+# {{ job.type }} job
 #
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: true
   templates:
-  - name: {{ job.name }}
-    release: {{ release.name }}
+  - name: {{ job.type }}
+    release: {{ release.release_name }}
   resource_definitions:
   - name: ram
     type: integer
@@ -471,7 +523,6 @@ job_types:
     cf:
       admin_user: (( ..cf.uaa.system_services_credentials.identity ))
       admin_password: (( ..cf.uaa.system_services_credentials.password ))
-{% if job.type == "deploy-all" %}
     org_quota: (( .properties.org_quota.value ))
     apply_open_security_group: (( .properties.apply_open_security_group.value ))
     allow_paid_service_plans: (( .properties.allow_paid_service_plans.value ))
@@ -479,7 +530,7 @@ job_types:
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
 {% for property in all_properties %}
-    {{ property.name }}: (( .properties.{{ property.name }}.value ))
+    {{ property | property | yaml | indent }}
 {% endfor %}
 {% if dynamic_service_plans %}
     dynamic_service_plans: (( .properties.dynamic_service_plans.value ))
@@ -512,16 +563,12 @@ job_types:
       hosts: (( .docker-bosh-{{ package.name }}.ips ))
 {% endif %}
 {% endfor %}
-{% endif %}
 {% endfor %}
 {% endfor %}
 
 post_deploy_errands:
-{% for errand in post_deploy_errands %}
-- name: {{ errand.name }}
-{% endfor %}
-{% for package in packages if package.type == 'bosh-release' %}
-{% for job in package.jobs %}
+{% for release in releases %}
+{% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.post_deploy %}
 - name: {{ job.name }}
 {% endif %}
@@ -529,11 +576,8 @@ post_deploy_errands:
 {% endfor %}
 
 pre_delete_errands:
-{% for errand in pre_delete_errands %}
-- name: {{ errand.name }}
-{% endfor %}
-{% for package in packages if package.type == 'bosh-release' %}
-{% for job in package.jobs %}
+{% for release in releases %}
+{% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.pre_delete %}
 - name: {{ job.name }}
 {% endif %}

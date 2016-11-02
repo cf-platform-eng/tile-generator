@@ -35,8 +35,32 @@ def cli():
 	pass
 
 @cli.command('ssh')
-def ssh_cmd():
-	opsmgr.ssh()
+@click.argument('argv', nargs=-1)
+@click.option('--debug', '-d', is_flag=True)
+def ssh_cmd(argv, debug=False):
+	if len(argv) > 0:
+		commands = [ ' '.join(argv) ]
+	else:
+		commands = []
+	opsmgr.ssh(commands, debug=debug)
+
+@cli.command('reboot')
+@click.option('--yes-i-am-sure', '-y', is_flag=True)
+def reboot_cmd(yes_i_am_sure=False):
+	if not yes_i_am_sure:
+		print('Rebooting in', end="")
+		for i in range(10, 0, -1):
+			sys.stdout.write(' ' +str(i))
+			sys.stdout.flush()
+			time.sleep(1)
+		print()
+	opsmgr.ssh(['sudo reboot now'], silent=True)
+	time.sleep(10) # Allow system time to go down before we ping the API
+	opsmgr.unlock()
+
+@cli.command('unlock')
+def unlock_cmd():
+	opsmgr.unlock()
 
 @cli.command('products')
 def products_cmd():
@@ -45,16 +69,15 @@ def products_cmd():
 		print("-", product["name"], product["product_version"], "(installed)" if product["installed"] else "")
 
 @cli.command('changes')
-def deployed_cmd():
-	try:
-		changes = opsmgr.get_changes()
-		for p in changes['product_changes']:
-			print(p['action'], p['guid'])
-			for e in p['errands']:
-				print('-', e['name'])
-	except:
+def changes_cmd():
+	changes = opsmgr.get_changes()
+	if changes is None:
 		print('This command is only available for PCF 1.7 and beyond.', file=sys.stderr)
 		sys.exit(1)
+	for p in changes['product_changes']:
+		print(p['action'], p['guid'])
+		for e in p['errands']:
+			print('-', e['name'])
 
 @cli.command('is-available')
 @click.argument('product')
@@ -78,12 +101,15 @@ def is_installed_cmd(product, version):
 
 @cli.command('configure')
 @click.argument('product')
-@click.argument('properties_file')
+@click.argument('properties_file', None, required=False)
 @click.option('--strict', is_flag=True)
-def configure_cmd(product, properties_file, strict=False):
-	with open(properties_file) as f:
-		properties = yaml.safe_load(f)
-	opsmgr.configure(product, properties, strict)
+@click.option('--skip-validation', is_flag=True)
+def configure_cmd(product, properties_file, strict=False, skip_validation=False):
+	properties = {}
+	if properties_file is not None:
+		with open(properties_file) as f:
+			properties = yaml.safe_load(f)
+	opsmgr.configure(product, properties, strict, skip_validation)
 
 @cli.command('settings')
 @click.argument('product', None, required=False)
@@ -208,8 +234,8 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 	enabled_errands = []
 	deploy_errand_list = None if deploy_errands is None else deploy_errands.split(',')
 	delete_errand_list = None if delete_errands is None else delete_errands.split(',')
-	try:
-		changes = opsmgr.get_changes(deploy_errand_list, delete_errand_list)
+	changes = opsmgr.get_changes(deploy_errand_list, delete_errand_list)
+	if changes is not None:
 		if len(changes['product_changes']) == 0:
 			print('Nothing to do', file=sys.stderr)
 			return
@@ -218,13 +244,6 @@ def apply_changes_cmd(deploy_errands, delete_errands):
 			enabled_errands.extend(post_deploy)
 			pre_delete = serialize_errands(p, 'pre_delete', 'pre_delete_errands')
 			enabled_errands.extend(pre_delete)
-
-	except:
-		# Assume we're talking to a PCF version prior to 1.7
-		# It does not support the get_changes APIs
-		# But it also does not require us to pass in the list of errands
-		# So this is perfectly fine
-		pass
 	body = '&'.join(enabled_errands)
 	in_progress = None
 	install_id = None
@@ -286,6 +305,27 @@ def target_cmd(org, space):
 	if space is not None:
 		login += [ '-s', space ]
 	subprocess.call(login)
+
+@cli.command('curl')
+@click.argument('path')
+@click.option('--request', '-X', type=click.Choice('GET POST PUT DELETE'.split()), default='GET')
+@click.option('--data', '-d', default=None)
+def curl_cmd(path, request, data):
+	if data and os.path.isfile(data):
+		with open(data, 'r') as infile:
+			data = infile.read()
+	if request == 'GET':
+		response = opsmgr.get(path)
+	elif request == 'POST':
+		response = opsmgr.post(path, data)
+	elif request == 'PUT':
+		response = opsmgr.put(path, data)
+	elif request == 'DELETE':
+		response = opsmgr.delete(path)
+	else:
+		print('Unsupported request type: ' + request, file=sys.stderr)
+		sys.exit(1)
+	print(json.dumps(response.json(), indent=2))
 
 @cli.command('version')
 def version_cmd():

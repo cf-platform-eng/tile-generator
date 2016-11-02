@@ -32,8 +32,8 @@ if [ -z "${TILE_FILE}" ]; then
 	exit 1
 fi
 
-PRODUCT=`echo "${TILE_FILE}" | sed "s/-[^-]*$//"`
-VERSION=`echo "${TILE_FILE}" | sed "s/.*-//" | sed "s/\.pivotal\$//"`
+PRODUCT=`echo "${TILE_FILE}" | sed "s/-[0-9].*$//"`
+VERSION=`echo "${TILE_FILE}" | sed "s/${PRODUCT}-//" | sed "s/\.pivotal\$//"`
 
 cd "${POOL_DIR}"
 
@@ -64,5 +64,5 @@ $PCF configure "${PRODUCT}" "${REPO_DIR}/sample/missing-properties.yml"
 echo
 
 echo "Applying Changes"
-$PCF apply-changes
+$PCF apply-changes --deploy-errands deploy-meta-buildpack,deploy-all,acceptance-tests
 echo

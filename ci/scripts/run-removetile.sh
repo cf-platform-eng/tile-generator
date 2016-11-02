@@ -32,8 +32,8 @@ if [ -z "${TILE_FILE}" ]; then
 	exit 1
 fi
 
-PRODUCT=`echo "${TILE_FILE}" | sed "s/-[^-]*$//"`
-VERSION=`echo "${TILE_FILE}" | sed "s/.*-//" | sed "s/\.pivotal\$//"`
+PRODUCT=`echo "${TILE_FILE}" | sed "s/-[0-9].*$//"`
+VERSION=`echo "${TILE_FILE}" | sed "s/${PRODUCT}-//" | sed "s/\.pivotal\$//"`
 
 cd "${POOL_DIR}"
 
@@ -51,7 +51,7 @@ $PCF uninstall "${PRODUCT}"
 echo
 
 echo "Applying Changes"
-$PCF apply-changes
+$PCF apply-changes --delete-errands delete-all,delete-meta-buildpack
 echo
 
 echo "Available products:"

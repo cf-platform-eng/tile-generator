@@ -51,7 +51,6 @@ class VerifyApp4(unittest.TestCase):
 		response = requests.get(self.url + '/hello', headers=headers)
 		response.raise_for_status()
 
-	@unittest.expectedFailure
 	def test_receives_custom_properties(self):
 		self.skipIfNoHost()
 		headers = { 'Accept': 'application/json' }

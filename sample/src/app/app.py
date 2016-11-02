@@ -21,6 +21,7 @@ import sys
 import traceback
 import json
 import requests
+import re
 
 from flask import Flask
 from flask import request
@@ -28,7 +29,7 @@ app = Flask(__name__)
 
 vcap_application = json.loads(os.getenv('VCAP_APPLICATION','{ "name": "none", "application_uris": [ "http://localhost:8080" ] }'))
 host = vcap_application['application_uris'][0]
-name = vcap_application['name'].rstrip('01234567889.').rstrip('-')
+name = re.sub('-[0-9].*\\Z', '', vcap_application['name'])
 
 def route(url):
 	return host + url

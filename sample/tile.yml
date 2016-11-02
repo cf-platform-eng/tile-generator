@@ -97,6 +97,10 @@ forms:
                 label: 'Medium'
               - name: well-done
                 label: 'Well done'
+  - name: my_creds
+    type: simple_credentials
+    label: Some Credentials
+    description: Some credentials
 - name: account-info-1
   label: Account Info
   description: Example Account Information Form
@@ -214,6 +218,10 @@ unused_packages:
   type: buildpack
   buildpack_order: 99                 # 99 (or higher) means go to the end of the list
   path: resources/buildpack.zip
+
+- name: noop-decorator                # A decorator buildpack
+  type: decorator
+  path: resources/decorator.zip
 
 - name: app3
   type: docker-app
