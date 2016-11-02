@@ -179,14 +179,19 @@ def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=Fal
 		if interactive:
 			ssh_interactive(tty)
 		else:
-			while len(commands) > 0:
-				if debug:
-					print(commands[0])
-				os.write(tty, commands[0] + '\n')
-				commands = commands[1:]
-				ssh_process_output(tty, prompt, show_output=not silent, show_prompt=False)
-			os.write(tty, 'exit\n')
-			ssh_process_output(tty, prompt, show_output=False, show_prompt=False)
+			try:
+				while len(commands) > 0:
+					if debug:
+						print(commands[0])
+					os.write(tty, commands[0] + '\n')
+					commands = commands[1:]
+					ssh_process_output(tty, prompt, show_output=not silent, show_prompt=False)
+				os.write(tty, 'exit\n')
+				ssh_process_output(tty, prompt, show_output=False, show_prompt=False)
+			except:
+				# To allow 'exit' or 'reboot', the last command is allowed to close the connection and cause an I/O failure
+				if len(commands) > 0:
+					raise
 
 def ssh_interactive(tty):
 	while True:
