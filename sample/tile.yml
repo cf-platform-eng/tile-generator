@@ -86,7 +86,7 @@ forms:
         select_value: Filet Mignon
         property_blueprints:
           - name: rarity_dropdown
-            label: Pepperoni
+            label: How rare?
             type: dropdown_select
             configurable: true
             default: rare

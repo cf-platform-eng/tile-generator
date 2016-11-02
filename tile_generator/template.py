@@ -85,7 +85,7 @@ def render_property(property):
 		'rsa_cert_credentials': [ 'private_key_pem', 'cert_pem', 'public_key_pem', 'cert_and_private_key_pems' ],
 		'rsa_pkey_credentials': [ 'private_key_pem', 'public_key_pem', 'public_key_openssh', 'public_key_fingerprint' ],
 		'salted_credentials': [ 'salt', 'identity', 'password' ],
-		'selector': [ 'value', 'selected_option', 'nested context' ],
+		'selector': [ 'value', 'selected_option' ],
 	}
 	if 'type' in property and property['type'] in property_fields:
 		fields = {}

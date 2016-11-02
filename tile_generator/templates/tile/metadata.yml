@@ -166,6 +166,18 @@ form_types:
   - reference: .properties.{{ property.name }}
     label: {{ property.label }}
     description: {{ property.description or property.label }}
+    {% if property.option_templates %}
+    selector_property_inputs:
+    {% for option in property.option_templates %}
+    - reference: .properties.{{ property.name }}.{{ option.name }}
+      label: {{ option.label or option.select_value }}
+      property_inputs:
+      {% for input in option.property_blueprints %}
+      - reference: .properties.{{ property.name }}.{{ option.name }}.{{ input.name }}
+        label: {{ input.label }}
+      {% endfor %}
+    {% endfor %}
+    {% endif %}
   {% endfor %}
 {% endfor %}
 
