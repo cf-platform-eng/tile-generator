@@ -158,8 +158,7 @@ def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=Fal
 		'ubuntu@' + host
 	]
 	prompt = host.split('.',1)[0] + '$ '
-	bootstrap = creds.get('opsmgr').get('password') + '\n'
-	bootstrap += 'cd ' + working_dir + '\n'
+	bootstrap = 'cd ' + working_dir + '; '
 	bootstrap += 'stty -echo; '
 	bootstrap += 'export PS1="' + prompt + '"\n'
 	pid, tty = pty.fork()
@@ -172,8 +171,10 @@ def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=Fal
 			print(error.output)
 			sys.exit(error.returncode)
 	else:
-		output = os.read(tty, 4096) # Wait for the password prompt (and eat it)
-		os.write(tty, bootstrap) # Send the password
+		ssh_process_output(tty, '*password:', show_output=False, show_prompt=False, debug=debug) # Wait for the password prompt (and eat it)
+		os.write(tty, creds.get('opsmgr').get('password') + '\n') # Send the password
+		ssh_process_output(tty, '*$ ', show_output=False, show_prompt=False, debug=debug) # Wait for first shell prompt (and eat it)
+		os.write(tty, bootstrap) # Send the bootstrap sequence
 		ssh_process_output(tty, prompt, show_output=False, show_prompt=interactive, debug=debug) # Eat until prompt
 		if interactive:
 			ssh_interactive(tty)
@@ -206,26 +207,55 @@ def ssh_interactive(tty):
 	os.close(tty)
 
 def ssh_process_output(tty, prompt, show_output=True, show_prompt=True, debug=False):
+	if debug:
+		print('?', prompt)
 	prior = ''
 	eating = True
 	while eating:
+		if debug:
+			sys.stdout.write('<')
+			sys.stdout.flush()
 		output = os.read(tty, 1024)
 		if len(output) == 0:
 			return
 		output = prior + output
 		lines = output.splitlines(True)
 		for line in lines:
-			if line.startswith(prompt):
+			if ssh_match(prompt, line):
 				eating = False
 				if show_prompt or debug:
-					os.write(sys.stdout.fileno(), line)
+					if debug:
+						sys.stdout.write('=')
+						sys.stdout.flush()
+					sys.stdout.write(line)
+					sys.stdout.flush()
+					if debug:
+						sys.stdout.write('\n')
+						sys.stdout.flush()
 			elif (show_output or debug) and line.endswith('\n'):
-				os.write(sys.stdout.fileno(), line)
+				if debug:
+					sys.stdout.write('>')
+					sys.stdout.flush()
+				sys.stdout.write(line)
+				sys.stdout.flush()
 		lastline = lines[-1]
 		if eating and not lastline.endswith('\n'):
+			if debug:
+				sys.stdout.write('/')
+				sys.stdout.flush()
+				sys.stdout.write(lastline)
+				sys.stdout.flush()
+				sys.stdout.write('\n')
+				sys.stdout.flush()
 			prior = lastline
 		else:
 			prior = ''
+
+def ssh_match(pattern, line):
+	if pattern.startswith('*'):
+		return pattern[1:] in line
+	else:
+		return line.startswith(pattern)
 
 def get_products():
 	available_products = get('/api/products').json()
