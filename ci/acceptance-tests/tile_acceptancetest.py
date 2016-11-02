@@ -47,6 +47,15 @@ class VerifyProperties(unittest.TestCase):
 		org_quota = [ p for p in blueprints if p['name'] == 'org_quota' ][0]
 		self.assertEqual(org_quota['default'], 2560)
 
+	def test_optional(self):
+		blueprints = self.config['property_blueprints']
+		self.assertFalse(find_by_name(blueprints, 'author')['optional'])
+		self.assertTrue(find_by_name(blueprints, 'customer_name')['optional'])
+		self.assertFalse(find_by_name(blueprints, 'street_address')['optional'])
+
+def find_by_name(lst, name):
+	return next(x for x in lst if x.get('name', None) == name)
+
 def read_yaml(filename):
 	with open(filename, 'rb') as file:
 		return yaml.safe_load(file)

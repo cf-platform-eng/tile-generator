@@ -31,6 +31,7 @@ forms:
     type: string
     label: Street Address
     description: Address to use for junk mail
+    optional: false
   - name: city
     type: string
     label: City
