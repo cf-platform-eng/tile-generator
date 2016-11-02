@@ -55,6 +55,7 @@ def reboot_cmd(yes_i_am_sure=False):
 			time.sleep(1)
 		print()
 	opsmgr.ssh(['sudo reboot now'], silent=True)
+	time.sleep(10) # Allow system time to go down before we ping the API
 	opsmgr.unlock()
 
 @cli.command('unlock')
