@@ -26,6 +26,7 @@ forms:
   - name: customer_name
     type: string
     label: Full Name
+    optional: true
   - name: street_address
     type: string
     label: Street Address
