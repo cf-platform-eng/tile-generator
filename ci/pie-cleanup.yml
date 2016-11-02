@@ -47,8 +47,8 @@ jobs:
 - name: reboot-1-6
   plan:
   - aggregate:
-    # - get: timer
-    #   trigger: true
+    - get: timer
+      trigger: true
     - get: tile-generator-docker-image
     - put: pcf-environment-1-6
       params:
@@ -65,8 +65,7 @@ jobs:
         - -exc
         - |
           cd pcf-environment-1-6
-          pcf ssh echo hello world
-          # pcf reboot -y
+          pcf reboot -y
     ensure:
       put: pcf-environment-1-6
       params:
