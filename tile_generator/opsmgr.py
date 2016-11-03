@@ -344,18 +344,6 @@ def configure(product, properties, strict=False, skip_validation=False):
 	for p in product_settings.get('properties', []):
 		key = p['identifier']
 		value = properties.get(key, None)
-		# if type(value) is dict:
-		# 	print('blah1', key)
-		# 	selected_option = value.get('selected_option', None)
-		# 	if selected_option is not None:
-		# 		print('blah2', key)
-		# 		value.pop('selected_option')
-		# 		print('value', value)
-		# 		p.update(value)
-		# 		print('p1', p)
-		# 		p['value'] = selected_option
-		# 		print('p2', p)
-		# 		continue
 		if value is not None:
 			p['value'] = value
 		else:
@@ -392,7 +380,6 @@ def configure(product, properties, strict=False, skip_validation=False):
 			if not key.startswith('.'):
 				key = '.properties.' + key
 			scoped_properties[key] = { 'value': value }
-			print(key, value)
 		properties = { 'properties': scoped_properties }
 		url = '/api/v0/staged/products/' + product_settings['guid']
 		put_json(url + '/networks_and_azs', networks_and_azs)
