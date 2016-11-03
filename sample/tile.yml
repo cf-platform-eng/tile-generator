@@ -55,19 +55,19 @@ forms:
     label: Albums
     configurable: true
     property_blueprints:
-      - name: album
-        type: string
-        label: Album
-      - name: artist
-        type: string
-        label: Artist
-      - name: explicit
-        type: boolean
-        label: Explicit
+    - name: album
+      type: string
+      label: Album
+    - name: artist
+      type: string
+      label: Artist
+    - name: explicit
+      type: boolean
+      label: Explicit
     default:
-      - album: Christmas Carols
-        artist: Ops Manatee
-        explicit: true
+    - album: Christmas Carols
+      artist: Ops Manatee
+      explicit: true
 - name: food_form
   label: Food Order
   description: Example of selector property type
@@ -78,37 +78,37 @@ forms:
     configurable: true
     default: Pizza
     option_templates:
-      - name: pizza_option
-        select_value: Pizza
-        property_blueprints:
-          - name: pepperoni
-            type: boolean
-            label: Pepperoni
-            configurable: true
-          - name: pineapple
-            label: Pineapple
-            type: boolean
-            configurable: true
-          - name: other_toppings
-            label: Other Toppings
-            type: string
-            configurable: true
-            optional: true
-      - name: filet_mignon_option
-        select_value: Filet Mignon
-        property_blueprints:
-          - name: rarity_dropdown
-            label: How rare?
-            type: dropdown_select
-            configurable: true
-            default: rare
-            options:
-              - name: rare
-                label: 'Rare'
-              - name: medium
-                label: 'Medium'
-              - name: well-done
-                label: 'Well done'
+    - name: pizza_option
+      select_value: Pizza
+      property_blueprints:
+      - name: pepperoni
+        type: boolean
+        label: Pepperoni
+        configurable: true
+      - name: pineapple
+        label: Pineapple
+        type: boolean
+        configurable: true
+      - name: other_toppings
+        label: Other Toppings
+        type: string
+        configurable: true
+        optional: true
+    - name: filet_mignon_option
+      select_value: Filet Mignon
+      property_blueprints:
+      - name: rarity_dropdown
+        label: How rare?
+        type: dropdown_select
+        configurable: true
+        default: rare
+        options:
+        - name: rare
+          label: 'Rare'
+        - name: medium
+          label: 'Medium'
+        - name: well-done
+          label: 'Well done'
 - name: credentials_form
   label: Credentials
   description: Examples of secret property types
