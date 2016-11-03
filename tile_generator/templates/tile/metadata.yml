@@ -166,6 +166,15 @@ form_types:
   - reference: .properties.{{ property.name }}
     label: {{ property.label }}
     description: {{ property.description or property.label }}
+    {% if property.property_blueprints %}
+    property_inputs:
+    {% for input in property.property_blueprints %}
+    {# This... is ridiculously inconsistent. In every other place the names are fully qualified #}
+    - reference: {{ input.name }}
+      label: {{ input.label }}
+      description: {{ input.description or input.label}}
+    {% endfor %}
+    {% endif %}
     {% if property.option_templates %}
     selector_property_inputs:
     {% for option in property.option_templates %}
@@ -175,6 +184,7 @@ form_types:
       {% for input in option.property_blueprints %}
       - reference: .properties.{{ property.name }}.{{ option.name }}.{{ input.name }}
         label: {{ input.label }}
+        description: {{ input.description or input.label }}
       {% endfor %}
     {% endfor %}
     {% endif %}
