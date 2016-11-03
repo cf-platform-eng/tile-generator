@@ -101,6 +101,8 @@ def download(url, filename, cache=None):
 			print(docker_image, 'not found on local machine', file=sys.stderr)
 			print('you must either pull the image, or download it and use the --cache option', file=sys.stderr)
 			sys.exit(1)
+	elif os.path.isdir(url):
+		shutil.copytree(url, filename)
 	else:
 		shutil.copy(url, filename)
 
