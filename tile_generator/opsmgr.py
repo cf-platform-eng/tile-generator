@@ -522,30 +522,33 @@ def unlock():
 	body = { 'passphrase': passphrase }
 	waiting = False
 	while True:
-		response = put('/api/v0/unlock', body, check=False)
-		if response.status_code == requests.codes.ok:
-			if waiting:
-				print(' ok')
-			return
-		if response.status_code == 404:
-			if waiting:
-				print(' ok')
-			print("Unlock not required for this version")
-			return
-		if response.status_code == 503 or response.status_code == 502:
-			if waiting:
-				sys.stdout.write('.')
-				sys.stdout.flush()
-			else:
-				sys.stdout.write('Waiting for ops manager ')
-				sys.stdout.flush()
-				waiting = True
-			time.sleep(5)
-			continue
-		print('-', response.status_code, response.request.url, file=sys.stderr)
 		try:
-			errors = response.json()["errors"]
-			print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
-		except:
-			print(response.text, file=sys.stderr)
-		sys.exit(1)
+			response = put('/api/v0/unlock', body, check=False)
+			if response.status_code == requests.codes.ok:
+				if waiting:
+					print(' ok')
+				return
+			if response.status_code == 404:
+				if waiting:
+					print(' ok')
+				print("Unlock not required for this version")
+				return
+			if response.status_code != 503 and response.status_code != 502:
+				print('-', response.status_code, response.request.url, file=sys.stderr)
+				try:
+					errors = response.json()["errors"]
+					print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
+				except:
+					print(response.text, file=sys.stderr)
+				sys.exit(1)
+		except requests.exceptions.ConnectionError:
+			pass
+		if waiting:
+			sys.stdout.write('.')
+			sys.stdout.flush()
+		else:
+			sys.stdout.write('Waiting for ops manager ')
+			sys.stdout.flush()
+			waiting = True
+		time.sleep(5)
+		continue
