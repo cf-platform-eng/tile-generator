@@ -39,8 +39,20 @@ def render_base64(file):
 def render_hyphens(input):
 	return input.replace('_','-')
 
+def expand_selector(input):
+	if input.get('type', None) == 'selector':
+		for option in input.get('option_templates', []):
+			properties = ''
+			for p in option.get('property_blueprints', []):
+				properties += p['name'] + ': (( .properties.' + input['name'] + '.' + option['name'] + '.' + p['name'] + '.value ))\r\n'
+			option['named_manifests'] = [{
+				'name': 'manifest_snippet',
+				'manifest': properties
+			}]
+	return input
+
 def render_yaml(input):
-	return yaml.safe_dump(input, default_flow_style=False)
+	return yaml.safe_dump(input, default_flow_style=False, width=float("inf"))
 
 def render_shell_string(input):
 	return '<%= Shellwords.escape ' + input + ' %>'
@@ -85,12 +97,15 @@ def render_property(property):
 		'rsa_cert_credentials': [ 'private_key_pem', 'cert_pem', 'public_key_pem', 'cert_and_private_key_pems' ],
 		'rsa_pkey_credentials': [ 'private_key_pem', 'public_key_pem', 'public_key_openssh', 'public_key_fingerprint' ],
 		'salted_credentials': [ 'salt', 'identity', 'password' ],
-		'selector': [ 'value', 'selected_option' ],
+		'selector': [ 'value', ('selected_option', 'selected_option.parsed_manifest(manifest_snippet)') ],
 	}
 	if 'type' in property and property['type'] in property_fields:
 		fields = {}
 		for field in property_fields[property['type']]:
-			fields[field] = '(( .properties.{}.{} ))'.format(property['name'], field)
+			if type(field) is tuple:
+				fields[field[0]] = '(( .properties.{}.{} ))'.format(property['name'], field[1])
+			else:
+				fields[field] = '(( .properties.{}.{} ))'.format(property['name'], field)
 		out = { property['name']: fields }
 	else:
 		# Other types use 'value'.
@@ -106,6 +121,7 @@ TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
 TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
+TEMPLATE_ENVIRONMENT.filters['expand_selector'] = expand_selector
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
 TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
 TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json

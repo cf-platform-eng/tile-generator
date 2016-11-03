@@ -146,7 +146,7 @@ property_blueprints:
 # Custom properties from the tile.yml file
 #
 {% for property in all_properties %}
-- {{ property | yaml | indent(2) }}
+- {{ property | expand_selector | yaml | indent(2) }}
 {% endfor %}
 
 form_types:
