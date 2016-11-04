@@ -74,6 +74,7 @@ function setup_target_org() {
 	fi
 	if ! $CF org $CF_ORG >/dev/null; then
 		cf create-org $CF_ORG
+		ignore_failure=`$CF set-quota $CF_ORG runaway`
 	fi
 	cf target -o $CF_ORG
 }
