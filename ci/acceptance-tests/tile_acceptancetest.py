@@ -42,11 +42,6 @@ class VerifyProperties(unittest.TestCase):
 		self.assertEqual(len(files), 1)
 		self.config = read_yaml(files[0])
 
-	def test_has_correct_memory_quota(self):
-		blueprints = self.config['property_blueprints']
-		org_quota = [ p for p in blueprints if p['name'] == 'org_quota' ][0]
-		self.assertEqual(org_quota['default'], 2560)
-
 	def test_optional(self):
 		blueprints = self.config['property_blueprints']
 		self.assertFalse(find_by_name(blueprints, 'author')['optional'])

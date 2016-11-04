@@ -10,7 +10,6 @@ description: Longer description of the tile's purpose
 # Global defaults (all optional)
 #
 # org: test-org                         # Name of org to create for your apps
-# org_quota: 4096                       # Memory quota for that org in MB
 # space: test-space                     # Name of space to create for your apps
 apply_open_security_group: true         # Apply open security group, default: false
 
