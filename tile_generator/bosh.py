@@ -24,6 +24,7 @@ import requests
 import shutil
 import subprocess
 import tarfile
+import tempfile
 from . import template
 try:
 	# Python 3
@@ -134,6 +135,19 @@ class BoshRelease:
 			job_context
 		)
 
+	def needs_zip(self, package):
+		# Only zip CF packages...
+		if not package.get('is_cf', False):
+			return False
+		files = package['files']
+		# ...if it has more than one file...
+		if len(files) > 1:
+			return True
+		# ...or a single file is not already a zip.
+		elif len(files) == 1:
+			return not zipfile.is_zipfile(files[0]['path'])
+		return False
+
 	def add_package(self, package):
 		name = package['name']
 		dir = package.get('dir', 'blobs')
@@ -146,8 +160,21 @@ class BoshRelease:
 		if alternate_template is not None:
 			template_dir = os.path.join(template_dir, alternate_template)
 		# Download files for package
+		staging_dir = tempfile.mkdtemp()
 		for file in package.get('files', []):
-			download(file['path'], os.path.join(target_dir, file['name']), cache=self.context.get('cache', None))
+			download(file['path'], os.path.join(staging_dir, file['name']), cache=self.context.get('cache', None))
+		if self.needs_zip(package):
+			path = package['manifest'].get('path', '')
+			dir_to_zip = os.path.join(staging_dir, path) if path else staging_dir
+			zipfilename = os.path.realpath(os.path.join(target_dir, package['name'] + '.zip'))
+			zip_dir(zipfilename, dir_to_zip)
+			# import pdb;pdb.set_trace()
+			package['manifest']['path'] = os.path.basename(zipfilename)
+			package['files'] = [{ 'path': zipfilename, 'name': os.path.basename(zipfilename) }]
+		else:
+			for file in os.listdir(staging_dir):
+				os.rename(os.path.join(staging_dir, file), os.path.join(target_dir, file))
+		shutil.rmtree(staging_dir)
 		# Construct context for template rendering
 		package_context = {
 			'context': self.context,

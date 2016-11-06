@@ -130,6 +130,21 @@ packages:
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
 
+- name: app1-auto-zip                 # app1, specified by source directory to test auto-zipping
+  type: app
+  manifest:
+    path: src/app
+    command: python app.py            # This is required for python, optional for many other languages
+    memory: 256M                      # Override memory, default: 1G
+
+- name: binary-app                    # Self-contained app to test binary buildpack
+  type: app
+  manifest:
+    path: src/binary-app/binary-app.py
+    command: ./binary-app.py          # This is required for python, optional for many other languages
+    memory: 256M                      # Override memory, default: 1G
+    buildpack: binary_buildpack
+
 - name: service-broker1               # Broker with minimal configuration, i.e. all default values
   type: app-broker
   enable_global_access_to_plans: true

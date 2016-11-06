@@ -24,6 +24,7 @@ import requests
 import shutil
 import sys
 import re
+import zipfile
 try:
 	# Python 3
 	from urllib.request import urlretrieve
@@ -106,3 +107,13 @@ def download(url, filename, cache=None):
 	else:
 		shutil.copy(url, filename)
 
+def zip_dir(zipfilename, dirname):
+	with zipfile.ZipFile(zipfilename, 'w') as packagezip:
+		if os.path.isdir(dirname):
+			for root, dirs, files in os.walk(dirname):
+				for file in files:
+					abspath = os.path.join(root, file)
+					relpath = abspath[len(dirname)+1:] # +1 for trailing slash.
+					packagezip.write(abspath, relpath)
+		elif os.path.isfile(dirname):
+			packagezip.write(dirname, os.path.basename(dirname))
