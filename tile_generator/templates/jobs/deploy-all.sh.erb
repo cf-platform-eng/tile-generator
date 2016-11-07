@@ -400,7 +400,7 @@ push_buildpack "$BUILDPACK_NAME" "$BUILDPACK_ORDER" "$BUILDPACK_FILE"
 {% endif %}
 
 {% if package.post_deploy %}
-{{ package.pre_deploy | render }}
+{{ package.post_deploy | render }}
 {% endif %}
 
 {% endfor %}
