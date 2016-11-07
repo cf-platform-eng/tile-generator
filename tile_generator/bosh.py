@@ -160,21 +160,20 @@ class BoshRelease:
 		if alternate_template is not None:
 			template_dir = os.path.join(template_dir, alternate_template)
 		# Download files for package
-		staging_dir = tempfile.mkdtemp()
-		for file in package.get('files', []):
-			download(file['path'], os.path.join(staging_dir, file['name']), cache=self.context.get('cache', None))
 		if self.needs_zip(package):
+			staging_dir = tempfile.mkdtemp()
+			for file in package.get('files', []):
+				download(file['path'], os.path.join(staging_dir, file['name']), cache=self.context.get('cache', None))
 			path = package['manifest'].get('path', '')
 			dir_to_zip = os.path.join(staging_dir, path) if path else staging_dir
 			zipfilename = os.path.realpath(os.path.join(target_dir, package['name'] + '.zip'))
 			zip_dir(zipfilename, dir_to_zip)
-			# import pdb;pdb.set_trace()
+			shutil.rmtree(staging_dir)
 			package['manifest']['path'] = os.path.basename(zipfilename)
 			package['files'] = [{ 'path': zipfilename, 'name': os.path.basename(zipfilename) }]
 		else:
-			for file in os.listdir(staging_dir):
-				os.rename(os.path.join(staging_dir, file), os.path.join(target_dir, file))
-		shutil.rmtree(staging_dir)
+			for file in package.get('files', []):
+				download(file['path'], os.path.join(target_dir, file['name']), cache=self.context.get('cache', None))
 		# Construct context for template rendering
 		package_context = {
 			'context': self.context,
