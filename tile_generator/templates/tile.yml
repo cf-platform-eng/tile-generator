@@ -74,3 +74,11 @@ packages:
 # requires_product_versions:
 # - name: p-mysql
 #   version: '~> 1.7'
+
+# If prior versions of your tile are installed and configured, their
+# property values will not be overwritten by new defaults provided
+# in this file. If that is your intent, you must do the overwriting
+# explicitly using JavaScript migration functions, like so:
+#
+# migration: |
+#   properties['properties']['.properties.org']['value'] = 'system';
