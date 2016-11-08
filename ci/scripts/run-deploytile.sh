@@ -64,5 +64,5 @@ $PCF configure "${PRODUCT}" "${REPO_DIR}/sample/missing-properties.yml"
 echo
 
 echo "Applying Changes"
-$PCF apply-changes --deploy-errands deploy-meta-buildpack,deploy-all,acceptance-tests
+$PCF apply-changes --deploy-errands deploy-meta-buildpack,deploy-all,acceptance-tests --delete-errands ''
 echo
