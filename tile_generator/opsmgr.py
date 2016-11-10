@@ -493,7 +493,7 @@ def logs(install_id):
 		log_lines = get('/api/installation/' + str(install_id) + '/logs').json()['logs'].splitlines()
 		for line in log_lines[lines_shown:]:
 			if not line.startswith('{'):
-				print(' ', line)
+				print(' ', line.encode('utf-8'))
 		lines_shown = len(log_lines)
 		if running:
 			time.sleep(1)
