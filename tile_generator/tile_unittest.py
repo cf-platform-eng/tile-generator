@@ -37,9 +37,11 @@ class TestTileInit(unittest.TestCase):
 	# Encountered unicode in `pcf apply-changes` output. Stashing
 	# the next two tests to document the problem and solution, as
 	# we may encounter this pattern elsewhere.
-	def test_print_unicode_works(self):
-		with self.assertRaises(UnicodeEncodeError):
-			print(u'foo\xb1bar')
+	## This passes (i.e., raises error as expected) in my
+	## terminal, but not in CI pipeline.
+	# def test_print_unicode_works(self):
+	# 	with self.assertRaises(UnicodeEncodeError):
+	# 		print(u'foo\xb1bar')
 
 	def test_print_utf8_works(self):
 		print(u'foo\xb1bar'.encode('utf-8'))
