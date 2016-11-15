@@ -128,6 +128,7 @@ function add_env_vars() {
 	cf set-env $1 CF_ORG "$CF_ORG"
 	cf set-env $1 CF_SPACE "$CF_SPACE"
 	cf set-env $1 CF_TARGET "$CF_TARGET"
+	cf set-env $1 CF_SKIP_SSL "$CF_SKIP_SSL"
 	cf set-env $1 SECURITY_USER_NAME "$SECURITY_USER_NAME"
 	cf set-env $1 SECURITY_USER_PASSWORD "$SECURITY_USER_PASSWORD"
 
