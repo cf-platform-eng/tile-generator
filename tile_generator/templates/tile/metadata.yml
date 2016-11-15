@@ -31,10 +31,6 @@ property_blueprints:
   type: string
   configurable: true
   default: {{ org }}
-- name: org_quota
-  type: integer
-  configurable: true
-  default: {{ org_quota or 1024 }}
 - name: space
   type: string
   configurable: true
@@ -397,7 +393,6 @@ job_types:
     cf:
       admin_user: (( ..cf.uaa.system_services_credentials.identity ))
       admin_password: (( ..cf.uaa.system_services_credentials.password ))
-    org_quota: (( .properties.org_quota.value ))
     apply_open_security_group: (( .properties.apply_open_security_group.value ))
     allow_paid_service_plans: (( .properties.allow_paid_service_plans.value ))
     security:
@@ -545,7 +540,6 @@ job_types:
     cf:
       admin_user: (( ..cf.uaa.system_services_credentials.identity ))
       admin_password: (( ..cf.uaa.system_services_credentials.password ))
-    org_quota: (( .properties.org_quota.value ))
     apply_open_security_group: (( .properties.apply_open_security_group.value ))
     allow_paid_service_plans: (( .properties.allow_paid_service_plans.value ))
     security:

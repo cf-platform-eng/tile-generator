@@ -47,8 +47,6 @@ HISTORY_FILE = "tile-history.yml"
 # Process Packages - Normalizes all package descriptions and sorts them into the
 # appropriate bosh releases depending on their types
 #
-# Validate Releases - Ensure that all generated releases are sane
-#
 # Add Dependencies - Add all auto-dependencies for the packages and releases
 #
 # Normalize File Lists - Packages specify the files they use in many different
@@ -87,7 +85,6 @@ class Config(dict):
 		self.add_defaults()
 		self.upgrade()
 		self.process_packages()
-		self.validate_releases()
 		self.add_dependencies()
 		self.normalize_file_lists()
 		self.normalize_jobs()
@@ -116,7 +113,6 @@ class Config(dict):
 				release['requires_meta_buildpack'] = True				
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
-				self.update_memory(release, manifest)
 				if not 'is_docker' in flags:
 					self.update_compilation_vm_disk_size(manifest)
 
@@ -172,11 +168,6 @@ class Config(dict):
 			if release['name'] == name:
 				return release
 		return None
-
-	def validate_releases(self):
-		for release in self.get('releases', []):
-			if release.get('is_cf', False):
-				self.validate_memory_quota(release)
 
 	def add_dependencies(self):
 		requires_docker_bosh = False
@@ -296,8 +287,6 @@ class Config(dict):
 	def add_defaults(self):
 		self['stemcell_criteria'] = self.default_stemcell()
 		self['all_properties'] = self.get('properties', [])
-		self['total_memory'] = 0
-		self['max_memory'] = 0
 		self['org'] = self.get('org', None) or self['name'] + '-org'
 		self['space'] = self.get('space', None) or self['name'] + '-space'
 		self['apply_open_security_group'] = self.get('apply_open_security_group', False)
@@ -409,37 +398,6 @@ class Config(dict):
 			version = '.'.join(semver)
 		history['version'] = version
 		self['version'] = version
-
-	def update_memory(self, release, manifest):
-		memory = manifest.get('memory', '1G')
-		unit = memory.lstrip('0123456789').lstrip(' ').lower()
-		if unit not in [ 'g', 'gb', 'm', 'mb' ]:
-			print('invalid memory size unit', unit, 'in', memory, file=sys.stderr)
-			sys.exit(1)
-		memory = int(memory[:-len(unit)])
-		if unit in [ 'g', 'gb' ]:
-			memory *= 1024
-		release['total_memory'] = release.get('total_memory', 0) + memory
-		if memory > release.get('max_memory', 0):
-			release['max_memory'] = memory
-
-	def validate_memory_quota(self, release):
-		total_memory = release.get('total_memory', 0)
-		max_memory = release.get('max_memory', 0)
-		required = total_memory + max_memory
-		specified = self.get('org_quota', None)
-		if specified is None:
-			# We default to twice the total size
-			# For most cases this is generous, but there's no harm in it
-			release['org_quota'] = total_memory * 2
-			if self.get('org_quota', 0) < release['org_quota']:
-				self['org_quota'] = release['org_quota']
-		elif specified < required:
-			print('Specified org quota of', specified, 'MB is insufficient', file=sys.stderr)
-			print('Required quota is at least the total package size of', total_memory, 'MB', file=sys.stderr)
-			print('Plus enough room for blue/green deployment of the largest app:', max_memory, 'MB', file=sys.stderr)
-			print('For a total of:', required, 'MB', file=sys.stderr)
-			sys.exit(1)
 
 	def update_compilation_vm_disk_size(self, manifest):
 		package_file = manifest.get('path')

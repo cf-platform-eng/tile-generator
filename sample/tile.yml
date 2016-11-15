@@ -8,7 +8,6 @@ icon_file: resources/icon.png
 # org: test-org                       # Optional
 # space: test-space                   # Optional
 # docker_bosh_version: '28'           # Optional, default: latest release
-# org_quota: 4096                     # Optional, memory quota in mb
 apply_open_security_group: true       # Apply open security group, default: false
 allow_paid_service_plans: true        # Allow paid service plans, default: false
 
@@ -26,10 +25,12 @@ forms:
   - name: customer_name
     type: string
     label: Full Name
+    optional: true
   - name: street_address
     type: string
     label: Street Address
     description: Address to use for junk mail
+    optional: false
   - name: city
     type: string
     label: City
@@ -193,6 +194,21 @@ packages:
     memory: 256M                      # Override memory, default: 1G
 
 unused_packages:
+
+- name: app1-auto-zip                 # app1, specified by source directory to test auto-zipping
+  type: app
+  manifest:
+    path: src/app
+    command: python app.py            # This is required for python, optional for many other languages
+    memory: 256M                      # Override memory, default: 1G
+
+- name: binary-app                    # Self-contained app to test binary buildpack
+  type: app
+  manifest:
+    path: src/binary-app/binary-app.py
+    command: ./binary-app.py          # This is required for python, optional for many other languages
+    memory: 256M                      # Override memory, default: 1G
+    buildpack: binary_buildpack
 
 - name: service-broker1               # Broker with minimal configuration, i.e. all default values
   type: app-broker

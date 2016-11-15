@@ -42,10 +42,14 @@ class VerifyProperties(unittest.TestCase):
 		self.assertEqual(len(files), 1)
 		self.config = read_yaml(files[0])
 
-	def test_has_correct_memory_quota(self):
+	def test_optional(self):
 		blueprints = self.config['property_blueprints']
-		org_quota = [ p for p in blueprints if p['name'] == 'org_quota' ][0]
-		self.assertEqual(org_quota['default'], 2560)
+		self.assertFalse(find_by_name(blueprints, 'author')['optional'])
+		self.assertTrue(find_by_name(blueprints, 'customer_name')['optional'])
+		self.assertFalse(find_by_name(blueprints, 'street_address')['optional'])
+
+def find_by_name(lst, name):
+	return next(x for x in lst if x.get('name', None) == name)
 
 def read_yaml(filename):
 	with open(filename, 'rb') as file:
