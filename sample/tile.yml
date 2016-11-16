@@ -193,8 +193,6 @@ packages:
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
 
-unused_packages:
-
 - name: app1-auto-zip                 # app1, specified by source directory to test auto-zipping
   type: app
   manifest:
