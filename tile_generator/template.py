@@ -57,7 +57,7 @@ def render_yaml(input):
 def render_shell_string(input):
 	return '<%= Shellwords.escape ' + input + ' %>'
 
-def plans_json(input, escape):
+def render_plans_json(input, escape=True):
 	value = '=<%= Shellwords.escape JSON.dump(plans) %>' if escape else '=<%= JSON.dump(plans) %>'
 	return ('<%\n'
 	'	plans = { }\n'
@@ -66,15 +66,43 @@ def plans_json(input, escape):
 	'		plans[plan_name] = plan\n'
 	'	end\n'
 	'%>\n'
-	'' + input.upper() + value)
+	'export ' + input.upper() + value)
 
-def render_plans_json(input):
-	return plans_json(input, True)
+def render_selector_json(input, escape=True):
+	value = '=<%= Shellwords.escape JSON.dump(hash) %>' if escape else '=<%= JSON.dump(hash) %>'
+	return ('<%\n'
+	'	hash = { }\n'
+	'	hash["value"] = p("' + input + '")["value"]\n'
+	'	hash["selected_option"] = { }\n'
+	'	p("' + input + '")["selected_option"].each_pair do |key, value|\n'
+	'		hash["selected_option"][key] = value\n'
+	'	end\n'
+	'%>\n'
+	'export ' + input.upper() + value)
 
-def render_plans_json_noshell(input):
-	return plans_json(input, False)
+def render_collection_json(input, escape=True):
+	value = '=<%= Shellwords.escape JSON.dump(array) %>' if escape else '=<%= JSON.dump(array) %>'
+	return ('<%\n'
+	'	array = [ ]\n'
+	'	p("' + input + '").each do |m|\n'
+	'		member = { }\n'
+	'		m.each_pair do |key, value|\n'
+	'			member[key] = value\n'
+	'		end\n'
+	'		array << member\n'
+	'	end\n'
+	'%>\n'
+	'export ' + input.upper() + value)
 
-def render_property_value(property):
+def render_property_json(input, escape=True):
+	escape = ' Shellwords.escape' if escape else ''
+	return('export {}=<%={} properties.{}.marshal_dump.to_json %>'.format(input.upper(), escape, input))
+
+def render_property_value(input, escape=True):
+	escape = ' Shellwords.escape' if escape else ''
+	return('export {}=<%={} properties.{} %>'.format(input.upper(), escape, input))
+
+def render_env_variable(property, escape=True):
 	complex_types = (
 		'simple_credentials',
 		'rsa_cert_credentials',
@@ -82,10 +110,14 @@ def render_property_value(property):
 		'salted_credentials',
 		'selector',
 	)
-	if property['type'] in complex_types:
-		return 'properties.{}.marshal_dump.to_json'.format(property['name'])
+	if property['type'] in [ 'selector' ]:
+		return render_selector_json(property['name'], escape)
+	elif property['type'] in [ 'collection' ]:
+		return render_collection_json(property['name'], escape)
+	elif property['type'] in complex_types:
+		return render_property_json(property['name'], escape)
 	else:
-		return 'properties.' + property['name']
+		return render_property_value(property['name'], escape)
 
 def render_property(property):
 	"""Render a property for bosh manifest, according to its type."""
@@ -125,9 +157,8 @@ TEMPLATE_ENVIRONMENT.filters['expand_selector'] = expand_selector
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
 TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
 TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
-TEMPLATE_ENVIRONMENT.filters['plans_json_noshell'] = render_plans_json_noshell
 TEMPLATE_ENVIRONMENT.filters['property'] = render_property
-TEMPLATE_ENVIRONMENT.filters['property_value'] = render_property_value
+TEMPLATE_ENVIRONMENT.filters['env_variable'] = render_env_variable
 TEMPLATE_ENVIRONMENT.filters['render'] = render
 
 def render(target_path, template_file, config):

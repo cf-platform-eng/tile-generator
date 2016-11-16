@@ -37,14 +37,14 @@ function import_opsmgr_variables() {
 	export ALLOW_PAID_SERVICE_PLANS={{ 'properties.allow_paid_service_plans' | shell_string }}
 
 	{% if context.dynamic_service_plans is defined %}
-	{{ 'dynamic_service_plans' | plans_json }}
+	{{ 'dynamic_service_plans' | plans_json | indent }}
 	{% endif %}
 	{% for service_plan_form in context.service_plan_forms %}
-	{{ service_plan_form.name | plans_json }}
+	{{ service_plan_form.name | plans_json | indent }}
 	{% endfor %}
 
 	{% for property in context.all_properties %}
-	export {{ property.name | upper }}={{ property | property_value | shell_string }}
+	{{ property | env_variable | indent }}
 	{% endfor %}
 	{% for package in context.packages if package.type == 'docker-bosh' %}
 	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
