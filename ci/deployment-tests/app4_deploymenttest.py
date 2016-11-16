@@ -64,14 +64,6 @@ class VerifyApp4(unittest.TestCase):
 		self.assertEqual(env.get('ZIP_CODE'), '90310')
 		self.assertEqual(env.get('COUNTRY'), 'country_us')
 
-	def test_receives_expected_services(self):
-		self.skipIfNoHost()
-		headers = { 'Accept': 'application/json' }
-		response = requests.get(self.url + '/env', headers=headers)
-		response.raise_for_status()
-		env = response.json()
-		vcap_services = json.loads(env.get('VCAP_SERVICES'))
-
 	def test_receives_expected_collection(self):
 		self.skipIfNoHost()
 		headers = { 'Accept': 'application/json' }
@@ -81,6 +73,17 @@ class VerifyApp4(unittest.TestCase):
 		example_collection = json.loads(env.get('EXAMPLE_COLLECTION'))
 		self.assertTrue(isinstance(example_collection, list))
 		self.assertEquals(len(example_collection), 2)
+
+	def test_receives_expected_selector(self):
+		self.skipIfNoHost()
+		headers = { 'Accept': 'application/json' }
+		response = requests.get(self.url + '/env', headers=headers)
+		response.raise_for_status()
+		env = response.json()
+		example_selector = json.loads(env.get('EXAMPLE_SELECTOR'))
+		self.assertTrue(isinstance(example_selector, dict))
+		self.assertEquals(example_selector['value'], 'Filet Mignon')
+		self.assertEquals(example_selector['selected_option']['rarity_dropdown'], 'medium')
 
 if __name__ == '__main__':
 	unittest.main()
