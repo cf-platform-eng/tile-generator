@@ -95,7 +95,7 @@ property_blueprints:
 - name: {{ package.name }}_buildpack_order
   type: integer
   configurable: true
-  default: 0
+  default: {{ package.buildpack_order or 99 }}
 {% endif %}
 {% if package.configurable_persistence %}
 #
