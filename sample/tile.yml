@@ -167,23 +167,6 @@ service_plan_forms:
     description: The number of licenses
     default: 1
 
-# Deprecated but still supported for backward compatibility.
-# Use service_plan_forms instead.
-dynamic_service_plans:
-- name: description
-  type: string
-  configurable: true
-  description: The description of this plan
-- name: license_key
-  type: string
-  configurable: true
-  description: The license key for this plan
-- name: num_seats
-  type: integer
-  configurable: true
-  description: The number of available seats for this license
-  default: 1
-
 packages:
 
 - name: app1                          # App with minimal configuration, i.e. all default values
