@@ -363,9 +363,6 @@ export SVC_NAME="{{ service.name }}"
 export SVC_PLAN="{{ service.plan or '' }}"
 provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
 {% endfor %}
-export SVC_NAME={{ ( 'properties.' + package.name + '.persistence_store_type' ) | shell_string }}
-export SVC_PLAN=""
-provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
 start_app {{ package.name | hyphens }} "$APP_NAME"
 {% endif %}
 

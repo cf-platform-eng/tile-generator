@@ -211,7 +211,6 @@ packages:
   - name: service-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
     plan: first-plan                  # Optionally specify a plan (default is the first plan offered by the service)
   needs_cf_credentials: true          # Pass CF creds to the app, default: false
-  configurable_persistence: true      # Users will be allowed to select between MySQL, Mongo or none, default: false
 
 - name: service-broker2               # Broker showing additional configurable values
   type: app-broker

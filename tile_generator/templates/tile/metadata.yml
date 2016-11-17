@@ -76,22 +76,6 @@ property_blueprints:
   configurable: true
   default: {{ package.buildpack_order or 99 }}
 {% endif %}
-{% if package.configurable_persistence %}
-#
-# Standard persistence properties for package {{ package.name }}
-#
-- name: {{ package.name }}_persistence_store_type
-  type: dropdown_select
-  configurable: true
-  options:
-  - name: p-mysql
-    label: Managed MySQL Service
-  - name: p-mongo
-    label: Managed Mongo Service
-  - name: none
-    label: None
-    default: true
-{% endif %}
 {% if package.is_broker  %}
 #
 # Standard broker properties for package {{ package.name }}
@@ -241,20 +225,6 @@ form_types:
     label: Enable global access to plans of service {{ package.label or package.name }}
     description: "Enable global access to plans in the marketplace"
 {% endfor %}
-{% for package in packages if package.configurable_persistence %}
-{% if loop.first %}
-#
-# Persistence configuration form
-#
-- name: configurable_persistence
-  label: Persistence
-  description: Configure persistence services
-  property_inputs:
-{% endif %}
-  - reference: .properties.{{ package.name }}_persistence_store_type
-    label: Persistence service to use for {{ package.label or package.name }}
-    description: "Select MySQL or Mongo Service Binding or None for saving state"
-{% endfor %}
 
 job_types:
 #
@@ -362,9 +332,6 @@ job_types:
 {% for package in packages %}
     {{ package.name }}:
       name: {{ package.name }}
-{% if package.configurable_persistence %}
-      persistence_store_type: (( .properties.{{ package.name }}_persistence_store_type.value ))
-{% endif %}
 {% if package.is_external_broker %}
       url: (( .properties.{{ package.name }}_url.value ))
       user: (( .properties.{{ package.name }}_user.value ))
@@ -506,9 +473,6 @@ job_types:
 {% for package in packages %}
     {{ package.name }}:
       name: {{ package.name }}
-{% if package.configurable_persistence %}
-      persistence_store_type: (( .properties.{{ package.name }}_persistence_store_type.value ))
-{% endif %}
 {% if package.is_external_broker %}
       url: (( .properties.{{ package.name }}_url.value ))
       user: (( .properties.{{ package.name }}_user.value ))

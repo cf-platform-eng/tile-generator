@@ -358,7 +358,7 @@ class Config(dict):
 		# which allow multiple sets of dynamic service plans
 		dynamic_service_plans = self.get('dynamic_service_plans', None)
 		if dynamic_service_plans is not None:
-			print('WARNING - dynamic_service_plans have been deprecated, use service_plan_forms instead', file=sys.stderr)
+			print('WARNING - dynamic_service_plans have been deprecated, use service_plan_forms instead\n', file=sys.stderr)
 			self['service_plan_forms'] = [{
 				'name': 'dynamic_service_plans',
 				'variable_name': 'PLANS',
@@ -366,6 +366,12 @@ class Config(dict):
 				'description': 'Operator-Defined Service Plans',
 				'properties': dynamic_service_plans
 			}] + self.get('service_plan_forms', [])
+		# We've deprecated configurable_persistence in favor of the more generic auto_services
+		for package in self.get('packages', []):
+			configurable_persistence = package.get('configurable_persistence', None)
+			if configurable_persistence is not None:
+				print('ERROR - configurable_persistence has been deprecated, use auto_services instead', file=sys.stderr)
+				sys.exit(1)
 
 	def read_config(self):
 		try:

@@ -8,7 +8,6 @@ password: { 'secret': SquarePants }
 my_creds:
   identity: username
   password: p4ssw0rd
-app2_persistence_store_type: none # p-mysql # Works, but turned off because this is not deployed in our PCF environments
 example_collection:
 - album: Chronicles
   artist: Rush

@@ -63,10 +63,6 @@ properties:
 {% for package in context.packages %}
   {{ package.name }}.name:
     description: 'Name of package'
-{% if package.configurable_persistence %}
-  {{ package.name }}.persistence_store_type:
-    description: 'Type of persistence store'
-{% endif %}
 {% if package.is_external_broker %}
   {{ package.name }}.url:
     description: 'URL to access service'
