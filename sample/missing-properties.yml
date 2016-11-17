@@ -18,17 +18,6 @@ example_collection:
   explicit: true
 example_selector: Filet Mignon
 example_selector.filet_mignon_option.rarity_dropdown: medium
-dynamic_service_plans:
-- name: plan1
-  guid: plan1-id
-  description: Plan for license key 1
-  license_key: 0001-0002-0003
-  num_seats: 10
-- name: plan2
-  guid: plan2-id
-  description: Plan for license key 2
-  license_key: 0004-0005-0006
-  num_seats: 20
 custom_dynamic_service_plan_1:
 - name: plan3
   guid: plan3-guid
