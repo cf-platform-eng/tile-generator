@@ -36,11 +36,8 @@ function import_opsmgr_variables() {
 	export APPLY_OPEN_SECURITY_GROUP={{ 'properties.apply_open_security_group' | shell_string }}
 	export ALLOW_PAID_SERVICE_PLANS={{ 'properties.allow_paid_service_plans' | shell_string }}
 
-	{% if context.dynamic_service_plans is defined %}
-	{{ 'dynamic_service_plans' | plans_json | indent }}
-	{% endif %}
 	{% for service_plan_form in context.service_plan_forms %}
-	{{ service_plan_form.name | plans_json | indent }}
+	{{ service_plan_form | plans_json | indent }}
 	{% endfor %}
 
 	{% for property in context.all_properties %}
@@ -132,14 +129,9 @@ function add_env_vars() {
 	cf set-env $1 SECURITY_USER_NAME "$SECURITY_USER_NAME"
 	cf set-env $1 SECURITY_USER_PASSWORD "$SECURITY_USER_PASSWORD"
 
-	# Dynamic plans (if defined)
-	{% if context.dynamic_service_plans is defined %}
-	cf set-env $1 PLANS "$DYNAMIC_SERVICE_PLANS"
-	{% endif %}
-
 	# Custom Service Plans
 	{% for service_plan_form in context.service_plan_forms %}
-	cf set-env $1 {{service_plan_form.name | upper }} "${{service_plan_form.name | upper}}"
+	cf set-env $1 {{ service_plan_form.variable_name }} "${{ service_plan_form.variable_name }}"
 	{% endfor %}
 
 	# Custom variables from tile.yml

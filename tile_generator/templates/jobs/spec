@@ -56,10 +56,6 @@ properties:
   {{ property.name }}:
     description: {{ property.description or property.name }}
 {% endfor %}
-{% if context.dynamic_service_plans %}
-  dynamic_service_plans:
-    description: 'Dynamic service plans'
-{% endif %}
 {% for service_plan_form in context.service_plan_forms %}
   {{ service_plan_form.name }}: 
     description: {{ service_plan_form.name }}

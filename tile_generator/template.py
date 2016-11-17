@@ -58,16 +58,18 @@ def render_shell_string(input):
 	return '<%= Shellwords.escape ' + input + ' %>'
 
 def render_plans_json(input, escape=True, export=True):
+	property_name = input['name']
+	variable_name = input.get('variable_name', property_name.upper())
 	value = '=<%= Shellwords.escape JSON.dump(plans) %>' if escape else '=<%= JSON.dump(plans) %>'
 	export = 'export ' if export else ''
 	return ('<%\n'
 	'	plans = { }\n'
-	'	p("' + input + '").each do |plan|\n'
+	'	p("' + property_name + '").each do |plan|\n'
 	'		plan_name = plan[\'name\']\n'
 	'		plans[plan_name] = plan\n'
 	'	end\n'
 	'%>\n'
-	'' + export + input.upper() + value)
+	'' + export + variable_name + value)
 
 def render_selector_json(input, escape=True, export=True):
 	value = '=<%= Shellwords.escape JSON.dump(hash) %>' if escape else '=<%= JSON.dump(hash) %>'

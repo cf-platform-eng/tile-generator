@@ -43,27 +43,6 @@ property_blueprints:
   type: boolean
   configurable: true
   default: {{ allow_paid_service_plans }}
-{% if dynamic_service_plans %}
-#
-# Properties for on-demand service plans
-#
-- name: dynamic_service_plans
-  type: collection
-  configurable: true
-  optional: true
-  property_blueprints:
-  - name: guid
-    type: uuid
-    optional: false
-    unique: true
-  - name: name
-    type: string
-    unique: true
-    configurable: true
-  {% for field in dynamic_service_plans %}
-  - {{ field | yaml | indent }}
-  {% endfor %}
-{% endif %}
 {% for service_plan_form in service_plan_forms %}
 #
 # Properties for on-demand service plans
@@ -213,30 +192,6 @@ form_types:
       slug: false
   {% endfor %}
 {% endfor %}
-
-
-{% if dynamic_service_plans %}
-#
-# Dynamic service plan form
-#
-- name: dynamic_service_plans
-  label: Dynamic Service Plans
-  description: Operator-Defined Service Plans
-  property_inputs:
-  - reference: .properties.dynamic_service_plans
-    label: Dynamic Service Plans
-    property_inputs:
-    - reference: name
-      label: Plan Name
-      description: "Name of Plan"
-      slug: false
-{% for field in dynamic_service_plans %}
-    - reference: {{ field.name }}
-      label: {{ field.name }}
-      description: {{ field.description }}
-      slug: false
-{% endfor %}
-{% endif %}
 
 {% for package in packages if package.is_buildpack %}
 {% if loop.first %}
@@ -401,9 +356,6 @@ job_types:
 {% for property in all_properties %}
     {{ property | property | yaml | indent }}
 {% endfor %}
-{% if dynamic_service_plans %}
-    dynamic_service_plans: (( .properties.dynamic_service_plans.value ))
-{% endif %}
 {% for service_plan_form in service_plan_forms %}
     {{ service_plan_form.name }}: (( .properties.{{ service_plan_form.name }}.value ))
 {% endfor %}
@@ -548,9 +500,6 @@ job_types:
 {% for property in all_properties %}
     {{ property | property | yaml | indent }}
 {% endfor %}
-{% if dynamic_service_plans %}
-    dynamic_service_plans: (( .properties.dynamic_service_plans.value ))
-{% endif %}
 {% for service_plan_form in service_plan_forms %}
     {{ service_plan_form.name }}: (( .properties.{{ service_plan_form.name }}.value ))
 {% endfor %}

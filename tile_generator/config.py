@@ -315,6 +315,8 @@ class Config(dict):
 					envfile = container.get('env_file', [])
 					envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr.env'.format(package['name']))
 					container['env_file'] = envfile
+		for form in self.get('service_plan_forms', []):
+			form['variable_name'] = form.get('variable_name', form['name'].upper())
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
@@ -352,6 +354,18 @@ class Config(dict):
 			if manifest is not None and type(manifest) is not dict:
 				manifest = read_yaml(manifest)
 				package['manifest'] = manifest
+		# We've deprecated dynamic_service_plans in favor of service_plan_forms,
+		# which allow multiple sets of dynamic service plans
+		dynamic_service_plans = self.get('dynamic_service_plans', None)
+		if dynamic_service_plans is not None:
+			print('WARNING - dynamic_service_plans have been deprecated, use service_plan_forms instead', file=sys.stderr)
+			self['service_plan_forms'] = [{
+				'name': 'dynamic_service_plans',
+				'variable_name': 'PLANS',
+				'label': 'Dynamic Service Plans',
+				'description': 'Operator-Defined Service Plans',
+				'properties': dynamic_service_plans
+			}] + self.get('service_plan_forms', [])
 
 	def read_config(self):
 		try:
