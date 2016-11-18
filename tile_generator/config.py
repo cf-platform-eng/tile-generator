@@ -91,7 +91,6 @@ class Config(dict):
 
 	def process_packages(self):
 		for package in self.get('packages', []):
-			package['name'] = package['name'].lower().replace('-','_')
 			typename = package['type']
 			typedef = package_types[typename]
 			flags = typedef.get('flags', [])
@@ -254,6 +253,7 @@ class Config(dict):
 		try:
 			validname = re.compile('[a-z][a-z0-9]*(-[a-z0-9]+)*$')
 			if validname.match(self['name']) is None:
+				print('invalid product name:', self['name'], file=sys.stderr)
 				print('product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 				sys.exit(1)
 		except KeyError as e:
@@ -262,12 +262,14 @@ class Config(dict):
 		for package in self.get('packages', []):
 			try:
 				if validname.match(package['name']) is None:
+					print('invalid package name:', package['name'], file=sys.stderr)
 					print('package name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 					sys.exit(1)
 				if package['type'] not in package_types:
 					print('package', package['name'], 'has invalid type', package['type'], file=sys.stderr)
 					print('valid types are:', ', '.join([ t for t in package_types]), file=sys.stderr)
 					sys.exit(1)
+				package['name'] = package['name'].lower().replace('-','_')
 			except KeyError as e:
 				if str(e) == '\'name\'':
 					print('package is missing mandatory property', e, file=sys.stderr)
