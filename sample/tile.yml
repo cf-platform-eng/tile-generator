@@ -169,21 +169,21 @@ service_plan_forms:
 
 packages:
 
-- name: app1                          # App with minimal configuration, i.e. all default values
+- name: tg-test-app1                  # App with minimal configuration, i.e. all default values
   type: app
   manifest:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
 
-- name: app1-auto-zip                 # app1, specified by source directory to test auto-zipping
+- name: tg-test-app1-auto-zip         # app1, specified by source directory to test auto-zipping
   type: app
   manifest:
     path: src/app
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
 
-- name: binary-app                    # Self-contained app to test binary buildpack
+- name: tg-test-binary-app            # Self-contained app to test binary buildpack
   type: app
   manifest:
     path: src/binary-app/binary-app.py
@@ -191,7 +191,7 @@ packages:
     memory: 256M                      # Override memory, default: 1G
     buildpack: binary_buildpack
 
-- name: service-broker1               # Broker with minimal configuration, i.e. all default values
+- name: tg-test-broker1               # Broker with minimal configuration, i.e. all default values
   type: app-broker
   enable_global_access_to_plans: true
   manifest:
@@ -199,20 +199,20 @@ packages:
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
 
-- name: app2                          # App showing configurable values
+- name: tg-test-app2                  # App showing configurable values
   type: app
   manifest:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
-    host: app2-hostname               # Override hostname, default: app name
+    host: tg-test-app2-hostname       # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
   health_check: none                  # Turn off health monitoring, default: true
   auto_services:                      # Auto-provision and bind services
-  - name: service-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
+  - name: tg-test-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
     plan: first-plan                  # Optionally specify a plan (default is the first plan offered by the service)
   needs_cf_credentials: true          # Pass CF creds to the app, default: false
 
-- name: service-broker2               # Broker showing additional configurable values
+- name: tg-test-broker2               # Broker showing additional configurable values
   type: app-broker
   manifest:
     path: resources/app.zip
@@ -222,25 +222,25 @@ packages:
   - service1
   - service2
 
-- name: noop-buildpack                # A buildpack
+- name: tg-test-buildpack             # A buildpack
   type: buildpack
   buildpack_order: 99                 # 99 (or higher) means go to the end of the list
   path: resources/buildpack.zip
 
-- name: noop-decorator                # A decorator buildpack
+- name: tg-test-decorator             # A decorator buildpack
   type: decorator
   path: resources/decorator.zip
 
-- name: app3
+- name: tg-test-app3
   type: docker-app
   image: guidowb/sample-cf-app        # Start command must be specified in the Dockerfile (CMD)
   manifest:
     memory: 256M                      # Override memory, default: 1G
   auto_services:                      # Auto-provision and bind services
-  - name: service-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
+  - name: tg-test-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
     plan: second-plan                 # Optionally specify a plan (default is the first plan offered by the service)
 
-- name: app4
+- name: tg-test-app4
   type: docker-bosh
   docker_images:
   - guidowb/sample-cf-app
@@ -259,7 +259,7 @@ packages:
       - '8080:8080'
       - '8443:8443'
 
-- name: app5
+- name: tg-test-app5
   type: bosh-release
   path: resources/redis-12+dev.1.tgz
   jobs:

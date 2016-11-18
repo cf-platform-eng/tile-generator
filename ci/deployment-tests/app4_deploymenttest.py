@@ -31,9 +31,9 @@ class VerifyApp4(unittest.TestCase):
 
 	def setUp(self):
 		self.cfinfo = opsmgr.get_cfinfo()
-		self.proxy = 'http://app1.' + self.cfinfo['apps_domain']
+		self.proxy = 'http://tg-test-app1.' + self.cfinfo['apps_domain']
 		self.env = self.getEnv(self.proxy)
-		self.host = self.env.get('APP4_HOST')
+		self.host = self.env.get('TG_TEST_APP4_HOST')
 		if self.host is not None:
 			self.url = self.proxy + '/proxy?url=http://' + self.host + ':8080'
 
@@ -42,8 +42,8 @@ class VerifyApp4(unittest.TestCase):
 			self.skipTest("Proxy did not receive app4 host address")
 
 	def test_apps_receive_app4_host(self):
-		self.assertTrue(self.env.get('APP4_HOST') is not None)
-		self.assertTrue(self.env.get('APP4_HOSTS') is not None)
+		self.assertTrue(self.env.get('TG_TEST_APP4_HOST') is not None)
+		self.assertTrue(self.env.get('TG_TEST_APP4_HOSTS') is not None)
 
 	def test_responds_to_hello(self):
 		self.skipIfNoHost()
