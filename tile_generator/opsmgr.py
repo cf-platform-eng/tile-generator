@@ -402,12 +402,12 @@ def configure(product, properties, strict=False, skip_validation=False):
 			print(file='Configuration failed, probably due to incompatible PCF version.')
 			sys.exit(1)
 
-def get_changes(deploy_errands = None, delete_errands = None):
+def get_changes(product = None, deploy_errands = None, delete_errands = None):
 	version = get_version()
 	if version[0] == 1 and version[1] >= 8:
 		return build_changes_1_8(deploy_errands, delete_errands)
 	elif version[0] == 1 and version[1] == 7:
-		return build_changes_1_7(deploy_errands, delete_errands)
+		return build_changes_1_7(product, deploy_errands, delete_errands)
 	else:
 		return None
 
@@ -427,17 +427,21 @@ def build_changes_1_8(deploy_errands, delete_errands):
 			]
 	return changes
 
-def build_changes_1_7(deploy_errands, delete_errands):
+def build_changes_1_7(product, deploy_errands, delete_errands):
 	if deploy_errands is None and delete_errands is None:
 		print('You must specify --deploy-errands or --delete-errands on PCF 1.7,', file=sys.stderr)
 		print('since we cannot reliably discover them on that version', file=sys.stderr)
 		sys.exit(1)
 	deployed = [p for p in get('/api/v0/deployed/products').json()]
-	staged = [p for p in get('/api/v0/staged/products').json()]
-	install = [p for p in staged if p["guid"] not in [g["guid"] for g in deployed]]
-	delete = [p for p in deployed if p["guid"] not in [g["guid"] for g in staged]]
-	update = [p for p in deployed if p["guid"] in [g["guid"] for g in staged if not g["guid"].startswith('cf-')]]
+	staged   = [p for p in get('/api/v0/staged/products').json()]
+	install  = [p for p in staged if p["guid"] not in [g["guid"] for g in deployed]]
+	delete   = [p for p in deployed if p["guid"] not in [g["guid"] for g in staged]]
+	update   = [p for p in deployed if p["guid"] in [g["guid"] for g in staged if not g["guid"].startswith('cf-')]]
 	# update = []
+	if product is not None:
+		install = [p for p in install if p["guid"].startswith(product + '-')]
+		delete  = [p for p in delete if p["guid"].startswith(product + '-')]
+		update  = [p for p in update if p["guid"].startswith(product + '-')]
 	for p in install + update:
 		p['errands'] = []
 		if deploy_errands is None:

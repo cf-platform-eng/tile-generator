@@ -67,6 +67,31 @@ def build_json_response(body):
 
 @mock.patch('tile_generator.opsmgr.get')
 class TestGetChanges17(unittest.TestCase):
+	def test_custom_deploy_errands(self, mock_get):
+		resp_not_found = requests.Response()
+		resp_not_found.status_code = 404
+
+		mock_get.side_effect = [
+			build_json_response(api_responses_1_7['diagnostic_report']),
+			build_json_response(api_responses_1_7['deployed_products']),
+			build_json_response(api_responses_1_7['staged_products']),
+			build_json_response(api_responses_1_7['broker_one_manifest']),
+			build_json_response(api_responses_1_7['tile_two_manifest']),
+			build_json_response(api_responses_1_7['deleting_manifest']),
+		]
+
+		product_changes = opsmgr.get_changes(
+			product='tile-two',
+			deploy_errands=['deploy-all']
+		)
+
+		changes = product_changes['product_changes']
+		self.assertEqual(len(changes), 1)
+
+		update = changes[0]
+		self.assertEqual(update['action'], 'update')
+		self.assertEqual(update['guid'], 'tile-two-ed10ef2a821e0e810f2c')
+
 	def test_custom_delete_errands(self, mock_get):
 		resp_not_found = requests.Response()
 		resp_not_found.status_code = 404
@@ -81,7 +106,7 @@ class TestGetChanges17(unittest.TestCase):
 		]
 
 		product_changes = opsmgr.get_changes(
-			deploy_errands= ['deploy-all'],
+			deploy_errands=['deploy-all'],
 			delete_errands=['delete-all', 'delete-cleanup']
 		)
 

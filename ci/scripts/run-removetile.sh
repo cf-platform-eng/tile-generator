@@ -51,7 +51,7 @@ $PCF uninstall "${PRODUCT}"
 echo
 
 echo "Applying Changes"
-$PCF apply-changes --delete-errands delete-all,delete-meta-buildpack --deploy-errands ''
+$PCF apply-changes --product "${PRODUCT}" --delete-errands delete-all,delete-meta-buildpack --deploy-errands ''
 echo
 
 echo "Available products:"

@@ -228,13 +228,14 @@ def cleanup_cmd(product):
 		sys.exit(1)
 
 @cli.command('apply-changes')
+@click.option('--product', help='product to select errands from. Only valid in combination with -deploy-errands or --delete-errands.')
 @click.option('--deploy-errands', help='Comma separated list of errands to run after install/update. For example: "deploy-all,configure-broker"')
 @click.option('--delete-errands', help='Comma separated list of errands to run before delete. For example: "pre_delete"')
-def apply_changes_cmd(deploy_errands, delete_errands):
+def apply_changes_cmd(product, deploy_errands, delete_errands):
 	enabled_errands = []
 	deploy_errand_list = None if deploy_errands is None else deploy_errands.split(',')
 	delete_errand_list = None if delete_errands is None else delete_errands.split(',')
-	changes = opsmgr.get_changes(deploy_errand_list, delete_errand_list)
+	changes = opsmgr.get_changes(product, deploy_errand_list, delete_errand_list)
 	if changes is not None:
 		if len(changes['product_changes']) == 0:
 			print('Nothing to do', file=sys.stderr)
