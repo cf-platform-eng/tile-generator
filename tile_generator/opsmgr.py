@@ -428,6 +428,10 @@ def build_changes_1_8(deploy_errands, delete_errands):
 	return changes
 
 def build_changes_1_7(deploy_errands, delete_errands):
+	if deploy_errands is None and delete_errands is None:
+		print('You must specify --deploy-errands or --delete-errands on PCF 1.7,', file=sys.stderr)
+		print('since we cannot reliably discover them on that version', file=sys.stderr)
+		sys.exit(1)
 	deployed = [p for p in get('/api/v0/deployed/products').json()]
 	staged = [p for p in get('/api/v0/staged/products').json()]
 	install = [p for p in staged if p["guid"] not in [g["guid"] for g in deployed]]
@@ -435,16 +439,15 @@ def build_changes_1_7(deploy_errands, delete_errands):
 	update = [p for p in deployed if p["guid"] in [g["guid"] for g in staged if not g["guid"].startswith('cf-')]]
 	# update = []
 	for p in install + update:
-		manifest = get('/api/v0/staged/products/' + p['guid'] + '/manifest').json()['manifest']
-		errands = [j['name'] for j in manifest['jobs'] if j['lifecycle'] == 'errand']
 		p['errands'] = []
-		for e in errands:
-			if (deploy_errands is None or e in deploy_errands) and e != 'delete-all':
-				p['errands'].append({'name': e, 'post_deploy': True})
+		if deploy_errands is None:
+			deploy_errands = []
+		for deploy_errand in deploy_errands:
+			p['errands'].append({'name': deploy_errand, 'post_deploy': True})
 	for p in delete:
 		p['errands'] = []
 		if delete_errands is None:
-			delete_errands = [ 'delete-all' ]
+			delete_errands = []
 		for delete_errand in delete_errands:
 			p['errands'].append({'name': delete_errand, 'pre_delete': True})
 	changes = {'product_changes': [{
