@@ -270,6 +270,9 @@ class Config(dict):
 					print('valid types are:', ', '.join([ t for t in package_types]), file=sys.stderr)
 					sys.exit(1)
 				package['name'] = package['name'].lower().replace('-','_')
+				if package['type'] == 'docker-bosh' and not package.get('docker-images', []):
+					print('docker-bosh package', package['name'], 'must specify docker-images', file=sys.stderr)
+					sys.exit(1)
 			except KeyError as e:
 				if str(e) == '\'name\'':
 					print('package is missing mandatory property', e, file=sys.stderr)
