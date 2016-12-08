@@ -23,6 +23,10 @@ groups:
   - deploy-tile-1-8
   - deployment-tests-1-8
   - remove-tile-1-8
+  - claim-1-9
+  - deploy-tile-1-9
+  - deployment-tests-1-9
+  - remove-tile-1-9
 
 - name: release
   jobs:
@@ -174,7 +178,15 @@ resources:
   source:
     uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
     branch: master
-    pool: pcf
+    pool: pcf1_8
+    private_key: {{github-pool-private-key}}
+
+- name: pcf-environment-1-9
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf1_9
     private_key: {{github-pool-private-key}}
 
 - name: slack-alert
@@ -936,17 +948,171 @@ jobs:
         text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
+- name: claim-1-9
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: version
+      passed: [ acceptance-tests ]
+    - get: tile-generator-package
+      passed: [ acceptance-tests ]
+      trigger: true
+    - put: pcf-environment-1-9
+      params:
+        acquire: true
+
+- name: deploy-tile-1-9
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ claim-1-9 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-1-9 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-1-9 ]
+      trigger: true
+    - get: version
+      passed: [ claim-1-9 ]
+    - get: tile-generator-package
+      passed: [ claim-1-9 ]
+      trigger: true
+    - get: pcf-environment-1-9
+      passed: [ claim-1-9 ]
+      trigger: true
+  - task: run-deploy-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-1-9
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
+        args: [ "generated-tile", "pcf-environment-1-9" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-9
+        params:
+          release: pcf-environment-1-9
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: deployment-tests-1-9
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deploy-tile-1-9 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deploy-tile-1-9 ]
+      trigger: true
+    - get: pcf-environment-1-9
+      passed: [ deploy-tile-1-9 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deploy-tile-1-9 ]
+      trigger: true
+    - get: version
+      passed: [ deploy-tile-1-9 ]
+    - get: tile-generator-package
+      passed: [ deploy-tile-1-9 ]
+      trigger: true
+  - task: run-deployment-tests
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-1-9
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
+        args: [ "generated-tile", "pcf-environment-1-9" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-9
+        params:
+          release: pcf-environment-1-9
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: remove-tile-1-9
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deployment-tests-1-9 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deployment-tests-1-9 ]
+      trigger: true
+    - get: pcf-environment-1-9
+      passed: [ deployment-tests-1-9 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deployment-tests-1-9 ]
+      trigger: true
+    - get: version
+      passed: [ deployment-tests-1-9 ]
+    - get: tile-generator-package
+      passed: [ deployment-tests-1-9 ]
+      trigger: true
+  - task: remove-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-1-9
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment-1-9" ]
+    ensure:
+      put: pcf-environment-1-9
+      params:
+        release: pcf-environment-1-9
+    on_failure:
+      put: slack-alert
+      params:
+        channel: {{slack-channel}}
+        icon_emoji: ':concourse:'
+        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        username: Tile Generator
+
 - name: create-release
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
       params:
         save: true
     - get: tile-generator-package
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
     - get: version
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8 ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
   - put: version
     params:
       bump: final
