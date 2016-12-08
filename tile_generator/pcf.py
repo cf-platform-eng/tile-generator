@@ -328,6 +328,46 @@ def curl_cmd(path, request, data):
 		sys.exit(1)
 	print(json.dumps(response.json(), indent=2))
 
+@cli.command('errands')
+@click.argument('product')
+def errands_cmd(product):
+	products = opsmgr.get('/api/v0/staged/products').json()
+	guid = [p for p in products if p['type'] == product][0]['guid']
+	errands = opsmgr.get('/api/v0/staged/products/' + guid + '/errands').json()['errands']
+	print(json.dumps(errands, indent=4))
+
+@cli.command('disable-errand')
+@click.argument('product')
+@click.argument('errand')
+def disable_errand_cmd(product, errand):
+	products = opsmgr.get('/api/v0/staged/products').json()
+	guid = [p for p in products if p['type'] == product][0]['guid']
+	errands = opsmgr.get('/api/v0/staged/products/' + guid + '/errands').json()['errands']
+	errands = [e for e in errands if e['name'] == errand]
+	for e in errands:
+		if e.get('post_deploy', None) is not None:
+			e['post_deploy'] = False
+		if e.get('pre_delete', None) is not None:
+			e['pre_delete'] = False
+	if len(errands) > 0:
+		opsmgr.put_json('/api/v0/staged/products/' + guid + '/errands', { 'errands': errands })
+
+@cli.command('enable-errand')
+@click.argument('product')
+@click.argument('errand')
+def enable_errand_cmd(product, errand):
+	products = opsmgr.get('/api/v0/staged/products').json()
+	guid = [p for p in products if p['type'] == product][0]['guid']
+	errands = opsmgr.get('/api/v0/staged/products/' + guid + '/errands').json()['errands']
+	errands = [e for e in errands if e['name'] == errand]
+	for e in errands:
+		if e.get('post_deploy', None) is not None:
+			e['post_deploy'] = True
+		if e.get('pre_delete', None) is not None:
+			e['pre_delete'] = True
+	if len(errands) > 0:
+		opsmgr.put_json('/api/v0/staged/products/' + guid + '/errands', { 'errands': errands })
+
 @cli.command('version')
 def version_cmd():
 	version = opsmgr.get_version()
