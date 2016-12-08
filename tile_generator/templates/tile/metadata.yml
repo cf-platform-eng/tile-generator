@@ -8,6 +8,9 @@ metadata_version: '1.5'
 minimum_version_for_upgrade: '0.0.1'
 rank: 1
 serial: true
+{% if service_broker %}
+service_broker: true
+{% endif %}
 
 releases:
 {% for release in releases %}

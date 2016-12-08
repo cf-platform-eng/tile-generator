@@ -213,6 +213,13 @@ class TestConfigValidation(unittest.TestCase):
 		with self.assertRaises(SystemExit):
 			Config(name='validname', packages=[{'name': '1-invalid-name', 'type': 'app'}]).validate()
 
+	def test_refuses_docker_bosh_package_without_image(self):
+		with self.assertRaises(SystemExit):
+			Config(name='name', packages=[{'name': 'bad-docker-bosh', 'type': 'docker-bosh'}]).validate()
+
+	def test_accepts_docker_bosh_package_with_image(self):
+		Config(name='name', packages=[{'name': 'bad-docker-bosh', 'type': 'docker-bosh', 'docker_images': ['my/image']}]).validate()
+
 class TestDefaultOptions(unittest.TestCase):
 	def test_purge_service_broker_is_true_by_default(self):
 		config = Config({'name': 'tile-generator-unittest'})
