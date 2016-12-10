@@ -276,6 +276,8 @@ job_types:
     release: docker
   - name: {{ job.type }}
     release: {{ release.name }}
+  - name: route_registrar
+    release: routing
   resource_definitions:
   - name: ram
     type: integer
@@ -326,6 +328,18 @@ job_types:
     security:
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
+    nats:
+      machines: (( ..cf.nats.ips ))
+      user: nats
+      password: (( ..cf.nats.credentials.password ))
+      port: 4222
+    route_registrar:
+      routes:
+      - name: {{ job.package.name | hyphens }}
+        uris:
+        - {{ job.package.name | hyphens }}.(( ..cf.cloud_controller.apps_domain.value ))
+        port: 8080
+        registration_interval: 20s
 {% for property in all_properties %}
     {{ property | property | yaml | indent }}
 {% endfor %}

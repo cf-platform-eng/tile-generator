@@ -224,6 +224,9 @@ class Config(dict):
 			self['releases'] += [{
 				'name': 'docker-boshrelease',
 				'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
+			},{
+				'name': 'routing',
+				'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release',
 			}]
 		if requires_meta_buildpack:
 			self['releases'] += [{
