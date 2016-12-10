@@ -178,7 +178,7 @@ resources:
   source:
     uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
     branch: master
-    pool: pcf1_8
+    pool: pcf
     private_key: {{github-pool-private-key}}
 
 - name: pcf-environment-1-9
