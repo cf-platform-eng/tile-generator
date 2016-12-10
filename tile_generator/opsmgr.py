@@ -354,6 +354,12 @@ def configure(product, properties, strict=False, skip_validation=False):
 		print('- ' + '\n- '.join(missing_properties), file=sys.stderr)
 		sys.exit(1)
 	#
+	# Normalize az properties
+	#
+	for az in infrastructure['availability_zones']:
+		if az.get('name', None) is None:
+			az['name'] = az['iaas_identifier']
+	#
 	# Update using the appropriate API for the Ops Manager version
 	#
 	version = get_version()
