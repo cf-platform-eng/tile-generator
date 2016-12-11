@@ -21,7 +21,7 @@ import os
 import requests
 from tile_generator import opsmgr
 
-class VerifyApp4(unittest.TestCase):
+class VerifyApp4Proxy(unittest.TestCase):
 
 	def getEnv(self, url):
 		headers = { 'Accept': 'application/json' }
@@ -51,8 +51,19 @@ class VerifyApp4(unittest.TestCase):
 		response = requests.get(self.url + '/hello', headers=headers)
 		response.raise_for_status()
 
+class VerifyApp4(unittest.TestCase):
+
+	def setUp(self):
+		self.cfinfo = opsmgr.get_cfinfo()
+		self.hostname = 'tg-test-app4.' + self.cfinfo['apps_domain']
+		self.url = 'http://' + self.hostname
+
+	def test_responds_to_hello(self):
+		headers = { 'Accept': 'application/json' }
+		response = requests.get(self.url + '/hello', headers=headers)
+		response.raise_for_status()
+
 	def test_receives_custom_properties(self):
-		self.skipIfNoHost()
 		headers = { 'Accept': 'application/json' }
 		response = requests.get(self.url + '/env', headers=headers)
 		response.raise_for_status()
@@ -65,7 +76,6 @@ class VerifyApp4(unittest.TestCase):
 		self.assertEqual(env.get('COUNTRY'), 'country_us')
 
 	def test_receives_expected_collection(self):
-		self.skipIfNoHost()
 		headers = { 'Accept': 'application/json' }
 		response = requests.get(self.url + '/env', headers=headers)
 		response.raise_for_status()
@@ -75,7 +85,6 @@ class VerifyApp4(unittest.TestCase):
 		self.assertEquals(len(example_collection), 2)
 
 	def test_receives_expected_selector(self):
-		self.skipIfNoHost()
 		headers = { 'Accept': 'application/json' }
 		response = requests.get(self.url + '/env', headers=headers)
 		response.raise_for_status()
