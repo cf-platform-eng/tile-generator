@@ -531,10 +531,10 @@ pre_delete_errands:
 {% endfor %}
 
 update:
-  canaries: 1
-  canary_watch_time: 10000-100000
-  max_in_flight: 1
-  update_watch_time: 10000-100000
+  canaries: {{ ( update and update.canaries ) or 1 }}
+  canary_watch_time: {{ ( update and update.canary_watch_time ) or '10000-100000' }}
+  max_in_flight: {{ ( update and update.max_in_flight ) or 1 }}
+  update_watch_time: {{ ( update and update.update_watch_time ) or '10000-100000' }}
 
 {% for product in requires_product_versions %}
 {% if loop.first %}

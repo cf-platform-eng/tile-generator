@@ -75,6 +75,14 @@ packages:
 # - name: p-mysql
 #   version: '~> 1.7'
 
+# Customize upgrade parameters if the defaults don't meet your needs.
+#
+# update:
+#   canaries: 1
+#   canary_watch_time: 10000-100000
+#   max_in_flight: 1
+#   update_watch_time: 10000-100000
+
 # If prior versions of your tile are installed and configured, their
 # property values will not be overwritten by new defaults provided
 # in this file. If that is your intent, you must do the overwriting
