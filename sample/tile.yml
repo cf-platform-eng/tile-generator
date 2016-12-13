@@ -127,6 +127,22 @@ forms:
   - name: password
     type: secret
     label: Password
+- name: update_form
+  label: Update Settings
+  description: Example of user-configured update Settings
+  properties:
+  - name: canary_watch_timeout
+    type: integer
+    label: Canary Watch Timeout
+    description: Maximum amount of time to allow canaries to take before going healthy
+  - name: update_watch_timeout
+    type: integer
+    label: Update Watch Timeout
+    description: Maximum amount of time to allow non-canaries to take before going healthy
+
+update:
+  canary_watch_time: 10000-(( .properties.canary_watch_timeout ))
+  update_watch_time: 10000-(( .properties.update_watch_timeout ))
 
 service_plan_forms:
 - name: custom_dynamic_service_plan_1

@@ -39,6 +39,8 @@ custom_dynamic_service_plan_2:
   description2: Plan for license key 6
   api_key2: api456
   num_of_license2: 60
+canary_watch_timeout: 100001
+update_watch_timeout: 100002
 
 # Example of job-specific configuration, supported in PCF 1.8+.
 jobs:
