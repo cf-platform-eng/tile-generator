@@ -9,7 +9,7 @@ you to have intimate knowledge of all the tools involved.
 - Documentation: [Github Pages](http://cf-platform-eng.github.io/isv-portal/tile-generator)
 - ISV Portal: [Github Pages](http://cf-platform-eng.github.io/isv-portal)
 - Roadmap: [Github Issues](https://github.com/cf-platform-eng/tile-generator/issues)
-- CI Pipeline: [Concourse](https://concourse.run-03.haas-71.pez.pivotal.io/teams/main/pipelines/tile-generator)
+- CI Pipeline: [Concourse](https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator)
 
 ## Continuous Integration
 
