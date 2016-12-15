@@ -14,7 +14,7 @@ you to have intimate knowledge of all the tools involved.
 ## Continuous Integration
 
 The master branch of this repository is being monitored by
-[this Concourse pipeline](https://concourse.run-03.haas-71.pez.pivotal.io/teams/main/pipelines/tile-generator).
+[this Concourse pipeline](https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator).
 The pipeline verifies that:
 
 - The tile generator passes all unit tests in `tile_generator/*_unittest.py`
