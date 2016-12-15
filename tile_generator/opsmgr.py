@@ -120,12 +120,19 @@ def post_yaml(url, filename, payload):
 	check_response(response)
 	return response
 
-def upload(url, filename):
+def upload(url, filename, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	files = { 'product[file]': open(filename, 'rb') }
 	response = requests.post(url, auth=auth(creds), verify=False, files=files)
-	check_response(response)
+	if response.status_code == 422:
+		errors = response.json()["errors"]
+		product = errors.get('product', [])
+		for reason in product:
+			if reason.startswith('Metadata already exists for'):
+				print('-','version already uploaded')
+				return response
+	check_response(response, check)
 	return response
 
 def delete(url, check=True):
