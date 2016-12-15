@@ -381,6 +381,14 @@ job_types:
 {% for template in job.templates %}
   - name: {{ template.name }}
     release: {{ template.release }}
+{% if template.consumes %}
+    consumes: |
+      {{ template.consumes | indent(6) }}
+{% endif %}
+{% if template.provides %}
+    provides: |
+      {{ template.provides | indent(6) }}
+{% endif %}
 {% endfor %}
   resource_definitions:
   - name: ram
