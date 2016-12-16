@@ -32,6 +32,7 @@ groups:
   jobs:
   - bump-minor
   - bump-major
+  - most-recent
   - create-release
 
 resource_types:
@@ -1098,17 +1099,34 @@ jobs:
         text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
-- name: create-release
+- name: most-recent
+  disable_manual_trigger: true
   plan:
   - aggregate:
     - get: tile-generator-docker-image
       passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
+      trigger: true
+    - get: version
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
+      trigger: true
+
+- name: create-release
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ most-recent ]
       params:
         save: true
     - get: tile-generator-package
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
+      passed: [ most-recent ]
     - get: version
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9 ]
+      passed: [ most-recent ]
   - put: version
     params:
       bump: final
