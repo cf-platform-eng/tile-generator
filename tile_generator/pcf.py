@@ -150,7 +150,14 @@ def install_cmd(product, version):
 		payload = {
 			'to_version': version
 		}
-		opsmgr.put('/api/installation_settings/products/' + matches[0]['guid'], payload)
+		response = opsmgr.put('/api/installation_settings/products/' + matches[0]['guid'], payload, check=False)
+		if response.status_code == 422:
+			errors = response.json()["errors"]
+			for error in errors:
+				if error.endswith(' is already in use.'):
+					print('-','version already installed')
+					return
+		opsmgr.check_response(response)
 
 @cli.command('uninstall')
 @click.argument('product')
