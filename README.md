@@ -6,8 +6,8 @@ uses templates and patterns that are based on years of experience integrating
 third-party services into Cloud Foundry, and eliminates much of the need for
 you to have intimate knowledge of all the tools involved.
 
-- Documentation: [Github Pages](http://cf-platform-eng.github.io/isv-portal/tile-generator)
-- ISV Portal: [Github Pages](http://cf-platform-eng.github.io/isv-portal)
+- Documentation: [Pivotal Documentation](http://docs.pivotal.io/tiledev/tile-generator.html)
+- PCF Tile Deveoplers Guide: [Pivotal Documentation](http://docs.pivotal.io/tiledev/index.html)
 - Roadmap: [Github Issues](https://github.com/cf-platform-eng/tile-generator/issues)
 - CI Pipeline: [Concourse](https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator)
 
