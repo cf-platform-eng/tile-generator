@@ -262,6 +262,7 @@ class Config(dict):
 		except KeyError as e:
 			print('tile.yml is missing mandatory property', e, file=sys.stderr)
 			sys.exit(1)
+		self.validate_icon_file()
 		for package in self.get('packages', []):
 			try:
 				if validname.match(package['name']) is None:
@@ -282,6 +283,12 @@ class Config(dict):
 				else:
 					print('package', package['name'], 'is missing mandatory property', e, file=sys.stderr)
 				sys.exit(1)
+
+	def validate_icon_file(self):
+		icon_file = self.get('icon_file', None)
+		if not (icon_file and os.path.isfile(icon_file)):
+			print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
+			sys.exit(1)
 
 	def set_verbose(self, verbose=True):
 		self['verbose'] = verbose

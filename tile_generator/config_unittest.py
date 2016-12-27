@@ -18,6 +18,7 @@ import unittest
 from . import config
 from .config import Config
 import sys
+import tempfile
 from contextlib import contextmanager
 from StringIO import StringIO
 import mock
@@ -132,93 +133,143 @@ class TestVersionMethods(unittest.TestCase):
 
 class TestConfigValidation(unittest.TestCase):
 
+	def setUp(self):
+		self.icon_file = tempfile.NamedTemporaryFile()
+		self.config = Config(name='validname', icon_file=self.icon_file.name)
+
+	def tearDown(self):
+		self.icon_file.close()
+
+	def test_accepts_minimal_config(self):
+		self.config.validate()
+
 	def test_requires_product_name(self):
 		with self.assertRaises(SystemExit):
-			Config().validate()
-
-	def test_accepts_valid_product_name(self):
-		Config(name='validname').validate()
+			del self.config['name']
+			self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphen(self):
-		Config(name='valid-name').validate()
+		self.config['name'] = 'valid-name'
+		self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphens(self):
-		Config(name='valid-name-too').validate()
+		self.config['name'] = 'valid-name-too'
+		self.config.validate()
 
 	def test_accepts_valid_product_name_with_number(self):
-		Config(name='valid-name-2').validate()
+		self.config['name'] = 'valid-name-2'
+		self.config.validate()
 
 	def test_accepts_valid_product_name_with_one_letter_prefix(self):
-		Config(name='p-tile').validate()
+		self.config['name'] = 'p-tile'
+		self.config.validate()
 
 	def test_refuses_spaces_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='an invalid name').validate()
+			self.config['name'] = 'an invalid name'
+			self.config.validate()
 
 	def test_refuses_capital_letters_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='Invalid').validate()
+			self.config['name'] = 'Invalid'
+			self.config.validate()
 
 	def test_refuses_underscores_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='invalid_name').validate()
+			self.config['name'] = 'invalid_name'
+			self.config.validate()
 
 	def test_refuses_product_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
-			Config(name='1-invalid-name').validate()
+			self.config['name'] = '1-invalid-name'
+			self.config.validate()
 
 	def test_requires_package_names(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				Config(name='validname', packages=[{'name': 'validname', 'type': 'app'}, {'type': 'app'}]).validate()
+				self.config['packages'] = [{'name': 'validname', 'type': 'app'}, {'type': 'app'}]
+				self.config.validate()
 		self.assertIn('package is missing mandatory property \'name\'', err.getvalue())
 
 	def test_requires_package_types(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				Config(name='validname', packages=[{'name': 'validname', 'type': 'app'}, {'name': 'name'}]).validate()
+				self.config['packages'] = [{'name': 'validname', 'type': 'app'}, {'name': 'name'}]
+				self.config.validate()
 		self.assertIn('package name is missing mandatory property \'type\'', err.getvalue())
 
 	def test_refuses_invalid_type(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				Config(name='validname', packages=[{'name': 'validname', 'type': 'nonsense'}]).validate()
+				self.config['packages'] = [{'name': 'validname', 'type': 'nonsense'}]
+				self.config.validate()
 		self.assertIn('package validname has invalid type nonsense', err.getvalue())
 
 	def test_accepts_valid_package_name(self):
-		Config(name='validname', packages=[{'name': 'validname', 'type': 'app'}]).validate()
+		self.config['packages'] = [{'name': 'validname', 'type': 'app'}]
+		self.config.validate()
 
 	def test_accepts_valid_package_name_with_hyphen(self):
-		Config(name='validname', packages=[{'name': 'valid-name', 'type': 'app'}]).validate()
+		self.config['packages'] = [{'name': 'valid-name', 'type': 'app'}]
+		self.config.validate()
 
 	def test_accepts_valid_package_name_with_hyphens(self):
-		Config(name='validname', packages=[{'name': 'valid-name-too', 'type': 'app'}]).validate()
+		self.config['packages'] = [{'name': 'valid-name-too', 'type': 'app'}]
+		self.config.validate()
 
 	def test_accepts_valid_package_name_with_number(self):
-		Config(name='validname', packages=[{'name': 'valid-name-2', 'type': 'app'}]).validate()
+		self.config['packages'] = [{'name': 'valid-name-2', 'type': 'app'}]
+		self.config.validate()
 
 	def test_refuses_spaces_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': 'invalid name', 'type': 'app'}]).validate()
+			self.config['packages'] = [{'name': 'invalid name', 'type': 'app'}]
+			self.config.validate()
 
 	def test_refuses_capital_letters_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': 'Invalid', 'type': 'app'}]).validate()
+			self.config['packages'] = [{'name': 'Invalid', 'type': 'app'}]
+			self.config.validate()
 
 	def test_refuses_underscores_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': 'invalid_name', 'type': 'app'}]).validate()
+			self.config['packages'] = [{'name': 'invalid_name', 'type': 'app'}]
+			self.config.validate()
 
 	def test_refuses_package_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
-			Config(name='validname', packages=[{'name': '1-invalid-name', 'type': 'app'}]).validate()
+			self.config['packages'] = [{'name': '1-invalid-name', 'type': 'app'}]
+			self.config.validate()
 
 	def test_refuses_docker_bosh_package_without_image(self):
 		with self.assertRaises(SystemExit):
-			Config(name='name', packages=[{'name': 'bad-docker-bosh', 'type': 'docker-bosh'}]).validate()
+			self.config['packages'] = [{'name': 'bad-docker-bosh', 'type': 'docker-bosh'}]
+			self.config.validate()
 
 	def test_accepts_docker_bosh_package_with_image(self):
-		Config(name='name', packages=[{'name': 'bad-docker-bosh', 'type': 'docker-bosh', 'docker_images': ['my/image']}]).validate()
+		self.config['packages'] = [{'name': 'bad-docker-bosh', 'type': 'docker-bosh', 'docker_images': ['my/image']}]
+		self.config.validate()
+
+	def test_requires_icon_file(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out, err):
+				del self.config['icon_file']
+				self.config.validate()
+		self.assertIn('icon_file', err.getvalue())
+
+	def test_refuses_empty_icon_file(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out, err):
+				self.config['icon_file'] = None
+				self.config.validate()
+		self.assertIn('icon_file', err.getvalue())
+
+	def test_refuses_invalid_icon_file(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out, err):
+				self.config['icon_file'] = '/this/file/does/not/exist'
+				self.config.validate()
+		self.assertIn('icon_file', err.getvalue())
 
 class TestDefaultOptions(unittest.TestCase):
 	def test_purge_service_broker_is_true_by_default(self):
