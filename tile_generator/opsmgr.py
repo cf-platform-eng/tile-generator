@@ -56,6 +56,8 @@ def find_credential_dir():
 		if len(matches) > 0:
 			return matches[0]
 		parent = os.path.join('..', parent)
+	print('Did not find a target repository named', dirname, file=sys.stderr)
+	sys.exit(1)
 
 def get_credential_dir(update=False):
 	dir = find_credential_dir()
@@ -67,6 +69,7 @@ def get_credential_dir(update=False):
 def get_credentials(target=None):
 	if target is not None:
 		get_credentials.credential_file = find_credentials(target)
+		get_credentials.target = target
 	credential_file = get_credentials.credential_file
 	try:
 		with open(credential_file) as cred_file:
@@ -79,7 +82,12 @@ def get_credentials(target=None):
 		print('Credential file is missing a value:', e.message, file=sys.stderr)
 		sys.exit(1)
 	except IOError as e:
-		print('Credential file "' + credential_file + '" not found', file=sys.stderr)
+		if get_credentials.target is not None:
+			print('No target named', target, 'found in', get_credential_dir(), file=sys.stderr)
+		else:
+			print('You must either specify a target using the --target option,', file=sys.stderr)
+			print('or execute this command from within a directory that has credentials', file=sys.stderr)
+			print('in a file named "metadata" (like a claimed Concourse pool resource)', file=sys.stderr)
 		sys.exit(1)
 	return creds
 
@@ -88,6 +96,7 @@ def get_credentials(target=None):
 # metadata is available in a file named './metadata'
 #
 get_credentials.credential_file = 'metadata'
+get_credentials.target = None
 
 class auth(requests.auth.AuthBase):
 
