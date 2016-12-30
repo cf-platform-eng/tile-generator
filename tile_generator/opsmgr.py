@@ -32,29 +32,62 @@ import subprocess
 import pty
 import os
 import select
+import glob
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-# This function assumes that we are executing from within a concourse
-# pool-resource repository, where the claimed PCF instance metadata
-# is available in a file named './metadata'
-#
-def get_credentials():
+def find_credentials(target):
+	if not target.endswith('.yml'):
+		target += '.yml'
+	if '/' in target:
+		return target
+	dir = get_credential_dir(update=True)
+	return os.path.join(dir, target)
+
+def find_credential_dir():
+	dirname = 'pie-credentials'
+	parent = '.'
+	while not os.path.samefile(parent, '/'):
+		candidate = os.path.join(parent, dirname)
+		if os.path.exists(candidate):
+			return candidate
+		pattern = os.path.join(parent, '*', dirname)
+		matches = glob.glob(pattern)
+		if len(matches) > 0:
+			return matches[0]
+		parent = os.path.join('..', parent)
+
+def get_credential_dir(update=False):
+	dir = find_credential_dir()
+	if update:
+		devnull = open(os.devnull,"w")
+		subprocess.call(['git', 'pull'], cwd=dir, stdout=devnull, stderr=devnull)
+	return dir
+
+def get_credentials(target=None):
+	if target is not None:
+		get_credentials.credential_file = find_credentials(target)
+	credential_file = get_credentials.credential_file
 	try:
-		with open('metadata') as cred_file:
+		with open(credential_file) as cred_file:
 			creds = yaml.safe_load(cred_file)
 			creds['opsmgr']
 			creds['opsmgr']['url']
 			creds['opsmgr']['username']
 			creds['opsmgr']['password']
 	except KeyError as e:
-		print('metadata file is missing a value:', e.message, file=sys.stderr)
+		print('Credential file is missing a value:', e.message, file=sys.stderr)
 		sys.exit(1)
 	except IOError as e:
-		print('Not a Concourse PCF pool resource.', file=sys.stderr)
-		print('Execute this from within the pool repository root, after a successful claim/acquire.', file=sys.stderr)
+		print('Credential file "' + credential_file + '" not found', file=sys.stderr)
 		sys.exit(1)
 	return creds
+
+# This default handles the case where we are executing from within a
+# concourse pool-resource repository, where the claimed PCF instance
+# metadata is available in a file named './metadata'
+#
+get_credentials.credential_file = 'metadata'
 
 class auth(requests.auth.AuthBase):
 

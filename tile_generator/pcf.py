@@ -31,8 +31,9 @@ from . import opsmgr
 from . import erb
 
 @click.group()
-def cli():
-	pass
+@click.option('-t', '--target')
+def cli(target):
+	opsmgr.get_credentials(target)
 
 @cli.command('ssh')
 @click.argument('argv', nargs=-1)
