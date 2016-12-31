@@ -67,10 +67,21 @@ def get_credential_dir(update=False):
 	return dir
 
 def get_credentials(target=None):
+	if get_credentials.credentials is not None:
+		return get_credentials.credentials
+	ssh_key = None
 	if target is not None:
-		get_credentials.credential_file = find_credentials(target)
-		get_credentials.target = target
-	credential_file = get_credentials.credential_file
+		credential_dir = get_credential_dir(update=True)
+		credential_file = os.path.join(credential_dir, target + '.yml')
+		private_key_file = os.path.join(credential_dir, target + '.opsman_rsa')
+		if os.path.isfile(private_key_file):
+			os.chmod(private_key_file, 0600)
+			ssh_key = private_key_file
+	else:
+		# This default handles the case where we are executing from within a
+		# concourse pool-resource repository, where the claimed PCF instance
+		# metadata is available in a file named './metadata'
+		credential_file = 'metadata'
 	try:
 		with open(credential_file) as cred_file:
 			creds = yaml.safe_load(cred_file)
@@ -78,12 +89,14 @@ def get_credentials(target=None):
 			creds['opsmgr']['url']
 			creds['opsmgr']['username']
 			creds['opsmgr']['password']
+			creds['opsmgr']['ssh_key'] = ssh_key
+			get_credentials.credentials = creds
 	except KeyError as e:
 		print('Credential file is missing a value:', e.message, file=sys.stderr)
 		sys.exit(1)
 	except IOError as e:
-		if get_credentials.target is not None:
-			print('No target named', target, 'found in', get_credential_dir(), file=sys.stderr)
+		if target is not None:
+			print('No target named', target, 'found in', credential_dir, file=sys.stderr)
 		else:
 			print('You must either specify a target using the --target option,', file=sys.stderr)
 			print('or execute this command from within a directory that has credentials', file=sys.stderr)
@@ -91,12 +104,7 @@ def get_credentials(target=None):
 		sys.exit(1)
 	return creds
 
-# This default handles the case where we are executing from within a
-# concourse pool-resource repository, where the claimed PCF instance
-# metadata is available in a file named './metadata'
-#
-get_credentials.credential_file = 'metadata'
-get_credentials.target = None
+get_credentials.credentials = None
 
 class auth(requests.auth.AuthBase):
 
