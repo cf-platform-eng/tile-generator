@@ -33,6 +33,7 @@ import pty
 import os
 import select
 import glob
+import tempfile
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -75,8 +76,8 @@ def get_credentials(target=None):
 		credential_file = os.path.join(credential_dir, target + '.yml')
 		private_key_file = os.path.join(credential_dir, target + '.opsman_rsa')
 		if os.path.isfile(private_key_file):
-			os.chmod(private_key_file, 0600)
-			ssh_key = private_key_file
+			with open(private_key_file, 'rb') as keyfile:
+				ssh_key = keyfile.read()
 	else:
 		# This default handles the case where we are executing from within a
 		# concourse pool-resource repository, where the claimed PCF instance
@@ -209,16 +210,19 @@ def ssh(argv = [], working_dir='/var/tempest/workspaces/default', silent=False, 
 	host = urlparse(url).hostname
 	ssh_key = creds.get('opsmgr').get('ssh_key', None)
 	if ssh_key is not None:
-		command = [
-			'ssh',
-			'-q',
-			'-o', 'UserKnownHostsFile=/dev/null',
-			'-o', 'StrictHostKeyChecking=no',
-			'-i', ssh_key,
-			'ubuntu@' + host
-		] + list(argv)
-		subprocess.call(command)
-		return
+		with tempfile.NamedTemporaryFile('wb') as keyfile:
+			keyfile.write(ssh_key)
+			keyfile.flush()
+			command = [
+				'ssh',
+				'-q',
+				'-o', 'UserKnownHostsFile=/dev/null',
+				'-o', 'StrictHostKeyChecking=no',
+				'-i', keyfile.name,
+				'ubuntu@' + host
+			] + list(argv)
+			subprocess.call(command)
+			return
 	commands = ' '.join(argv)
 	command = [
 		'ssh',
