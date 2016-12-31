@@ -39,11 +39,7 @@ def cli(target):
 @click.argument('argv', nargs=-1)
 @click.option('--debug', '-d', is_flag=True)
 def ssh_cmd(argv, debug=False):
-	if len(argv) > 0:
-		commands = [ ' '.join(argv) ]
-	else:
-		commands = []
-	opsmgr.ssh(commands, debug=debug)
+	opsmgr.ssh(argv, debug=debug)
 
 @cli.command('reboot')
 @click.option('--yes-i-am-sure', '-y', is_flag=True)
