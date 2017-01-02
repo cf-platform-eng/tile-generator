@@ -107,6 +107,9 @@ def get_credentials(target=None):
 
 get_credentials.credentials = None
 
+def set_credentials(credentials):
+	get_credentials.credentials = credentials
+
 class auth(requests.auth.AuthBase):
 
 	def __init__(self, creds):
