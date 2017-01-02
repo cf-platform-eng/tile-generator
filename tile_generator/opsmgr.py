@@ -342,12 +342,18 @@ def ssh_match(pattern, line):
 def get_products():
 	available_products = get('/api/products').json()
 	installed_products = get('/api/installation_settings').json()['products']
-	for product in available_products:
-		installed = [ p for p in installed_products if p['identifier'] == product['name'] and p['product_version'] == product['product_version'] ]
-		product['installed'] = len(installed) > 0
-		if product['installed']:
-			product['guid'] = installed[0]['guid']
-	return available_products
+	products = [{
+		'guid': p['guid'],
+		'name': p['identifier'],
+		'product_version': p['product_version'],
+		'installed': True,
+	} for p in installed_products ]
+	for p in available_products:
+		installed = [ i for i in products if p['name'] == i['name'] and p['product_version'] == i['product_version'] ]
+		if len(installed) == 0:
+			p['installed'] = False
+			products += [ p ]
+	return products
 
 def get_version():
 	# 1.7 and 1.8 have version in the diagnostic report.
