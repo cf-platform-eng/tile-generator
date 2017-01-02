@@ -206,8 +206,7 @@ def check_response(response, check=True):
 			print(response.text, file=sys.stderr)
 		sys.exit(1)
 
-def ssh(argv = [], working_dir='/var/tempest/workspaces/default', silent=False, debug=False):
-	interactive = len(argv) == 0
+def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False, debug=False):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
 	host = urlparse(url).hostname
@@ -223,10 +222,10 @@ def ssh(argv = [], working_dir='/var/tempest/workspaces/default', silent=False, 
 				'-o', 'StrictHostKeyChecking=no',
 				'-i', keyfile.name,
 				'ubuntu@' + host
-			] + list(argv)
+			] + list(commands)
 			subprocess.call(command)
 			return
-	commands = ' '.join(argv)
+	interactive = len(commands) == 0
 	command = [
 		'ssh',
 		'-q',
