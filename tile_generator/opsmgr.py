@@ -601,6 +601,12 @@ def install_exists(id):
 	return response.status_code == requests.codes.ok
 
 def last_install(lower=0, upper=1, check=install_exists):
+	try:
+		installations = get('/api/v0/installations', check=False).json()['installations']
+		installations = [ i['id'] for i in installations]
+		return sorted([ 0 ] + installations)[-1]
+	except:
+		pass
 	if lower == upper:
 		return lower
 	if check(upper):
@@ -610,6 +616,12 @@ def last_install(lower=0, upper=1, check=install_exists):
 		return last_install(middle, upper, check=check)
 	else:
 		return last_install(lower, middle - 1, check=check)
+
+def get_status():
+	id  = last_install()
+	if id == 0:
+		return { 'status': 'idle' }
+	return get('/api/installation/' + str(id)).json()
 
 def unlock():
 	creds = get_credentials()

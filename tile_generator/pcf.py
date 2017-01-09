@@ -377,6 +377,20 @@ def version_cmd():
 	version = opsmgr.get_version()
 	print('.'.join([ str(x) for x in version ]))
 
+@cli.command('credentials')
+def credentials_cmd():
+	creds = opsmgr.get_credentials()
+	creds['opsmgr'].pop('ssh_key', None)
+	cf = opsmgr.get_cfinfo()
+	creds['cf'] = {
+		'url': 'https://api.' + cf['system_domain'],
+		'username': cf['admin_username'],
+		'password': cf['admin_password'],
+		'app_domain': cf['apps_domain'],
+		'sys_domain': cf['system_domain'],
+	}
+	print(yaml.safe_dump(creds, default_flow_style=False, explicit_start=True), end='')
+
 if __name__ == '__main__':
 	try:
 		cli()
