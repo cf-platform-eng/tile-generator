@@ -569,9 +569,9 @@ def get_cfinfo():
 		'system_domain': system_domain,
 		'apps_domain': apps_domain,
 		'admin_username': admin_credentials['identity'],
-		'admin_password': admin_credentials['password'],
+		'admin_password': admin_credentials.get('password', None),
 		'system_services_username': system_services_credentials['identity'],
-		'system_services_password': system_services_credentials['password'],
+		'system_services_password': system_services_credentials.get('password', None),
 	}
 
 def logs(install_id):
