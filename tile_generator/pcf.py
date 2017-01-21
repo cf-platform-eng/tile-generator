@@ -391,6 +391,11 @@ def credentials_cmd():
 	}
 	print(yaml.safe_dump(creds, default_flow_style=False, explicit_start=True), end='')
 
+@cli.command('history')
+def history_cmd():
+	history = opsmgr.get_history()
+	print(json.dumps(history, indent=4))
+
 if __name__ == '__main__':
 	try:
 		cli()

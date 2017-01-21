@@ -617,6 +617,10 @@ def last_install(lower=0, upper=1, check=install_exists):
 	else:
 		return last_install(lower, middle - 1, check=check)
 
+def get_history():
+	installations = get('/api/v0/installations', check=False).json()['installations']
+	return installations
+
 def get_status():
 	id  = last_install()
 	if id == 0:
