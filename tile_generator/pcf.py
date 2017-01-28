@@ -396,6 +396,11 @@ def history_cmd():
 	history = opsmgr.get_history()
 	print(json.dumps(history, indent=4))
 
+@cli.command('stemcells')
+def stemcells_cmd():
+	stemcells = opsmgr.get_stemcells()
+	print(json.dumps(stemcells, indent=4))
+
 if __name__ == '__main__':
 	try:
 		cli()

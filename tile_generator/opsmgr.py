@@ -618,7 +618,19 @@ def last_install(lower=0, upper=1, check=install_exists):
 		return last_install(lower, middle - 1, check=check)
 
 def get_history():
-	installations = get('/api/v0/installations', check=False).json()['installations']
+	try:
+		installations = get('/api/v0/installations', check=False).json()['installations']
+		return installations
+	except:
+		pass
+	installations = []
+	install_id = 1
+	while True:
+		response = get('/api/installation/' + str(install_id), check=False)
+		if response.status_code != requests.codes.ok:
+			break
+		installations += [ response.json() ]
+		install_id += 1
 	return installations
 
 def get_status():
@@ -663,3 +675,12 @@ def unlock():
 			waiting = True
 		time.sleep(5)
 		continue
+
+def get_stemcells():
+	response = get('/api/v0/diagnostic_report', check=False)
+	if response.status_code == requests.codes.ok:
+		diag = response.json()
+		stemcells = diag['stemcells']
+		return stemcells
+	return []
+
