@@ -4,7 +4,7 @@ label: {{ label }}
 description: {{ description }}
 icon_image: {{ base64(icon_file) }}
 product_version: '{{ version }}'
-metadata_version: '1.5'
+metadata_version: '{{ metadata_version or 1.8 }}'
 minimum_version_for_upgrade: '0.0.1'
 rank: 1
 serial: true
@@ -24,7 +24,7 @@ releases:
 stemcell_criteria:
   os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
   requires_cpi: false
-  version: '{{ stemcell_criteria.version or 3146.5 }}'
+  version: '{{ stemcell_criteria.version or 3312 }}'
 
 property_blueprints:
 #
@@ -230,6 +230,7 @@ form_types:
 {% endfor %}
 
 job_types:
+{% if metadata_version and metadata_version < 1.7 %}
 #
 # Default compilation job
 #
@@ -261,6 +262,7 @@ job_types:
     type: integer
     configurable: true
     default: 1
+{% endif %}
 {% for release in releases %}
 {% for job in release.jobs if job.template and job.template == 'docker-bosh' %}
 #
@@ -291,6 +293,8 @@ job_types:
     type: integer
     configurable: false
     default: {{ job.package.persistent_disk }}
+    constraints:
+      min: 1024
   - name: cpu
     type: integer
     configurable: false
@@ -299,8 +303,13 @@ job_types:
   dynamic_ip: 0
   max_in_flight: 1
   single_az_only: false
+{% if metadata_version and metadata_version < 1.7 %}
   instance_definitions:
   - name: instances
+{% else %}
+  instance_definition:
+    name: instances
+{% endif %}
     type: integer
     configurable: true
     default: {{ job.package.instances }}
@@ -403,6 +412,8 @@ job_types:
     type: integer
     configurable: false
     default: {{ job.persistent_disk or 0 }}
+    constraints:
+      min: 1024
   - name: cpu
     type: integer
     configurable: false
@@ -410,8 +421,14 @@ job_types:
   static_ip: {{ job.static_ip or 0 }}
   dynamic_ip: {{ job.dynamic_ip or 0 }}
   max_in_flight: {{ job.max_in_flight or 1 }}
+  single_az_only: {{ job.single_az_only or (job.lifecycle and job.lifecycle == 'errand') or false }}
+{% if metadata_version and metadata_version < 1.7 %}
   instance_definitions:
   - name: instances
+{% else %}
+  instance_definition:
+    name: instances
+{% endif %}
     type: integer
 {% if job.lifecycle and job.lifecycle == 'errand' %}
     configurable: false
@@ -453,6 +470,8 @@ job_types:
     type: integer
     configurable: false
     default: 0
+    constraints:
+      min: 1024
   - name: cpu
     type: integer
     configurable: false
@@ -460,9 +479,14 @@ job_types:
   static_ip: 0
   dynamic_ip: 1
   max_in_flight: 1
-  single_az_only: false
+  single_az_only: true
+{% if metadata_version and metadata_version < 1.7 %}
   instance_definitions:
   - name: instances
+{% else %}
+  instance_definition:
+    name: instances
+{% endif %}
     type: integer
     configurable: false
     default: 1
