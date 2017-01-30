@@ -181,11 +181,14 @@ def upload(url, filename, check=True):
 	response = requests.post(url, auth=auth(creds), verify=False, files=files)
 	if response.status_code == 422:
 		errors = response.json()["errors"]
-		product = errors.get('product', [])
-		for reason in product:
-			if reason.startswith('Metadata already exists for'):
-				print('-','version already uploaded')
-				return response
+		try:
+			product = errors.get('product', [])
+			for reason in product:
+				if reason.startswith('Metadata already exists for'):
+					print('-','version already uploaded')
+					return response
+		except:
+			pass
 	check_response(response, check)
 	return response
 
