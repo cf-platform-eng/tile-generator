@@ -4,7 +4,7 @@ label: {{ label }}
 description: {{ description }}
 icon_image: {{ base64(icon_file) }}
 product_version: '{{ version }}'
-metadata_version: '{{ metadata_version or 1.7 }}'
+metadata_version: '{{ metadata_version or 1.5 }}'
 minimum_version_for_upgrade: '0.0.1'
 rank: 1
 serial: true
