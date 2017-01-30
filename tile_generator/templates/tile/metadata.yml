@@ -413,7 +413,7 @@ job_types:
     configurable: false
     default: {{ job.persistent_disk or 0 }}
     constraints:
-      min: 1024
+      min: {{ job.persistent_disk or 0 }}
   - name: cpu
     type: integer
     configurable: false
