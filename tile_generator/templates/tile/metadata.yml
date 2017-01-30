@@ -292,9 +292,9 @@ job_types:
   - name: persistent_disk
     type: integer
     configurable: false
-    default: {{ job.package.persistent_disk }}
+    default: {{ job.package.persistent_disk or 0 }}
     constraints:
-      min: 1024
+      min: {{ job.package.persistent_disk or 0 }}
   - name: cpu
     type: integer
     configurable: false
@@ -471,7 +471,7 @@ job_types:
     configurable: false
     default: 0
     constraints:
-      min: 1024
+      min: 0
   - name: cpu
     type: integer
     configurable: false
