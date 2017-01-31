@@ -230,7 +230,7 @@ form_types:
 {% endfor %}
 
 job_types:
-{% if metadata_version < 1.7 %}
+{% if metadata_version < 1.8 %}
 #
 # Default compilation job
 #
