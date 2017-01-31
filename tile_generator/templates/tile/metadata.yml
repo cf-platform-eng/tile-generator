@@ -257,8 +257,13 @@ job_types:
   dynamic_ip: 1
   max_in_flight: 1
   single_az_only: true
+{% if metadata_version < 1.7 %}
   instance_definitions:
   - name: instances
+{% else %}
+  instance_definition:
+    name: instances
+{% endif %}
     type: integer
     configurable: true
     default: 1
