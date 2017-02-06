@@ -147,6 +147,9 @@ form_types:
       - reference: .properties.{{ property.name }}.{{ option.name }}.{{ input.name }}
         label: {{ input.label }}
         description: {{ input.description or input.label }}
+        {% if input.placeholder %}
+        placeholder: {{ input.placeholder }}
+        {% endif %}
       {% endfor %}
     {% endfor %}
     {% endif %}
