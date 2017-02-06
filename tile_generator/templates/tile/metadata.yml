@@ -146,7 +146,9 @@ form_types:
       {% for input in option.property_blueprints %}
       - reference: .properties.{{ property.name }}.{{ option.name }}.{{ input.name }}
         label: {{ input.label }}
-        description: {{ input.description or input.label }}
+        {% if input.description %}
+        description: {{ input.description }}
+        {% endif %}
       {% endfor %}
     {% endfor %}
     {% endif %}
