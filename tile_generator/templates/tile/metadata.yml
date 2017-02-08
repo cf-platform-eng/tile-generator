@@ -149,6 +149,9 @@ form_types:
         {% if input.description %}
         description: {{ input.description }}
         {% endif %}
+        {% if input.placeholder %}
+        placeholder: {{ input.placeholder }}
+        {% endif %}
       {% endfor %}
     {% endfor %}
     {% endif %}
