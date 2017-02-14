@@ -392,7 +392,7 @@ job_types:
 {% for release in releases if release.type == 'bosh-release' %}
 {% for job in release.jobs %}
 - name: {{ job.name }}
-  resource_label: {{ job.name }}
+  resource_label: {{ job.label or job.name }}
 {% if job.lifecycle and job.lifecycle == 'errand' %}
   errand: true
 {% endif %}
@@ -440,7 +440,7 @@ job_types:
     name: instances
 {% endif %}
     type: integer
-{% if job.lifecycle and job.lifecycle == 'errand' %}
+{% if job.singleton or (job.lifecycle and job.lifecycle == 'errand') %}
     configurable: false
     default: 1
 {% else %}
