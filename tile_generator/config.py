@@ -279,7 +279,7 @@ class Config(dict):
 					sys.exit(1)
 				if package['type'] == 'bosh-release':
 					for job in package.get('jobs', []):
-						job['name'] = job['name'].lower().replace('-','_')
+						job['varname'] = job['name'].lower().replace('-','_')
 						job['is_static'] = job.get('static_ip', 0) > 0
 			except KeyError as e:
 				if str(e) == '\'name\'':
