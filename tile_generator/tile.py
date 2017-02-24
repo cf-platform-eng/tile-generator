@@ -43,6 +43,7 @@ def init_cmd(name):
 	name = os.path.basename(os.getcwd())
 	template.render(config.CONFIG_FILE, config.CONFIG_FILE, { 'name': name })
 	template.render('.gitignore', 'gitignore', {})
+	print('Generated initial tile files; begin by customizing "./tile.yml"')
 
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
