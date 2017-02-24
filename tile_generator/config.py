@@ -277,6 +277,10 @@ class Config(dict):
 				if package['type'] == 'docker-bosh' and not package.get('docker_images', []):
 					print('docker-bosh package', package['name'], 'must specify docker_images', file=sys.stderr)
 					sys.exit(1)
+				if package['type'] == 'bosh-release':
+					for job in package.get('jobs', []):
+						job['name'] = job['name'].lower().replace('-','_')
+						job['is_static'] = job.get('static_ip', 0) > 0
 			except KeyError as e:
 				if str(e) == '\'name\'':
 					print('package is missing mandatory property', e, file=sys.stderr)
