@@ -45,6 +45,12 @@ class VerifyApp4Proxy(unittest.TestCase):
 		self.assertTrue(self.env.get('TG_TEST_APP4_HOST') is not None)
 		self.assertTrue(self.env.get('TG_TEST_APP4_HOSTS') is not None)
 
+	def test_apps_receive_app5_hosts(self):
+		self.assertTrue(self.env.get('TG_TEST_APP5_REDIS_LEADER_Z1_HOST') is not None)
+		self.assertTrue(self.env.get('TG_TEST_APP5_REDIS_LEADER_Z1_HOSTS') is not None)
+		self.assertTrue(self.env.get('TG_TEST_APP5_REDIS_Z1_HOST') is not None)
+		self.assertTrue(self.env.get('TG_TEST_APP5_REDIS_Z1_HOSTS') is not None)
+
 	def test_responds_to_hello(self):
 		self.skipIfNoHost()
 		headers = { 'Accept': 'application/json' }
