@@ -249,7 +249,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Unit tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Unit tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: bump-prerelease
@@ -308,7 +308,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Tile Generator package build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Tile Generator package build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - aggregate:
       - put: tile-generator-package
@@ -359,7 +359,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Tile Generator docker build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Tile Generator docker build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - put: tile-generator-docker-image
     params:
@@ -405,7 +405,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Sample app build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Sample app build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - put: app-docker-image
     params:
@@ -430,7 +430,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Sample app docker build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Sample app docker build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - task: build-sample-tile
     image: tile-generator-docker-image
@@ -453,7 +453,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Tile build failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Tile build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - put: tile-history
     params:
@@ -496,7 +496,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Acceptance tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Acceptance tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: claim-1-6
@@ -561,7 +561,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: deployment-tests-1-6
@@ -605,7 +605,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: remove-tile-1-6
@@ -649,7 +649,7 @@ jobs:
       params:
         channel: {{slack-channel}}
         icon_emoji: ':concourse:'
-        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
 - name: claim-1-7
@@ -714,7 +714,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: deployment-tests-1-7
@@ -758,7 +758,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: remove-tile-1-7
@@ -802,7 +802,7 @@ jobs:
       params:
         channel: {{slack-channel}}
         icon_emoji: ':concourse:'
-        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
 - name: claim-1-8
@@ -867,7 +867,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: deployment-tests-1-8
@@ -911,7 +911,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: remove-tile-1-8
@@ -955,7 +955,7 @@ jobs:
       params:
         channel: {{slack-channel}}
         icon_emoji: ':concourse:'
-        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
 - name: claim-1-9
@@ -1020,7 +1020,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: deployment-tests-1-9
@@ -1064,7 +1064,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: remove-tile-1-9
@@ -1108,7 +1108,7 @@ jobs:
       params:
         channel: {{slack-channel}}
         icon_emoji: ':concourse:'
-        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
 - name: claim-multi-az
@@ -1173,7 +1173,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deploy tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: deployment-tests-multi-az
@@ -1217,7 +1217,7 @@ jobs:
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: '(master) Deployment tests failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: remove-tile-multi-az
@@ -1261,7 +1261,7 @@ jobs:
       params:
         channel: {{slack-channel}}
         icon_emoji: ':concourse:'
-        text: '(master) Remove tile failed, check <https://ci.run-01.haas-26.pez.pivotal.io/pipelines/tile-generator|here> for details'
+        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
 - name: most-recent
