@@ -94,9 +94,9 @@ properties:
 {% if package.is_bosh_release %}
 {% for job in package.jobs %}
 {% if job.is_static %}
-  {{ package.name }}.{{ job.name }}.host:
+  {{ package.name }}.{{ job.varname }}.host:
     description: '(First) Hostname for the vm'
-  {{ package.name }}.{{ job.name }}.hosts:
+  {{ package.name }}.{{ job.varname }}.hosts:
     description: '(All) Hostnames for the vms'
 {% endif %}
 {% endfor %}
