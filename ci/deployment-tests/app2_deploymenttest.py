@@ -45,6 +45,16 @@ class VerifyApp2(unittest.TestCase):
 		self.assertEqual(env.get('ZIP_CODE'), '90310')
 		self.assertEqual(env.get('COUNTRY'), 'country_us')
 
+	def test_receives_app5_hosts(self):
+		headers = { 'Accept': 'application/json' }
+		response = requests.get(self.url + '/env', headers=headers)
+		response.raise_for_status()
+		env = response.json()
+		self.assertTrue(env.get('TG_TEST_APP5_REDIS_LEADER_Z1_HOST') is not None)
+		self.assertTrue(env.get('TG_TEST_APP5_REDIS_LEADER_Z1_HOSTS') is not None)
+		self.assertTrue(env.get('TG_TEST_APP5_REDIS_Z1_HOST') is not None)
+		self.assertTrue(env.get('TG_TEST_APP5_REDIS_Z1_HOSTS') is not None)
+
 	def test_receives_expected_services(self):
 		headers = { 'Accept': 'application/json' }
 		response = requests.get(self.url + '/env', headers=headers)
