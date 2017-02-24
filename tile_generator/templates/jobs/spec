@@ -91,4 +91,14 @@ properties:
   {{ package.name }}.hosts:
     description: '(All) Hostnames for the container'
 {% endif %}
+{% if package.is_bosh_release %}
+{% for job in package.jobs %}
+{% if job.is_static %}
+  {{ package.name }}.{{ job.name }}.host:
+    description: '(First) Hostname for the vm'
+  {{ package.name }}.{{ job.name }}.hosts:
+    description: '(All) Hostnames for the vms'
+{% endif %}
+{% endfor %}
+{% endif %}
 {% endfor %}

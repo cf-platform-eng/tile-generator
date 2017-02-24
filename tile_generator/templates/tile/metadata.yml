@@ -381,6 +381,15 @@ job_types:
       host: (( .docker-bosh-{{ package.name }}.first_ip ))
       hosts: (( .docker-bosh-{{ package.name }}.ips ))
 {% endif %}
+{% if package.is_bosh_release %}
+{% for job in package.jobs %}
+{% if job.is_static %}
+      {{ job.name }}:
+        host: (( .{{ job.name }}.first_ip ))
+        hosts: (( .{{ job.name }}.ips ))
+{% endif %}
+{% endfor %}
+{% endif %}
 {% endfor %}
 {% endfor %}
 {% endfor %}
@@ -544,6 +553,15 @@ job_types:
 {% if package.is_docker_bosh %}
       host: (( .docker-bosh-{{ package.name }}.first_ip ))
       hosts: (( .docker-bosh-{{ package.name }}.ips ))
+{% endif %}
+{% if package.is_bosh_release %}
+{% for job in package.jobs %}
+{% if job.is_static %}
+      {{ job.name }}:
+        host: (( .{{ job.name }}.first_ip ))
+        hosts: (( .{{ job.name }}.ips ))
+{% endif %}
+{% endfor %}
 {% endif %}
 {% endfor %}
 {% endfor %}

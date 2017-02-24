@@ -47,6 +47,14 @@ function import_opsmgr_variables() {
 	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
 	export {{ package.name | upper }}_HOSTS={{ ( 'properties.' + package.name + '.hosts' ) | shell_string }}
 	{% endfor %}
+	{% for package in context.packages if package.type == 'bosh-release' %}
+	{% for job in package.jobs %}
+	{% if job.is_static %}
+	export {{ package.name | upper }}_{{ job.name | upper }}_HOST={{ ( 'properties.' + package.name + '.' + job.name + '.host' ) | shell_string }}
+	export {{ package.name | upper }}_{{ job.name | upper }}_HOSTS={{ ( 'properties.' + package.name + '.' + job.name + '.hosts' ) | shell_string }}
+	{% endif %}
+	{% endfor %}
+	{% endfor %}
 }
 
 function prepare_cf_cli {
@@ -143,6 +151,14 @@ function add_env_vars() {
 	{% for package in context.packages if package.type == 'docker-bosh' %}
 	cf set-env $1 {{ package.name | upper }}_HOST "${{ package.name | upper }}_HOST"
 	cf set-env $1 {{ package.name | upper }}_HOSTS "${{ package.name | upper }}_HOSTS"
+	{% endfor %}
+	{% for package in context.packages if package.type == 'bosh-release' %}
+	{% for job in package.jobs %}
+	{% if job.is_static %}
+	cf set-env $1 {{ package.name | upper }}_{{ job.name | upper }}_HOST "${{ package.name | upper }}_{{ job.name | upper }}_HOST"
+	cf set-env $1 {{ package.name | upper }}_{{ job.name | upper }}_HOSTS "${{ package.name | upper }}_{{ job.name | upper }}_HOSTS"
+	{% endif %}
+	{% endfor %}
 	{% endfor %}
 }
 
