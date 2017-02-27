@@ -204,7 +204,7 @@ class BoshRelease:
 		)
 
 	def __bosh(self, *argv, **kw):
-		run_bosh(self.release_dir, *argv, **kw)
+		return run_bosh(self.release_dir, *argv, **kw)
 
 
 def ensure_bosh():
