@@ -25,6 +25,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+from distutils import spawn
 from . import template
 try:
 	# Python 3
@@ -203,22 +204,35 @@ class BoshRelease:
 		)
 
 	def __bosh(self, *argv, **kw):
-		argv = list(argv)
-		print('bosh', ' '.join(argv))
-		command = [ 'bosh', '--no-color', '--non-interactive' ] + argv
-		capture = kw.get('capture', None)
-		try:
-			output = subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=self.release_dir)
-			if capture is not None:
-				for l in output.split('\n'):
-					if l.startswith(capture):
-						output = l.split(':', 1)[-1].strip()
-						break
-			return output
-		except subprocess.CalledProcessError as e:
-			if argv[0] == 'init' and argv[1] == 'release' and 'Release already initialized' in e.output:
-				return e.output
-			if argv[0] == 'generate' and 'already exists' in e.output:
-				return e.output
-			print(e.output)
-			sys.exit(e.returncode)
+		run_bosh(self.release_dir, *argv, **kw)
+
+
+def ensure_bosh():
+	bosh_exec = spawn.find_executable('bosh')
+	if not bosh_exec:
+		print("'bosh' command should be on the path. See https://bosh.io for installation instructions")
+		sys.exit(1)
+
+
+def run_bosh(working_dir, *argv, **kw):
+	ensure_bosh()
+
+	argv = list(argv)
+	print('bosh', ' '.join(argv))
+	command = ['bosh', '--no-color', '--non-interactive'] + argv
+	capture = kw.get('capture', None)
+	try:
+		output = subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=working_dir)
+		if capture is not None:
+			for l in output.split('\n'):
+				if l.startswith(capture):
+					output = l.split(':', 1)[-1].strip()
+					break
+		return output
+	except subprocess.CalledProcessError as e:
+		if argv[0] == 'init' and argv[1] == 'release' and 'Release already initialized' in e.output:
+			return e.output
+		if argv[0] == 'generate' and 'already exists' in e.output:
+			return e.output
+		print(e.output)
+		sys.exit(e.returncode)
