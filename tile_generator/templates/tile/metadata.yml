@@ -454,7 +454,7 @@ job_types:
     default: 1
 {% else %}
     configurable: true
-    default: {{ job.instances or 1 }}
+    default: {{ job.instances | default(1) }}
 {% endif %}
   property_blueprints:
   - name: vm_credentials
