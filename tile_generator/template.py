@@ -147,8 +147,10 @@ def render_property(property):
 				fields[field] = '(( .properties.{}.{} ))'.format(property['name'], field)
 		out = { property['name']: fields }
 	else:
-		# Other types use 'value'.
-		out = { property['name']: '(( .properties.{}.value ))'.format(property['name']) }
+		if property.get('is_reference', False):
+			out = { property['name']: property['default'] }
+		else:
+			out = { property['name']: '(( .properties.{}.value ))'.format(property['name']) }
 	return out
 
 @contextfilter
