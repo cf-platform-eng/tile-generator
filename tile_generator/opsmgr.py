@@ -21,6 +21,7 @@ import sys
 import yaml
 import json
 import requests
+from requests_toolbelt import MultipartEncoder
 import time
 try:
 	# Python 3
@@ -177,8 +178,15 @@ def post_yaml(url, filename, payload):
 def upload(url, filename, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	files = { 'product[file]': open(filename, 'rb') }
-	response = requests.post(url, auth=auth(creds), verify=False, files=files)
+	multipart = MultipartEncoder({
+		'product[file]': ('product[file]', open(filename, 'rb'), 'application/octet-stream')
+	})
+	response = requests.post(url,
+		auth=auth(creds),
+		verify=False,
+		data=multipart,
+		headers={ 'Content-Type': multipart.content_type }
+	)
 	if response.status_code == 422:
 		errors = response.json()["errors"]
 		try:

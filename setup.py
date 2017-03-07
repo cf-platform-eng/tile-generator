@@ -68,6 +68,7 @@ setup(
 		'PyYAML>=3.1',
 		'docker-py>=1.6.0',
 		'requests>=2.9.1,<2.11',
+		'requests-toolbelt',
 		'mock>=2.0.0',
 	],
 	include_package_data = True,
