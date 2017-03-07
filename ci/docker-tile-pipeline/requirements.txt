@@ -1,4 +1,5 @@
 requests>=2.9.1
+requests-toolbelt
 mock>=2.0.0
 PyYAML>=3.11
 Jinja2>=2.8
