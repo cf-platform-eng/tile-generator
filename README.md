@@ -32,3 +32,16 @@ the following ways to contribute:
 - If you want to contribute code, please make your code changes on a fork of this repository and submit a
 pull request to the master branch of tile-generator. We strongly suggest that you first file an issue to
 let us know of your intent, or comment on the issue you are planning to address.
+
+### Development
+
+For development, it is useful to install the tile-generator package in
+*editable* mode. That is, you can install the tile-generator package
+in a way that points to your local repository, so that your code
+changes are immediately available through the `tile` or `pcf`
+commands. To do this, run this command in your tile-generator
+repository directory:
+
+```
+pip install -e .
+```
