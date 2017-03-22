@@ -73,7 +73,7 @@ def get_credentials(target=None, non_interactive=False):
 		return get_credentials.credentials
 	ssh_key = None
 	if target is not None:
-		credential_dir = get_credential_dir(update=non_interactive)
+		credential_dir = get_credential_dir(update=(not non_interactive))
 		credential_file = os.path.join(credential_dir, target + '.yml')
 		private_key_file = os.path.join(credential_dir, target + '.opsman_rsa')
 		if os.path.isfile(private_key_file):
