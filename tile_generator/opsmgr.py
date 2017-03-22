@@ -68,12 +68,12 @@ def get_credential_dir(update=False):
 		subprocess.call(['git', 'pull'], cwd=dir, stdout=devnull, stderr=devnull)
 	return dir
 
-def get_credentials(target=None):
+def get_credentials(target=None, non_interactive=False):
 	if get_credentials.credentials is not None:
 		return get_credentials.credentials
 	ssh_key = None
 	if target is not None:
-		credential_dir = get_credential_dir(update=True)
+		credential_dir = get_credential_dir(update=non_interactive)
 		credential_file = os.path.join(credential_dir, target + '.yml')
 		private_key_file = os.path.join(credential_dir, target + '.opsman_rsa')
 		if os.path.isfile(private_key_file):
