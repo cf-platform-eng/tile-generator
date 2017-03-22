@@ -27,6 +27,10 @@ groups:
   - deploy-tile-1-9
   - deployment-tests-1-9
   - remove-tile-1-9
+  - claim-1-10
+  - deploy-tile-1-10
+  - deployment-tests-1-10
+  - remove-tile-1-10
   - claim-multi-az
   - deploy-tile-multi-az
   - deployment-tests-multi-az
@@ -192,6 +196,14 @@ resources:
     uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
     branch: master
     pool: pcf
+    private_key: {{github-pool-private-key}}
+
+- name: pcf-environment-1-10
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf1_10
     private_key: {{github-pool-private-key}}
 
 - name: pcf-environment-multi-az
@@ -1111,6 +1123,159 @@ jobs:
         text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
         username: Tile Generator
 
+- name: claim-1-10
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: version
+      passed: [ acceptance-tests ]
+    - get: tile-generator-package
+      passed: [ acceptance-tests ]
+      trigger: true
+    - put: pcf-environment-1-10
+      params:
+        acquire: true
+
+- name: deploy-tile-1-10
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ claim-1-10 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-1-10 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-1-10 ]
+      trigger: true
+    - get: version
+      passed: [ claim-1-10 ]
+    - get: tile-generator-package
+      passed: [ claim-1-10 ]
+      trigger: true
+    - get: pcf-environment-1-10
+      passed: [ claim-1-10 ]
+      trigger: true
+  - task: run-deploy-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-1-10
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
+        args: [ "generated-tile", "pcf-environment-1-10" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-10
+        params:
+          release: pcf-environment-1-10
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: deployment-tests-1-10
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deploy-tile-1-10 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deploy-tile-1-10 ]
+      trigger: true
+    - get: pcf-environment-1-10
+      passed: [ deploy-tile-1-10 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deploy-tile-1-10 ]
+      trigger: true
+    - get: version
+      passed: [ deploy-tile-1-10 ]
+    - get: tile-generator-package
+      passed: [ deploy-tile-1-10 ]
+      trigger: true
+  - task: run-deployment-tests
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-1-10
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
+        args: [ "generated-tile", "pcf-environment-1-10" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-1-10
+        params:
+          release: pcf-environment-1-10
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: remove-tile-1-10
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deployment-tests-1-10 ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deployment-tests-1-10 ]
+      trigger: true
+    - get: pcf-environment-1-10
+      passed: [ deployment-tests-1-10 ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deployment-tests-1-10 ]
+      trigger: true
+    - get: version
+      passed: [ deployment-tests-1-10 ]
+    - get: tile-generator-package
+      passed: [ deployment-tests-1-10 ]
+      trigger: true
+  - task: remove-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-1-10
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment-1-10" ]
+    ensure:
+      put: pcf-environment-1-10
+      params:
+        release: pcf-environment-1-10
+    on_failure:
+      put: slack-alert
+      params:
+        channel: {{slack-channel}}
+        icon_emoji: ':concourse:'
+        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+        username: Tile Generator
+
 - name: claim-multi-az
   plan:
   - aggregate:
@@ -1269,16 +1434,16 @@ jobs:
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-multi-az ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-multi-az ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
     - get: tile-generator-package
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-multi-az ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
     - get: version
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-multi-az ]
+      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
 
 - name: create-release
