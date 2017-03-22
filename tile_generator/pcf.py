@@ -253,7 +253,7 @@ def apply_changes_cmd(product, deploy_errands, delete_errands):
 	in_progress = None
 	install_id = None
 	while install_id is None:
-		response = opsmgr.post('/api/installation?ignore_warnings=1', body, check=False)
+		response = opsmgr.post('/api/installation?ignore_warnings=true', body, check=False)
 		if response.status_code == 422 and "Install in progress" in response.json()["errors"]:
 			if in_progress is None:
 				print('Waiting for in-progress installation to complete', file=sys.stderr)
