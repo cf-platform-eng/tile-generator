@@ -237,24 +237,31 @@ def cleanup_cmd(product):
 @click.option('--deploy-errands', help='Comma separated list of errands to run after install/update. For example: "deploy-all,configure-broker"')
 @click.option('--delete-errands', help='Comma separated list of errands to run before delete. For example: "pre_delete"')
 def apply_changes_cmd(product, deploy_errands, delete_errands):
-	enabled_errands = []
-	deploy_errand_list = None if deploy_errands is None else deploy_errands.split(',')
-	delete_errand_list = None if delete_errands is None else delete_errands.split(',')
-	changes = opsmgr.get_changes(product, deploy_errand_list, delete_errand_list)
-	if changes is not None:
-		if len(changes['product_changes']) == 0:
-			print('Nothing to do', file=sys.stderr)
-			return
-		for p in changes['product_changes']:
-			post_deploy = serialize_errands(p, 'post_deploy', 'post_deploy_errands')
-			enabled_errands.extend(post_deploy)
-			pre_delete = serialize_errands(p, 'pre_delete', 'pre_delete_errands')
-			enabled_errands.extend(pre_delete)
-	body = '&'.join(enabled_errands)
+	body = None
+	version = opsmgr.get_version()
+	pre_1_10 = version[0] == 1 and version[1] < 10
+	if pre_1_10:
+		enabled_errands = []
+		deploy_errand_list = None if deploy_errands is None else deploy_errands.split(',')
+		delete_errand_list = None if delete_errands is None else delete_errands.split(',')
+		changes = opsmgr.get_changes(product, deploy_errand_list, delete_errand_list)
+		if changes is not None:
+			if len(changes['product_changes']) == 0:
+				print('Nothing to do', file=sys.stderr)
+				return
+			for p in changes['product_changes']:
+				post_deploy = serialize_errands(p, 'post_deploy', 'post_deploy_errands')
+				enabled_errands.extend(post_deploy)
+				pre_delete = serialize_errands(p, 'pre_delete', 'pre_delete_errands')
+				enabled_errands.extend(pre_delete)
+		body = '&'.join(enabled_errands)
 	in_progress = None
 	install_id = None
 	while install_id is None:
-		response = opsmgr.post('/api/installation?ignore_warnings=true', body, check=False)
+		if pre_1_10:
+			response = opsmgr.post('/api/installation?ignore_warnings=true', body, check=False)
+		else:
+			response = opsmgr.post('/api/v0/installations?ignore_warnings=true', body, check=False)
 		if response.status_code == 422 and "Install in progress" in response.json()["errors"]:
 			if in_progress is None:
 				print('Waiting for in-progress installation to complete', file=sys.stderr)
