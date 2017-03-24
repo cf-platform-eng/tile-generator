@@ -388,7 +388,7 @@ def get_job_guid(job_identifier, jobs_settings):
 	print('Could not find job with identifier', job_identifier, file=sys.stderr)
 	sys.exit(1)
 
-def configure(product, properties, strict=False, skip_validation=False):
+def configure(product, properties, strict=False, skip_validation=False, network=None):
 	settings = get('/api/installation_settings').json()
 	infrastructure = settings['infrastructure']
 	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
@@ -453,6 +453,11 @@ def configure(product, properties, strict=False, skip_validation=False):
 		if az.get('name', None) is None:
 			az['name'] = az['iaas_identifier']
 	#
+	# Default network if not provided (preserves prior behavior)
+	#
+	if network is None:
+		network = infrastructure['networks'][0]['name']
+	#
 	# Update using the appropriate API for the Ops Manager version
 	#
 	version = get_version()
@@ -461,7 +466,7 @@ def configure(product, properties, strict=False, skip_validation=False):
 			'networks_and_azs': {
 				'singleton_availability_zone': { 'name': infrastructure['availability_zones'][0]['name'] },
 				'other_availability_zones': [ { 'name': az['name'] } for az in infrastructure['availability_zones'] ],
-				'network': { 'name': infrastructure['networks'][0]['name'] },
+				'network': { 'name': network },
 			}
 		}
 		scoped_properties = {}

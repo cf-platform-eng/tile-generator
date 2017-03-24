@@ -102,12 +102,13 @@ def is_installed_cmd(product, version):
 @click.argument('properties_file', None, required=False)
 @click.option('--strict', is_flag=True)
 @click.option('--skip-validation', is_flag=True)
-def configure_cmd(product, properties_file, strict=False, skip_validation=False):
+@click.option('-n', '--network')
+def configure_cmd(product, properties_file, strict=False, skip_validation=False, network=None):
 	properties = {}
 	if properties_file is not None:
 		with open(properties_file) as f:
 			properties = yaml.safe_load(f)
-	opsmgr.configure(product, properties, strict, skip_validation)
+	opsmgr.configure(product, properties, strict, skip_validation, network)
 
 @cli.command('settings')
 @click.argument('product', None, required=False)
