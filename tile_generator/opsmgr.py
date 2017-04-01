@@ -453,10 +453,13 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 		if az.get('name', None) is None:
 			az['name'] = az['iaas_identifier']
 	#
-	# Default network if not provided (preserves prior behavior)
+	# Default networks if not provided (preserves prior behavior)
 	#
 	if network is None:
 		network = infrastructure['networks'][0]['name']
+	service_network = ([ n for n in infrastructure['networks'] if n.get('service_network', False) ] + [ None ])[0]
+	if service_network is not None:
+		service_network = service_network['name']
 	#
 	# Update using the appropriate API for the Ops Manager version
 	#
@@ -469,6 +472,8 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 				'network': { 'name': network },
 			}
 		}
+		if service_network is not None:
+			networks_and_azs['networks_and_azs']['service_network'] = { 'name': service_network }
 		scoped_properties = {}
 		resource_config = {}
 		for job, job_properties in jobs_properties.items():
