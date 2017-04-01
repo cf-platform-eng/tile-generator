@@ -1175,7 +1175,7 @@ jobs:
       - name: generated-tile
       run:
         path: tile-generator-repo/ci/scripts/run-deploytile.sh
-        args: [ "generated-tile", "pcf-environment-1-10" ]
+        args: [ "generated-tile", "pcf-environment-1-10", "ert" ]
     on_failure:
       aggregate:
       - put: pcf-environment-1-10

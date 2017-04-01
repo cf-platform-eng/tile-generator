@@ -25,6 +25,11 @@ BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
 
 PCF="pcf"
 
+NETWORK="$3"
+if [ -n "$NETWORK" ]; then
+	NETWORK="--network $NETWORK"
+fi
+
 TILE_FILE=`cd "${TILE_DIR}"; ls *.pivotal`
 if [ -z "${TILE_FILE}" ]; then
 	echo "No files matching ${TILE_DIR}/*.pivotal"
@@ -60,7 +65,7 @@ $PCF is-installed "${PRODUCT}" "${VERSION}"
 echo
 
 echo "Configuring product ${PRODUCT}"
-$PCF configure "${PRODUCT}" "${REPO_DIR}/sample/missing-properties.yml"
+$PCF configure "${PRODUCT}" ${NETWORK} "${REPO_DIR}/sample/missing-properties.yml"
 echo
 
 echo "Applying Changes"
