@@ -441,7 +441,7 @@ class Config(dict):
 
 	def update_compilation_vm_disk_size(self, manifest):
 		package_file = manifest.get('path')
-		if not os.path.exists(package_file):
+		if not isinstance(package_file, basestring) or not os.path.exists(package_file):
 			print('Package file "{}" not found! Please check the manifest path in your tile.yml file.'.format(package_file), file=sys.stderr)
 			sys.exit(1)
 		package_size = os.path.getsize(package_file) // (1024 * 1024) # bytes to megabytes
