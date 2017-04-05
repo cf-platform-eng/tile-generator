@@ -274,6 +274,10 @@ class Config(dict):
 					print('valid types are:', ', '.join([ t for t in package_types]), file=sys.stderr)
 					sys.exit(1)
 				package['name'] = package['name'].lower().replace('-','_')
+				if package['type'] == 'app' or package['type'] == 'app-broker' :
+					if package['manifest']['buildpack'] is None:
+						print('buildpack required for package '+ package['name'])
+						sys.exit(1)
 				if package['type'] == 'docker-bosh' and not package.get('docker_images', []):
 					print('docker-bosh package', package['name'], 'must specify docker_images', file=sys.stderr)
 					sys.exit(1)

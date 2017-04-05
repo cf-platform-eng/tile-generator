@@ -192,6 +192,7 @@ packages:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
+    buildpack: python_buildpack       # Specify Buildpack for the app
 
 - name: tg-test-app1-auto-zip         # app1, specified by source directory to test auto-zipping
   type: app
@@ -199,6 +200,7 @@ packages:
     path: src/app
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
+    buildpack: python_buildpack       # Specify Buildpack for the app
 
 - name: tg-test-binary-app            # Self-contained app to test binary buildpack
   type: app
@@ -215,6 +217,7 @@ packages:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
+    buildpack: python_buildpack
 
 - name: tg-test-app2                  # App showing configurable values
   type: app
@@ -223,6 +226,7 @@ packages:
     command: python app.py            # This is required for python, optional for many other languages
     host: tg-test-app2-hostname       # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
+    buildpack: python_buildpack
   health_check: none                  # Turn off health monitoring, default: true
   auto_services:                      # Auto-provision and bind services
   - name: tg-test-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
@@ -235,6 +239,7 @@ packages:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
+    buildpack: python_buildpack
   internal_service_names:
   - service1
   - service2

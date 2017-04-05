@@ -187,14 +187,14 @@ class TestConfigValidation(unittest.TestCase):
 	def test_requires_package_names(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				self.config['packages'] = [{'name': 'validname', 'type': 'app'}, {'type': 'app'}]
+				self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}, {'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 				self.config.validate()
 		self.assertIn('package is missing mandatory property \'name\'', err.getvalue())
 
 	def test_requires_package_types(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
-				self.config['packages'] = [{'name': 'validname', 'type': 'app'}, {'name': 'name'}]
+				self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}, {'name': 'name'}]
 				self.config.validate()
 		self.assertIn('package name is missing mandatory property \'type\'', err.getvalue())
 
@@ -206,39 +206,39 @@ class TestConfigValidation(unittest.TestCase):
 		self.assertIn('package validname has invalid type nonsense', err.getvalue())
 
 	def test_accepts_valid_package_name(self):
-		self.config['packages'] = [{'name': 'validname', 'type': 'app'}]
+		self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
 
 	def test_accepts_valid_package_name_with_hyphen(self):
-		self.config['packages'] = [{'name': 'valid-name', 'type': 'app'}]
+		self.config['packages'] = [{'name': 'valid-name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
 
 	def test_accepts_valid_package_name_with_hyphens(self):
-		self.config['packages'] = [{'name': 'valid-name-too', 'type': 'app'}]
+		self.config['packages'] = [{'name': 'valid-name-too', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
 
 	def test_accepts_valid_package_name_with_number(self):
-		self.config['packages'] = [{'name': 'valid-name-2', 'type': 'app'}]
+		self.config['packages'] = [{'name': 'valid-name-2', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
 
 	def test_refuses_spaces_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'invalid name', 'type': 'app'}]
+			self.config['packages'] = [{'name': 'invalid name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 			self.config.validate()
 
 	def test_refuses_capital_letters_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'Invalid', 'type': 'app'}]
+			self.config['packages'] = [{'name': 'Invalid', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 			self.config.validate()
 
 	def test_refuses_underscores_in_package_name(self):
 		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'invalid_name', 'type': 'app'}]
+			self.config['packages'] = [{'name': 'invalid_name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 			self.config.validate()
 
 	def test_refuses_package_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': '1-invalid-name', 'type': 'app'}]
+			self.config['packages'] = [{'name': '1-invalid-name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 			self.config.validate()
 
 	def test_refuses_docker_bosh_package_without_image(self):
@@ -270,6 +270,18 @@ class TestConfigValidation(unittest.TestCase):
 				self.config['icon_file'] = '/this/file/does/not/exist'
 				self.config.validate()
 		self.assertIn('icon_file', err.getvalue())
+
+	def test_requires_buildpack_for_app_broker(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'packagename', 'type': 'app'}]
+			self.config.validate()
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'packagename', 'type': 'app-broker'}]
+			self.config.validate()
+
+	def test_buildpack_not_required_for_docker_app(self):
+		self.config['packages'] = [{'name': 'packagename', 'type': 'docker-app'}]
+		self.config.validate()
 
 class TestDefaultOptions(unittest.TestCase):
 	def test_purge_service_broker_is_true_by_default(self):
