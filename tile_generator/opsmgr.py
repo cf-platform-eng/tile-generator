@@ -177,11 +177,10 @@ def post_yaml(url, filename, payload):
 
 def percent_complete_callback(monitor):
 	barlength = 60
-	length = 70
 	percent = float(monitor.bytes_read) / monitor.len
 	done = int(barlength * percent)
 	left = barlength - done
-	sys.stdout.write('\r[{}{}] {:3.2%}'.format('*' * done, '-' * left, percent))
+	sys.stdout.write('[{}{}] {:3.2%}\r'.format('*' * done, '-' * left, percent))
 	sys.stdout.flush()
 
 def upload(url, filename, check=True):
@@ -199,6 +198,7 @@ def upload(url, filename, check=True):
 		data=multipart,
 		headers={ 'Content-Type': multipart.content_type }
 	)
+	print
 	if response.status_code == 422:
 		errors = response.json()["errors"]
 		try:
