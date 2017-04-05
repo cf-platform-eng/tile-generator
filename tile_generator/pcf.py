@@ -129,9 +129,9 @@ def cf_info_cmd():
 		print('-', key + ':', cfinfo[key])
 
 @cli.command('import')
-@click.argument('zipfile')
-def import_cmd(zipfile):
-	opsmgr.upload('/api/products', zipfile)
+@click.argument('tile')
+def import_cmd(tile):
+	opsmgr.upload('/api/products', tile)
 
 @cli.command('install')
 @click.argument('product')
