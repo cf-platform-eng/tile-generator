@@ -109,7 +109,7 @@ class Config(dict):
 					'package': package
 				}]
 			if package.get('is_decorator', False):
-				release['requires_meta_buildpack'] = True				
+				release['requires_meta_buildpack'] = True
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
 				if not 'is_docker' in flags:
@@ -441,6 +441,9 @@ class Config(dict):
 
 	def update_compilation_vm_disk_size(self, manifest):
 		package_file = manifest.get('path')
+		if not os.path.exists(package_file):
+			print('Package file "{}" not found! Please check the manifest path in your tile.yml file.'.format(package_file), file=sys.stderr)
+			sys.exit(1)
 		package_size = os.path.getsize(package_file) // (1024 * 1024) # bytes to megabytes
 		self['compilation_vm_disk_size'] = max(self['compilation_vm_disk_size'], 4 * package_size)
 
