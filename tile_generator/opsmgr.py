@@ -21,7 +21,7 @@ import sys
 import yaml
 import json
 import requests
-from requests_toolbelt import MultipartEncoder
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 import time
 try:
 	# Python 3
@@ -175,12 +175,24 @@ def post_yaml(url, filename, payload):
 	check_response(response)
 	return response
 
+def percent_complete_callback(monitor):
+	barlength = 60
+	length = 70
+	percent = float(monitor.bytes_read) / monitor.len
+	done = int(barlength * percent)
+	left = barlength - done
+	sys.stdout.write('\r[{}{}] {:3.2%}'.format('*' * done, '-' * left, percent))
+	sys.stdout.flush()
+
 def upload(url, filename, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	multipart = MultipartEncoder({
-		'product[file]': ('product[file]', open(filename, 'rb'), 'application/octet-stream')
-	})
+	multipart = MultipartEncoderMonitor.from_fields(
+		fields={
+			'product[file]': ('product[file]', open(filename, 'rb'), 'application/octet-stream')
+		},
+		callback=percent_complete_callback
+	)
 	response = requests.post(url,
 		auth=auth(creds),
 		verify=False,
