@@ -132,6 +132,7 @@ def cf_info_cmd():
 @click.argument('tile')
 def import_cmd(tile):
 	opsmgr.upload('/api/products', tile)
+	print('-', 'Tile', tile, 'imported successfully. You can run `pcf install` to load it.')
 
 @cli.command('install')
 @click.argument('product')
