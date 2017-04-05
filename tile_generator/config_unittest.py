@@ -302,7 +302,8 @@ class TestVMDiskSize(unittest.TestCase):
 		manifest = {'path': 'foo'}
 		config.add_defaults()
 		expected_size = config['compilation_vm_disk_size']
-		config.update_compilation_vm_disk_size(manifest)
+		with mock.patch('os.path.exists',return_value = True):
+			config.update_compilation_vm_disk_size(manifest)
 		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
 
 	def test_big_default_vm_disk_size(self, mock_getsize):
@@ -312,7 +313,8 @@ class TestVMDiskSize(unittest.TestCase):
 		package_size = config['compilation_vm_disk_size']
 		mock_getsize.return_value = package_size * 1024 * 1024 # megabytes to bytes.
 		expected_size = 4 * package_size
-		config.update_compilation_vm_disk_size(manifest)
+		with mock.patch('os.path.exists', return_value=True):
+			config.update_compilation_vm_disk_size(manifest)
 		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
 
 if __name__ == '__main__':
