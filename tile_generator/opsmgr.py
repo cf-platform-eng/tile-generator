@@ -198,7 +198,8 @@ def upload(url, filename, check=True):
 		data=multipart,
 		headers={ 'Content-Type': multipart.content_type }
 	)
-	print
+	sys.stdout.write('\n')
+	sys.stdout.flush()
 	if response.status_code == 422:
 		errors = response.json()["errors"]
 		try:
