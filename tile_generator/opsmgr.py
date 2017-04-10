@@ -175,13 +175,28 @@ def post_yaml(url, filename, payload):
 	check_response(response)
 	return response
 
-def percent_complete_callback(monitor):
-	barlength = 60
-	percent = float(monitor.bytes_read) / monitor.len
-	done = int(barlength * percent)
-	left = barlength - done
-	sys.stdout.write('[{}{}] {:3.2%}\r'.format('*' * done, '-' * left, percent))
-	sys.stdout.flush()
+class ProgressBar:
+	def __init__(self):
+		self.last_update = 0
+		self.update_every = 2 * 1024 * 1024
+		sys.stdout.write('0%')
+		sys.stdout.flush()
+
+	def update(self, monitor):
+		if monitor.bytes_read - self.last_update >= self.update_every:
+			sys.stdout.write('.')
+			if monitor.bytes_read == monitor.len:
+				sys.stdout.write('100%')
+			else:
+				old_percent = float(self.last_update) / monitor.len
+				new_percent = float(monitor.bytes_read) / monitor.len
+				for step in range(90, 0, -10):
+					step /= 100.0
+					if new_percent >= step > old_percent:
+						sys.stdout.write('{:.0%}'.format(step))
+						break
+			sys.stdout.flush()
+			self.last_update = monitor.bytes_read
 
 def upload(url, filename, check=True):
 	creds = get_credentials()
@@ -190,7 +205,7 @@ def upload(url, filename, check=True):
 		fields={
 			'product[file]': ('product[file]', open(filename, 'rb'), 'application/octet-stream')
 		},
-		callback=percent_complete_callback
+		callback=ProgressBar().update
 	)
 	response = requests.post(url,
 		auth=auth(creds),
