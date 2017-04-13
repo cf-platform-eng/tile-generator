@@ -528,9 +528,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
-    - put: pcf-environment-1-6
-      params:
-        acquire: true
+  - put: pcf-environment-1-6
+    params:
+      acquire: true
 
 - name: deploy-tile-1-6
   disable_manual_trigger: true
@@ -681,9 +681,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
-    - put: pcf-environment-1-7
-      params:
-        acquire: true
+  - put: pcf-environment-1-7
+    params:
+      acquire: true
 
 - name: deploy-tile-1-7
   disable_manual_trigger: true
@@ -834,9 +834,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
-    - put: pcf-environment-1-8
-      params:
-        acquire: true
+  - put: pcf-environment-1-8
+    params:
+      acquire: true
 
 - name: deploy-tile-1-8
   disable_manual_trigger: true
@@ -987,9 +987,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
-    - put: pcf-environment-1-9
-      params:
-        acquire: true
+  - put: pcf-environment-1-9
+    params:
+      acquire: true
 
 - name: deploy-tile-1-9
   disable_manual_trigger: true
@@ -1140,9 +1140,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
-    - put: pcf-environment-1-10
-      params:
-        acquire: true
+  - put: pcf-environment-1-10
+    params:
+      acquire: true
 
 - name: deploy-tile-1-10
   disable_manual_trigger: true
@@ -1293,9 +1293,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
-    - put: pcf-environment-multi-az
-      params:
-        acquire: true
+  - put: pcf-environment-multi-az
+    params:
+      acquire: true
 
 - name: deploy-tile-multi-az
   disable_manual_trigger: true
