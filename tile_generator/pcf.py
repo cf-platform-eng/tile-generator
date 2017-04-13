@@ -161,11 +161,16 @@ def install_cmd(product, version):
 
 @cli.command('uninstall')
 @click.argument('product')
-def install_cmd(product):
+@click.argument('version', None, required=False)
+def uninstall_cmd(product, version):
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	for match in matches:
-		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+		if version:
+			if match['product_version'] == version:
+				opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+		else:
+			opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 
 @cli.command('delete-unused-products')
 def delete_unused_products_cmd():
