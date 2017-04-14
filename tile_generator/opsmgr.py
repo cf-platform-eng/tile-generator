@@ -160,10 +160,10 @@ def put_json(url, payload):
 	check_response(response)
 	return response
 
-def post(url, payload, check=True):
+def post(url, payload, files=None, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	response = requests.post(url, auth=auth(creds), verify=False, data=payload)
+	response = requests.post(url, auth=auth(creds), verify=False, data=payload, files=files)
 	check_response(response, check)
 	return response
 

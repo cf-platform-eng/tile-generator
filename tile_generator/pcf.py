@@ -411,6 +411,12 @@ def history_cmd():
 	history = opsmgr.get_history()
 	print(json.dumps(history, indent=4))
 
+@cli.command('upload-stemcell')
+@click.argument('stemcell-file')
+def upload_stemcell_cmd(stemcell_file):
+	opsmgr.post('/api/v0/stemcells', None, files={'stemcell[file]': open(stemcell_file, 'rb')})
+	print('stemcell uploaded')
+
 @cli.command('stemcells')
 def stemcells_cmd():
 	stemcells = opsmgr.get_stemcells()
