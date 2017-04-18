@@ -166,7 +166,7 @@ def uninstall_cmd(product, version):
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
 	for match in matches:
-		if version:
+		if version and 'product_version' in match:
 			if match['product_version'] == version:
 				opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 		else:
