@@ -439,10 +439,12 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 		product_settings['stemcell'] = stemcell
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	#
-	# Use the first availability zone
+	# Use the first availability zone (skip this for Azure, which doesn't use them)
 	#
-	product_settings['availability_zone_references'] = [ az['guid'] for az in infrastructure['availability_zones'] ]
-	product_settings['singleton_availability_zone_reference'] = infrastructure['availability_zones'][0]['guid']
+	availability_zones = infrastructure.get('availability_zones', [])
+	if 'availability_zones' in infrastructure:
+		product_settings['availability_zone_references'] = [ az['guid'] for az in availability_zones ]
+		product_settings['singleton_availability_zone_reference'] = availability_zones[0]['guid']
 	#
 	# Insert supplied properties
 	#
@@ -475,7 +477,7 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	#
 	# Normalize az properties
 	#
-	for az in infrastructure['availability_zones']:
+	for az in availability_zones:
 		if az.get('name', None) is None:
 			az['name'] = az['iaas_identifier']
 	#
@@ -491,15 +493,18 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	#
 	version = get_version()
 	if version[0] == 1 and version[1] >= 8:
-		networks_and_azs = {
-			'networks_and_azs': {
-				'singleton_availability_zone': { 'name': infrastructure['availability_zones'][0]['name'] },
-				'other_availability_zones': [ { 'name': az['name'] } for az in infrastructure['availability_zones'] ],
-				'network': { 'name': network },
+		url = '/api/v0/staged/products/' + product_settings['guid']
+		if 'availability_zones' in infrastructure:
+			networks_and_azs = {
+				'networks_and_azs': {
+					'singleton_availability_zone': { 'name': availability_zones[0]['name'] },
+					'other_availability_zones': [ { 'name': az['name'] } for az in availability_zones ],
+					'network': { 'name': network },
+				}
 			}
-		}
-		if service_network is not None:
-			networks_and_azs['networks_and_azs']['service_network'] = { 'name': service_network }
+			if service_network is not None:
+				networks_and_azs['networks_and_azs']['service_network'] = { 'name': service_network }
+			put_json(url + '/networks_and_azs', networks_and_azs)
 		scoped_properties = {}
 		resource_config = {}
 		for job, job_properties in jobs_properties.items():
@@ -518,8 +523,6 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 				key = '.properties.' + key
 			scoped_properties[key] = { 'value': value }
 		properties = { 'properties': scoped_properties }
-		url = '/api/v0/staged/products/' + product_settings['guid']
-		put_json(url + '/networks_and_azs', networks_and_azs)
 		put_json(url + '/properties', properties)
 		for job_guid, job_resource_config in resource_config.items():
 			resource_config_url = url + '/jobs/' + job_guid + '/resource_config'
