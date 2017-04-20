@@ -411,8 +411,8 @@ def get_job_guid(job_identifier, jobs_settings):
 	for job in jobs_settings:
 		if job.get('identifier', None) == job_identifier:
 			return job['guid']
-	print('Could not find job with identifier', job_identifier, file=sys.stderr)
-	sys.exit(1)
+	print('Warning: Could not find job with identifier', job_identifier, file=sys.stderr)
+	return None
 
 def configure(product, properties, strict=False, skip_validation=False, network=None):
 	settings = get('/api/installation_settings').json()
@@ -506,6 +506,8 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 			if 'resource_config' in job_properties:
 				job_resource_config = job_properties.pop('resource_config')
 				job_guid = get_job_guid(job, product_settings.get('jobs', []))
+				if job_guid is None:
+					continue
 				resource_config[job_guid] = job_resource_config
 			for name, value in job_properties.items():
 				key = '.'.join(('', job, name))
