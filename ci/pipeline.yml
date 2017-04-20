@@ -1434,16 +1434,16 @@ jobs:
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
+      passed: [ remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
+      passed: [ remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
     - get: tile-generator-package
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
+      passed: [ remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
     - get: version
-      passed: [ remove-tile-1-6, remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
+      passed: [ remove-tile-1-7, remove-tile-1-8, remove-tile-1-9, remove-tile-1-10, remove-tile-multi-az ]
       trigger: true
 
 - name: create-release
