@@ -278,6 +278,14 @@ def apply_changes_cmd(product, deploy_errands, delete_errands):
 				install_id = in_progress + 1
 				break
 			continue
+		elif response.status_code == 422:
+			print('-', response.status_code, response.request.url, file=sys.stderr)
+			try:
+				errors = response.json()["errors"]
+				print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
+			except:
+				print(response.text, file=sys.stderr)
+			sys.exit(2)
 		opsmgr.check_response(response)
 		install = response.json()['install']
 		install_id = install['id']
