@@ -258,7 +258,7 @@ function register_broker() {
 	BROKER_URL="$4"
 	GLOBAL_ACCESS="$5"
 	BROKER_SERVICES="$6"
-	$CF service-brokers | grep $BROKER_NAME >/dev/null
+	$CF service-brokers | grep "^$BROKER_NAME " >/dev/null
 	if [ "$?" -ne "0" ]; then
 		cf create-service-broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL"
 	else
