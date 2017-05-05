@@ -15,6 +15,9 @@
 # limitations under the License.
 
 import sys
+import tarfile
+import tempfile
+import yaml
 from contextlib import contextmanager
 from io import StringIO
 
@@ -53,6 +56,40 @@ class TestBoshCheck(unittest.TestCase):
 
 		mock_sys_exit.assert_called()
 
+class TestManifest(unittest.TestCase):
+	def test_get_manifest_finds_bare_release_mf(self):
+		with tempfile.NamedTemporaryFile() as tf:
+			tar = tarfile.open(tf.name, mode='w')
+			manifest_text = 'manifest'
+			manifest_yaml = yaml.safe_dump(manifest_text)
+			info = tarfile.TarInfo('release.MF')
+			info.size = len(manifest_yaml)
+			tar.addfile(tarinfo=info, fileobj=StringIO(unicode(manifest_yaml)))
+			tar.close()
+			br = bosh.BoshRelease({'name': 'my-release'}, None)
+			actual = br.get_manifest(tf.name)
+			self.assertEqual(actual, manifest_text)
+
+	def test_get_manifest_finds_dot_slash_release_mf(self):
+		with tempfile.NamedTemporaryFile() as tf:
+			tar = tarfile.open(tf.name, mode='w')
+			manifest_text = 'manifest'
+			manifest_yaml = yaml.safe_dump(manifest_text)
+			info = tarfile.TarInfo('./release.MF')
+			info.size = len(manifest_yaml)
+			tar.addfile(tarinfo=info, fileobj=StringIO(unicode(manifest_yaml)))
+			tar.close()
+			br = bosh.BoshRelease({'name': 'my-release'}, None)
+			actual = br.get_manifest(tf.name)
+			self.assertEqual(actual, manifest_text)
+
+	def test_get_manifest_throws_when_no_manifest(self):
+		with tempfile.NamedTemporaryFile() as tf:
+			tar = tarfile.open(tf.name, mode='w')
+			tar.close()
+			br = bosh.BoshRelease({'name': 'my-release'}, None)
+			with self.assertRaises(Exception):
+				actual = br.get_manifest(tf.name)
 
 if __name__ == '__main__':
 	unittest.main()

@@ -64,7 +64,12 @@ class BoshRelease:
 
 	def get_manifest(self, tarball):
 		with tarfile.open(tarball) as tar:
-			manifest_file = tar.extractfile('./release.MF')
+			if './release.MF' in tar.getnames():
+				manifest_file = tar.extractfile('./release.MF')
+			elif 'release.MF' in tar.getnames():
+				manifest_file = tar.extractfile('release.MF')
+			else:
+				raise Exception('No release manifest found in ' + tarball)
 			manifest = yaml.safe_load(manifest_file)
 			manifest_file.close()
 			return manifest
