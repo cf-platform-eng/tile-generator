@@ -12,7 +12,7 @@ description: Longer description of the tile's purpose
 #
 # org: test-org                         # Name of org to create for your apps
 # space: test-space                     # Name of space to create for your apps
-apply_open_security_group: true         # Apply open security group, default: false
+# apply_open_security_group: true       # Apply open security group, default: false
 
 # Specify the packages to be included in your tile.
 # The format of the section to include depends on the type

@@ -9,7 +9,7 @@ icon_file: resources/icon.png
 # org: test-org                       # Optional
 # space: test-space                   # Optional
 # docker_bosh_version: '28'           # Optional, default: latest release
-apply_open_security_group: true       # Apply open security group, default: false
+# apply_open_security_group: true     # Apply open security group, default: false
 allow_paid_service_plans: true        # Allow paid service plans, default: false
 
 properties:

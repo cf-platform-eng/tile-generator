@@ -90,6 +90,7 @@ function setup_target_space() {
 	fi
 	if ! $CF space $CF_SPACE >/dev/null; then
 		cf create-space $CF_SPACE
+		apply_open_security_group "$APPLY_OPEN_SECURITY_GROUP"
 	fi
 	cf target -s $CF_SPACE
 }
@@ -118,7 +119,7 @@ function apply_open_security_group() {
 	if ! $CF security-group all_open >/dev/null; then
 		cf create-security-group all_open ${PACKAGE_PATH}/cf_cli/all_open.json
 	fi
-	cf bind-running-security-group all_open
+	cf bind-security-group all_open "$CF_ORG" "$CF_SPACE"
 }
 
 function add_env_vars() {
@@ -352,7 +353,6 @@ setup_target_org
 setup_target_space
 add_target_org_to_admin
 setup_package_path
-apply_open_security_group "$APPLY_OPEN_SECURITY_GROUP"
 
 {% for package in context.packages %}
 # Deploy package {{ package.name }}
