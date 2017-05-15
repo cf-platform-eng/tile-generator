@@ -64,71 +64,10 @@ def build_json_response(body):
 	response.raw = BytesIO(body)
 	return response
 
-
-@mock.patch('tile_generator.opsmgr.get')
-class TestGetChanges17(unittest.TestCase):
-	def test_custom_deploy_errands(self, mock_get):
-		resp_not_found = requests.Response()
-		resp_not_found.status_code = 404
-
-		mock_get.side_effect = [
-			build_json_response(api_responses_1_7['diagnostic_report']),
-			build_json_response(api_responses_1_7['deployed_products']),
-			build_json_response(api_responses_1_7['staged_products']),
-			build_json_response(api_responses_1_7['broker_one_manifest']),
-			build_json_response(api_responses_1_7['tile_two_manifest']),
-			build_json_response(api_responses_1_7['deleting_manifest']),
-		]
-
-		product_changes = opsmgr.get_changes(
-			product='tile-two',
-			deploy_errands=['deploy-all']
-		)
-
-		changes = product_changes['product_changes']
-		self.assertEqual(len(changes), 1)
-
-		update = changes[0]
-		self.assertEqual(update['action'], 'update')
-		self.assertEqual(update['guid'], 'tile-two-ed10ef2a821e0e810f2c')
-
-	def test_custom_delete_errands(self, mock_get):
-		resp_not_found = requests.Response()
-		resp_not_found.status_code = 404
-
-		mock_get.side_effect = [
-			build_json_response(api_responses_1_7['diagnostic_report']),
-			build_json_response(api_responses_1_7['deployed_products']),
-			build_json_response(api_responses_1_7['staged_products']),
-			build_json_response(api_responses_1_7['broker_one_manifest']),
-			build_json_response(api_responses_1_7['tile_two_manifest']),
-			build_json_response(api_responses_1_7['deleting_manifest']),
-		]
-
-		product_changes = opsmgr.get_changes(
-			deploy_errands=['deploy-all'],
-			delete_errands=['delete-all', 'delete-cleanup']
-		)
-
-		changes = product_changes['product_changes']
-		self.assertEqual(len(changes), 3)
-
-		delete = changes[0]
-		self.assertEqual(delete['action'], 'delete')
-		self.assertEqual(delete['guid'], 'deleting-ecb2884a79cf44f5849b')
-
-		delete_errands = delete['errands']
-		self.assertEqual(len(delete_errands), 2)
-		self.assertEqual(delete_errands[0]['name'], 'delete-all')
-		self.assertTrue(delete_errands[0]['pre_delete'])
-		self.assertEqual(delete_errands[1]['name'], 'delete-cleanup')
-		self.assertTrue(delete_errands[1]['pre_delete'])
-
 @mock.patch('tile_generator.opsmgr.get')
 class TestGetChanges18(unittest.TestCase):
 	def test_default_install_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_install'])
 		]
 
@@ -149,7 +88,6 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_custom_install_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_install'])
 		]
 
@@ -171,7 +109,6 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_default_update_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_update'])
 		]
 
@@ -193,7 +130,6 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_custom_update_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_update'])
 		]
 
@@ -215,7 +151,6 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_default_delete_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_delete'])
 		]
 
@@ -246,7 +181,6 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_custom_delete_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['diagnostic_report']),
 			build_json_response(api_responses_1_8['pending_changes_delete'])
 		]
 
@@ -254,6 +188,7 @@ class TestGetChanges18(unittest.TestCase):
 			'delete_subdeployments_on_demand_service_broker',
 			'unregister_on_demand_service_broker'
 		])
+
 		changes = product_changes['product_changes']
 
 		self.assertEqual(len(changes), 2)

@@ -398,12 +398,7 @@ def get_version():
 		diag = response.json()
 		version = diag['versions']['release_version']
 		return [ int(x) for x in version.split('.') ]
-	# 1.6 (and maybe earlier?) has the version in the p-bosh (Ops Manager Director) product.
-	products = get('/api/products').json()
-	for product in products:
-		if product['name'] == 'p-bosh':
-			version = product['product_version']
-			return [ int(x) for x in version.split('.') ]
+
 	print('Error: could not determine Ops Manager version.', file=sys.stderr)
 	sys.exit(1)
 
@@ -529,11 +524,7 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 			merged_job_resource_config = get(resource_config_url).json()
 			merged_job_resource_config.update(job_resource_config)
 			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
-	elif version[:2] == [1, 7] or version[:2] == [1, 6]:
-		if job_properties:
-			print('Warning: setting job-specific properties and resource config is only supported for PCF 1.8+', file=sys.stderr)
-			print('         job-specific properties and resource config will not be set', file=sys.stderr)
-		post_yaml('/api/installation_settings', 'installation[file]', settings)
+
 	else:
 		print("PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version)))
 		try:
@@ -543,15 +534,9 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 			sys.exit(1)
 
 def get_changes(product = None, deploy_errands = None, delete_errands = None):
-	version = get_version()
-	if version[0] == 1 and version[1] >= 8:
-		return build_changes_1_8(deploy_errands, delete_errands)
-	elif version[0] == 1 and version[1] == 7:
-		return build_changes_1_7(product, deploy_errands, delete_errands)
-	else:
-		return None
+	return build_changes(deploy_errands, delete_errands)
 
-def build_changes_1_8(deploy_errands, delete_errands):
+def build_changes(deploy_errands, delete_errands):
 	changes = get('/api/v0/staged/pending_changes').json()
 	for product_change in changes['product_changes']:
 		if product_change['action'] in ['install', 'update']:
@@ -735,4 +720,3 @@ def get_stemcells():
 		stemcells = diag['stemcells']
 		return stemcells
 	return []
-
