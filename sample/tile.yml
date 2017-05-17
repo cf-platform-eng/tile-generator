@@ -99,6 +99,10 @@ forms:
     - name: filet_mignon_option
       select_value: Filet Mignon
       property_blueprints:
+      - name: steak_creds
+        type: simple_credentials
+        label: Complex type inside selector
+        configurable: true
       - name: rarity_dropdown
         label: How rare?
         type: dropdown_select
