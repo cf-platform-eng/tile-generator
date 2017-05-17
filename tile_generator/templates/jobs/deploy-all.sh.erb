@@ -348,11 +348,11 @@ function is_newer() {
 
 import_opsmgr_variables
 prepare_cf_cli
+setup_package_path
 authenticate
 setup_target_org
 setup_target_space
 add_target_org_to_admin
-setup_package_path
 
 {% for package in context.packages %}
 # Deploy package {{ package.name }}
