@@ -28,6 +28,14 @@ from jinja2 import Template, Environment, FileSystemLoader, exceptions, contextf
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEMPLATE_PATH = os.path.realpath(os.path.join(PATH, 'templates'))
 
+PROPERTY_FIELDS = {
+	'simple_credentials': ['identity', 'password'],
+	'rsa_cert_credentials': [ 'private_key_pem', 'cert_pem', 'public_key_pem', 'cert_and_private_key_pems' ],
+	'rsa_pkey_credentials': [ 'private_key_pem', 'public_key_pem', 'public_key_openssh', 'public_key_fingerprint' ],
+	'salted_credentials': [ 'salt', 'identity', 'password' ],
+	'selector': [ 'value', ('selected_option', 'selected_option.parsed_manifest(manifest_snippet)') ],
+}
+
 def render_base64(file):
 	try:
 		with open(os.path.realpath(file), 'rb') as f:
@@ -130,17 +138,10 @@ def render_property(property):
 	"""Render a property for bosh manifest, according to its type."""
 	# This ain't the prettiest thing, but it should get the job done.
 	# I don't think we have anything more elegant available at bosh-manifest-generation time.
-	# See https://docs.pivotal.io/partners/product-template-reference.html for list
-	property_fields = {
-		'simple_credentials': ['identity', 'password'],
-		'rsa_cert_credentials': [ 'private_key_pem', 'cert_pem', 'public_key_pem', 'cert_and_private_key_pems' ],
-		'rsa_pkey_credentials': [ 'private_key_pem', 'public_key_pem', 'public_key_openssh', 'public_key_fingerprint' ],
-		'salted_credentials': [ 'salt', 'identity', 'password' ],
-		'selector': [ 'value', ('selected_option', 'selected_option.parsed_manifest(manifest_snippet)') ],
-	}
-	if 'type' in property and property['type'] in property_fields:
+	# See https://docs.pivotal.io/partners/product-template-reference.html for list.
+	if 'type' in property and property['type'] in PROPERTY_FIELDS:
 		fields = {}
-		for field in property_fields[property['type']]:
+		for field in PROPERTY_FIELDS[property['type']]:
 			if type(field) is tuple:
 				fields[field[0]] = '(( .properties.{}.{} ))'.format(property['name'], field[1])
 			else:
