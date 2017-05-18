@@ -52,7 +52,17 @@ def expand_selector(input):
 		for option in input.get('option_templates', []):
 			properties = ''
 			for p in option.get('property_blueprints', []):
-				properties += p['name'] + ': (( .properties.' + input['name'] + '.' + option['name'] + '.' + p['name'] + '.value ))\r\n'
+				if p['type'] in PROPERTY_FIELDS:
+					properties += p['name'] + ': { '
+					subproperties = []
+					for subproperty in PROPERTY_FIELDS[p['type']]:
+						if type(subproperty) is tuple:
+							subproperties.append('{}: (( .properties.{}.{}.{}.{} ))'.format(subproperty[0], input['name'], option['name'], p['name'], subproperty[1]))
+						else:
+							subproperties.append('{}: (( .properties.{}.{}.{}.{} ))'.format(subproperty, input['name'], option['name'], p['name'], subproperty))
+					properties += ', '.join(subproperties) + ' }\r\n'
+				else:
+					properties += p['name'] + ': (( .properties.' + input['name'] + '.' + option['name'] + '.' + p['name'] + '.value ))\r\n'
 			option['named_manifests'] = [{
 				'name': 'manifest_snippet',
 				'manifest': properties

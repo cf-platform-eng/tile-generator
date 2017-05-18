@@ -17,6 +17,9 @@ example_collection:
   explicit: true
 example_selector: Filet Mignon
 example_selector.filet_mignon_option.rarity_dropdown: medium
+example_selector.filet_mignon_option.steak_creds:
+  identity: steakeater
+  password: deadbeef
 custom_dynamic_service_plan_1:
 - name: plan3
   guid: plan3-guid
