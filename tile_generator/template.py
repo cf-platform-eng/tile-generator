@@ -96,8 +96,10 @@ def render_selector_json(input, escape=True, export=True):
 	'	hash = { }\n'
 	'	hash["value"] = p("' + input + '")["value"]\n'
 	'	hash["selected_option"] = { }\n'
-	'	p("' + input + '")["selected_option"].each_pair do |key, value|\n'
-	'		hash["selected_option"][key] = value\n'
+	'	if p("' + input + '")["selected_option"]\n'
+	'		p("' + input + '")["selected_option"].each_pair do |key, value|\n'
+	'			hash["selected_option"][key] = value\n'
+	'		end\n'
 	'	end\n'
 	'%>\n'
 	'' + export + input.upper() + value)

@@ -144,6 +144,31 @@ forms:
     type: integer
     label: Update Watch Timeout
     description: Maximum amount of time to allow non-canaries to take before going healthy
+- name: selector_without_subproperties
+  label: Selector without subproperties
+  description: "Configure this feature."
+  properties:
+  - name: is_feature_enabled
+    type: selector
+    label: "Enable this feature?"
+    description: "Choose whether or not to enable this feature."
+    configurable: true
+    default: feature_disabled
+    optional: false
+    option_templates:
+    - name: feature_enabled
+      select_value: feature_enabled
+      label: Enable feature
+      description: Enable this feature (requires more config).
+      property_blueprints:
+      - name: feature_config
+        type: string
+        label: Configure this feature
+        configurable: true
+    - name: feature_disabled
+      select_value: feature_disabled
+      label: Disable feature
+      description: Disable this feature (no more config).
 
 update:
   canary_watch_time: 10000-(( .properties.canary_watch_timeout ))
