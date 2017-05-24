@@ -38,10 +38,17 @@ property_blueprints:
   type: string
   configurable: true
   default: {{ space }}
+
 - name: apply_open_security_group
   type: boolean
   configurable: true
   default: {{ apply_open_security_group }}
+{% if requires_docker_bosh %}
+- configurable: false
+  name: generated_rsa_cert_credentials
+  optional: false
+  type: rsa_cert_credentials
+{% endif %}
 - name: allow_paid_service_plans
   type: boolean
   configurable: true
@@ -332,7 +339,11 @@ job_types:
     type: salted_credentials
   manifest: |
     {{ job.package.manifest | yaml | indent }}
+    tls_cacert: (( $ops_manager.ca_certificate ))
+    tls_cert: (( .properties.generated_rsa_cert_credentials.cert_pem ))
+    tls_key: (( .properties.generated_rsa_cert_credentials.private_key_pem ))
     domain: (( ..cf.cloud_controller.system_domain.value ))
+
     app_domains:
     - (( ..cf.cloud_controller.apps_domain.value ))
     org: (( .properties.org.value ))

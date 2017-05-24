@@ -102,6 +102,7 @@ class Config(dict):
 				release['is_cf'] = True
 				release['requires_cf_cli'] = True
 			if package.get('is_docker_bosh', False):
+				self['requires_docker_bosh'] = True
 				release['requires_docker_bosh'] = True
 				release['jobs'] += [{
 					'name': 'docker-bosh-' + package['name'],
@@ -219,7 +220,7 @@ class Config(dict):
 					}
 				]
 		if requires_docker_bosh:
-			version = '30.1.0'
+			version = None
 			version_param = '?v=' + version if version else ''
 			self['releases'] += [{
 				'name': 'docker-boshrelease',
