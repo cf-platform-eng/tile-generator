@@ -227,7 +227,7 @@ class Config(dict):
 				'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
 			},{
 				'name': 'routing',
-				'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release',
+				'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release?v=0.152.0',
 			}]
 		if requires_meta_buildpack:
 			self['releases'] += [{

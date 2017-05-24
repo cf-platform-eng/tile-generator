@@ -17,6 +17,9 @@ example_collection:
   explicit: true
 example_selector: Filet Mignon
 example_selector.filet_mignon_option.rarity_dropdown: medium
+example_selector.filet_mignon_option.steak_creds:
+  identity: steakeater
+  password: deadbeef
 custom_dynamic_service_plan_1:
 - name: plan3
   guid: plan3-guid
@@ -41,6 +44,7 @@ custom_dynamic_service_plan_2:
   num_of_license2: 60
 canary_watch_timeout: 100001
 update_watch_timeout: 100002
+is_feature_enabled: feature_disabled
 
 # Example of job-specific configuration, supported in PCF 1.8+.
 jobs:
