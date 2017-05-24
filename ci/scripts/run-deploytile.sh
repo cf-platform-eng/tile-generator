@@ -65,7 +65,7 @@ $PCF is-installed "${PRODUCT}" "${VERSION}"
 echo
 
 echo "Configuring product ${PRODUCT}"
-$PCF configure "${PRODUCT}" ${NETWORK} "${REPO_DIR}/sample/missing-properties.yml"
+$PCF configure --skip-validation "${PRODUCT}" ${NETWORK} "${REPO_DIR}/sample/missing-properties.yml"
 echo
 
 echo "Applying Changes"
