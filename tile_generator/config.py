@@ -220,7 +220,7 @@ class Config(dict):
 					}
 				]
 		if requires_docker_bosh:
-			version = None
+			version = '29.0.0'
 			version_param = '?v=' + version if version else ''
 			self['releases'] += [{
 				'name': 'docker-boshrelease',
