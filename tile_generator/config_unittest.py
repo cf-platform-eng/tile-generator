@@ -286,13 +286,15 @@ class TestConfigValidation(unittest.TestCase):
 class TestDefaultOptions(unittest.TestCase):
 	def test_purge_service_broker_is_true_by_default(self):
 		config = Config({'name': 'tile-generator-unittest'})
-		config.add_defaults()
+		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
+			config.add_defaults()
 		self.assertTrue(config['purge_service_brokers'])
 
 	def test_purge_service_broker_is_overridden(self):
 		config = Config({'purge_service_brokers': False,
 				 'name': 'tile-generator-unittest'})
-		config.add_defaults()
+		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
+			config.add_defaults()
 		self.assertFalse(config['purge_service_brokers'])
 
 	def test_normalize_jobs_default_job_properties(self):
@@ -312,7 +314,8 @@ class TestVMDiskSize(unittest.TestCase):
 		mock_getsize.return_value = 0
 		config = Config({'name': 'tile-generator-unittest'})
 		manifest = {'path': 'foo'}
-		config.add_defaults()
+		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
+			config.add_defaults()
 		expected_size = config['compilation_vm_disk_size']
 		with mock.patch('os.path.exists',return_value = True):
 			config.update_compilation_vm_disk_size(manifest)
@@ -321,7 +324,8 @@ class TestVMDiskSize(unittest.TestCase):
 	def test_big_default_vm_disk_size(self, mock_getsize):
 		config = Config({'name': 'tile-generator-unittest'})
 		manifest = {'path': 'foo'}
-		config.add_defaults()
+		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
+			config.add_defaults()
 		package_size = config['compilation_vm_disk_size']
 		mock_getsize.return_value = package_size * 1024 * 1024 # megabytes to bytes.
 		expected_size = 4 * package_size
