@@ -58,8 +58,7 @@ def find_credential_dir():
 		if len(matches) > 0:
 			return matches[0]
 		parent = os.path.join('..', parent)
-	print('Did not find a target repository named', dirname, file=sys.stderr)
-	sys.exit(1)
+	raise Exception('Did not find a target repository named ' + dirname)
 
 def get_credential_dir(update=False):
 	dir = find_credential_dir()
@@ -94,16 +93,16 @@ def get_credentials(target=None, non_interactive=False):
 			creds['opsmgr']['ssh_key'] = ssh_key
 			get_credentials.credentials = creds
 	except KeyError as e:
-		print('Credential file is missing a value:', e.message, file=sys.stderr)
-		sys.exit(1)
+		raise Exception('Credential file is missing a value:' + e.message)
 	except IOError as e:
 		if target is not None:
-			print('No target named', target, 'found in', credential_dir, file=sys.stderr)
+			raise Exception('No target named {} found in {}'.format(target, credential_dir))
 		else:
-			print('You must either specify a target using the --target option,', file=sys.stderr)
-			print('or execute this command from within a directory that has credentials', file=sys.stderr)
-			print('in a file named "metadata" (like a claimed Concourse pool resource)', file=sys.stderr)
-		sys.exit(1)
+			raise Exception(
+				'You must either specify a target using the --target option,\n'
+				'or execute this command from within a directory that has credentials\n'
+				'in a file named "metadata" (like a claimed Concourse pool resource)\n'
+			)
 	return creds
 
 get_credentials.credentials = None
@@ -235,13 +234,14 @@ def delete(url, check=True):
 
 def check_response(response, check=True):
 	if check and response.status_code != requests.codes.ok:
-		print('-', response.status_code, response.request.url, file=sys.stderr)
+		message = '- {} {}\n'.format(response.status_code, response.request.url)
 		try:
 			errors = response.json()["errors"]
-			print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
+			for line in json.dumps(errors, indent=4).splitlines():
+				message += '- ' + line + '\n'
 		except:
-			print(response.text, file=sys.stderr)
-		sys.exit(1)
+			message += response.text
+		raise Exception(message)
 
 def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False, debug=False):
 	creds = get_credentials()
@@ -399,8 +399,7 @@ def get_version():
 		version = diag['versions']['release_version']
 		return [ int(x) for x in version.split('.') ]
 
-	print('Error: could not determine Ops Manager version.', file=sys.stderr)
-	sys.exit(1)
+	raise Exception('Error: could not determine Ops Manager version.')
 
 def get_job_guid(job_identifier, jobs_settings):
 	for job in jobs_settings:
@@ -414,8 +413,7 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	infrastructure = settings['infrastructure']
 	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
 	if len(product_settings) < 1:
-		print('Product', product, 'does not appear to be installed', file=sys.stderr)
-		sys.exit(1)
+		raise Exception('Product {} does not appear to be installed'.format(product))
 	product_settings = product_settings[0]
 	properties = properties if properties is not None else {}
 	#
@@ -423,8 +421,7 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	#
 	cf = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
 	if len(cf) < 1:
-		print('Required product Elastic Runtime is missing', file=sys.stderr)
-		sys.exit(1)
+		raise Exception('Required product Elastic Runtime is missing')
 	#
 	# Use the Elastic Runtime stemcell (unless the --strict option was used)
 	#
@@ -466,9 +463,9 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 			if p.get('value', None) is None:
 				missing_properties += [ key ]
 	if not skip_validation and len(missing_properties) > 0:
-		print('Input file is missing required properties:', file=sys.stderr)
-		print('- ' + '\n- '.join(missing_properties), file=sys.stderr)
-		sys.exit(1)
+		message = 'Input file is missing required properties:\n'
+		message += '- ' + '\n- '.join(missing_properties)
+		raise Exception(message)
 	#
 	# Normalize az properties
 	#
@@ -530,8 +527,7 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 		try:
 			post_yaml('/api/installation_settings', 'installation[file]', settings)
 		except:
-			print(file='Configuration failed, probably due to incompatible PCF version.')
-			sys.exit(1)
+			raise Exception('Configuration failed, probably due to incompatible PCF version.')
 
 def get_changes(product = None, deploy_errands = None, delete_errands = None):
 	return build_changes(deploy_errands, delete_errands)
@@ -554,9 +550,10 @@ def build_changes(deploy_errands, delete_errands):
 
 def build_changes_1_7(product, deploy_errands, delete_errands):
 	if deploy_errands is None and delete_errands is None:
-		print('You must specify --deploy-errands or --delete-errands on PCF 1.7,', file=sys.stderr)
-		print('since we cannot reliably discover them on that version', file=sys.stderr)
-		sys.exit(1)
+		raise Exception(
+			'You must specify --deploy-errands or --delete-errands on PCF 1.7,\n'
+			'since we cannot reliably discover them on that version'
+		)
 	deployed = [p for p in get('/api/v0/deployed/products').json()]
 	staged   = [p for p in get('/api/v0/staged/products').json()]
 	install  = [p for p in staged if p["guid"] not in [g["guid"] for g in deployed]]
@@ -592,8 +589,7 @@ def get_cfinfo():
 	settings = get('/api/installation_settings').json()
 	settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
 	if len(settings) < 1:
-		print('Elastic Runtime is not installed', file=sys.stderr)
-		sys.exit(1)
+		raise Exception('Elastic Runtime is not installed')
 	settings = settings[0]
 	jobs = settings['jobs']
 	cc_properties = [ j for j in jobs if j['identifier'] == 'cloud_controller' ][0]['properties']
@@ -615,8 +611,7 @@ def logs(install_id):
 	if install_id is None:
 		install_id = last_install()
 		if install_id == 0:
-			print('No installation has ever been performed', file=sys.stderr)
-			sys.exit(1)
+			raise Exception('No installation has ever been performed')
 	lines_shown = 0
 	running = True
 	while running:
@@ -630,8 +625,7 @@ def logs(install_id):
 		if running:
 			time.sleep(1)
 	if not install_status.startswith('succ'):
-		print('- install finished with status:', install_status, file=sys.stderr)
-		sys.exit(1)
+		raise Exception('- install finished with status: {}'.format(install_status))
 
 def install_exists(id):
 	response = get('/api/installation/' + str(id), check=False)
@@ -694,13 +688,13 @@ def unlock():
 				print("Unlock not required for this version")
 				return
 			if response.status_code != 503 and response.status_code != 502:
-				print('-', response.status_code, response.request.url, file=sys.stderr)
+				message = '- {} {}\n'.format(response.status_code, response.request.url)
 				try:
 					errors = response.json()["errors"]
-					print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
+					message += '- '+('\n- '.join(json.dumps(errors, indent=4).splitlines()))
 				except:
-					print(response.text, file=sys.stderr)
-				sys.exit(1)
+					message += response.text
+				raise Exception(message)
 		except requests.exceptions.ConnectionError:
 			pass
 		if waiting:

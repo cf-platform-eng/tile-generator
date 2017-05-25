@@ -75,7 +75,7 @@ setup(
 	entry_points = {
 		'console_scripts': [
 			'tile = tile_generator.tile:cli',
-			'pcf = tile_generator.pcf:cli',
+			'pcf = tile_generator.pcf:main',
 		]
 	}
 )

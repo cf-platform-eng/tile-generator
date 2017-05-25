@@ -430,9 +430,12 @@ def stemcells_cmd():
 	stemcells = opsmgr.get_stemcells()
 	print(json.dumps(stemcells, indent=4))
 
-if __name__ == '__main__':
+def main():
 	try:
 		cli()
 	except Exception as e:
 		print(e, file=sys.stderr)
 		sys.exit(1)
+
+if __name__ == '__main__':
+	main()

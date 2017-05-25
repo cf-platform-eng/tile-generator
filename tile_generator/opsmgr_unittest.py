@@ -17,6 +17,7 @@
 from __future__ import absolute_import, division, print_function
 import unittest
 import mock
+import json
 import requests
 from . import opsmgr
 import sys
@@ -57,18 +58,45 @@ class TestInstallTriangulation(unittest.TestCase):
 		self.assertEqual(opsmgr.last_install(check=self.twenty_installs_exist), 20)
 
 
-def build_json_response(body):
+def build_response(body, encoding='application/json', status_code=200):
 	response = requests.Response()
-	response.status_code = 200
-	response.encoding = 'application/json'
+	response.status_code = status_code
+	response.encoding =encoding
 	response.raw = BytesIO(body)
+	response.request = requests.Request()
+	response.request.url = 'https://example.com/'
 	return response
+
+class TestCheckResponse(unittest.TestCase):
+	def test_noop_when_check_is_false(self):
+		self.assertIsNone(opsmgr.check_response(None, False))
+
+	def test_noop_when_response_ok(self):
+		self.assertIsNone(opsmgr.check_response(build_response(None), True))
+
+	def test_raise_exception_when_response_not_ok(self):
+		with self.assertRaises(Exception):
+			opsmgr.check_response(build_response(None, status_code=500),True)
+
+	def test_exceptions_contains_json(self):
+		try:
+			opsmgr.check_response(build_response(json.dumps("body"), status_code=500), True)
+		except Exception as e:
+			self.assertIn('body', str(e))
+
+	def test_exceptions_contains_non_json_body(self):
+		try:
+			opsmgr.check_response(build_response("body", encoding='text/plain', status_code=500), True)
+		except Exception as e:
+			self.assertIn('body', str(e))
+
+
 
 @mock.patch('tile_generator.opsmgr.get')
 class TestGetChanges18(unittest.TestCase):
 	def test_default_install_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['pending_changes_install'])
+			build_response(api_responses_1_8['pending_changes_install'])
 		]
 
 		product_changes = opsmgr.get_changes()
@@ -88,7 +116,7 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_custom_install_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['pending_changes_install'])
+			build_response(api_responses_1_8['pending_changes_install'])
 		]
 
 		product_changes = opsmgr.get_changes(['deploy-all', 'config-broker'])
@@ -109,7 +137,7 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_default_update_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['pending_changes_update'])
+			build_response(api_responses_1_8['pending_changes_update'])
 		]
 
 		product_changes = opsmgr.get_changes()
@@ -130,7 +158,7 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_custom_update_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['pending_changes_update'])
+			build_response(api_responses_1_8['pending_changes_update'])
 		]
 
 		product_changes = opsmgr.get_changes(['deploy-all', 'config-broker'])
@@ -151,7 +179,7 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_default_delete_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['pending_changes_delete'])
+			build_response(api_responses_1_8['pending_changes_delete'])
 		]
 
 		product_changes = opsmgr.get_changes()
@@ -181,7 +209,7 @@ class TestGetChanges18(unittest.TestCase):
 
 	def test_custom_delete_errands(self, mock_get):
 		mock_get.side_effect = [
-			build_json_response(api_responses_1_8['pending_changes_delete'])
+			build_response(api_responses_1_8['pending_changes_delete'])
 		]
 
 		product_changes = opsmgr.get_changes(delete_errands = [
