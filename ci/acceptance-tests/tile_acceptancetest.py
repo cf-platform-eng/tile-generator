@@ -48,6 +48,10 @@ class VerifyProperties(unittest.TestCase):
 		self.assertTrue(find_by_name(blueprints, 'customer_name')['optional'])
 		self.assertFalse(find_by_name(blueprints, 'street_address')['optional'])
 
+	def test_bosh_release_has_properties(self):
+		job = find_by_name(self.config['job_types'], 'redis_leader_z1')
+		self.assertIn('author', job['manifest'])
+
 def find_by_name(lst, name):
 	return next(x for x in lst if x.get('name', None) == name)
 
