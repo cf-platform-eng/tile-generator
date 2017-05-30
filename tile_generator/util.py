@@ -106,6 +106,14 @@ def download(url, filename, cache=None):
 		shutil.copytree(url, filename)
 	else:
 		shutil.copy(url, filename)
+	if cache:
+		if os.path.isdir(filename):
+			basename = os.path.basename(filename)
+			shutil.copytree(filename, os.path.join(cache, basename))
+		elif os.path.isfile(filename):
+			shutil.copy(filename, cache)
+		else:
+			print(filename, 'is not a file or directory. Cannot cache.', file=sys.stderr)
 
 def zip_dir(zipfilename, dirname):
 	with zipfile.ZipFile(zipfilename, 'w') as packagezip:
