@@ -109,6 +109,9 @@ def download(url, filename, cache=None):
 	if cache:
 		if os.path.isdir(filename):
 			basename = os.path.basename(filename)
+			cachedir = os.path.join(cache, basename)
+			if os.path.exists(cachedir):
+				shutil.rmtree(cachedir)
 			shutil.copytree(filename, os.path.join(cache, basename))
 		elif os.path.isfile(filename):
 			shutil.copy(filename, cache)
