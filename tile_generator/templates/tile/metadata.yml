@@ -383,9 +383,6 @@ job_types:
       url: (( .properties.{{ package.name }}_url.value ))
       user: (( .properties.{{ package.name }}_user.value ))
       password: (( .properties.{{ package.name }}_password.value ))
-{% elif package.is_broker %}
-      user: (( .{{ job.name }}.app_credentials.identity ))
-      password: (( .{{ job.name }}.app_credentials.password ))
 {% endif %}
 {% if package.is_broker %}
       enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
@@ -499,9 +496,6 @@ job_types:
       url: (( .properties.{{ package.name }}_url.value ))
       user: (( .properties.{{ package.name }}_user.value ))
       password: (( .properties.{{ package.name }}_password.value ))
-{% elif package.is_broker %}
-      user: (( .{{ job.name }}.app_credentials.identity ))
-      password: (( .{{ job.name }}.app_credentials.password ))
 {% endif %}
 {% if package.is_broker %}
       enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
@@ -605,9 +599,6 @@ job_types:
       url: (( .properties.{{ package.name }}_url.value ))
       user: (( .properties.{{ package.name }}_user.value ))
       password: (( .properties.{{ package.name }}_password.value ))
-{% elif package.is_broker %}
-      user: (( .{{ job.name }}.app_credentials.identity ))
-      password: (( .{{ job.name }}.app_credentials.password ))
 {% endif %}
 {% if package.is_broker %}
       enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
