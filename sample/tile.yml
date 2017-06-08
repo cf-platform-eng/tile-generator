@@ -364,6 +364,7 @@ packages:
       release: redis
     lifecycle: errand
     post_deploy: true
+    run_post_deploy_errand_default: when-changed
     memory: 512
     ephemeral_disk: 4096
     persistent_disk: 0
