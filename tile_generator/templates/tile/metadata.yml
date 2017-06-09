@@ -452,6 +452,9 @@ job_types:
   dynamic_ip: {{ job.dynamic_ip or 0 }}
   max_in_flight: {{ job.max_in_flight or 1 }}
   single_az_only: {{ job.single_az_only or (job.lifecycle and job.lifecycle == 'errand') or false }}
+{% if 'default_internet_connected' in job %}
+  default_internet_connected: {{ job.default_internet_connected }}
+{% endif %}
 {% if metadata_version < 1.7 %}
   instance_definitions:
   - name: instances

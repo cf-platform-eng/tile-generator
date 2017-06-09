@@ -52,6 +52,11 @@ class VerifyProperties(unittest.TestCase):
 		job = find_by_name(self.config['job_types'], 'redis_leader_z1')
 		self.assertIn('author', job['manifest'])
 
+	def test_default_internet_connected(self):
+		job = find_by_name(self.config['job_types'], 'redis_leader_z1')
+		self.assertIn('default_internet_connected', job)
+		self.assertFalse(job['default_internet_connected'])
+
 	def test_run_errand_default(self):
 		errand = find_by_name(self.config['post_deploy_errands'], 'acceptance-tests')
 		self.assertEqual(errand['run_post_deploy_errand_default'], 'when-changed')

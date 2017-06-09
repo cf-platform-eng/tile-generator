@@ -323,6 +323,7 @@ packages:
     persistent_disk: 4096
     cpu: 2
     static_ip: 1
+    default_internet_connected: false
     max_in_flight: 1
     properties:
       network: redis1
