@@ -38,11 +38,14 @@ def capture_output():
 
 class TestBoshCheck(unittest.TestCase):
 	@mock.patch('distutils.spawn.find_executable')
+	@mock.patch('subprocess.check_output')
 	@mock.patch('sys.exit')
-	def test_passes_when_on_path(self, mock_sys_exit, mock_find_executable):
+	def test_passes_when_on_path(self, mock_sys_exit, mock_output, mock_find_executable):
 		mock_find_executable.return_value = 'Some'
+		mock_output.return_value = 'version 2.'
 
 		bosh.ensure_bosh()
+
 
 		mock_sys_exit.assert_not_called()
 
