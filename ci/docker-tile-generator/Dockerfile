@@ -3,6 +3,7 @@ FROM alpine
 RUN apk --update upgrade && \
     apk add --update ca-certificates && \
     update-ca-certificates && \
+    apk add --update openssl && \
     rm -rf /var/cache/apk/*
 
 RUN apk add --no-cache zip &&\
@@ -11,10 +12,11 @@ RUN apk add --no-cache zip &&\
     wget "https://bootstrap.pypa.io/get-pip.py" -O /dev/stdout | python && \
     apk del build-dependencies
 
+
 COPY tile-generator-*.tar.gz .
 RUN pip install tile-generator-*.tar.gz
 
-RUN curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.23-linux-amd64
+RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.23-linux-amd64
 RUN mv bosh-cli-2.0.23-linux-amd64 /usr/local/bin/bosh
 RUN chmod 755 /usr/local/bin/bosh
 
