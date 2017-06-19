@@ -14,7 +14,7 @@ RUN apk add --no-cache zip &&\
 COPY tile-generator-*.tar.gz .
 RUN pip install tile-generator-*.tar.gz
 
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.23-linux-amd64
+RUN curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.23-linux-amd64
 RUN mv bosh-cli-2.0.23-linux-amd64 /usr/local/bin/bosh
 RUN chmod 755 /usr/local/bin/bosh
 
