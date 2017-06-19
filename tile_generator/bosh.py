@@ -105,9 +105,9 @@ class BoshRelease:
 		for job in self.jobs:
 			self.add_job(job)
 		self.__bosh('upload-blobs')
-		self.tarball = self.__bosh('create-release', '--force', '--final', '--tarball',self.name+'.tgz', '--version', self.context['version'], capture='Release tarball')
-		self.tarball = os.path.join(self.release_dir,self.name+'.tgz')
-		print(self.tarball)
+		filename=self.name+'-'+self.context['version'] + '.tgz'
+		self.tarball = self.__bosh('create-release', '--force', '--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
+		self.tarball = os.path.join(self.release_dir,filename)
 		return self.tarball
 
 	def add_job(self, job):
@@ -238,7 +238,6 @@ def ensure_bosh():
 
 	if bosh_exec:
 		output = subprocess.check_output(["bosh", "--version"], stderr=subprocess.STDOUT, cwd=".")
-		print(output)
 		if not output.startswith("version 2."):
 			print("You are running older bosh version. Please upgrade to 'bosh 2.0' command should be on the path. See https://bosh.io/docs/cli-v2.html for installation instructions")
 			sys.exit(1)
@@ -250,7 +249,6 @@ def run_bosh(working_dir, *argv, **kw):
 	print('bosh', ' '.join(argv))
 	command = ['bosh', '--no-color', '--non-interactive'] + argv
 	capture = kw.get('capture', None)
-	print(command)
 	try:
 		output = subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=working_dir)
 		if capture is not None:
@@ -264,5 +262,4 @@ def run_bosh(working_dir, *argv, **kw):
 			return e.output
 		if argv[0] == 'generate' and 'already exists' in e.output:
 			return e.output
-		print(e.output)
 		sys.exit(e.returncode)
