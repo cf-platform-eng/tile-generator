@@ -93,17 +93,21 @@ class BoshRelease:
 
 	def build_tarball(self):
 		mkdir_p(self.release_dir)
-		self.__bosh('init', 'release')
+		self.__bosh('init-release')
 		template.render(
 			os.path.join(self.release_dir, 'config/final.yml'),
 			'config/final.yml',
 			self.context)
+
 		for package in self.packages:
 			self.add_package(package)
+
 		for job in self.jobs:
 			self.add_job(job)
-		self.__bosh('upload', 'blobs')
-		self.tarball = self.__bosh('create', 'release', '--force', '--final', '--with-tarball', '--version', self.context['version'], capture='Release tarball')
+		self.__bosh('upload-blobs')
+		self.tarball = self.__bosh('create-release', '--force', '--final', '--tarball',self.name+'.tgz', '--version', self.context['version'], capture='Release tarball')
+		self.tarball = os.path.join(self.release_dir,self.name+'.tgz')
+		print(self.tarball)
 		return self.tarball
 
 	def add_job(self, job):
@@ -112,7 +116,7 @@ class BoshRelease:
 		job_template = job.get('template', job_type)
 		is_errand = job.get('lifecycle', None) == 'errand'
 		package = job.get('package', None)
-		self.__bosh('generate', 'job', job_type)
+		self.__bosh('generate-job', job_type)
 		job_context = {
 			'job_name': job_name,
 			'job_type': job_type,
@@ -153,11 +157,14 @@ class BoshRelease:
 		elif len(files) == 1:
 			return not zipfile.is_zipfile(files[0]['path'])
 		return False
+	def add_blob(self,package):
+		for file in package ['files']:
+			self.__bosh('add-blob',os.path.realpath(file['path']),file['name'])
 
 	def add_package(self, package):
 		name = package['name']
 		dir = package.get('dir', 'blobs')
-		self.__bosh('generate', 'package', name)
+		self.__bosh('generate-package', name)
 		target_dir = os.path.realpath(os.path.join(self.release_dir, dir, name))
 		package_dir = os.path.realpath(os.path.join(self.release_dir, 'packages', name))
 		mkdir_p(target_dir)
@@ -177,9 +184,11 @@ class BoshRelease:
 			shutil.rmtree(staging_dir)
 			package['manifest']['path'] = os.path.basename(zipfilename)
 			package['files'] = [{ 'path': zipfilename, 'name': os.path.basename(zipfilename) }]
+			self.__bosh('add-blob',zipfilename,os.path.join(name,os.path.basename(zipfilename)))
 		else:
 			for file in package.get('files', []):
 				download(file['path'], os.path.join(target_dir, file['name']), cache=self.context.get('cache', None))
+				self.__bosh('add-blob',os.path.join(target_dir, file['name']),os.path.join(name,file['name']))
 		# Construct context for template rendering
 		package_context = {
 			'context': self.context,
@@ -197,6 +206,7 @@ class BoshRelease:
 				f.write('---\n')
 				f.write(yaml.safe_dump(manifest, default_flow_style=False))
 			package_context['files'] += [ 'manifest.yml' ]
+			self.__bosh('add-blob',manifest_file,os.path.join(name,'manifest.yml'))
 		template.render(
 			os.path.join(package_dir, 'spec'),
 			os.path.join(template_dir, 'spec'),
@@ -214,18 +224,33 @@ class BoshRelease:
 
 def ensure_bosh():
 	bosh_exec = spawn.find_executable('bosh')
+	## check the version
+	## bosh --version
+	## version 2.0.1-74fad57-2017-02-15T20:17:00Z
+	##
+	## Succeeded
+	## bosh --version
+	## BOSH 1.3262.26.0
+
 	if not bosh_exec:
 		print("'bosh' command should be on the path. See https://bosh.io for installation instructions")
 		sys.exit(1)
 
+	if bosh_exec:
+		output = subprocess.check_output(["bosh", "--version"], stderr=subprocess.STDOUT, cwd=".")
+		print(output)
+		if not output.startswith("version 2."):
+			print("You are running older bosh version. Please upgrade to 'bosh 2.0' command should be on the path. See https://bosh.io/docs/cli-v2.html for installation instructions")
+			sys.exit(1)
 
 def run_bosh(working_dir, *argv, **kw):
 	ensure_bosh()
-
+	## change the commands
 	argv = list(argv)
 	print('bosh', ' '.join(argv))
 	command = ['bosh', '--no-color', '--non-interactive'] + argv
 	capture = kw.get('capture', None)
+	print(command)
 	try:
 		output = subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=working_dir)
 		if capture is not None:
