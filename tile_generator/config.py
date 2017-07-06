@@ -282,6 +282,16 @@ class Config(dict):
 				if package['type'] == 'docker-bosh' and not package.get('docker_images', []):
 					print('docker-bosh package', package['name'], 'must specify docker_images', file=sys.stderr)
 					sys.exit(1)
+				if package['type'] == 'docker-bosh' and package.get('routes') is not None:
+					for route in package.get('routes'):
+						prefix = route.get('prefix')
+						port = route.get('port')
+						if prefix is None or len(prefix) == 0:
+							print('docker-bosh routes must have a "prefix"')
+							sys.exit(1)
+						if port is None:
+							print('docker-bosh routes must have a "port"')
+							sys.exit(1)
 				if package['type'] == 'bosh-release':
 					for job in package.get('jobs', []):
 						job['varname'] = job['name'].lower().replace('-','_')
