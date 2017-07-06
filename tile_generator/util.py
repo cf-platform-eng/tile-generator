@@ -46,7 +46,7 @@ def download(url, filename, cache=None):
 	if cache is not None:
 		basename = os.path.basename(filename)
 		cachename = os.path.join(cache, basename)
-	 	if os.path.isfile(cachename):
+		if os.path.isfile(cachename):
 			print('- using cached version of', basename)
 			shutil.copy(cachename, filename)
 			return
@@ -84,7 +84,7 @@ def download(url, filename, cache=None):
 				if chunk:
 					file.write(chunk)
 	elif url.startswith("docker:"):
-		docker_image = url.lstrip("docker:").lstrip("/").lstrip("/")
+		docker_image = url.replace('docker:', '', 1)
 		try:
 			from docker.client import Client
 			from docker.utils import kwargs_from_env

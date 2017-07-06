@@ -300,6 +300,9 @@ packages:
   ephemeral_disk: 4096
   persistent_disk: 2048
   instances: 1
+  routes:
+    - prefix: my-route
+      port: 8080
   manifest: |
     containers:
     - name: app
