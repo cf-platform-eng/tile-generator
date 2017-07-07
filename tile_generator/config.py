@@ -292,6 +292,21 @@ class Config(dict):
 						if port is None:
 							print('docker-bosh routes must have a "port"')
 							sys.exit(1)
+				if package['type'] == 'docker-bosh' and not package.get('manifest'):
+						print('docker-bosh requires a manifest')
+						sys.exit(1)
+				if package['type'] == 'docker-bosh':
+					try:
+						manifest = yaml.safe_load(package.get('manifest'))
+					except:
+						print('docker-bosh manifest must be valid yaml')
+						sys.exit(1)
+					valid_name_pattern = r'^[a-z][a-zA-Z0-9_]*$'
+					for container in manifest.get('containers'):
+						container_name = container.get('name', '')
+						if not re.match(valid_name_pattern, container_name):
+							print("docker-bosh container names must be valid shell identifiers. Found invalid: {}".format(container_name))
+							sys.exit(1)
 				if package['type'] == 'bosh-release':
 					for job in package.get('jobs', []):
 						job['varname'] = job['name'].lower().replace('-','_')
