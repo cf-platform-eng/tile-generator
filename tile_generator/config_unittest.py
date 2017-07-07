@@ -243,12 +243,56 @@ class TestConfigValidation(unittest.TestCase):
 
 	def test_refuses_docker_bosh_package_without_image(self):
 		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'bad-docker-bosh', 'type': 'docker-bosh'}]
+			self.config['packages'] = [{
+				'name': 'bad-docker-bosh',
+				'type': 'docker-bosh',
+				'manifest': 'containers: [name: a]'
+			}]
 			self.config.validate()
 
 	def test_accepts_docker_bosh_package_with_image(self):
-		self.config['packages'] = [{'name': 'bad-docker-bosh', 'type': 'docker-bosh', 'docker_images': ['my/image']}]
+		self.config['packages'] = [{
+            'name': 'good-docker-bosh',
+            'type': 'docker-bosh',
+            'docker_images': ['my/image'],
+            'manifest': 'containers: [name: a]'
+        }]
 		self.config.validate()
+
+	def test_refuses_docker_bosh_package_without_manifest(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{
+                'name': 'bad-docker-bosh',
+                'type': 'docker-bosh',
+                'docker_images': ['my/image']
+            }]
+			self.config.validate()
+
+	def test_refuses_docker_bosh_package_with_bad_manifest(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{
+                'name': 'bad-docker-bosh',
+                'type': 'docker-bosh',
+                'docker_images': ['my/image'],
+                'manifest': '!^%'
+            }]
+			self.config.validate()
+
+	def test_validates_docker_bosh_container_names(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{
+				'name': 'good-docker-bosh',
+				'type': 'docker-bosh',
+				'docker_images': ['cholick/foo'],
+				'manifest': '''
+		containers:
+		- name: bad-name
+		  image: "cholick/foo"
+		  bind_ports:
+		  - '9000:9000'
+	'''
+			}]
+			self.config.validate()
 
 	def test_requires_icon_file(self):
 		with self.assertRaises(SystemExit):
