@@ -59,6 +59,7 @@ def build_bosh_releases(config):
 def build_tile(context):
 	mkdir_p('product', clobber=True)
 	mkdir_p('product/releases')
+	mkdir_p('product/tile-generator')
 	tile_name = context['name']
 	tile_version = context['version']
 	print('tile generate metadata')
@@ -70,6 +71,7 @@ def build_tile(context):
 	template.render(migrations, 'tile/migration.js', context)
 	print('tile generate package')
 	pivotal_file = os.path.join('product', tile_name + '-' + tile_version + '.pivotal')
+	output = subprocess.check_output(["pip", "show", "tile-generator"], stderr=subprocess.STDOUT, cwd=".")
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		for release in context.get('releases', []):
 			print('tile include release', release['release_name'] + '-' + release['version'])
@@ -84,5 +86,12 @@ def build_tile(context):
 			os.path.join('product/content_migrations', tile_name + '.yml'),
 			os.path.join('content_migrations', tile_name + '.yml'))
 		f.write(migrations, migrations.lstrip('product/'))
-	print()
+		print('including tile-generator and verion information')
+		f.write(
+			'tile.yml',os.path.join('tile-generator','tile.yml')
+		)
+		f.writestr(
+			os.path.join('tile-generator','version'),output
+		)
+
 	print('created tile', pivotal_file)
