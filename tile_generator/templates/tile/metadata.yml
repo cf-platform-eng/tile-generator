@@ -364,12 +364,18 @@ job_types:
       password: (( ..cf.nats.credentials.password ))
       port: 4222
     route_registrar:
+      {% if job.package.routes and job.package.routes|length > 0 %}
       routes:
-      - name: {{ job.package.name | hyphens }}
+      {% for route in job.package.routes %}
+      - name: {{ route.prefix }}-{{ job.package.name | hyphens }}
         uris:
-        - {{ job.package.name | hyphens }}.(( ..cf.cloud_controller.apps_domain.value ))
-        port: 8080
+        - {{ route.prefix }}-{{ job.package.name | hyphens }}.(( ..cf.cloud_controller.system_domain.value ))
+        port: {{ route.port }}
         registration_interval: 20s
+      {% endfor %}
+      {% else %}
+      routes: []
+      {% endif %}
 {% for property in all_properties %}
     {{ property | property | yaml | indent }}
 {% endfor %}
