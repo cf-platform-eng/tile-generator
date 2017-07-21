@@ -53,7 +53,7 @@ catalog = {
 		"dashboard_client": {
 			"id": name + '-client-id',
 			"secret": "secret",
-			"redirect_uri": route('/dashboard')
+			"redirect_uri": "http://" + route('/dashboard')
 		}
 	}]
 }
