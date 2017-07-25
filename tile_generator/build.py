@@ -85,7 +85,7 @@ def build_tile(context):
 		f.write(
 			os.path.join('product/content_migrations', tile_name + '.yml'),
 			os.path.join('content_migrations', tile_name + '.yml'))
-		f.write(migrations, migrations.lstrip('product/'))
+		f.write(migrations, migrations.replace('product/', '', 1))
 		print('including tile-generator and verion information')
 		f.write(
 			'tile.yml',os.path.join('tile-generator','tile.yml')

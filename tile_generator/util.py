@@ -55,7 +55,7 @@ def download(url, filename, cache=None):
 	# will find the file named meta-buildpack-0.0.3.tgz in the latest
 	# release for https://github.com/cf-platform-eng/meta-buildpack
 	if url.startswith("github:"):
-		repo_name = url.lstrip("github:").lstrip("/").lstrip("/")
+		repo_name = url.replace('github:', '', 1).lstrip("/")
 		file_name = os.path.basename(repo_name)
 		repo_name = os.path.dirname(repo_name)
 		url = "https://api.github.com/repos/" + repo_name + "/releases/latest"
