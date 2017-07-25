@@ -77,7 +77,7 @@ function setup_target_org() {
 	if [ -z "$CF_ORG" ]; then
 		CF_ORG={{ context.name }}-org
 	fi
-	if ! $CF org $CF_ORG >/dev/null; then
+	if ! $CF org $CF_ORG >/dev/null 2>/dev/null; then
 		cf create-org $CF_ORG
 		ignore_failure=`$CF set-quota $CF_ORG runaway`
 	fi
@@ -88,7 +88,7 @@ function setup_target_space() {
 	if [ -z "$CF_SPACE" ]; then
 		CF_SPACE={{ context.name }}-space
 	fi
-	if ! $CF space $CF_SPACE >/dev/null; then
+	if ! $CF space $CF_SPACE >/dev/null 2>/dev/null; then
 		cf create-space $CF_SPACE
 		apply_open_security_group "$APPLY_OPEN_SECURITY_GROUP"
 	fi
@@ -116,7 +116,7 @@ function apply_open_security_group() {
 	if ! is_true "$1"; then
 		return
 	fi
-	if ! $CF security-group all_open >/dev/null; then
+	if ! $CF security-group all_open >/dev/null 2>/dev/null; then
 		cf create-security-group all_open ${PACKAGE_PATH}/cf_cli/all_open.json
 	fi
 	cf bind-security-group all_open "$CF_ORG" "$CF_SPACE"
