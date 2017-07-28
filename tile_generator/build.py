@@ -71,7 +71,14 @@ def build_tile(context):
 	template.render(migrations, 'tile/migration.js', context)
 	print('tile generate package')
 	pivotal_file = os.path.join('product', tile_name + '-' + tile_version + '.pivotal')
-	output = subprocess.check_output(["pip", "show", "tile-generator"], stderr=subprocess.STDOUT, cwd=".")
+	print('include tile generator version and inputs')
+	with open(os.path.join('product', 'tile-generator', 'version'), 'wb') as f:
+		subprocess.check_call(
+			["pip", "show", "tile-generator"],
+			stderr=subprocess.STDOUT,
+			stdout=f,
+			cwd=".")
+	shutil.copy('tile.yml', os.path.join('product', 'tile-generator', 'tile.yml'))
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
 		for release in context.get('releases', []):
 			print('tile include release', release['release_name'] + '-' + release['version'])
@@ -86,12 +93,11 @@ def build_tile(context):
 			os.path.join('product/content_migrations', tile_name + '.yml'),
 			os.path.join('content_migrations', tile_name + '.yml'))
 		f.write(migrations, migrations.replace('product/', '', 1))
-		print('including tile-generator and verion information')
 		f.write(
-			'tile.yml',os.path.join('tile-generator','tile.yml')
-		)
-		f.writestr(
-			os.path.join('tile-generator','version'),output
-		)
+			os.path.join('product/tile-generator', 'tile.yml'),
+			os.path.join('tile-generator', 'tile.yml'))
+		f.write(
+			os.path.join('product/tile-generator', 'version'),
+			os.path.join('tile-generator', 'version'))
 
 	print('created tile', pivotal_file)
