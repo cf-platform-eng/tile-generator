@@ -93,6 +93,7 @@ class BoshRelease:
 
 	def build_tarball(self):
 		mkdir_p(self.release_dir)
+
 		self.__bosh('init-release')
 		template.render(
 			os.path.join(self.release_dir, 'config/final.yml'),
@@ -106,7 +107,12 @@ class BoshRelease:
 			self.add_job(job)
 		self.__bosh('upload-blobs')
 		filename=self.name+'-'+self.context['version'] + '.tgz'
-		self.tarball = self.__bosh('create-release', '--force', '--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
+
+		if self.context.get('sha2'):
+			self.tarball = self.__bosh('create-release', '--force','--sha2', '--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
+		else:
+			self.tarball = self.__bosh('create-release', '--force','--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
+
 		self.tarball = os.path.join(self.release_dir,filename)
 		return self.tarball
 

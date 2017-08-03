@@ -327,6 +327,9 @@ class Config(dict):
 	def set_verbose(self, verbose=True):
 		self['verbose'] = verbose
 
+	def set_sha2(self, sha2=True):
+		self['sha2'] = sha2
+
 	def set_cache(self, cache=None):
 		if cache is not None:
 			cache = os.path.realpath(os.path.expanduser(cache))
