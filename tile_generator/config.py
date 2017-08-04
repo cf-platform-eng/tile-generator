@@ -172,12 +172,13 @@ class Config(dict):
 			if package.get('is_bosh_release'):
 				for job in package['jobs']:
 					jobname = job['name']
-					properties.update({
-						job['varname']: {
-							'host': '(( .{}.first_ip ))'.format(jobname),
-							'hosts': '(( .{}.ips ))'.format(jobname),
-						},
-					})
+					if job.get('is_static'):
+						properties.update({
+							job['varname']: {
+								'host': '(( .{}.first_ip ))'.format(jobname),
+								'hosts': '(( .{}.ips ))'.format(jobname),
+							},
+						})
 			package['properties'] = {packagename: properties}
 
 	def normalize_jobs(self):
