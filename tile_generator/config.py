@@ -148,35 +148,37 @@ class Config(dict):
 
 	def set_package_properties(self):
 		for package in self.get('packages', []):
-			properties = {'name': package['name']}
+			packagename = package['name']
+			properties = {'name': packagename}
 			if package.get('is_external_broker'):
 				properties.update({
-					'url': '(( .properties.{{ package.name }}_url.value ))',
-					'user': '(( .properties.{{ package.name }}_user.value ))',
-					'password': '(( .properties.{{ package.name }}_password.value ))'
+					'url': '(( .properties.{}_url.value ))'.format(packagename),
+					'user': '(( .properties.{}_user.value ))'.format(packagename),
+					'password': '(( .properties.{}_password.value ))'.format(packagename),
 				})
 			if package.get('is_broker'):
 				properties.update({
-					'enable_global_access_to_plans': '(( .properties.{{ package.name }}_enable_global_access_to_plans.value ))',
+					'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(packagename),
 				})
 			if package.get('is_buildpack'):
 				properties.update({
-					'buildpack_order': '(( .properties.{{ package.name }}_buildpack_order.value ))',
+					'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(packagename),
 				})
 			if package.get('is_docker_bosh'):
 				properties.update({
-					'host': '(( .docker-bosh-{{ package.name }}.first_ip ))',
-					'hosts': '(( .docker-bosh-{{ package.name }}.ips ))',
+					'host': '(( .docker-bosh-{}.first_ip ))'.format(packagename),
+					'hosts': '(( .docker-bosh-{}.ips ))'.format(packagename),
 				})
 			if package.get('is_bosh_release'):
 				for job in package['jobs']:
+					jobname = job['name']
 					properties.update({
 						job['varname']: {
-							'host': '(( .{{ job.name }}.first_ip ))',
-							'hosts': '(( .{{ job.name }}.ips ))',
+							'host': '(( .{}.first_ip ))'.format(jobname),
+							'hosts': '(( .{}.ips ))'.format(jobname),
 						},
 					})
-			package['properties'] = {package['name']: properties}
+			package['properties'] = {packagename: properties}
 
 	def normalize_jobs(self):
 		for release in self.get('releases', []):
