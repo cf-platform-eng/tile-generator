@@ -170,7 +170,7 @@ class Config(dict):
 					'hosts': '(( .docker-bosh-{}.ips ))'.format(packagename),
 				})
 			if package.get('is_bosh_release'):
-				for job in package['jobs']:
+				for job in package.get('jobs', []):
 					jobname = job['name']
 					if job.get('is_static'):
 						properties.update({
