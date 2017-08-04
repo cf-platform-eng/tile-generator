@@ -482,53 +482,7 @@ job_types:
     default:
       identity: vcap
   manifest: |
-    {{ job.properties | yaml | indent }}
-    domain: (( ..cf.cloud_controller.system_domain.value ))
-    app_domains:
-    - (( ..cf.cloud_controller.apps_domain.value ))
-    org: (( .properties.org.value ))
-    space: (( .properties.space.value ))
-    ssl:
-      skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))
-    cf:
-      admin_user: (( ..cf.uaa.system_services_credentials.identity ))
-      admin_password: (( ..cf.uaa.system_services_credentials.password ))
-    apply_open_security_group: (( .properties.apply_open_security_group.value ))
-    allow_paid_service_plans: (( .properties.allow_paid_service_plans.value ))
-{% for property in all_properties %}
-    {{ property | property | yaml | indent }}
-{% endfor %}
-{% for service_plan_form in service_plan_forms %}
-    {{ service_plan_form.name }}: (( .properties.{{ service_plan_form.name }}.value ))
-{% endfor %}
-{% for package in packages %}
-    {{ package.name }}:
-      name: {{ package.name }}
-{% if package.is_external_broker %}
-      url: (( .properties.{{ package.name }}_url.value ))
-      user: (( .properties.{{ package.name }}_user.value ))
-      password: (( .properties.{{ package.name }}_password.value ))
-{% endif %}
-{% if package.is_broker %}
-      enable_global_access_to_plans: (( .properties.{{ package.name }}_enable_global_access_to_plans.value ))
-{% endif %}
-{% if package.is_buildpack %}
-      buildpack_order: (( .properties.{{ package.name }}_buildpack_order.value ))
-{% endif %}
-{% if package.is_docker_bosh %}
-      host: (( .docker-bosh-{{ package.name }}.first_ip ))
-      hosts: (( .docker-bosh-{{ package.name }}.ips ))
-{% endif %}
-{% if package.is_bosh_release %}
-{% for job in package.jobs %}
-{% if job.is_static %}
-      {{ job.varname }}:
-        host: (( .{{ job.name }}.first_ip ))
-        hosts: (( .{{ job.name }}.ips ))
-{% endif %}
-{% endfor %}
-{% endif %}
-{% endfor %}
+    {{ job.manifest | yaml | indent }}
 {% endfor %}
 {% endfor %}
 {% for release in releases if not release.type == 'bosh-release' %}

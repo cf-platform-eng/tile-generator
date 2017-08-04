@@ -379,3 +379,5 @@ packages:
         master: (( .redis_leader_z1.first_ip ))
         password: red!s
         slave: (( .redis_test_slave_z1.first_ip ))
+      cf:
+        some: property

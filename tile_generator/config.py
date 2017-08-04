@@ -69,6 +69,14 @@ package_types = {
 	'bosh-release':      { 'flags': [ 'is_bosh_release' ] },
 }
 
+# Inspired by https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+def merge_dict(dct, merge_dct):
+	for k, v in merge_dct.iteritems():
+		if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):
+			merge_dict(dct[k], merge_dct[k])
+		else:
+			dct[k] = merge_dct[k]
+
 class Config(dict):
 
 	def __init__(self, *arg, **kw):
@@ -87,6 +95,7 @@ class Config(dict):
 		self.process_packages()
 		self.add_dependencies()
 		self.normalize_file_lists()
+		self.set_package_properties()
 		self.normalize_jobs()
 
 	def process_packages(self):
@@ -137,12 +146,68 @@ class Config(dict):
 				file['name'] = file.get('name', os.path.basename(file['path']))
 			package['files'] = files
 
+	def set_package_properties(self):
+		for package in self.get('packages', []):
+			properties = {'name': package['name']}
+			if package.get('is_external_broker'):
+				properties.update({
+					'url': '(( .properties.{{ package.name }}_url.value ))',
+					'user': '(( .properties.{{ package.name }}_user.value ))',
+					'password': '(( .properties.{{ package.name }}_password.value ))'
+				})
+			if package.get('is_broker'):
+				properties.update({
+					'enable_global_access_to_plans': '(( .properties.{{ package.name }}_enable_global_access_to_plans.value ))',
+				})
+			if package.get('is_buildpack'):
+				properties.update({
+					'buildpack_order': '(( .properties.{{ package.name }}_buildpack_order.value ))',
+				})
+			if package.get('is_docker_bosh'):
+				properties.update({
+					'host': '(( .docker-bosh-{{ package.name }}.first_ip ))',
+					'hosts': '(( .docker-bosh-{{ package.name }}.ips ))',
+				})
+			if package.get('is_bosh_release'):
+				for job in package['jobs']:
+					properties.update({
+						job['varname']: {
+							'host': '(( .{{ job.name }}.first_ip ))',
+							'hosts': '(( .{{ job.name }}.ips ))',
+						},
+					})
+			package['properties'] = {package['name']: properties}
+
 	def normalize_jobs(self):
 		for release in self.get('releases', []):
 			for job in release.get('jobs', []):
 				job['type'] = job.get('type', job['name'])
 				job['template'] = job.get('template', job['type'])
 				job['properties'] = job.get('properties', {})
+				job['manifest'] = self.build_job_manifest(job)
+
+	def build_job_manifest(self, job):
+		manifest = {
+			'domain': '(( ..cf.cloud_controller.system_domain.value ))',
+			'app_domains': ['(( ..cf.cloud_controller.apps_domain.value ))'],
+			'org': '(( .properties.org.value ))',
+			'space': '(( .properties.space.value ))',
+			'ssl': {'skip_cert_verify': '(( ..cf.ha_proxy.skip_cert_verify.value ))'},
+			'cf': {
+				'admin_user': '(( ..cf.uaa.system_services_credentials.identity ))',
+				'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',
+			},
+			'apply_open_security_group': '(( .properties.apply_open_security_group.value ))',
+			'allow_paid_service_plans': '(( .properties.allow_paid_service_plans.value ))',
+		}
+		merge_dict(manifest, job['properties'])
+		for property in self.get('all_properties', []):
+			merge_dict(manifest, template.render_property(property))
+		for service_plan_form in self.get('service_plan_forms', []):
+			manifest[service_plan_form['name']] = '(( .properties.{}.value ))'.format(service_plan_form['name'])
+		for package in self.get('packages', []):
+			merge_dict(manifest, package['properties'])
+		return manifest
 
 	def release_for_package(self, package):
 		release_name = package['name'] if package.get('is_bosh_release', False) else self['name']

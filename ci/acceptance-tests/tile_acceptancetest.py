@@ -61,6 +61,13 @@ class VerifyProperties(unittest.TestCase):
 		errand = find_by_name(self.config['post_deploy_errands'], 'acceptance-tests')
 		self.assertEqual(errand['run_post_deploy_errand_default'], 'when-changed')
 
+	def test_bosh_release_properties_merged(self):
+		job = find_by_name(self.config['job_types'], 'acceptance-tests')
+		manifest = yaml.safe_load(job['manifest'])
+		cf = manifest['cf']
+		self.assertIn('some', cf) # Property defined in tile.yml.
+		self.assertIn('admin_user', cf) # Auto-included property.
+
 def find_by_name(lst, name):
 	return next(x for x in lst if x.get('name', None) == name)
 
