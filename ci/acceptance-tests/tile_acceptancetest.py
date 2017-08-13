@@ -22,11 +22,10 @@ import yaml
 
 class VerifyTile(unittest.TestCase):
 
-	def test_has_valid_content_migrations(self):
-		self.assertTrue(os.path.exists('product/content_migrations'))
-		files = glob.glob('product/content_migrations/*.yml')
+	def test_has_valid_migrations(self):
+		self.assertTrue(os.path.exists('product/migrations/v1'))
+		files = glob.glob('product/migrations/v1/*.js')
 		self.assertEqual(len(files), 1)
-		read_yaml(files[0]) # Ensure corrent yaml syntax
 
 	def test_has_valid_metadata(self):
 		self.assertTrue(os.path.exists('product/metadata'))
