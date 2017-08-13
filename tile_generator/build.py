@@ -64,8 +64,6 @@ def build_tile(context):
 	tile_version = context['version']
 	print('tile generate metadata')
 	template.render('product/metadata/' + tile_name + '.yml', 'tile/metadata.yml', context)
-	print('tile generate content-migrations')
-	template.render('product/content_migrations/' + tile_name + '.yml', 'tile/content-migrations.yml', context)
 	print('tile generate migrations')
 	migrations = 'product/migrations/v1/' + datetime.datetime.now().strftime('%Y%m%d%H%M') + '_noop.js'
 	template.render(migrations, 'tile/migration.js', context)
