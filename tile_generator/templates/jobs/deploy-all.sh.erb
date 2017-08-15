@@ -228,28 +228,29 @@ function provision_auto_service() {
 	APP_NAME="$2"
 	SVC_NAME="$3"
 	SVC_PLAN="$4"
+	SVC_INSTANCE="$5"
 	if [ -z "${SVC_NAME}" ]; then
 		return
 	fi
 	if equals_ignore_case "$SVC_NAME" "none"; then
 		return
 	fi
-	$CF services | grep ${PKG_NAME}-${SVC_NAME} >/dev/null
+	$CF services | grep ${SVC_INSTANCE} >/dev/null
 	if [ "$?" -ne "0" ]; then
 		DEFAULT_PLAN=`$CF marketplace | grep "${SVC_NAME}" | awk '{ print $2 }' | sed 's/,//g'`
 		if [ -n "$DEFAULT_PLAN" ]; then
 			if [ -z "$SVC_PLAN" ]; then
 				SVC_PLAN="${DEFAULT_PLAN}"
 			fi
-			cf create-service ${SVC_NAME} ${SVC_PLAN} ${PKG_NAME}-${SVC_NAME}
+			cf create-service ${SVC_NAME} ${SVC_PLAN} ${SVC_INSTANCE}
 		else
 			echo "no service matching" ${SVC_NAME} "in marketplace"
 			exit 1
 		fi
 	elif [ -n "$SVC_PLAN" ]; then
-		cf update-service ${PKG_NAME}-${SVC_NAME} -p ${SVC_PLAN}
+		cf update-service ${SVC_INSTANCE} -p ${SVC_PLAN}
 	fi
-	cf bind-service ${APP_NAME} ${PKG_NAME}-${SVC_NAME}
+	cf bind-service ${APP_NAME} ${SVC_INSTANCE}
 }
 
 function register_broker() {
@@ -377,7 +378,8 @@ deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS"
 {% for service in package.auto_services %}
 export SVC_NAME="{{ service.name }}"
 export SVC_PLAN="{{ service.plan or '' }}"
-provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN"
+export SVC_INSTANCE="{{ service.service_instance or '${PKG_NAME}-${SVC_NAME}' }}"
+provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN" "$SVC_INSTANCE"
 {% endfor %}
 start_app {{ package.name | hyphens }} "$APP_NAME"
 {% endif %}
