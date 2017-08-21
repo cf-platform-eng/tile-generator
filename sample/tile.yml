@@ -170,6 +170,31 @@ forms:
       label: Disable feature
       description: Disable this feature (no more config).
 
+- name: planets_form
+  label: Multi-Select Example
+  properties:
+  - name: planets
+    label: Planets
+    type: multi_select_options
+    configurable: true
+    options:
+    - name: mercury
+      label: mercury
+    - name: Venus
+      label: venus
+    - name: Earth
+      label: earth
+    - name: Mars
+      label: mars
+    - name: Jupiter
+      label: jupiter
+    - name: Saturn
+      label: saturn
+    - name: Uranus
+      label: uranus
+    - name: Neptune
+      label: neptune
+
 update:
   canary_watch_time: 10000-(( .properties.canary_watch_timeout ))
   update_watch_time: 10000-(( .properties.update_watch_timeout ))
