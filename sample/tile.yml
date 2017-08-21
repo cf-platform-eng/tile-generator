@@ -177,6 +177,7 @@ forms:
     label: Planets
     type: multi_select_options
     configurable: true
+    optional: true
     options:
     - name: mercury
       label: mercury
