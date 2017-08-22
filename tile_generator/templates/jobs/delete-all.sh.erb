@@ -123,7 +123,7 @@ if target_org; then
 		{% endif %}
 
 		{% if package.post_delete %}
-		{{ package.pre_delete | render }}
+		{{ package.post_delete | render }}
 		{% endif %}
 
 		{% endfor %}
