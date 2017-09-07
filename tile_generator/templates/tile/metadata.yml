@@ -302,10 +302,14 @@ job_types:
     type: integer
     configurable: false
     default: {{ job.package.memory }}
+    constraints:
+      min: {{ job.package.memory }}
   - name: ephemeral_disk
     type: integer
     configurable: false
     default: {{ job.package.ephemeral_disk }}
+    constraints:
+      min: {{ job.package.ephemeral_disk }}
   - name: persistent_disk
     type: integer
     configurable: false
@@ -316,6 +320,8 @@ job_types:
     type: integer
     configurable: false
     default: {{ job.package.cpu }}
+    constraints:
+      min: {{ job.package.cpu }}
   static_ip: 1
   dynamic_ip: 0
   max_in_flight: 1
@@ -440,10 +446,14 @@ job_types:
     type: integer
     configurable: false
     default: {{ job.memory or 512 }}
+    constraints:
+      min: {{ job.memory or 0 }}
   - name: ephemeral_disk
     type: integer
     configurable: false
     default: {{ job.ephemeral_disk or 4096 }}
+    constraints:
+      min: {{ job.ephemeral_disk or 0 }}
   - name: persistent_disk
     type: integer
     configurable: false
@@ -454,6 +464,8 @@ job_types:
     type: integer
     configurable: false
     default: {{ job.cpu or 1 }}
+    constraints:
+      min: {{ job.cpu or 1 }}
   static_ip: {{ job.static_ip or 0 }}
   dynamic_ip: {{ job.dynamic_ip or 0 }}
   max_in_flight: {{ job.max_in_flight or 1 }}
