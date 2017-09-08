@@ -50,7 +50,7 @@ def init_cmd(name):
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
 @click.option('--verbose', is_flag=True)
-@click.option('--sha2', is_flag=False,default=False)
+@click.option('--sha2', is_flag=True)
 @click.option('--docker-cache', '--cache', type=str, default=None)
 def build_cmd(version, verbose,sha2, cache):
 	cfg = Config().read()
