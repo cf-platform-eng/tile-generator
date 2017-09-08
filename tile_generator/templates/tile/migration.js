@@ -1,6 +1,6 @@
 exports.migrate = function(properties) {
 	{% if migration %}
-	{{ migration | render }}
+	{{ migration | render | indent(2,false) }}
 	{% endif %}
 	return properties;
 };
