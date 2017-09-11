@@ -6,7 +6,7 @@ name: {{ name }} # By convention lowercase with dashes
 icon_file: resources/icon.png
 label: Brief Text for the Tile Icon
 description: Longer description of the tile's purpose
-# metadata_version: 1.8                 # Optional, defaults to 1.5
+# metadata_version: 1.8                 # Optional, defaults to 1.8
 
 # Global defaults (all optional)
 #
@@ -19,7 +19,7 @@ description: Longer description of the tile's purpose
 # of package you are describing. For fragments of each type
 # that you can copy & paste, see:
 #
-# https://github.com/cf-platform-eng/tile-generator/blob/master/README.md
+# http://docs.pivotal.io/tiledev/tile-generator.html
 #
 packages:
 - name: my-application
@@ -27,6 +27,7 @@ packages:
 #  label: My fabulous appplication      # Package name for use in human-readable labels in OpsManager
   manifest:
     path: resources/my-application-1.0.0.jar
+    buildpack: java_buildpack_offline
 #   command: python app.py
 #   memory: 256M
 
