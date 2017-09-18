@@ -196,6 +196,14 @@ forms:
     - name: Neptune
       label: neptune
 
+- name: app_manifest_form
+  label: App manifest config
+  properties:
+  - name: app_instances
+    type: integer
+    label: Dynamic app instance count
+    default: 2
+
 update:
   canary_watch_time: 10000-(( .properties.canary_watch_timeout ))
   update_watch_time: 10000-(( .properties.update_watch_timeout ))
@@ -248,6 +256,7 @@ packages:
     command: python app.py            # This is required for python, optional for many other languages
     memory: 256M                      # Override memory, default: 1G
     buildpack: python_buildpack       # Specify Buildpack for the app
+    instances: (( .properties.app_instances.value ))
 
 - name: tg-test-app1-auto-zip         # app1, specified by source directory to test auto-zipping
   type: app

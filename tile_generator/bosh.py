@@ -201,18 +201,6 @@ class BoshRelease:
 			'package': package,
 			'files': [ file['name'] for file in package.get('files', []) ]
 		}
-		# Render cf manifest for apps
-		if package.get('is_app', False):
-			manifest = package.get('manifest', { 'name': name })
-			if manifest.get('random-route', False):
-				print('Illegal manifest option in package', name + ': random-route is not supported', file=sys.stderr)
-				sys.exit(1)
-			manifest_file = os.path.join(target_dir, 'manifest.yml')
-			with open(manifest_file, 'wb') as f:
-				f.write('---\n')
-				f.write(yaml.safe_dump(manifest, default_flow_style=False))
-			package_context['files'] += [ 'manifest.yml' ]
-			self.__bosh('add-blob',manifest_file,os.path.join(name,'manifest.yml'))
 		template.render(
 			os.path.join(package_dir, 'spec'),
 			os.path.join(template_dir, 'spec'),

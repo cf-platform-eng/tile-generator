@@ -122,6 +122,7 @@ class Config(dict):
 				release['requires_meta_buildpack'] = True
 			if 'is_app' in flags:
 				manifest = package.get('manifest', { 'name': package['name'] })
+				package['app_manifest'] = manifest
 				if not 'is_docker' in flags:
 					self.update_compilation_vm_disk_size(manifest)
 
@@ -179,6 +180,10 @@ class Config(dict):
 								'hosts': '(( .{}.ips ))'.format(jobname),
 							},
 						})
+			if package.get('is_app'):
+				properties.update({
+					'app_manifest': package['app_manifest']
+				})
 			package['properties'] = {packagename: properties}
 
 	def normalize_jobs(self):
@@ -346,6 +351,9 @@ class Config(dict):
 				if package['type'] == 'app' or package['type'] == 'app-broker' :
 					if package['manifest']['buildpack'] is None:
 						print('buildpack required for package '+ package['name'])
+						sys.exit(1)
+					if package['manifest'].get('random-route'):
+						print('Illegal manifest option in package', package['name'] + ': random-route is not supported', file=sys.stderr)
 						sys.exit(1)
 				if package['type'] == 'docker-bosh' and not package.get('docker_images', []):
 					print('docker-bosh package', package['name'], 'must specify docker_images', file=sys.stderr)
