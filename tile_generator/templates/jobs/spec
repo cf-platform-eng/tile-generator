@@ -75,7 +75,8 @@ properties:
      description: 'Basic auth username'
   {{ package.name }}.password:
      description: 'Basic auth password'
-{% elif package.is_app %}
+{% endif %}
+{% if package.is_app %}
   {{ package.name }}.app_manifest:
      description: 'Application manifest'
 {% endif %}
