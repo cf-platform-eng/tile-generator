@@ -196,8 +196,11 @@ function deploy_app() {
 	DOCKER_IMAGE="$4"
 	NEEDS_CF_CREDS="$5"
 	HEALTH_CHECK="$6"
+	APP_MANIFEST="$7"
+	MANIFEST_FILE="$PACKAGE_PATH/${PKG_NAME}/manifest.yml"
+	echo "${APP_MANIFEST}" > "${MANIFEST_FILE}"
 	cf push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} \
-		${DOCKER_IMAGE} -f $PACKAGE_PATH/${PKG_NAME}/manifest.yml \
+		${DOCKER_IMAGE} -f "${MANIFEST_FILE}" \
 		--no-start
 	add_env_vars ${APP_NAME}
 	if is_true "$NEEDS_CF_CREDS"; then
@@ -374,7 +377,7 @@ export APP_HOST={{ (package.manifest and package.manifest.host) or package.name 
 export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
 export NEEDS_CF_CREDS="{{ package.needs_cf_credentials }}"
 export HEALTH_CHECK="{{ package.health_check }}"
-deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$HEALTH_CHECK"
+deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$HEALTH_CHECK" <%= Shellwords.escape(p('{{ package.name }}.app_manifest').to_json) %>
 {% for service in package.auto_services %}
 export SVC_NAME="{{ service.name }}"
 export SVC_PLAN="{{ service.plan or '' }}"

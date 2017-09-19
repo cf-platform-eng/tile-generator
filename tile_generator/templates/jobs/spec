@@ -75,6 +75,9 @@ properties:
      description: 'Basic auth username'
   {{ package.name }}.password:
      description: 'Basic auth password'
+{% elif package.is_app %}
+  {{ package.name }}.app_manifest:
+     description: 'Application manifest'
 {% endif %}
 {% if package.is_broker %}
   {{ package.name }}.enable_global_access_to_plans:
