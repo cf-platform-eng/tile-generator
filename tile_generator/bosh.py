@@ -188,7 +188,10 @@ class BoshRelease:
 			zipfilename = os.path.realpath(os.path.join(target_dir, package['name'] + '.zip'))
 			zip_dir(zipfilename, dir_to_zip)
 			shutil.rmtree(staging_dir)
-			package['manifest']['path'] = os.path.basename(zipfilename)
+			newpath = os.path.basename(zipfilename)
+			for job in self.jobs:
+				if job.get('manifest', {}).get(package['name'], {}).get('app_manifest'):
+					job['manifest'][package['name']]['app_manifest']['path'] = newpath
 			package['files'] = [{ 'path': zipfilename, 'name': os.path.basename(zipfilename) }]
 			self.__bosh('add-blob',zipfilename,os.path.join(name,os.path.basename(zipfilename)))
 		else:
