@@ -216,7 +216,7 @@ class Config(dict):
 			manifest[service_plan_form['name']] = '(( .properties.{}.value ))'.format(service_plan_form['name'])
 		for package in self.get('packages', []):
 			merge_dict(manifest, package['properties'])
-			if package.get('is_external_broker'):
+			if package.get('type') == 'deploy-all' and package.get('is_external_broker'):
 				merge_dict(manifest, {
 					package['name']: {
 						'url': '(( .properties.{}_url.value ))'.format(pakage['name']),
@@ -224,7 +224,7 @@ class Config(dict):
 						'password': '(( .properties.{}_password.value ))'.format(pakage['name']),
 					}
 				})
-			elif package.get('is_broker'):
+			elif package.get('type') == 'deploy-all' and package.get('is_broker'):
 				merge_dict(manifest, {
 					package['name']: {
 						'user': '(( .{}.app_credentials.identity ))'.format(job['name']),
