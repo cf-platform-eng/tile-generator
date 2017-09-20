@@ -17,6 +17,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import, division, print_function#, unicode_literals
+import copy
 import os.path
 import sys
 import yaml
@@ -75,7 +76,7 @@ def merge_dict(dct, merge_dct):
 		if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):
 			merge_dict(dct[k], merge_dct[k])
 		else:
-			dct[k] = merge_dct[k]
+			dct[k] = copy.deepcopy(merge_dct[k])
 
 class Config(dict):
 
@@ -215,6 +216,21 @@ class Config(dict):
 			manifest[service_plan_form['name']] = '(( .properties.{}.value ))'.format(service_plan_form['name'])
 		for package in self.get('packages', []):
 			merge_dict(manifest, package['properties'])
+			if package.get('is_external_broker'):
+				merge_dict(manifest, {
+					package['name']: {
+						'url': '(( .properties.{}_url.value ))'.format(pakage['name']),
+						'user': '(( .properties.{}_user.value ))'.format(pakage['name']),
+						'password': '(( .properties.{}_password.value ))'.format(pakage['name']),
+					}
+				})
+			elif package.get('is_broker'):
+				merge_dict(manifest, {
+					package['name']: {
+						'user': '(( .{}.app_credentials.identity ))'.format(job['name']),
+						'password': '(( .{}.app_credentials.password ))'.format(job['name']),
+					}
+				})
 		return manifest
 
 	def release_for_package(self, package):
