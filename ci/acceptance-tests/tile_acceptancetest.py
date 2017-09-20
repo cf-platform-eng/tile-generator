@@ -73,6 +73,13 @@ class VerifyProperties(unittest.TestCase):
 		self.assertIn('some', cf) # Property defined in tile.yml.
 		self.assertIn('admin_user', cf) # Auto-included property.
 
+	def test_deploy_all_has_broker_user_and_password(self):
+		job = find_by_name(self.metadata['job_types'], 'deploy-all')
+		manifest = yaml.safe_load(job['manifest'])
+		broker = manifest['tg_test_broker1']
+		self.assertIn('user', broker)
+		self.assertIn('password', broker)
+
 class VerifyConstraints(unittest.TestCase):
 
 	def setUp(self):
