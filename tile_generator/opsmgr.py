@@ -484,7 +484,7 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	# Update using the appropriate API for the Ops Manager version
 	#
 	version = get_version()
-	if version[0] == 1 and version[1] >= 8:
+	if version[0] > 1 or (version[0] == 1 and version[1] >= 8):
 		url = '/api/v0/staged/products/' + product_settings['guid']
 		if 'availability_zones' in infrastructure:
 			networks_and_azs = {
