@@ -79,6 +79,9 @@ properties:
 {% if package.is_app %}
   {{ package.name }}.app_manifest:
      description: 'Application manifest'
+  {{ package.name }}.auto_services:
+     description: 'Services to bind'
+     default: []
 {% endif %}
 {% if package.is_broker %}
   {{ package.name }}.enable_global_access_to_plans:

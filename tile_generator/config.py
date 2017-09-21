@@ -183,7 +183,8 @@ class Config(dict):
 						})
 			if package.get('is_app'):
 				properties.update({
-					'app_manifest': package['app_manifest']
+					'app_manifest': package['app_manifest'],
+					'auto_services': package.get('auto_services', []),
 				})
 			package['properties'] = {packagename: properties}
 
