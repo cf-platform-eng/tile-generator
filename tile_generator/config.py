@@ -305,7 +305,7 @@ class Config(dict):
 				self['requires_product_versions'] = self.get('requires_product_versions', []) + [
 					{
 						'name': 'cf',
-						'version': '~> 1.5'
+						'version': '>= 1.9'
 					}
 				]
 		if requires_docker_bosh:
