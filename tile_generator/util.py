@@ -87,10 +87,7 @@ def download(url, filename, cache=None):
 		docker_image = url.replace('docker:', '', 1)
 		try:
 			from docker.client import Client
-			from docker.utils import kwargs_from_env
-			kwargs = kwargs_from_env()
-			kwargs['tls'] = False
-			docker_cli = Client(**kwargs)
+			docker_cli = Client.from_env()
 			image = docker_cli.get_image(docker_image)
 			image_tar = open(filename,'w')
 			image_tar.write(image.data)
