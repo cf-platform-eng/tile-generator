@@ -210,6 +210,13 @@ class Config(dict):
 			'apply_open_security_group': '(( .properties.apply_open_security_group.value ))',
 			'allow_paid_service_plans': '(( .properties.allow_paid_service_plans.value ))',
 		}
+		if job.get('type') == 'deploy-all':
+			merge_dict(manifest, {
+				'security': {
+					'user': '(( .{}.app_credentials.identity ))'.format(job['name']),
+					'password': '(( .{}.app_credentials.password ))'.format(job['name']),
+				}
+			})
 		merge_dict(manifest, job['properties'])
 		for property in self.get('all_properties', []):
 			merge_dict(manifest, template.render_property(property))

@@ -427,6 +427,12 @@ job_types:
   resource_label: {{ job.label or job.name }}
 {% if job.lifecycle and job.lifecycle == 'errand' %}
   errand: true
+{% if job.run_post_deploy_errand_default %}
+  run_post_deploy_errand_default: {{  job.run_post_deploy_errand_default }}
+{% endif %}
+{% if job.run_pre_delete_errand_default %}
+  run_pre_delete_errand_default: {{  job.run_pre_delete_errand_default }}
+{% endif %}
 {% endif %}
   templates:
 {% for template in job.templates %}
@@ -505,6 +511,12 @@ job_types:
 - name: {{ job.name }}
   resource_label: {{ job.name }}
   errand: true
+{% if job.run_post_deploy_errand_default %}
+  run_post_deploy_errand_default: {{  job.run_post_deploy_errand_default }}
+{% endif %}
+{% if job.run_pre_delete_errand_default %}
+  run_pre_delete_errand_default: {{  job.run_pre_delete_errand_default }}
+{% endif %}
   templates:
   - name: {{ job.type }}
     release: {{ release.release_name }}
@@ -558,9 +570,6 @@ post_deploy_errands:
 {% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.post_deploy %}
 - name: {{ job.name }}
-{% if job.run_post_deploy_errand_default %}
-  run_post_deploy_errand_default: {{  job.run_post_deploy_errand_default }}
-{% endif %}
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -570,9 +579,6 @@ pre_delete_errands:
 {% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.pre_delete %}
 - name: {{ job.name }}
-{% if job.run_pre_delete_errand_default %}
-  run_pre_delete_errand_default: {{  job.run_pre_delete_errand_default }}
-{% endif %}
 {% endif %}
 {% endfor %}
 {% endfor %}

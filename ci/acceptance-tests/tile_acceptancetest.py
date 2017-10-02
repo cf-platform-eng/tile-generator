@@ -63,8 +63,8 @@ class VerifyProperties(unittest.TestCase):
 		self.assertFalse(job['default_internet_connected'])
 
 	def test_run_errand_default(self):
-		errand = find_by_name(self.metadata['post_deploy_errands'], 'acceptance-tests')
-		self.assertEqual(errand['run_post_deploy_errand_default'], 'when-changed')
+		job = find_by_name(self.metadata['job_types'], 'acceptance-tests')
+		self.assertEqual(job['run_post_deploy_errand_default'], 'when-changed')
 
 	def test_bosh_release_properties_merged(self):
 		job = find_by_name(self.metadata['job_types'], 'acceptance-tests')
