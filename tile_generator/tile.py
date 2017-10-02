@@ -50,26 +50,21 @@ def init_cmd(name):
 @cli.command('build')
 @click.argument('version', 'patch', required=False)
 @click.option('--verbose', is_flag=True)
-@click.option('--sha2', is_flag=True)
+@click.option('--sha1', is_flag=True)
 @click.option('--docker-cache', '--cache', type=str, default=None)
-def build_cmd(version, verbose,sha2, cache):
+def build_cmd(version, verbose,sha1, cache):
 	cfg = Config().read()
 
-	if type(sha2) is not types.BooleanType:
-		if sha2 == 'false':
-			sha2 = False
-		else:
-			sha2 = True
 	cfg.set_version(version)
 	cfg.set_verbose(verbose)
-	cfg.set_sha2(sha2)
+	cfg.set_sha1(sha1)
 	cfg.set_cache(cache)
 	print('name:', cfg.get('name', '<unspecified>'))
 	print('icon:', cfg.get('icon_file', '<unspecified>'))
 	print('label:', cfg.get('label', '<unspecified>'))
 	print('description:', cfg.get('description', '<unspecified>'))
 	print('version:', cfg.get('version', '<unspecified>'))
-	print('sha2:', cfg.get('sha2', '<unspecified>'))
+	print('sha1:', cfg.get('sha1', '<unspecified>'))
 	stemcell = cfg.get('stemcell_criteria', {})
 	print('stemcell:', stemcell.get('os', '<unspecified>'), stemcell.get('version', '<unspecified>'))
 	print()

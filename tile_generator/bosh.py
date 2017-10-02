@@ -108,10 +108,11 @@ class BoshRelease:
 		self.__bosh('upload-blobs')
 		filename=self.name+'-'+self.context['version'] + '.tgz'
 
-		if self.context.get('sha2'):
-			self.tarball = self.__bosh('create-release', '--force','--sha2', '--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
-		else:
+		if self.context.get('sha1'):
 			self.tarball = self.__bosh('create-release', '--force','--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
+		else:
+			self.tarball = self.__bosh('create-release', '--force','--sha2', '--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
+
 
 		self.tarball = os.path.join(self.release_dir,filename)
 		return self.tarball
