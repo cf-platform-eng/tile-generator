@@ -137,7 +137,7 @@ form_types:
     description: {{ property.description or property.label }}
     {% if property.property_blueprints %}
     property_inputs:
-    {% for input in property.property_blueprints %}
+    {% for input in property.property_blueprints if input.type not in ('uuid', 'salted_credentials') %}
     {# This... is ridiculously inconsistent. In every other place the names are fully qualified #}
     - reference: {{ input.name }}
       label: {{ input.label }}

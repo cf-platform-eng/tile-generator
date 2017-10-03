@@ -96,6 +96,20 @@ class VerifyConstraints(unittest.TestCase):
 		self.assertEqual(find_by_name(resource_defs, 'persistent_disk')['constraints']['min'], 0)
 		self.assertEqual(find_by_name(resource_defs, 'ram')['constraints']['min'], 512)
 
+class VerifyForms(unittest.TestCase):
+
+	def setUp(self):
+		self.assertTrue(os.path.exists('product/metadata'))
+		files = glob.glob('product/metadata/*.yml')
+		self.assertEqual(len(files), 1)
+		self.metadata = read_yaml(files[0])
+
+	def test_collection_form_does_not_contain_uuid_property(self):
+		form = find_by_name(self.metadata['form_types'], 'albums_form')
+		collection_ref = form['property_inputs'][0]
+		for property_ref in collection_ref['property_inputs']:
+			self.assertNotEqual(property_ref['reference'], 'id')
+
 def find_by_name(lst, name):
 	return next(x for x in lst if x.get('name', None) == name)
 
