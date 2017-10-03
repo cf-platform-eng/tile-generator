@@ -58,6 +58,7 @@ forms:
     property_blueprints:
     - name: id
       type: uuid
+      optional: true
     - name: album
       type: string
       label: Album
