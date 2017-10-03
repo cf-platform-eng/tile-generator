@@ -45,6 +45,8 @@ custom_dynamic_service_plan_2:
 canary_watch_timeout: 100001
 update_watch_timeout: 100002
 is_feature_enabled: feature_disabled
+planets:
+- Earth
 
 # Example of job-specific configuration, supported in PCF 1.8+.
 jobs:
