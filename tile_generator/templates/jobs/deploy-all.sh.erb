@@ -53,8 +53,26 @@ function import_opsmgr_variables() {
 	export {{ package.name | upper }}_{{ job.varname | upper }}_HOST={{ ( 'properties.' + package.name + '.' + job.varname + '.host' ) | shell_string }}
 	export {{ package.name | upper }}_{{ job.varname | upper }}_HOSTS={{ ( 'properties.' + package.name + '.' + job.varname + '.hosts' ) | shell_string }}
 	{% endif %}
+	{% for link in job.links %}
+	<% if_link('{{link.name}}') do |link| %>
+	<% hosts = link.instances.map { |instance| instance.address } %>
+	export {{ package.name | upper }}_{{ link.name | upper }}_HOST="<%= link.instances[0].address %>"
+	export {{ package.name | upper }}_{{ link.name | upper }}_HOSTS=<%= Shellwords.escape(hosts.to_json) %>
+	<% end %>
 	{% endfor %}
 	{% endfor %}
+	{% endfor %}
+	{% for package in context.packages if package.is_app %}
+	{% for link in package.consumes %}
+		<% if_link('{{link.name}}') do |link| %>
+		<% hosts = link.instances.map { |instance| instance.address } %>
+		export {{ link.name | upper }}_HOST="<%= link.instances[0].address %>"
+		export {{ link.name | upper }}_HOSTS=<%= Shellwords.escape(hosts.to_json) %>
+		<% end %>
+
+	{% endfor %}
+  {% endfor %}
+
 }
 
 function prepare_cf_cli {
@@ -149,6 +167,7 @@ function add_env_vars() {
 	{% endfor %}
 
 	# Addresses of bosh vms
+
 	{% for package in context.packages if package.type == 'docker-bosh' %}
 	cf set-env $1 {{ package.name | upper }}_HOST "${{ package.name | upper }}_HOST"
 	cf set-env $1 {{ package.name | upper }}_HOSTS "${{ package.name | upper }}_HOSTS"
@@ -159,8 +178,24 @@ function add_env_vars() {
 	cf set-env $1 {{ package.name | upper }}_{{ job.varname | upper }}_HOST "${{ package.name | upper }}_{{ job.varname | upper }}_HOST"
 	cf set-env $1 {{ package.name | upper }}_{{ job.varname | upper }}_HOSTS "${{ package.name | upper }}_{{ job.varname | upper }}_HOSTS"
 	{% endif %}
+	{% for link in job.links %}
+	<% if_link('{{link.name}}') do |link| %>
+	cf set-env $1 {{ package.name | upper }}_{{ link.name | upper }}_HOST "${{ package.name | upper }}_{{ link.name | upper }}_HOST"
+	cf set-env $1 {{ package.name | upper }}_{{ link.name | upper }}_HOSTS "${{ package.name | upper }}_{{ link.name | upper }}_HOSTS"
+	<% end %>
 	{% endfor %}
 	{% endfor %}
+	{% endfor %}
+
+	{% for package in context.packages if package.is_app %}
+	{% for link in package.consumes %}
+	<% if_link('{{link.name}}') do |link| %>
+	cf set-env $1 {{ link.name | upper }}_HOST "${{ link.name | upper }}_HOST"
+	cf set-env $1 {{ link.name | upper }}_HOSTS "${{ link.name | upper }}_HOSTS"
+	<% end %>
+	{% endfor %}
+	{% endfor %}
+
 }
 
 function add_cf_credentials() {

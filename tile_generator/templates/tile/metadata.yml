@@ -297,6 +297,7 @@ job_types:
     release: {{ release.name }}
   - name: route_registrar
     release: routing
+    consumes: 'nats: {from: nats, deployment: "(( ..cf.deployment_name ))"}'
   resource_definitions:
   - name: ram
     type: integer
@@ -364,11 +365,6 @@ job_types:
     security:
       user: (( .{{ job.name }}.app_credentials.identity ))
       password: (( .{{ job.name }}.app_credentials.password ))
-    nats:
-      machines: (( ..cf.nats.ips ))
-      user: nats
-      password: (( ..cf.nats.credentials.password ))
-      port: 4222
     route_registrar:
       {% if job.package.routes and job.package.routes|length > 0 %}
       routes:
