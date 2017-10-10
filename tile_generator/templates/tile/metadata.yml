@@ -297,7 +297,10 @@ job_types:
     release: {{ release.name }}
   - name: route_registrar
     release: routing
-    consumes: 'nats: {from: nats, deployment: "(( ..cf.deployment_name ))"}'
+    consumes: |
+      nats:
+        from: nats
+        deployment: (( ..cf.deployment_name ))
   resource_definitions:
   - name: ram
     type: integer
@@ -516,6 +519,10 @@ job_types:
   templates:
   - name: {{ job.type }}
     release: {{ release.release_name }}
+{% if release.consumes %}
+    consumes: |
+      {{ release.consumes | yaml | indent(6) }}
+{% endif %}
   resource_definitions:
   - name: ram
     type: integer

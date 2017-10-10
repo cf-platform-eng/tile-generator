@@ -122,6 +122,10 @@ class Config(dict):
 			if package.get('is_decorator', False):
 				release['requires_meta_buildpack'] = True
 			if 'is_app' in flags:
+				for link_name, link in package.get('consumes', {}).iteritems():
+					if 'deployment' in link:
+						release['consumes'] = release.get('consumes', {})
+						release['consumes'][link_name] = link
 				manifest = package.get('manifest', { 'name': package['name'] })
 				package['app_manifest'] = manifest
 				if not 'is_docker' in flags:

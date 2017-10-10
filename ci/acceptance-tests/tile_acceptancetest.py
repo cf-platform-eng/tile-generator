@@ -80,6 +80,16 @@ class VerifyProperties(unittest.TestCase):
 		self.assertIn('user', broker)
 		self.assertIn('password', broker)
 
+	def test_cross_deployment_link_in_metadata(self):
+		deploy_all_job = find_by_name(self.metadata['job_types'], 'deploy-all')
+		deploy_all_template = find_by_name(deploy_all_job['templates'], 'deploy-all')
+		self.assertIn('consumes', deploy_all_template)
+		consumes = yaml.safe_load(deploy_all_template['consumes'])
+		self.assertIn('nats', consumes)
+		self.assertIn('from', consumes['nats'])
+		self.assertEqual(consumes['nats'].get('deployment'), '(( ..cf.deployment_name ))')
+		self.assertEqual(consumes['nats'].get('from'), 'nats')
+
 class VerifyConstraints(unittest.TestCase):
 
 	def setUp(self):
@@ -95,6 +105,27 @@ class VerifyConstraints(unittest.TestCase):
 		self.assertEqual(find_by_name(resource_defs, 'ephemeral_disk')['constraints']['min'], 4096)
 		self.assertEqual(find_by_name(resource_defs, 'persistent_disk')['constraints']['min'], 0)
 		self.assertEqual(find_by_name(resource_defs, 'ram')['constraints']['min'], 512)
+
+class VerifyJobs(unittest.TestCase):
+
+	def test_cross_deployment_link_in_deploy_all_job(self):
+		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
+		self.assertTrue(os.path.exists(deploy_all_sh_file))
+		deploy_all_sh = read_file(deploy_all_sh_file)
+		self.assertIn('NATS_HOST=', deploy_all_sh)
+		self.assertIn('NATS_HOSTS=', deploy_all_sh)
+		self.assertIn('cf set-env $1 NATS_HOST ', deploy_all_sh)
+		self.assertIn('cf set-env $1 NATS_HOSTS ', deploy_all_sh)
+
+	def test_in_deployment_link_in_deploy_all_job(self):
+		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
+		self.assertTrue(os.path.exists(deploy_all_sh_file))
+		deploy_all_sh = read_file(deploy_all_sh_file)
+		self.assertIn('REDIS_HOST=', deploy_all_sh)
+		self.assertIn('REDIS_HOSTS=', deploy_all_sh)
+		self.assertIn('cf set-env $1 REDIS_HOST ', deploy_all_sh)
+		self.assertIn('cf set-env $1 REDIS_HOSTS ', deploy_all_sh)
+
 
 def find_by_name(lst, name):
 	return next(x for x in lst if x.get('name', None) == name)

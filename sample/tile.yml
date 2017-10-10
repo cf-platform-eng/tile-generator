@@ -310,10 +310,11 @@ packages:
 - name: tg-test-broker2               # Broker showing additional configurable values
   type: app-broker
   consumes:
-    - name: redis
-      type: redis
-    - name: nats
-      type: nats
+    redis:
+      from: redis
+    nats:
+      from: nats
+      deployment: (( ..cf.deployment_name ))
   manifest:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
@@ -375,9 +376,6 @@ packages:
     memory: 512
     ephemeral_disk: 4096
     persistent_disk: 4096
-    links:
-      - name: redis
-        type: redis
     cpu: 2
     static_ip: 0
     dynamic_ip: 1
