@@ -54,20 +54,20 @@ class VerifyProperties(unittest.TestCase):
 		self.assertFalse(find_by_name(blueprints, 'street_address')['optional'])
 
 	def test_bosh_release_has_properties(self):
-		job = find_by_name(self.metadata['job_types'], 'redis_leader_z1')
+		job = find_by_name(self.metadata['job_types'], 'redis')
 		self.assertIn('author', job['manifest'])
 
 	def test_default_internet_connected(self):
-		job = find_by_name(self.metadata['job_types'], 'redis_leader_z1')
+		job = find_by_name(self.metadata['job_types'], 'redis')
 		self.assertIn('default_internet_connected', job)
 		self.assertFalse(job['default_internet_connected'])
 
 	def test_run_errand_default(self):
-		job = find_by_name(self.metadata['job_types'], 'acceptance-tests')
+		job = find_by_name(self.metadata['job_types'], 'sanity-tests')
 		self.assertEqual(job['run_post_deploy_errand_default'], 'when-changed')
 
 	def test_bosh_release_properties_merged(self):
-		job = find_by_name(self.metadata['job_types'], 'acceptance-tests')
+		job = find_by_name(self.metadata['job_types'], 'sanity-tests')
 		manifest = yaml.safe_load(job['manifest'])
 		cf = manifest['cf']
 		self.assertIn('some', cf) # Property defined in tile.yml.
@@ -89,7 +89,7 @@ class VerifyConstraints(unittest.TestCase):
 		self.metadata = read_yaml(files[0])
 
 	def test_resource_constraints(self):
-		job = find_by_name(self.metadata['job_types'], 'acceptance-tests')
+		job = find_by_name(self.metadata['job_types'], 'sanity-tests')
 		resource_defs = job['resource_definitions']
 		self.assertEqual(find_by_name(resource_defs, 'cpu')['constraints']['min'], 2)
 		self.assertEqual(find_by_name(resource_defs, 'ephemeral_disk')['constraints']['min'], 4096)
