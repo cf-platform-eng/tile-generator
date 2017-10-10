@@ -126,6 +126,13 @@ class VerifyJobs(unittest.TestCase):
 		self.assertIn('cf set-env $1 REDIS_HOST ', deploy_all_sh)
 		self.assertIn('cf set-env $1 REDIS_HOSTS ', deploy_all_sh)
 
+	def test_consumes_links_in_deploy_all_spec(self):
+		deploy_all_spec_file = 'release/jobs/deploy-all/job.MF'
+		self.assertTrue(os.path.exists(deploy_all_spec_file))
+		spec = read_yaml(deploy_all_spec_file)
+		self.assertIn('consumes', spec)
+		self.assertIsNotNone(find_by_name(spec['consumes'], 'redis'))
+		self.assertIsNotNone(find_by_name(spec['consumes'], 'nats'))
 
 def find_by_name(lst, name):
 	return next(x for x in lst if x.get('name', None) == name)

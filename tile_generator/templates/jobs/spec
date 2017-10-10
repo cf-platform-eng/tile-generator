@@ -111,14 +111,10 @@ properties:
 {% endfor %}
 
 consumes:
-{% for package in context.packages %}
-{% if package.is_bosh_release %}
-{% for job in package.jobs %}
-{% for link in job.links %}
-  - name: {{link.name}}
-    type: {{link.type}}
-    optional: {{link.optional or true}}
+{% for package in context.packages if package.is_app and package.consumes %}
+{% for link_type, link in package.consumes.iteritems() %}
+  - name: {{ link.name or link_type }}
+    type: {{ link_type }}
+    optional: {{ link.optional or true }}
 {% endfor %}
-{% endfor %}
-{% endif %}
 {% endfor %}
