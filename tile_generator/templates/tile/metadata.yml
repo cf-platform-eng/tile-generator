@@ -519,9 +519,9 @@ job_types:
   templates:
   - name: {{ job.type }}
     release: {{ release.release_name }}
-{% if release.consumes %}
+{% if release.consumes_cross_deployment %}
     consumes: |
-      {{ release.consumes | yaml | indent(6) }}
+      {{ release.consumes_cross_deployment | yaml | indent(6) }}
 {% endif %}
   resource_definitions:
   - name: ram

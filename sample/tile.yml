@@ -294,6 +294,12 @@ packages:
 
 - name: tg-test-app2                  # App showing configurable values
   type: app
+  consumes:
+    redis:
+      from: redis
+    nats:
+      from: nats
+      deployment: (( ..cf.deployment_name ))
   manifest:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages

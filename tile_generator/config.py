@@ -123,9 +123,11 @@ class Config(dict):
 				release['requires_meta_buildpack'] = True
 			if 'is_app' in flags:
 				for link_type, link in package.get('consumes', {}).iteritems():
+					release['consumes'] = release.get('consumes', {})
+					release['consumes'][link_type] = link
 					if 'deployment' in link:
-						release['consumes'] = release.get('consumes', {})
-						release['consumes'][link_type] = link
+						release['consumes_cross_deployment'] = release.get('consumes_cross_deployment', {})
+						release['consumes_cross_deployment'][link_type] = link
 				manifest = package.get('manifest', { 'name': package['name'] })
 				package['app_manifest'] = manifest
 				if not 'is_docker' in flags:
