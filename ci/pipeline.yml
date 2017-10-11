@@ -115,12 +115,10 @@ resources:
     secret_access_key: {{s3-secret}}
 
 - name: redis-boshrelease
-  type: s3
+  type: github-release
   source:
-    bucket: {{s3-bucket}}
-    regexp: redis-(?P<version>.*)\+dev.1.tgz
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
+    owner: cloudfoundry-community
+    repository: redis-boshrelease
 
 - name: tile-history
   type: s3
@@ -375,6 +373,8 @@ jobs:
       passed: [ install-tile-generator ]
       trigger: true
     - get: redis-boshrelease
+      version:
+        tag: v13.1.2
     - get: tile-history
       trigger: false
     - get: tile-generator-repo
