@@ -25,7 +25,7 @@ class VerifyApp2(unittest.TestCase):
 
 	def setUp(self):
 		self.cfinfo = opsmgr.get_cfinfo()
-		self.hostname = 'tg-test-app2-hostname.' + self.cfinfo['apps_domain']
+		self.hostname = 'tg-test-broker2-hostname.' + self.cfinfo['apps_domain']
 		self.url = 'http://' + self.hostname
 
 	def test_responds_to_hello(self):
@@ -55,17 +55,6 @@ class VerifyApp2(unittest.TestCase):
 		self.assertTrue(env.get('NATS_HOST') is not None)
 		self.assertTrue(env.get('NATS_HOSTS') is not None)
 
-	def test_receives_expected_services(self):
-		headers = { 'Accept': 'application/json' }
-		response = requests.get(self.url + '/env', headers=headers)
-		response.raise_for_status()
-		env = response.json()
-		vcap_services = json.loads(env.get('VCAP_SERVICES'))
-		broker1_service = vcap_services.get('tg-test-broker1-service', None)
-		self.assertTrue(broker1_service is not None)
-		self.assertEquals(len(broker1_service), 1)
-		self.assertEquals(broker1_service[0].get('plan'), 'first-plan')
-	
 	def test_has_versioned_name(self):
 		headers = { 'Accept': 'application/json' }
 		response = requests.get(self.url + '/env', headers=headers)
@@ -95,6 +84,16 @@ class VerifyApp2(unittest.TestCase):
 		self.assertEquals(user, username)
 		self.assertEquals(user, 'system_services')
 		self.assertFalse(password is None)
+
+	def test_receives_broker_credentials(self):
+		headers = { 'Accept': 'application/json' }
+		response = requests.get(self.url + '/env', headers=headers)
+		response.raise_for_status()
+		env = response.json()
+		security_user_name = env.get('SECURITY_USER_NAME')
+		security_user_password = env.get('SECURITY_USER_PASSWORD')
+		sefl.assertIsNotNone(security_user_name)
+		sefl.assertIsNotNone(security_user_password)
 
 if __name__ == '__main__':
 	unittest.main()
