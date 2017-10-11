@@ -55,6 +55,17 @@ function import_opsmgr_variables() {
 	{% endif %}
 	{% endfor %}
 	{% endfor %}
+	{% for release in context.releases if release.consumes %}
+	{% for link in release.consumes %}
+	<% if_link('{{ link }}') do |link| %>
+	<% hosts = link.instances.map { |instance| instance.address } %>
+	export {{ link | upper }}_HOST="<%= link.instances[0].address %>"
+	export {{ link | upper }}_HOSTS=<%= Shellwords.escape(hosts.to_json) %>
+	<% end %>
+
+	{% endfor %}
+    {% endfor %}
+
 }
 
 function prepare_cf_cli {
@@ -161,6 +172,16 @@ function add_env_vars() {
 	{% endif %}
 	{% endfor %}
 	{% endfor %}
+
+	{% for release in context.releases if release.consumes %}
+	{% for link in release.consumes %}
+	<% if_link('{{ link }}') do |link| %>
+	cf set-env $1 {{ link | upper }}_HOST "${{ link | upper }}_HOST"
+	cf set-env $1 {{ link | upper }}_HOSTS "${{ link | upper }}_HOSTS"
+	<% end %>
+	{% endfor %}
+	{% endfor %}
+
 }
 
 function add_cf_credentials() {

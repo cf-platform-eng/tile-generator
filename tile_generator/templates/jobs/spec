@@ -57,7 +57,7 @@ properties:
     description: {{ property.description or property.name }}
 {% endfor %}
 {% for service_plan_form in context.service_plan_forms %}
-  {{ service_plan_form.name }}: 
+  {{ service_plan_form.name }}:
     description: {{ service_plan_form.name }}
 {% endfor %}
 {% for package in context.packages %}
@@ -108,4 +108,13 @@ properties:
 {% endif %}
 {% endfor %}
 {% endif %}
+{% endfor %}
+
+consumes:
+{% for release in context.releases if release.consumes %}
+{% for link_type, link in release.consumes.iteritems() %}
+  - name: {{ link.name or link_type }}
+    type: {{ link_type }}
+    optional: {{ link.optional or true }}
+{% endfor %}
 {% endfor %}
