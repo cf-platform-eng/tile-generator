@@ -25,7 +25,7 @@ class VerifyApp2(unittest.TestCase):
 
 	def setUp(self):
 		self.cfinfo = opsmgr.get_cfinfo()
-		self.hostname = 'tg-test-broker2-hostname.' + self.cfinfo['apps_domain']
+		self.hostname = 'tg-test-broker2.' + self.cfinfo['apps_domain']
 		self.url = 'http://' + self.hostname
 
 	def test_responds_to_hello(self):
