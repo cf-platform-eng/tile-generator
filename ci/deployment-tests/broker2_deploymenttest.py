@@ -62,7 +62,7 @@ class VerifyApp2(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		name = vcap_application.get('application_name')
-		self.assertTrue(name.startswith('tg-test-app2-'))
+		self.assertTrue(name.startswith('tg-test-broker2-'))
 
 	def test_is_in_correct_space(self):
 		headers = { 'Accept': 'application/json' }
@@ -73,18 +73,6 @@ class VerifyApp2(unittest.TestCase):
 		space= vcap_application.get('space_name')
 		self.assertEquals(space, 'test-tile-space')
 
-	def test_receives_expected_admin_credentials(self):
-		headers = { 'Accept': 'application/json' }
-		response = requests.get(self.url + '/env', headers=headers)
-		response.raise_for_status()
-		env = response.json()
-		user = env.get('CF_ADMIN_USER')
-		username = env.get('CF_ADMIN_USERNAME')
-		password = env.get('CF_ADMIN_PASSWORD')
-		self.assertEquals(user, username)
-		self.assertEquals(user, 'system_services')
-		self.assertFalse(password is None)
-
 	def test_receives_broker_credentials(self):
 		headers = { 'Accept': 'application/json' }
 		response = requests.get(self.url + '/env', headers=headers)
@@ -92,8 +80,8 @@ class VerifyApp2(unittest.TestCase):
 		env = response.json()
 		security_user_name = env.get('SECURITY_USER_NAME')
 		security_user_password = env.get('SECURITY_USER_PASSWORD')
-		sefl.assertIsNotNone(security_user_name)
-		sefl.assertIsNotNone(security_user_password)
+		self.assertIsNotNone(security_user_name)
+		self.assertIsNotNone(security_user_password)
 
 if __name__ == '__main__':
 	unittest.main()
