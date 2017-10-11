@@ -382,6 +382,7 @@ packages:
     memory: 512
     ephemeral_disk: 4096
     persistent_disk: 4096
+    instances: 2
     cpu: 2
     static_ip: 0
     dynamic_ip: 1
