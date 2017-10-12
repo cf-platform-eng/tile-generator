@@ -140,6 +140,15 @@ class VerifyJobs(unittest.TestCase):
 		self.assertIn('cf set-env $1 REDIS_HOST ', deploy_all_sh)
 		self.assertIn('cf set-env $1 REDIS_HOSTS ', deploy_all_sh)
 
+	def test_link_properties_in_deploy_all_job(self):
+		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
+		self.assertTrue(os.path.exists(deploy_all_sh_file))
+		deploy_all_sh = read_file(deploy_all_sh_file)
+		self.assertIn('NATS_PROPERTIES=', deploy_all_sh)
+		self.assertIn('REDIS_PROPERTIES=', deploy_all_sh)
+		self.assertIn('cf set-env $1 NATS_PROPERTIES ', deploy_all_sh)
+		self.assertIn('cf set-env $1 REDIS_PROPERTIES ', deploy_all_sh)
+
 	def test_consumes_links_in_deploy_all_spec(self):
 		deploy_all_spec_file = 'release/jobs/deploy-all/job.MF'
 		self.assertTrue(os.path.exists(deploy_all_spec_file))
