@@ -119,6 +119,7 @@ resources:
   source:
     owner: cloudfoundry-community
     repository: redis-boshrelease
+    access_token: {{github-release-token}}
 
 - name: tile-history
   type: s3
