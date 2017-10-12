@@ -60,8 +60,8 @@ class VerifyApp2(unittest.TestCase):
 		response = requests.get(self.url + '/env', headers=headers)
 		response.raise_for_status()
 		env = response.json()
-		self.assertIsNotNone(json.loads(env.get('REDIS_PROPERTIES'))
-		self.assertIsNotNone(json.loads(env.get('NATS_PROPERTIES'))
+		self.assertIsNotNone(json.loads(env.get('REDIS_PROPERTIES')))
+		self.assertIsNotNone(json.loads(env.get('NATS_PROPERTIES')))
 
 	def test_has_versioned_name(self):
 		headers = { 'Accept': 'application/json' }
