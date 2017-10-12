@@ -414,6 +414,19 @@ def credentials_cmd():
 	}
 	print(yaml.safe_dump(creds, default_flow_style=False, explicit_start=True), end='')
 
+@cli.command('bosh-env')
+def bosh_env_cmd():
+	director_creds = opsmgr.get('/api/v0/deployed/director/credentials/director_credentials').json()
+	director_manifest = opsmgr.get('/api/v0/deployed/director/manifest').json()
+	print('1. Run `pcf -t <target> ssh` to log in to the Ops Manager VM.')
+	print('2. Set these variables:')
+	print('export BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
+	print('export BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
+	print('to target the BOSH environment.')
+	print('3. Run `bosh2 login` with the following username and password:')
+	print('username: {}'.format(director_creds['credential']['value']['identity']))
+	print('password: {}'.format(director_creds['credential']['value']['password']))
+
 @cli.command('history')
 def history_cmd():
 	history = opsmgr.get_history()
