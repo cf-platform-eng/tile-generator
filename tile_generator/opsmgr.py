@@ -17,26 +17,32 @@
 # limitations under the License.
 
 from __future__ import absolute_import, division, print_function
-import sys
-import yaml
+
+import fcntl
+import glob
 import json
-import requests
-from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+import os
+import signal
+import struct
+import subprocess
+import sys
+import tempfile
+import termios
 import time
+import yaml
+
+from pexpect import pxssh
+from requests_toolbelt import MultipartEncoderMonitor
 try:
 	# Python 3
 	from urllib.parse import urlparse
 except ImportError:
 	# Python 2
 	from urlparse import urlparse
-import subprocess
-import pty
-import os
-import select
-import glob
-import tempfile
 
+import requests
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+
 
 def find_credentials(target):
 	if not target.endswith('.yml'):
@@ -244,136 +250,64 @@ def check_response(response, check=True):
 		raise Exception(message)
 
 def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False, debug=False):
+	# Note that the prompt matching uses regex
+	bosh2_username_prompt = 'Email \(\): '
+	bosh2_password_prompt = 'Password \(\): '
+	prompt_wait_timeout = 3
+
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url')
 	host = urlparse(url).hostname
 	ssh_key = creds.get('opsmgr').get('ssh_key', None)
+
+	print('Attempting to connect to %s...' % host)
+	global session # Needs to be a global to be used in sigwinch_passthrough.
+	session = pxssh.pxssh(options={
+									"StrictHostKeyChecking": "no",
+									"UserKnownHostsFile": "/dev/null"})
 	if ssh_key is not None:
+		print('Logging in with a key file...')
 		with tempfile.NamedTemporaryFile('wb') as keyfile:
 			keyfile.write(ssh_key)
 			keyfile.flush()
-			command = [
-				'ssh',
-				'-q',
-				'-o', 'UserKnownHostsFile=/dev/null',
-				'-o', 'StrictHostKeyChecking=no',
-				'-i', keyfile.name,
-				'ubuntu@' + host
-			] + list(commands)
-			subprocess.call(command)
-			return
-	interactive = len(commands) == 0
-	command = [
-		'ssh',
-		'-q',
-		'-o', 'UserKnownHostsFile=/dev/null',
-		'-o', 'StrictHostKeyChecking=no',
-		'ubuntu@' + host
-	]
-	prompt = host.split('.',1)[0] + '$ '
-	bootstrap = 'cd ' + working_dir + '; '
-	bootstrap += 'stty -echo; '
-	bootstrap += 'export PS1="' + prompt + '"\n'
-	pid, tty = pty.fork()
-	if pid == 0:
-		try:
-			subprocess.check_call(command)
-			sys.exit(0)
-		except subprocess.CalledProcessError as error:
-			print('Command failed with exit code', error.returncode)
-			print(error.output)
-			sys.exit(error.returncode)
+
+			session.login(host, username='ubuntu', ssh_key=keyfile.name, quiet=True)
 	else:
-		ssh_process_output(tty, '*password:', show_output=False, show_prompt=False, debug=debug) # Wait for the password prompt (and eat it)
-		os.write(tty, creds.get('opsmgr').get('password') + '\n') # Send the password
-		ssh_process_output(tty, '*$ ', show_output=False, show_prompt=False, debug=debug) # Wait for first shell prompt (and eat it)
-		os.write(tty, bootstrap) # Send the bootstrap sequence
-		ssh_process_output(tty, prompt, show_output=False, show_prompt=interactive, debug=debug) # Eat until prompt
-		if interactive:
-			ssh_interactive(tty)
-		else:
-			try:
-				while len(commands) > 0:
-					if debug:
-						print(commands[0])
-					os.write(tty, commands[0] + '\n')
-					commands = commands[1:]
-					ssh_process_output(tty, prompt, show_output=not silent, show_prompt=False)
-				os.write(tty, 'exit\n')
-				ssh_process_output(tty, prompt, show_output=False, show_prompt=False)
-			except:
-				# To allow 'exit' or 'reboot', the last command is allowed to close the connection and cause an I/O failure
-				if len(commands) > 0:
-					raise
+		print('Logging in with using a username and password...')
+		session.login(host, username='ubuntu', 
+					  password=creds.get('opsmgr').get('password'), quiet=True)
 
-def ssh_interactive(tty):
-	while True:
-		rlist, wlist, xlist = select.select([sys.stdin.fileno(), tty], [], [])
-		if sys.stdin.fileno() in rlist:
-			input = os.read(sys.stdin.fileno(), 1024)
-			if len(input) == 0:
-				break
-			else:
-				os.write(tty, input)
-				os.fsync(tty)
-		elif tty in rlist:
-			output = os.read(tty, 1024)
-			if len(output) == 0:
-				break
-			sys.stdout.write(output)
-			sys.stdout.flush()
-	os.close(tty)
+	# Get us a native prompt
+	print('Sourcing .bashrc for a correct shell..')
+	session.sendline('source .bashrc')
 
-def ssh_process_output(tty, prompt, show_output=True, show_prompt=True, debug=False):
-	if debug:
-		print('?', prompt)
-	prior = ''
-	eating = True
-	while eating:
-		if debug:
-			sys.stdout.write('<')
-			sys.stdout.flush()
-		output = os.read(tty, 1024)
-		if len(output) == 0:
-			return
-		output = prior + output
-		lines = output.splitlines(True)
-		for line in lines:
-			if ssh_match(prompt, line):
-				eating = False
-				if show_prompt or debug:
-					if debug:
-						sys.stdout.write('=')
-						sys.stdout.flush()
-					sys.stdout.write(line)
-					sys.stdout.flush()
-					if debug:
-						sys.stdout.write('\n')
-						sys.stdout.flush()
-			elif (show_output or debug) and line.endswith('\n'):
-				if debug:
-					sys.stdout.write('>')
-					sys.stdout.flush()
-				sys.stdout.write(line)
-				sys.stdout.flush()
-		lastline = lines[-1]
-		if eating and not lastline.endswith('\n'):
-			if debug:
-				sys.stdout.write('/')
-				sys.stdout.flush()
-				sys.stdout.write(lastline)
-				sys.stdout.flush()
-				sys.stdout.write('\n')
-				sys.stdout.flush()
-			prior = lastline
-		else:
-			prior = ''
-
-def ssh_match(pattern, line):
-	if pattern.startswith('*'):
-		return pattern[1:] in line
-	else:
-		return line.startswith(pattern)
+	# Setup the env
+	print('Exporting needed bosh environment variables...')
+	director_creds = get('/api/v0/deployed/director/credentials/director_credentials').json()
+	director_manifest = get('/api/v0/deployed/director/manifest').json()
+	session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
+	session.sendline('export BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
+	
+	bosh2_username = director_creds['credential']['value']['identity']
+	print('Logging into bosh2 as %s...' % bosh2_username)
+	session.sendline('bosh2 login')
+	session.expect(bosh2_username_prompt, timeout=prompt_wait_timeout)
+	session.send(bosh2_username)
+	session.sendcontrol('m') # For some reason bosh2 login requires to send enter manually
+	session.expect(bosh2_password_prompt, timeout=prompt_wait_timeout)
+	session.send(director_creds['credential']['value']['password'])
+	session.sendcontrol('m') # For some reason bosh2 login requires to send enter manually
+	
+	
+	# This is the recommended way to keep parent window resizes in sync with the child
+	# http://pexpect.sourceforge.net/pxssh.html
+	def sigwinch_passthrough (sig, data):
+		s = struct.pack("HHHH", 0, 0, 0, 0)
+		a = struct.unpack('hhhh', fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ , s))
+		session.setwinsize(a[0],a[1])
+	signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+	# Hand the shell off and make it interactive
+	session.interact()
 
 def get_products():
 	available_products = get('/api/products').json()
