@@ -38,22 +38,13 @@ def cli(target, non_interactive):
 
 @cli.command('ssh')
 @click.argument('argv', nargs=-1)
-@click.option('--debug', '-d', is_flag=True)
-def ssh_cmd(argv, debug=False):
-	opsmgr.ssh(argv, debug=debug)
+@click.option('--skip-bosh-login', '-s', is_flag=True)
+def ssh_cmd(argv, skip_bosh_login=False):
+	opsmgr.ssh(command=' '.join(argv), login_to_bosh=not(skip_bosh_login))
 
 @cli.command('reboot')
-@click.option('--yes-i-am-sure', '-y', is_flag=True)
-def reboot_cmd(yes_i_am_sure=False):
-	if not yes_i_am_sure:
-		print('Rebooting in', end="")
-		for i in range(10, 0, -1):
-			sys.stdout.write(' ' +str(i))
-			sys.stdout.flush()
-			time.sleep(1)
-		print()
-	opsmgr.ssh(['sudo reboot now'], silent=True)
-	time.sleep(10) # Allow system time to go down before we ping the API
+def reboot_cmd():
+	opsmgr.ssh(command='sudo reboot now', login_to_bosh=False)
 	opsmgr.unlock()
 
 @cli.command('unlock')

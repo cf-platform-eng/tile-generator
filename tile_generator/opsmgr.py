@@ -249,10 +249,13 @@ def check_response(response, check=True):
 			message += response.text
 		raise Exception(message)
 
-def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=False, debug=False):
+def ssh(command=None, login_to_bosh=True):
 	# Note that the prompt matching uses regex
 	bosh2_username_prompt = 'Email \(\): '
 	bosh2_password_prompt = 'Password \(\): '
+	sudo_prompt = '\[sudo\] password for .*:'
+	sudo_fail_prompt = 'Sorry, try again.'
+
 	prompt_wait_timeout = 3
 
 	creds = get_credentials()
@@ -277,37 +280,57 @@ def ssh(commands = [], working_dir='/var/tempest/workspaces/default', silent=Fal
 		session.login(host, username='ubuntu', 
 					  password=creds.get('opsmgr').get('password'), quiet=True)
 
-	# Get us a native prompt
-	print('Sourcing .bashrc for a correct shell..')
-	session.sendline('source .bashrc')
+	if login_to_bosh:
+		# Setup the env
+		print('Exporting needed bosh environment variables...')
+		director_creds = get('/api/v0/deployed/director/credentials/director_credentials').json()
+		director_manifest = get('/api/v0/deployed/director/manifest').json()
+		session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
+		session.sendline('export BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
+		
+		bosh2_username = director_creds['credential']['value']['identity']
+		print('Logging into bosh2 as %s...' % bosh2_username)
+		session.sendline('bosh2 login')
+		session.expect(bosh2_username_prompt, timeout=prompt_wait_timeout)
+		session.send(bosh2_username)
+		session.sendcontrol('m') # For some reason bosh2 login requires to send enter manually
+		session.expect(bosh2_password_prompt, timeout=prompt_wait_timeout)
+		session.send(director_creds['credential']['value']['password'])
+		session.sendcontrol('m') # For some reason bosh2 login requires to send enter manually
+	
+	if command:
+		session.sync_original_prompt()
+		print('Sending command: "%s"...' % command)
+		session.sendline(command)
 
-	# Setup the env
-	print('Exporting needed bosh environment variables...')
-	director_creds = get('/api/v0/deployed/director/credentials/director_credentials').json()
-	director_manifest = get('/api/v0/deployed/director/manifest').json()
-	session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
-	session.sendline('export BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
-	
-	bosh2_username = director_creds['credential']['value']['identity']
-	print('Logging into bosh2 as %s...' % bosh2_username)
-	session.sendline('bosh2 login')
-	session.expect(bosh2_username_prompt, timeout=prompt_wait_timeout)
-	session.send(bosh2_username)
-	session.sendcontrol('m') # For some reason bosh2 login requires to send enter manually
-	session.expect(bosh2_password_prompt, timeout=prompt_wait_timeout)
-	session.send(director_creds['credential']['value']['password'])
-	session.sendcontrol('m') # For some reason bosh2 login requires to send enter manually
-	
-	
-	# This is the recommended way to keep parent window resizes in sync with the child
-	# http://pexpect.sourceforge.net/pxssh.html
-	def sigwinch_passthrough (sig, data):
-		s = struct.pack("HHHH", 0, 0, 0, 0)
-		a = struct.unpack('hhhh', fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ , s))
-		session.setwinsize(a[0],a[1])
-	signal.signal(signal.SIGWINCH, sigwinch_passthrough)
-	# Hand the shell off and make it interactive
-	session.interact()
+		# Try to be smart about sudo
+		if 'sudo' in command:
+			resp = session.expect([sudo_prompt, session.PROMPT], timeout=prompt_wait_timeout)
+			if resp == 0: # We got the sudo password prompt
+				print('A sudo password prompt was detected. Attempting to login...')
+				session.sendline(creds.get('opsmgr').get('password'))
+				resp = session.expect([sudo_fail_prompt, session.PROMPT], timeout=prompt_wait_timeout)
+				if resp == 0: # Password was wrong
+					raise Exception('UNAUTHORIZED: Password was incorrect.')
+				print(session.before.strip())
+		else:
+			session.prompt(timeout=prompt_wait_timeout)
+			print(session.before.strip())
+	else:
+		# Get us a native prompt
+		print('Sourcing .bashrc for a correct shell..')
+		session.sendline('source .bashrc')
+
+		# This is the recommended way to keep parent window resizes in sync with the child
+		# http://pexpect.sourceforge.net/pxssh.html
+		def sigwinch_passthrough (sig, data):
+			s = struct.pack("HHHH", 0, 0, 0, 0)
+			a = struct.unpack('hhhh', fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ , s))
+			session.setwinsize(a[0],a[1])
+		signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+
+		# Hand the shell off and make it interactive
+		session.interact()
 
 def get_products():
 	available_products = get('/api/products').json()
