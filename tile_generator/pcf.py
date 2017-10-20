@@ -39,8 +39,9 @@ def cli(target, non_interactive):
 @cli.command('ssh')
 @click.argument('argv', nargs=-1)
 @click.option('--skip-bosh-login', '-s', is_flag=True)
-def ssh_cmd(argv, skip_bosh_login=False):
-	opsmgr.ssh(command=' '.join(argv), login_to_bosh=not(skip_bosh_login))
+@click.option('--quiet', '-q', is_flag=True)
+def ssh_cmd(argv, skip_bosh_login=False, quiet=False):
+	opsmgr.ssh(command=' '.join(argv), login_to_bosh=not(skip_bosh_login), quiet=quiet)
 
 @cli.command('reboot')
 def reboot_cmd():

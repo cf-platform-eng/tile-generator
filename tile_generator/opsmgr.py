@@ -249,7 +249,10 @@ def check_response(response, check=True):
 			message += response.text
 		raise Exception(message)
 
-def ssh(command=None, login_to_bosh=True):
+def ssh(command=None, login_to_bosh=True, quiet=False):
+	def print_if(message):
+		if not quiet: print(message)
+
 	# Note that the prompt matching uses regex
 	bosh2_username_prompt = 'Email \(\): '
 	bosh2_password_prompt = 'Password \(\): '
@@ -263,33 +266,33 @@ def ssh(command=None, login_to_bosh=True):
 	host = urlparse(url).hostname
 	ssh_key = creds.get('opsmgr').get('ssh_key', None)
 
-	print('Attempting to connect to %s...' % host)
+	print_if('Attempting to connect to %s...' % host)
 	global session # Needs to be a global to be used in sigwinch_passthrough.
 	session = pxssh.pxssh(options={
 									"StrictHostKeyChecking": "no",
 									"UserKnownHostsFile": "/dev/null"})
 	if ssh_key is not None:
-		print('Logging in with a key file...')
+		print_if('Logging in with a key file...')
 		with tempfile.NamedTemporaryFile('wb') as keyfile:
 			keyfile.write(ssh_key)
 			keyfile.flush()
 
 			session.login(host, username='ubuntu', ssh_key=keyfile.name, quiet=True)
 	else:
-		print('Logging in with using a username and password...')
+		print_if('Logging in with using a username and password...')
 		session.login(host, username='ubuntu', 
 					  password=creds.get('opsmgr').get('password'), quiet=True)
 
 	if login_to_bosh:
 		# Setup the env
-		print('Exporting needed bosh environment variables...')
+		print_if('Exporting needed bosh environment variables...')
 		director_creds = get('/api/v0/deployed/director/credentials/director_credentials').json()
 		director_manifest = get('/api/v0/deployed/director/manifest').json()
 		session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
 		session.sendline('export BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
 		
 		bosh2_username = director_creds['credential']['value']['identity']
-		print('Logging into bosh2 as %s...' % bosh2_username)
+		print_if('Logging into bosh2 as %s...' % bosh2_username)
 		session.sendline('bosh2 login')
 		session.expect(bosh2_username_prompt, timeout=prompt_wait_timeout)
 		session.send(bosh2_username)
@@ -300,25 +303,25 @@ def ssh(command=None, login_to_bosh=True):
 	
 	if command:
 		session.sync_original_prompt()
-		print('Sending command: "%s"...' % command)
+		print_if('Sending command: "%s"...' % command)
 		session.sendline(command)
 
 		# Try to be smart about sudo
 		if 'sudo' in command:
 			resp = session.expect([sudo_prompt, session.PROMPT], timeout=prompt_wait_timeout)
 			if resp == 0: # We got the sudo password prompt
-				print('A sudo password prompt was detected. Attempting to login...')
+				print_if('A sudo password prompt was detected. Attempting to login...')
 				session.sendline(creds.get('opsmgr').get('password'))
 				resp = session.expect([sudo_fail_prompt, session.PROMPT], timeout=prompt_wait_timeout)
 				if resp == 0: # Password was wrong
 					raise Exception('UNAUTHORIZED: Password was incorrect.')
-				print(session.before.strip())
+			print(session.before.strip(command).strip())
 		else:
 			session.prompt(timeout=prompt_wait_timeout)
-			print(session.before.strip())
+			print(session.before.strip(command).strip())
 	else:
 		# Get us a native prompt
-		print('Sourcing .bashrc for a correct shell..')
+		print_if('Sourcing .bashrc for a correct shell..')
 		session.sendline('source .bashrc')
 
 		# This is the recommended way to keep parent window resizes in sync with the child
