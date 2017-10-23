@@ -5,4 +5,5 @@ PyYAML>=3.11
 Jinja2>=2.8
 click>=6.2
 docker-py>=1.6.0
+pexpect>=4.2.1
 pypandoc
