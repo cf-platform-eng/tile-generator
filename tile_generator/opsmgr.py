@@ -293,6 +293,7 @@ def ssh(command=None, login_to_bosh=True, quiet=False):
 		
 		bosh2_username = director_creds['credential']['value']['identity']
 		print_if('Logging into bosh2 as %s...' % bosh2_username)
+		session.sendline('which bosh2 || alias bosh2=bosh') # In Ops Manager 2.0+, there is just bosh (which is v2).
 		session.sendline('bosh2 login')
 		session.expect(bosh2_username_prompt, timeout=prompt_wait_timeout)
 		session.send(bosh2_username)
