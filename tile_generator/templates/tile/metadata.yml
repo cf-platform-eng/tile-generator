@@ -461,7 +461,11 @@ job_types:
       min: {{ job.ephemeral_disk or 0 }}
   - name: persistent_disk
     type: integer
+{% if job.lifecycle and job.lifecycle == 'errand' %}
+    configurable: false
+{% else %}
     configurable: true
+{% endif %}
     default: {{ job.persistent_disk or 0 }}
     constraints:
       min: {{ job.persistent_disk or 0 }}
@@ -534,7 +538,11 @@ job_types:
     default: 4096
   - name: persistent_disk
     type: integer
+{% if job.lifecycle and job.lifecycle == 'errand' %}
+    configurable: false
+{% else %}
     configurable: true
+{% endif %}
     default: 0
     constraints:
       min: 0
