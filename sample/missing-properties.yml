@@ -49,11 +49,11 @@ planets:
 - Earth
 
 # Example of job-specific configuration, supported in PCF 1.8+.
-# jobs:
-#   redis_z1:
+jobs:
+  redis:
 #     Resource configuration is passed in like this:
-#     resource_config:
-#       persistent_disk:
-#         size_mb: "10240"
+    resource_config:
+      persistent_disk:
+        size_mb: "10240"
 #     Job-specific properties can be passed in here as well, like this:
 #   property_name: property_value
