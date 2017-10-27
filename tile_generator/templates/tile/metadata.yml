@@ -304,25 +304,25 @@ job_types:
   resource_definitions:
   - name: ram
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.package.memory }}
     constraints:
       min: {{ job.package.memory }}
   - name: ephemeral_disk
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.package.ephemeral_disk }}
     constraints:
       min: {{ job.package.ephemeral_disk }}
   - name: persistent_disk
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.package.persistent_disk or 0 }}
     constraints:
       min: {{ job.package.persistent_disk or 0 }}
   - name: cpu
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.package.cpu }}
     constraints:
       min: {{ job.package.cpu }}
@@ -449,25 +449,25 @@ job_types:
   resource_definitions:
   - name: ram
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.memory or 512 }}
     constraints:
       min: {{ job.memory or 0 }}
   - name: ephemeral_disk
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.ephemeral_disk or 4096 }}
     constraints:
       min: {{ job.ephemeral_disk or 0 }}
   - name: persistent_disk
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.persistent_disk or 0 }}
     constraints:
       min: {{ job.persistent_disk or 0 }}
   - name: cpu
     type: integer
-    configurable: false
+    configurable: true
     default: {{ job.cpu or 1 }}
     constraints:
       min: {{ job.cpu or 1 }}
@@ -526,21 +526,21 @@ job_types:
   resource_definitions:
   - name: ram
     type: integer
-    configurable: false
+    configurable: true
     default: 1024
   - name: ephemeral_disk
     type: integer
-    configurable: false
+    configurable: true
     default: 4096
   - name: persistent_disk
     type: integer
-    configurable: false
+    configurable: true
     default: 0
     constraints:
       min: 0
   - name: cpu
     type: integer
-    configurable: false
+    configurable: true
     default: 1
   static_ip: 0
   dynamic_ip: 1
