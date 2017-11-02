@@ -332,6 +332,7 @@ def ssh(command=None, login_to_bosh=True, quiet=False):
 			a = struct.unpack('hhhh', fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ , s))
 			session.setwinsize(a[0],a[1])
 		signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+		os.kill(os.getpid(), signal.SIGWINCH) # Set initial window size.
 
 		# Hand the shell off and make it interactive
 		session.interact()
