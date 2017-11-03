@@ -82,7 +82,7 @@ class Config(dict):
 
 	def __init__(self, *arg, **kw):
 		super(Config, self).__init__(*arg, **kw)
-		self.tile_metadata = {}
+		self['tile_metadata'] = {}
 
 	def read(self):
 		self.read_config()
@@ -94,11 +94,23 @@ class Config(dict):
 		self.validate()
 		self.add_defaults()
 		self.upgrade()
+		self.process_name()
 		self.process_packages()
 		self.add_dependencies()
 		self.normalize_file_lists()
 		self.set_package_properties()
 		self.normalize_jobs()
+
+	def process_name(self):
+		if not 'name' in self:
+			print('tile.yml is missing mandatory property "name"', file=sys.stderr)
+			sys.exit(1)
+		validname = re.compile('[a-z][a-z0-9]*(-[a-z0-9]+)*$')
+		if validname.match(self['name']) is None:
+			print('invalid product name:', self['name'], file=sys.stderr)
+			print('product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
+			sys.exit(1)
+		self['tile_metadata']['name'] = self['name']
 
 	def process_packages(self):
 		for package in self.get('packages', []):
@@ -358,15 +370,7 @@ class Config(dict):
 			write_yaml(history_file, self['history'])
 
 	def validate(self):
-		try:
-			validname = re.compile('[a-z][a-z0-9]*(-[a-z0-9]+)*$')
-			if validname.match(self['name']) is None:
-				print('invalid product name:', self['name'], file=sys.stderr)
-				print('product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
-				sys.exit(1)
-		except KeyError as e:
-			print('tile.yml is missing mandatory property', e, file=sys.stderr)
-			sys.exit(1)
+		validname = re.compile('[a-z][a-z0-9]*(-[a-z0-9]+)*$')
 		self.validate_icon_file()
 		for package in self.get('packages', []):
 			try:

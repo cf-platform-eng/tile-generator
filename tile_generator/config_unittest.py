@@ -143,47 +143,6 @@ class TestConfigValidation(unittest.TestCase):
 	def test_accepts_minimal_config(self):
 		self.config.validate()
 
-	def test_requires_product_name(self):
-		with self.assertRaises(SystemExit):
-			del self.config['name']
-			self.config.validate()
-
-	def test_accepts_valid_product_name_with_hyphen(self):
-		self.config['name'] = 'valid-name'
-		self.config.validate()
-
-	def test_accepts_valid_product_name_with_hyphens(self):
-		self.config['name'] = 'valid-name-too'
-		self.config.validate()
-
-	def test_accepts_valid_product_name_with_number(self):
-		self.config['name'] = 'valid-name-2'
-		self.config.validate()
-
-	def test_accepts_valid_product_name_with_one_letter_prefix(self):
-		self.config['name'] = 'p-tile'
-		self.config.validate()
-
-	def test_refuses_spaces_in_product_name(self):
-		with self.assertRaises(SystemExit):
-			self.config['name'] = 'an invalid name'
-			self.config.validate()
-
-	def test_refuses_capital_letters_in_product_name(self):
-		with self.assertRaises(SystemExit):
-			self.config['name'] = 'Invalid'
-			self.config.validate()
-
-	def test_refuses_underscores_in_product_name(self):
-		with self.assertRaises(SystemExit):
-			self.config['name'] = 'invalid_name'
-			self.config.validate()
-
-	def test_refuses_product_name_starting_with_number(self):
-		with self.assertRaises(SystemExit):
-			self.config['name'] = '1-invalid-name'
-			self.config.validate()
-
 	def test_requires_package_names(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out,err):
@@ -376,6 +335,55 @@ class TestVMDiskSize(unittest.TestCase):
 		with mock.patch('os.path.exists', return_value=True):
 			config.update_compilation_vm_disk_size(manifest)
 		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
+
+class TestTileName(unittest.TestCase):
+	def test_process_name_sets_name_in_tile_metadata(self):
+		name = 'my-tile'
+		config = Config({'name': name})
+		config.process_name()
+		self.assertIn('name', config['tile_metadata'])
+		self.assertEqual(config['tile_metadata']['name'], name)
+
+	def test_requires_product_name(self):
+		with self.assertRaises(SystemExit):
+			config = Config({})
+			config.process_name()
+
+	def test_accepts_valid_product_name_with_hyphen(self):
+		config = Config({'name': 'valid-name'})
+		config.process_name()
+
+	def test_accepts_valid_product_name_with_hyphens(self):
+		config = Config({'name': 'valid-name-too'})
+		config.process_name()
+
+	def test_accepts_valid_product_name_with_number(self):
+		config = Config({'name': 'valid-name-2'})
+		config.process_name()
+
+	def test_accepts_valid_product_name_with_one_letter_prefix(self):
+		config = Config({'name': 'p-tile'})
+		config.process_name()
+
+	def test_refuses_spaces_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			config = Config({'name': 'an invalid name'})
+			config.process_name()
+
+	def test_refuses_capital_letters_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			config = Config({'name': 'Invalid'})
+			config.process_name()
+
+	def test_refuses_underscores_in_product_name(self):
+		with self.assertRaises(SystemExit):
+			config = Config({'name': 'invalid_name'})
+			config.process_name()
+
+	def test_refuses_product_name_starting_with_number(self):
+		with self.assertRaises(SystemExit):
+			config = Config({'name': '1-invalid-name'})
+			config.process_name()
 
 if __name__ == '__main__':
 	unittest.main()
