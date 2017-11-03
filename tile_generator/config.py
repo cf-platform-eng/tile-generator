@@ -82,6 +82,7 @@ class Config(dict):
 
 	def __init__(self, *arg, **kw):
 		super(Config, self).__init__(*arg, **kw)
+		self.tile_metadata = {}
 
 	def read(self):
 		self.read_config()
