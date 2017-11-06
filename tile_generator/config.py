@@ -96,6 +96,7 @@ class Config(dict):
 		self.upgrade()
 		self.process_name()
 		self.process_label()
+		self.process_description()
 		self.process_packages()
 		self.add_dependencies()
 		self.normalize_file_lists()
@@ -118,6 +119,12 @@ class Config(dict):
 			print('tile.yml is missing mandatory property "label"', file=sys.stderr)
 			sys.exit(1)
 		self.tile_metadata['label'] = self['label']
+
+	def process_description(self):
+		if not 'description' in self:
+			print('tile.yml is missing mandatory property "description"', file=sys.stderr)
+			sys.exit(1)
+		self.tile_metadata['description'] = self['description']
 
 	def process_packages(self):
 		for package in self.get('packages', []):

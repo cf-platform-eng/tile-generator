@@ -385,7 +385,7 @@ class TestTileName(unittest.TestCase):
 			config = Config({'name': '1-invalid-name'})
 			config.process_name()
 
-class TestTileLabel(unittest.TestCase):
+class TestTileSimpleFields(unittest.TestCase):
 	def test_requires_label(self):
 		with self.assertRaises(SystemExit):
 			config = Config({})
@@ -396,6 +396,17 @@ class TestTileLabel(unittest.TestCase):
 		config.process_label()
 		self.assertIn('label', config.tile_metadata)
 		self.assertEqual(config.tile_metadata['label'], 'my-label')
+
+	def test_requires_description(self):
+		with self.assertRaises(SystemExit):
+			config = Config({})
+			config.process_description()
+
+	def test_sets_description(self):
+		config = Config({'description': 'my tile description'})
+		config.process_description()
+		self.assertIn('description', config.tile_metadata)
+		self.assertEqual(config.tile_metadata['description'], 'my tile description')
 
 if __name__ == '__main__':
 	unittest.main()

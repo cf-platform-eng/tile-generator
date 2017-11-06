@@ -1,7 +1,7 @@
 ---
 name: {{ tile_metadata.name }}
 label: {{ tile_metadata.label }}
-description: {{ description }}
+description: {{ tile_metadata.description }}
 icon_image: {{ base64(icon_file) }}
 product_version: '{{ version }}'
 metadata_version: '{{ metadata_version }}'
