@@ -602,6 +602,7 @@ class Config(dict):
 			version = '.'.join(semver)
 		history['version'] = version
 		self['version'] = version
+		self.tile_metadata['product_version'] = version
 
 	def update_compilation_vm_disk_size(self, manifest):
 		package_file = manifest.get('path')

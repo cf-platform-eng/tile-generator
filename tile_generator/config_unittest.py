@@ -60,36 +60,43 @@ class TestVersionMethods(unittest.TestCase):
 		config = Config(history={})
 		config.set_version(None)
 		self.assertEquals(config['version'], '0.0.1')
+		self.assertEquals(config.tile_metadata['product_version'], '0.0.1')
 
 	def test_default_version_update(self):
 		config = Config(history={'version':'1.2.3'})
 		config.set_version(None)
 		self.assertEquals(config['version'], '1.2.4')
+		self.assertEquals(config.tile_metadata['product_version'], '1.2.4')
 
 	def test_patch_version_update(self):
 		config = Config(history={'version':'1.2.3'})
 		config.set_version('patch')
 		self.assertEquals(config['version'], '1.2.4')
+		self.assertEquals(config.tile_metadata['product_version'], '1.2.4')
 
 	def test_minor_version_update(self):
 		config = Config(history={'version':'1.2.3'})
 		config.set_version('minor')
 		self.assertEquals(config['version'], '1.3.0')
+		self.assertEquals(config.tile_metadata['product_version'], '1.3.0')
 
 	def test_major_version_update(self):
 		config = Config(history={'version':'1.2.3'})
 		config.set_version('major')
 		self.assertEquals(config['version'], '2.0.0')
+		self.assertEquals(config.tile_metadata['product_version'], '2.0.0')
 
 	def test_explicit_version_update(self):
 		config = Config(history={'version':'1.2.3'})
 		config.set_version('5.0.1')
 		self.assertEquals(config['version'], '5.0.1')
+		self.assertEquals(config.tile_metadata['product_version'], '5.0.1')
 
 	def test_annotated_version_update(self):
 		config = Config(history={'version':'1.2.3-alpha.1'})
 		config.set_version('1.2.4')
 		self.assertEquals(config['version'], '1.2.4')
+		self.assertEquals(config.tile_metadata['product_version'], '1.2.4')
 
 	def test_illegal_old_version_update(self):
 		with self.assertRaises(SystemExit):
