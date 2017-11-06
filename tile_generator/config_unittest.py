@@ -303,6 +303,10 @@ class TestDefaultOptions(unittest.TestCase):
 			config.add_defaults()
 		self.assertEqual(config['metadata_version'], 1.8)
 
+	def test_default_minimum_version_for_upgrade(self):
+		config = Config({})
+		self.assertEqual(config.tile_metadata['minimum_version_for_upgrade'], '0.0.1')
+
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(unittest.TestCase):
 	def test_min_vm_disk_size(self, mock_getsize):
@@ -408,7 +412,7 @@ class TestTileSimpleFields(unittest.TestCase):
 		config = Config({'metadata_version': 1.8})
 		config.process_metadata_version()
 		self.assertIn('metadata_version', config.tile_metadata)
-		self.assertEqual(config.tile_metadata['metadata_version'], 1.8)
+		self.assertEqual(config.tile_metadata['metadata_version'], '1.8')
 
 class TestTileIconFile(unittest.TestCase):
 	def setUp(self):

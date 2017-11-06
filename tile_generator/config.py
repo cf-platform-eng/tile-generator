@@ -83,7 +83,9 @@ class Config(dict):
 
 	def __init__(self, *arg, **kw):
 		super(Config, self).__init__(*arg, **kw)
-		self.tile_metadata = {}
+		self.tile_metadata = {
+			'minimum_version_for_upgrade': '0.0.1',
+		}
 
 	def read(self):
 		self.read_config()
@@ -141,7 +143,7 @@ class Config(dict):
 			self.tile_metadata['icon_image'] = base64.b64encode(f.read())
 
 	def process_metadata_version(self):
-		self.tile_metadata['metadata_version'] = self['metadata_version']
+		self.tile_metadata['metadata_version'] = str(self['metadata_version'])
 
 	def process_packages(self):
 		for package in self.get('packages', []):
@@ -606,7 +608,7 @@ class Config(dict):
 			version = '.'.join(semver)
 		history['version'] = version
 		self['version'] = version
-		self.tile_metadata['product_version'] = version
+		self.tile_metadata['product_version'] = str(version)
 
 	def update_compilation_vm_disk_size(self, manifest):
 		package_file = manifest.get('path')

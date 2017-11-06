@@ -3,9 +3,9 @@ name: {{ tile_metadata.name }}
 label: {{ tile_metadata.label }}
 description: {{ tile_metadata.description }}
 icon_image: {{ tile_metadata.icon_image }}
-product_version: '{{ tile_metadata.product_version }}'
+product_version: {{ tile_metadata.product_version }}
 metadata_version: '{{ tile_metadata.metadata_version }}'
-minimum_version_for_upgrade: '0.0.1'
+minimum_version_for_upgrade: {{ tile_metadata.minimum_version_for_upgrade }}
 rank: 1
 serial: true
 {% if service_broker %}
