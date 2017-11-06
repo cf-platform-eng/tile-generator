@@ -297,6 +297,12 @@ class TestDefaultOptions(unittest.TestCase):
 		config.normalize_jobs()
 		self.assertEqual(config['releases'][0]['jobs'][0]['properties'], {})
 
+	def test_default_metadata_version(self):
+		config = Config({'name': 'my-tile'})
+		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
+			config.add_defaults()
+		self.assertEqual(config['metadata_version'], 1.8)
+
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(unittest.TestCase):
 	def test_min_vm_disk_size(self, mock_getsize):
@@ -397,6 +403,12 @@ class TestTileSimpleFields(unittest.TestCase):
 		config.process_description()
 		self.assertIn('description', config.tile_metadata)
 		self.assertEqual(config.tile_metadata['description'], 'my tile description')
+
+	def test_sets_metadata_version(self):
+		config = Config({'metadata_version': 1.8})
+		config.process_metadata_version()
+		self.assertIn('metadata_version', config.tile_metadata)
+		self.assertEqual(config.tile_metadata['metadata_version'], 1.8)
 
 class TestTileIconFile(unittest.TestCase):
 	def setUp(self):

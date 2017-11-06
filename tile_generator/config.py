@@ -99,6 +99,7 @@ class Config(dict):
 		self.process_label()
 		self.process_description()
 		self.process_icon_file()
+		self.process_metadata_version()
 		self.process_packages()
 		self.add_dependencies()
 		self.normalize_file_lists()
@@ -138,6 +139,9 @@ class Config(dict):
 			sys.exit(1)
 		with open(icon_file, 'rb') as f:
 			self.tile_metadata['icon_image'] = base64.b64encode(f.read())
+
+	def process_metadata_version(self):
+		self.tile_metadata['metadata_version'] = self['metadata_version']
 
 	def process_packages(self):
 		for package in self.get('packages', []):
