@@ -50,6 +50,9 @@ class VerifyMetadata(unittest.TestCase):
 	def test_has_expected_name(self):
 		self.assertEqual(self.metadata['name'], 'test-tile')
 
+	def test_has_expected_label(self):
+		self.assertEqual(self.metadata['label'], 'Generated Test Tile')
+
 class VerifyProperties(unittest.TestCase):
 
 	def setUp(self):

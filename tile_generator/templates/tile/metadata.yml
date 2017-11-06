@@ -1,6 +1,6 @@
 ---
 name: {{ tile_metadata.name }}
-label: {{ label }}
+label: {{ tile_metadata.label }}
 description: {{ description }}
 icon_image: {{ base64(icon_file) }}
 product_version: '{{ version }}'

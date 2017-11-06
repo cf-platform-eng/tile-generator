@@ -95,6 +95,7 @@ class Config(dict):
 		self.add_defaults()
 		self.upgrade()
 		self.process_name()
+		self.process_label()
 		self.process_packages()
 		self.add_dependencies()
 		self.normalize_file_lists()
@@ -111,6 +112,12 @@ class Config(dict):
 			print('product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 			sys.exit(1)
 		self.tile_metadata['name'] = self['name']
+
+	def process_label(self):
+		if not 'label' in self:
+			print('tile.yml is missing mandatory property "label"', file=sys.stderr)
+			sys.exit(1)
+		self.tile_metadata['label'] = self['label']
 
 	def process_packages(self):
 		for package in self.get('packages', []):

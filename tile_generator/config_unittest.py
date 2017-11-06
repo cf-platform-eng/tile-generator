@@ -385,5 +385,17 @@ class TestTileName(unittest.TestCase):
 			config = Config({'name': '1-invalid-name'})
 			config.process_name()
 
+class TestTileLabel(unittest.TestCase):
+	def test_requires_label(self):
+		with self.assertRaises(SystemExit):
+			config = Config({})
+			config.process_label()
+
+	def test_sets_label(self):
+		config = Config({'label': 'my-label'})
+		config.process_label()
+		self.assertIn('label', config.tile_metadata)
+		self.assertEqual(config.tile_metadata['label'], 'my-label')
+
 if __name__ == '__main__':
 	unittest.main()
