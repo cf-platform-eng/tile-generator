@@ -96,7 +96,7 @@ def get_credentials(target=None, non_interactive=False):
 			creds['opsmgr']['url']
 			creds['opsmgr']['username']
 			creds['opsmgr']['password']
-			creds['opsmgr']['ssh_key'] = ssh_key
+			creds['opsmgr']['ssh_key'] = creds['opsmgr'].get('ssh_key')
 			get_credentials.credentials = creds
 	except KeyError as e:
 		raise Exception('Credential file is missing a value:' + e.message)
