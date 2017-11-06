@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 import errno
-import base64
 import yaml
 
 from jinja2 import Template, Environment, FileSystemLoader, exceptions, contextfilter
@@ -35,14 +34,6 @@ PROPERTY_FIELDS = {
 	'salted_credentials': [ 'salt', 'identity', 'password' ],
 	'selector': [ 'value', ('selected_option', 'selected_option.parsed_manifest(manifest_snippet)') ],
 }
-
-def render_base64(file):
-	try:
-		with open(os.path.realpath(file), 'rb') as f:
-			return base64.b64encode(f.read())
-	except Exception as e:
-		print(e, file=sys.stderr)
-		sys.exit(1)
 
 def render_hyphens(input):
 	return input.replace('_','-')
@@ -173,7 +164,6 @@ def render(context, input):
 
 TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
-TEMPLATE_ENVIRONMENT.globals['base64'] = render_base64
 TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 TEMPLATE_ENVIRONMENT.filters['expand_selector'] = expand_selector
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml

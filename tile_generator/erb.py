@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 import errno
-import base64
 import yaml
 import json
 from . import opsmgr

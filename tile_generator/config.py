@@ -17,6 +17,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import, division, print_function#, unicode_literals
+import base64
 import copy
 import os.path
 import sys
@@ -97,6 +98,7 @@ class Config(dict):
 		self.process_name()
 		self.process_label()
 		self.process_description()
+		self.process_icon_file()
 		self.process_packages()
 		self.add_dependencies()
 		self.normalize_file_lists()
@@ -125,6 +127,17 @@ class Config(dict):
 			print('tile.yml is missing mandatory property "description"', file=sys.stderr)
 			sys.exit(1)
 		self.tile_metadata['description'] = self['description']
+
+	def process_icon_file(self):
+		if not 'icon_file' in self:
+			print('tile.yml is missing mandatory property "icon_file"', file=sys.stderr)
+			sys.exit(1)
+		icon_file = self['icon_file']
+		if not (icon_file and os.path.isfile(icon_file)):
+			print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
+			sys.exit(1)
+		with open(icon_file, 'rb') as f:
+			self.tile_metadata['icon_image'] = base64.b64encode(f.read())
 
 	def process_packages(self):
 		for package in self.get('packages', []):
@@ -385,7 +398,6 @@ class Config(dict):
 
 	def validate(self):
 		validname = re.compile('[a-z][a-z0-9]*(-[a-z0-9]+)*$')
-		self.validate_icon_file()
 		for package in self.get('packages', []):
 			try:
 				if validname.match(package['name']) is None:
@@ -442,12 +454,6 @@ class Config(dict):
 				else:
 					print('package', package['name'], 'is missing mandatory property', e, file=sys.stderr)
 				sys.exit(1)
-
-	def validate_icon_file(self):
-		icon_file = self.get('icon_file', None)
-		if not (icon_file and os.path.isfile(icon_file)):
-			print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
-			sys.exit(1)
 
 	def set_verbose(self, verbose=True):
 		self['verbose'] = verbose

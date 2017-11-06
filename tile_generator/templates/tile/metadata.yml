@@ -2,7 +2,7 @@
 name: {{ tile_metadata.name }}
 label: {{ tile_metadata.label }}
 description: {{ tile_metadata.description }}
-icon_image: {{ base64(icon_file) }}
+icon_image: {{ tile_metadata.icon_image }}
 product_version: '{{ version }}'
 metadata_version: '{{ metadata_version }}'
 minimum_version_for_upgrade: '0.0.1'

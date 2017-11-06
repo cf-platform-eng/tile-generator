@@ -253,27 +253,6 @@ class TestConfigValidation(unittest.TestCase):
 			}]
 			self.config.validate()
 
-	def test_requires_icon_file(self):
-		with self.assertRaises(SystemExit):
-			with capture_output() as (out, err):
-				del self.config['icon_file']
-				self.config.validate()
-		self.assertIn('icon_file', err.getvalue())
-
-	def test_refuses_empty_icon_file(self):
-		with self.assertRaises(SystemExit):
-			with capture_output() as (out, err):
-				self.config['icon_file'] = None
-				self.config.validate()
-		self.assertIn('icon_file', err.getvalue())
-
-	def test_refuses_invalid_icon_file(self):
-		with self.assertRaises(SystemExit):
-			with capture_output() as (out, err):
-				self.config['icon_file'] = '/this/file/does/not/exist'
-				self.config.validate()
-		self.assertIn('icon_file', err.getvalue())
-
 	def test_requires_buildpack_for_app_broker(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{'name': 'packagename', 'type': 'app'}]
@@ -388,8 +367,10 @@ class TestTileName(unittest.TestCase):
 class TestTileSimpleFields(unittest.TestCase):
 	def test_requires_label(self):
 		with self.assertRaises(SystemExit):
-			config = Config({})
-			config.process_label()
+			with capture_output() as (out, err):
+				config = Config({})
+				config.process_label()
+		self.assertIn('label', err.getvalue())
 
 	def test_sets_label(self):
 		config = Config({'label': 'my-label'})
@@ -399,14 +380,53 @@ class TestTileSimpleFields(unittest.TestCase):
 
 	def test_requires_description(self):
 		with self.assertRaises(SystemExit):
-			config = Config({})
-			config.process_description()
+			with capture_output() as (out, err):
+				config = Config({})
+				config.process_description()
+		self.assertIn('description', err.getvalue())
 
 	def test_sets_description(self):
 		config = Config({'description': 'my tile description'})
 		config.process_description()
 		self.assertIn('description', config.tile_metadata)
 		self.assertEqual(config.tile_metadata['description'], 'my tile description')
+
+class TestTileIconFile(unittest.TestCase):
+	def setUp(self):
+		self.icon_file = tempfile.NamedTemporaryFile()
+		self.config = Config(icon_file=self.icon_file.name)
+
+	def tearDown(self):
+		self.icon_file.close()
+
+	def test_requires_icon_file(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out, err):
+				cfg = Config({})
+				cfg.process_icon_file()
+		self.assertIn('icon_file', err.getvalue())
+
+	def test_refuses_empty_icon_file(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out, err):
+				self.config['icon_file'] = None
+				self.config.process_icon_file()
+		self.assertIn('icon_file', err.getvalue())
+
+	def test_refuses_invalid_icon_file(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out, err):
+				self.config['icon_file'] = '/this/file/does/not/exist'
+				self.config.process_icon_file()
+		self.assertIn('icon_file', err.getvalue())
+
+	def test_sets_icon_image(self):
+		self.icon_file.write('foo')
+		self.icon_file.flush()
+		self.config.process_icon_file()
+		self.assertIn('icon_image', self.config.tile_metadata)
+		# Base64-encoded string from `echo -n foo | base64`
+		self.assertEqual(self.config.tile_metadata['icon_image'], 'Zm9v')
 
 if __name__ == '__main__':
 	unittest.main()
