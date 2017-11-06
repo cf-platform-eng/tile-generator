@@ -341,8 +341,8 @@ class TestTileName(unittest.TestCase):
 		name = 'my-tile'
 		config = Config({'name': name})
 		config.process_name()
-		self.assertIn('name', config['tile_metadata'])
-		self.assertEqual(config['tile_metadata']['name'], name)
+		self.assertIn('name', config.tile_metadata)
+		self.assertEqual(config.tile_metadata['name'], name)
 
 	def test_requires_product_name(self):
 		with self.assertRaises(SystemExit):

@@ -82,7 +82,7 @@ class Config(dict):
 
 	def __init__(self, *arg, **kw):
 		super(Config, self).__init__(*arg, **kw)
-		self['tile_metadata'] = {}
+		self.tile_metadata = {}
 
 	def read(self):
 		self.read_config()
@@ -110,7 +110,7 @@ class Config(dict):
 			print('invalid product name:', self['name'], file=sys.stderr)
 			print('product name must start with a letter, be all lower-case letters or numbers, with words optionally seperated by hyphens', file=sys.stderr)
 			sys.exit(1)
-		self['tile_metadata']['name'] = self['name']
+		self.tile_metadata['name'] = self['name']
 
 	def process_packages(self):
 		for package in self.get('packages', []):

@@ -39,6 +39,17 @@ class VerifyTile(unittest.TestCase):
 		self.assertEqual(len(files), 1)
 		read_yaml(files[0])
 
+class VerifyMetadata(unittest.TestCase):
+
+	def setUp(self):
+		self.assertTrue(os.path.exists('product/metadata'))
+		files = glob.glob('product/metadata/*.yml')
+		self.assertEqual(len(files), 1)
+		self.metadata = read_yaml(files[0])
+
+	def test_has_expected_name(self):
+		self.assertEqual(self.metadata['name'], 'test-tile')
+
 class VerifyProperties(unittest.TestCase):
 
 	def setUp(self):
