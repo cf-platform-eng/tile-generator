@@ -200,6 +200,18 @@ function delete_older_versions() {
 	done
 }
 
+function wait_til_service_running() {
+	for i in `seq 1  40`; do
+		CF_TRACE=true $CF s | grep "create succeeded" | grep "$1" >/dev/null
+		if [ "$?" -ne "0" ]; then
+			sleep 30
+			echo "cf s   # waiting for create in progress state"
+		else
+			break
+		fi
+	done
+}
+
 function wait_till_running() {
 	for i in `seq 1  6`; do
 		CF_TRACE=true $CF app "$1" | grep RUNNING | grep "$1" >/dev/null
@@ -269,6 +281,7 @@ function provision_auto_service() {
 				SVC_PLAN="${DEFAULT_PLAN}"
 			fi
 			cf create-service ${SVC_NAME} ${SVC_PLAN} ${SVC_INSTANCE}
+			wait_til_service_running ${SVC_INSTANCE}
 		else
 			echo "no service matching" ${SVC_NAME} "in marketplace"
 			exit 1
