@@ -260,4 +260,5 @@ def run_bosh(working_dir, *argv, **kw):
 			return e.output
 		if argv[0] == 'generate' and 'already exists' in e.output:
 			return e.output
+		print(e.output)
 		sys.exit(e.returncode)
