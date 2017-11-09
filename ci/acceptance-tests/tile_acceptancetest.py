@@ -65,6 +65,9 @@ class VerifyMetadata(unittest.TestCase):
 	def test_has_expected_minimum_version_for_upgrade(self):
 		self.assertEqual(self.metadata['minimum_version_for_upgrade'], '0.0.1')
 
+	def test_has_rank(self):
+		self.assertEqual(self.metadata['rank'], '1')
+
 class VerifyProperties(unittest.TestCase):
 
 	def setUp(self):

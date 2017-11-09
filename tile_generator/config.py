@@ -85,6 +85,7 @@ class Config(dict):
 		super(Config, self).__init__(*arg, **kw)
 		self.tile_metadata = {
 			'minimum_version_for_upgrade': '0.0.1',
+			'rank': '1',
 		}
 
 	def read(self):
