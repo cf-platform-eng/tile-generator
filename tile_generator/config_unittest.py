@@ -307,6 +307,10 @@ class TestDefaultOptions(unittest.TestCase):
 		config = Config({})
 		self.assertEqual(config.tile_metadata['minimum_version_for_upgrade'], '0.0.1')
 
+	def test_default_rank(self):
+		config = Config({})
+		self.assertEqual(config.tile_metadata['rank'], '1')
+
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(unittest.TestCase):
 	def test_min_vm_disk_size(self, mock_getsize):
