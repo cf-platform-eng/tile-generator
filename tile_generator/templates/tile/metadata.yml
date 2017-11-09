@@ -7,7 +7,7 @@ product_version: {{ tile_metadata.product_version }}
 metadata_version: '{{ tile_metadata.metadata_version }}'
 minimum_version_for_upgrade: {{ tile_metadata.minimum_version_for_upgrade }}
 rank: {{ tile_metadata.rank }}
-serial: true
+serial: {{ tile_metadata.serial }}
 {% if service_broker %}
 service_broker: true
 {% endif %}

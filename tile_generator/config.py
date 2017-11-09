@@ -86,6 +86,7 @@ class Config(dict):
 		self.tile_metadata = {
 			'minimum_version_for_upgrade': '0.0.1',
 			'rank': 1,
+			'serial': True,
 		}
 
 	def read(self):

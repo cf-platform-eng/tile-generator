@@ -68,6 +68,10 @@ class VerifyMetadata(unittest.TestCase):
 	def test_has_rank(self):
 		self.assertEqual(self.metadata['rank'], 1)
 
+	def test_has_expected_serial(self):
+		self.assertTrue(self.metadata['serial'])
+
+
 class VerifyProperties(unittest.TestCase):
 
 	def setUp(self):

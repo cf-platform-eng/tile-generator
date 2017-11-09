@@ -311,6 +311,11 @@ class TestDefaultOptions(unittest.TestCase):
 		config = Config({})
 		self.assertEqual(config.tile_metadata['rank'], 1)
 
+	def test_default_serial(self):
+		config = Config({})
+		self.assertTrue(config.tile_metadata['serial'])
+		
+
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(unittest.TestCase):
 	def test_min_vm_disk_size(self, mock_getsize):
