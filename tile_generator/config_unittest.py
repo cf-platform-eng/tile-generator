@@ -309,7 +309,7 @@ class TestDefaultOptions(unittest.TestCase):
 
 	def test_default_rank(self):
 		config = Config({})
-		self.assertEqual(config.tile_metadata['rank'], '1')
+		self.assertEqual(config.tile_metadata['rank'], 1)
 
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(unittest.TestCase):
