@@ -201,12 +201,13 @@ function delete_older_versions() {
 }
 
 function wait_til_service_running() {
-	for i in `seq 1  40`; do
-		CF_TRACE=true $CF s | grep "create succeeded" | grep "$1" >/dev/null
-		if [ "$?" -ne "0" ]; then
+	for i in `seq 1 40`; do
+		STATUS=$(cf service $1 | grep "Status:")
+		if [ "$STATUS" = "Status: create in progress" ]; then
+			echo "cf service $1 shows '$STATUS'. Waiting..."
 			sleep 30
-			echo "cf s   # waiting for create in progress state"
 		else
+			echo "cf service $1 shows '$STATUS'"
 			break
 		fi
 	done
