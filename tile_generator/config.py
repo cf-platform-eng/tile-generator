@@ -364,7 +364,7 @@ class Config(dict):
 					'template': 'cf_cli',
 					'dir': 'blobs'
 				}]
-				self['requires_product_versions'] = self.get('requires_product_versions', []) + [
+				self.tile_metadata['requires_product_versions'] = self.get('requires_product_versions', []) + [
 					{
 						'name': 'cf',
 						'version': '>= 1.9'

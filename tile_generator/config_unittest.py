@@ -314,7 +314,7 @@ class TestDefaultOptions(unittest.TestCase):
 	def test_default_serial(self):
 		config = Config({})
 		self.assertTrue(config.tile_metadata['serial'])
-		
+
 
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(unittest.TestCase):
@@ -459,6 +459,19 @@ class TestTileIconFile(unittest.TestCase):
 		self.assertIn('icon_image', self.config.tile_metadata)
 		# Base64-encoded string from `echo -n foo | base64`
 		self.assertEqual(self.config.tile_metadata['icon_image'], 'Zm9v')
+
+class TestTileDependencies(unittest.TestCase):
+	def test_requires_product_versions(self):
+		config = Config({'releases': [{'requires_cf_cli': True, 
+																	 'jobs': ['dummy_job',],
+																	 'packages': ['dummy_package',]}]
+									  })
+		config.add_dependencies()
+		self.assertIn('requires_product_versions', config.tile_metadata)
+		requires_product_versions = config.tile_metadata['requires_product_versions']
+		self.assertIn('name', requires_product_versions[0])
+		self.assertIn('version', requires_product_versions[0])
+
 
 if __name__ == '__main__':
 	unittest.main()
