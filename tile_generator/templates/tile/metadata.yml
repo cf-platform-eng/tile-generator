@@ -606,5 +606,5 @@ requires_product_versions:
 {% endfor %}
 
 provides_product_versions:
-- name: {{ name }}
-  version: '{{ version }}'
+- name: {{ title_metadata.name }}
+  version: '{{ title_metadata.product_version }}'
