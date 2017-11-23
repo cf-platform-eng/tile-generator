@@ -477,7 +477,8 @@ class Config(dict):
 
 	def add_defaults(self):
 		self['metadata_version'] = self.get('metadata_version', 1.8)
-		self['stemcell_criteria'] = self.default_stemcell()
+		# Note: tile.py uses self['stemcell_criteria']
+		self['stemcell_criteria'] = self.tile_metadata['stemcell_criteria'] = self.default_stemcell()
 		self['all_properties'] = self.get('properties', [])
 		self['org'] = self.get('org', None) or self['name'] + '-org'
 		self['space'] = self.get('space', None) or self['name'] + '-space'

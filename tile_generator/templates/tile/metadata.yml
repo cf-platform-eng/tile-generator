@@ -19,9 +19,9 @@ releases:
 {% endfor %}
 
 stemcell_criteria:
-  os: {{ stemcell_criteria.os or 'ubuntu-trusty' }}
+  os: {{ tile_metadata.stemcell_criteria.os or 'ubuntu-trusty' }}
   requires_cpi: false
-  version: '{{ stemcell_criteria.version or 3312 }}'
+  version: '{{ tile_metadata.stemcell_criteria.version or 3312 }}'
 
 property_blueprints:
 #
