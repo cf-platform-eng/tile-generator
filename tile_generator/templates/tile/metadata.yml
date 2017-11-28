@@ -597,7 +597,7 @@ update:
   max_in_flight: {{ ( update and update.max_in_flight ) or 1 }}
   update_watch_time: {{ ( update and update.update_watch_time ) or '10000-100000' }}
 
-{% for product in {{ title_metadata.requires_product_versions }} %}
+{% for product in tile_metadata.requires_product_versions %}
 {% if loop.first %}
 requires_product_versions:
 {% endif %}
@@ -606,5 +606,5 @@ requires_product_versions:
 {% endfor %}
 
 provides_product_versions:
-- name: {{ title_metadata.name }}
-  version: '{{ title_metadata.product_version }}'
+- name: {{ tile_metadata.name }}
+  version: '{{ tile_metadata.product_version }}'
