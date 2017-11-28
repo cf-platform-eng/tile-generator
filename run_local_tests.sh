@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 # tile-generator
 #
@@ -17,8 +17,7 @@
 # limitations under the License.
 
 LOCAL_TEST_DIR='temp_local_test'
-SCRIPT_REALPATH=`realpath $0`
-SCRIPT_DIR=`dirname ${SCRIPT_REALPATH}`
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 command -v tile >/dev/null 2>&1 || { echo "Command 'tile' not found." >&2; exit 1; }
 
