@@ -359,6 +359,7 @@ def get_version():
 	if response.status_code == requests.codes.ok:
 		diag = response.json()
 		version = diag['versions']['release_version']
+		version = version.split('-')[0]
 		return [ int(x) for x in version.split('.') ]
 
 	raise Exception('Error: could not determine Ops Manager version.')
