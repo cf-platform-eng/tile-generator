@@ -48,7 +48,7 @@ def build(config):
 
 def build_bosh_releases(config):
 	mkdir_p('release', clobber=True)
-	for release in config.get('releases', []):
+	for release in config.get('releases', []).values():
 		release_name = release['name']
 		bosh_release = BoshRelease(release, config)
 		tarball = bosh_release.get_tarball()
@@ -79,7 +79,7 @@ def build_tile(context):
 			cwd=".")
 	shutil.copy('tile.yml', os.path.join('product', 'tile-generator', 'tile.yml'))
 	with zipfile.ZipFile(pivotal_file, 'w') as f:
-		for release in context.get('releases', []):
+		for release in context.get('releases', []).values():
 			print('tile include release', release['release_name'] + '-' + release['version'])
 			shutil.copy(release['tarball'], os.path.join('product/releases', release['file']))
 			f.write(

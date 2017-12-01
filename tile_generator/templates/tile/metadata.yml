@@ -10,7 +10,7 @@ rank: {{ tile_metadata.rank }}
 serial: {{ tile_metadata.serial }}
 
 releases:
-{% for release in releases %}
+{% for release in releases.values() %}
 {% if release.file %}
 - file: {{ release.file }}
   name: {{ release.release_name }}
@@ -72,7 +72,7 @@ property_blueprints:
   {% endfor %}
 {% endfor %}
 
-{% for release in releases %}
+{% for release in releases.values() %}
 {% for package in release.packages %}
 {% if package.is_buildpack %}
 #
@@ -277,7 +277,7 @@ job_types:
     configurable: true
     default: 1
 {% endif %}
-{% for release in releases %}
+{% for release in releases.values() %}
 {% for job in release.jobs if job.template and job.template == 'docker-bosh' %}
 #
 # {{ job.template }} job for {{ job.package.name }}
@@ -417,7 +417,7 @@ job_types:
 {% endfor %}
 {% endfor %}
 {% endfor %}
-{% for release in releases if release.type == 'bosh-release' %}
+{% for release in releases.values() if release['package-type'] == 'bosh-release' %}
 {% for job in release.jobs %}
 - name: {{ job.name }}
   resource_label: {{ job.label or job.name }}
@@ -503,7 +503,7 @@ job_types:
     {{ job.manifest | yaml | indent }}
 {% endfor %}
 {% endfor %}
-{% for release in releases if not release.type == 'bosh-release' %}
+{% for release in releases.values() if not release['package-type'] == 'bosh-release' %}
 {% for job in release.jobs if not job.template == 'docker-bosh' %}
 #
 # {{ job.type }} job
@@ -574,7 +574,7 @@ job_types:
 {% endfor %}
 
 post_deploy_errands:
-{% for release in releases %}
+{% for release in releases.values() %}
 {% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.post_deploy %}
 - name: {{ job.name }}
@@ -583,7 +583,7 @@ post_deploy_errands:
 {% endfor %}
 
 pre_delete_errands:
-{% for release in releases %}
+{% for release in releases.values() %}
 {% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.pre_delete %}
 - name: {{ job.name }}

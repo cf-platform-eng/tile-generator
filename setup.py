@@ -63,6 +63,7 @@ setup(
 	],
 	packages = [ 'tile_generator' ],
 	install_requires = [
+		'Cerberus>=1.1',
 		'click>=6.2',
 		'Jinja2>=2.8',
 		'PyYAML>=3.1',
