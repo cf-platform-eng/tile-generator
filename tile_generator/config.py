@@ -242,7 +242,7 @@ class Config(dict):
 		return None # TODO - Look for latest on bosh.io for given os
 
 	def normalize_jobs(self):
-		for release in self.get('releases', []).values():
+		for release in self.get('releases', {}).values():
 			for job in release.get('jobs', []):
 				job['type'] = job.get('type', job['name'])
 				job['template'] = job.get('template', job['type'])
