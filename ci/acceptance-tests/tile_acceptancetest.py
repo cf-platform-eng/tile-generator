@@ -71,6 +71,9 @@ class VerifyMetadata(unittest.TestCase):
 	def test_has_expected_serial(self):
 		self.assertTrue(self.metadata['serial'])
 
+	def test_has_service_broker_flag(self):
+		self.assertTrue(self.metadata['service_broker'])
+
 
 class VerifyProperties(unittest.TestCase):
 
