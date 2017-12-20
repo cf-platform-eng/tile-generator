@@ -55,7 +55,7 @@ function import_opsmgr_variables() {
 	{% endif %}
 	{% endfor %}
 	{% endfor %}
-	{% for release in context.releases if release.consumes %}
+	{% for release in context.releases.values() if release.consumes %}
 	{% for link in release.consumes %}
 	<% if_link('{{ link }}') do |link| %>
 	<% hosts = link.instances.map { |instance| instance.address } %>
@@ -174,7 +174,7 @@ function add_env_vars() {
 	{% endfor %}
 	{% endfor %}
 
-	{% for release in context.releases if release.consumes %}
+	{% for release in context.releases.values() if release.consumes %}
 	{% for link in release.consumes %}
 	<% if_link('{{ link }}') do |link| %>
 	cf set-env $1 {{ link | upper }}_HOST "${{ link | upper }}_HOST"
