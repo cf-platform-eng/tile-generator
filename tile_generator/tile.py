@@ -60,7 +60,6 @@ def build_cmd(version, verbose,sha1, cache):
 	cfg.set_sha1(sha1)
 	cfg.set_cache(cache)
 	print('name:', cfg.get('name', '<unspecified>'))
-	print('icon:', cfg.get('icon_file', '<unspecified>'))
 	print('label:', cfg.get('label', '<unspecified>'))
 	print('description:', cfg.get('description', '<unspecified>'))
 	print('version:', cfg.get('version', '<unspecified>'))
