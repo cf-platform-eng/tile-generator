@@ -66,7 +66,7 @@ class PackageBoshRelease(BasePackage):
     flags = [flag.BoshRelease]
     _schema = {
         'jobs': {'type': 'list', 'required': False, 'schema':{'type': 'dict', 'schema': {
-            'name': {'type': 'string', 'required': True, 'regex': '^[a-z][a-zA-Z0-9\-]*$'},
+            'name': {'type': 'string', 'required': True, 'regex': '^[a-zA-Z0-9\-\_]*$'},
             'varname': {'type': 'string', 'default_setter': lambda doc: doc['name'].lower().replace('-','_')}}}},
     }
 
