@@ -197,9 +197,9 @@ class App(FlagBase):
         for link_name, link in package.get('consumes', {}).iteritems():
             release['consumes'] = release.get('consumes', {})
             release['consumes'][link_name] = link
-            if 'deployment' in link:
-                release['consumes_cross_deployment'] = release.get('consumes_cross_deployment', {})
-                release['consumes_cross_deployment'][link_name] = link
+            release['consumes_for_deployment'] = release.get('consumes_for_deployment', {})
+            release['consumes_for_deployment'][link_name] = link.copy()
+            release['consumes_for_deployment'][link_name].pop('type',None)
         manifest = package.get('manifest', { 'name': package['name'] })
         package['app_manifest'] = manifest
         if manifest.get('path'):

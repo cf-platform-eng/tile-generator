@@ -437,11 +437,11 @@ job_types:
     release: {{ template.release }}
 {% if template.consumes %}
     consumes: |
-      {{ template.consumes | indent(6) }}
+      {{ template.consumes | yaml | indent(6) }}
 {% endif %}
 {% if template.provides %}
     provides: |
-      {{ template.provides | indent(6) }}
+      {{ template.provides | yaml | indent(6) }}
 {% endif %}
 {% endfor %}
   resource_definitions:
@@ -521,9 +521,9 @@ job_types:
   templates:
   - name: {{ job.type }}
     release: {{ release.release_name }}
-{% if release.consumes_cross_deployment %}
+{% if release.consumes_for_deployment %}
     consumes: |
-      {{ release.consumes_cross_deployment | yaml | indent(6) }}
+      {{ release.consumes_for_deployment | yaml | indent(6) }}
 {% endif %}
   resource_definitions:
   - name: ram
