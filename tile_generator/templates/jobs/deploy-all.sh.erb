@@ -61,11 +61,10 @@ function import_opsmgr_variables() {
 	<% hosts = link.instances.map { |instance| instance.address } %>
 	export {{ link | upper }}_HOST="<%= link.instances[0].address %>"
 	export {{ link | upper }}_HOSTS=<%= Shellwords.escape(hosts.to_json) %>
-    export {{ link | upper }}_PROPERTIES=<%= Shellwords.escape(link.properties.to_json) %>
+        export {{ link | upper }}_PROPERTIES=<%= Shellwords.escape(link.properties.to_json) %>
 	<% end %>
-
 	{% endfor %}
-    {% endfor %}
+	{% endfor %}
 
 }
 
