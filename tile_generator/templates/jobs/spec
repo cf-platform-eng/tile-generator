@@ -115,6 +115,8 @@ consumes:
 {% for link_name, link in release.consumes.iteritems() %}
   - name: {{ link_name }}
     type: {{ link.type or link_name }}
-    optional: {{ link.optional if 'optional' in link else true }}
+{% if link.optional %}
+    optional: true
+{% endif %}
 {% endfor %}
 {% endfor %}
