@@ -71,6 +71,9 @@ class VerifyMetadata(unittest.TestCase):
 	def test_has_expected_serial(self):
 		self.assertTrue(self.metadata['serial'])
 
+	def test_has_service_broker_flag(self):
+		self.assertTrue(self.metadata['service_broker'])
+
 
 class VerifyProperties(unittest.TestCase):
 
@@ -189,6 +192,15 @@ class VerifyJobs(unittest.TestCase):
 		self.assertIn('consumes', spec)
 		self.assertIsNotNone(find_by_name(spec['consumes'], 'redis'))
 		self.assertIsNotNone(find_by_name(spec['consumes'], 'nats'))
+
+	def test_docker_bosh_hosts_in_deploy_all_job(self):
+		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
+		self.assertTrue(os.path.exists(deploy_all_sh_file))
+		deploy_all_sh = read_file(deploy_all_sh_file)
+		self.assertIn('TG_TEST_APP4_HOST=', deploy_all_sh)
+		self.assertIn('TG_TEST_APP4_HOSTS=', deploy_all_sh)
+		self.assertIn('cf set-env $1 TG_TEST_APP4_HOST ', deploy_all_sh)
+		self.assertIn('cf set-env $1 TG_TEST_APP4_HOSTS ', deploy_all_sh)
 
 
 def find_by_name(lst, name):

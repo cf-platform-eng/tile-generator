@@ -30,8 +30,8 @@ TILE="tile"
 
 cd ${BASE_DIR}
 
-HISTORY=`ls ${HISTORY_DIR}/tile-history-*.yml`
-if [ -n "${HISTORY}" ]; then
+HISTORY="${HISTORY_DIR}/tile-history-*.yml"
+if [ -e "${HISTORY}" ]; then
 	cp ${HISTORY} ${SOURCE_DIR}/tile-history.yml
 fi
 

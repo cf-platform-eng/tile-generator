@@ -23,6 +23,15 @@ import tempfile
 from . import tile
 
 class TestTileInit(unittest.TestCase):
+	# tile.init() changes the working directory. In normal usage,
+	# this is fine, but for unit tests this changes the local
+	# state, so we should restore it.
+	def setUp(self):
+		self.cwd = os.getcwd()
+
+	def tearDown(self):
+		os.chdir(self.cwd)
+
 	def test_tile_init_works(self):
 		tmpdir = tempfile.mkdtemp()
 		try:

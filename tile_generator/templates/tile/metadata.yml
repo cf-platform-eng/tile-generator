@@ -8,6 +8,7 @@ metadata_version: '{{ tile_metadata.metadata_version }}'
 minimum_version_for_upgrade: {{ tile_metadata.minimum_version_for_upgrade }}
 rank: {{ tile_metadata.rank }}
 serial: {{ tile_metadata.serial }}
+service_broker: {{ tile_metadata.service_broker or False }}
 
 releases:
 {% for release in releases.values() %}

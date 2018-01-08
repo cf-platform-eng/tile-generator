@@ -111,7 +111,7 @@ properties:
 {% endfor %}
 
 consumes:
-{% for release in context.releases if release.consumes %}
+{% for release in context.releases.values() if release.consumes %}
 {% for link_type, link in release.consumes.iteritems() %}
   - name: {{ link.name or link_type }}
     type: {{ link_type }}

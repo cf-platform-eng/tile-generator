@@ -61,7 +61,7 @@ class BaseTest(unittest.TestCase):
 @mock.patch('tile_generator.config.Config.read_history')
 class TestUltimateForm(BaseTest):
 	def test_diff_final_config_obj(self, mock_read_history):
-		test_path = '/'.join(os.path.abspath(__file__).split('/')[:-1])
+		test_path = os.path.dirname(__file__)
 		cfg_file_path = os.path.join(test_path, 'test_sample_tile.yml')
 
 		with mock.patch('tile_generator.config.CONFIG_FILE', cfg_file_path):

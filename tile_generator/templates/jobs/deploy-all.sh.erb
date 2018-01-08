@@ -43,11 +43,11 @@ function import_opsmgr_variables() {
 	{% for property in context.all_properties %}
 	{{ property | env_variable | indent }}
 	{% endfor %}
-	{% for package in context.packages if package.type == 'docker-bosh' %}
+	{% for package in context.packages if package['package-type'] == 'docker-bosh' %}
 	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
 	export {{ package.name | upper }}_HOSTS={{ ( 'properties.' + package.name + '.hosts' ) | shell_string }}
 	{% endfor %}
-	{% for package in context.packages if package.type == 'bosh-release' %}
+	{% for package in context.packages if package['package-type'] == 'bosh-release' %}
 	{% for job in package.jobs %}
 	{% if job.is_static %}
 	export {{ package.name | upper }}_{{ job.varname | upper }}_HOST={{ ( 'properties.' + package.name + '.' + job.varname + '.host' ) | shell_string }}
@@ -55,7 +55,7 @@ function import_opsmgr_variables() {
 	{% endif %}
 	{% endfor %}
 	{% endfor %}
-	{% for release in context.releases if release.consumes %}
+	{% for release in context.releases.values() if release.consumes %}
 	{% for link in release.consumes %}
 	<% if_link('{{ link }}') do |link| %>
 	<% hosts = link.instances.map { |instance| instance.address } %>
@@ -161,11 +161,11 @@ function add_env_vars() {
 	{% endfor %}
 
 	# Addresses of bosh vms
-	{% for package in context.packages if package.type == 'docker-bosh' %}
+	{% for package in context.packages if package['package-type'] == 'docker-bosh' %}
 	cf set-env $1 {{ package.name | upper }}_HOST "${{ package.name | upper }}_HOST"
 	cf set-env $1 {{ package.name | upper }}_HOSTS "${{ package.name | upper }}_HOSTS"
 	{% endfor %}
-	{% for package in context.packages if package.type == 'bosh-release' %}
+	{% for package in context.packages if package['package-type'] == 'bosh-release' %}
 	{% for job in package.jobs %}
 	{% if job.is_static %}
 	cf set-env $1 {{ package.name | upper }}_{{ job.varname | upper }}_HOST "${{ package.name | upper }}_{{ job.varname | upper }}_HOST"
@@ -174,7 +174,7 @@ function add_env_vars() {
 	{% endfor %}
 	{% endfor %}
 
-	{% for release in context.releases if release.consumes %}
+	{% for release in context.releases.values() if release.consumes %}
 	{% for link in release.consumes %}
 	<% if_link('{{ link }}') do |link| %>
 	cf set-env $1 {{ link | upper }}_HOST "${{ link | upper }}_HOST"
