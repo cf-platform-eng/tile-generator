@@ -100,8 +100,10 @@ class TestUltimateForm(BaseTest):
 							f['path'] = 'tile_generator/templates/src/templates/all_open.json'
 
 		# Massage expected output to be compared
-		def massage(obj):
+		def handle_renamed_keys(obj):
 			for release in obj['releases']:
+				if release.get('consumes_cross_deployment'):
+					release['consumes_for_deployment'] = release.pop('consumes_cross_deployment')
 				if release.get('type'):
 					release['package-type'] = release.pop('type')
 				for package in release.get('packages', []):
@@ -114,7 +116,7 @@ class TestUltimateForm(BaseTest):
 				package['package-type'] = package.pop('type')
 
 		remove_ignored_keys(expected_output)
-		massage(expected_output)
+		handle_renamed_keys(expected_output)
 		fix_path(expected_output)
 
 		# Convert releases to a list of dicts instead of dict of dicts
@@ -148,6 +150,12 @@ class TestUltimateForm(BaseTest):
 			else:
 				self.assertEquals(expected, given, (path, 'Expected to have the value:\n%s\nHowever, instead got:\n%s' % (expected, given)))
 
+
+		for release in cfg['releases']:
+                    if release.has_key('consumes_for_deployment'):
+                        self.assertDictEqual({'from': 'redis'}, release['consumes_for_deployment']['redis'])
+                        # Remove it so it is compatible with the OLD expected output
+                        release['consumes_for_deployment'].pop('redis')
 
 		# Hacky way to turn config object into a plain dict
 		d_cfg = json.loads(json.dumps(cfg))

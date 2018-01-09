@@ -112,9 +112,11 @@ properties:
 
 consumes:
 {% for release in context.releases.values() if release.consumes %}
-{% for link_type, link in release.consumes.iteritems() %}
-  - name: {{ link.name or link_type }}
-    type: {{ link_type }}
-    optional: {{ link.optional or true }}
+{% for link_name, link in release.consumes.iteritems() %}
+  - name: {{ link_name }}
+    type: {{ link.type or link_name }}
+{% if link.optional is defined and link.optional %}
+    optional: true
+{% endif %}
 {% endfor %}
 {% endfor %}
