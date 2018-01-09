@@ -154,7 +154,7 @@ class TestUltimateForm(BaseTest):
                 # Confirm that the new consumes: contains 'redis'
 		for release in cfg['releases']:
                     if release.has_key('consumes_for_deployment'):
-                        self.assertIn("'from': 'redis'", str(release['consumes_for_deployment']['redis']))
+                        self.assertDictEqual({'from': 'redis'}, release['consumes_for_deployment']['redis'])
                         # Remove it so it is compatible with the OLD expected output
                         release['consumes_for_deployment'].pop('redis')
 
