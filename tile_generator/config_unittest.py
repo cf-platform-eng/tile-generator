@@ -168,9 +168,6 @@ class TestUltimateForm(BaseTest):
 		expected = json.dumps(expected_output, sort_keys=True, indent=1).split('\n')
 		remove_ignored_keys(d_cfg)
 		generated = json.dumps(d_cfg, sort_keys=True, indent=1).split('\n')
-                # Use this on the odd chance you want to capture and see the generated output in a file.
-		# with open(test_path + '/test_config_generated_output', 'w') as f:
-		# 	f.write(str(d_cfg))
 		self.assertEquals(len(expected), len(generated))
 		for line in expected:
 			self.assertIn(line, generated)
