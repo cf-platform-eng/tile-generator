@@ -201,8 +201,6 @@ class App(FlagBase):
             release['consumes_for_deployment'][link_name] = link.copy()
             release['consumes_for_deployment'][link_name].pop('type',None)
             release['consumes_for_deployment'][link_name].pop('optional',None)
-            if 'optional' not in link:
-               link['optional'] = False
         manifest = package.get('manifest', { 'name': package['name'] })
         package['app_manifest'] = manifest
         if manifest.get('path'):
