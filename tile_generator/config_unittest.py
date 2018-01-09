@@ -201,6 +201,30 @@ class TestConfigValidation(BaseTest):
 				self.config.validate()
 		self.assertIn("has invalid type nonsense\nvalid types are", err.getvalue())
 
+	def test_accepts_valid_job_name(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'validname'}]}]
+		self.config.validate()
+
+	def test_accepts_valid_job_name_with_hyphen(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'valid-name'}]}]
+		self.config.validate()
+
+	def test_accepts_valid_job_name_with_underscore(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'valid_name'}]}]
+		self.config.validate()
+
+	def test_accepts_valid_job_name_with_number(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'valid2name'}]}]
+		self.config.validate()
+
+	def test_accepts_valid_job_name_with_capital(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'validName'}]}]
+		self.config.validate()
+
+	def test_accepts_valid_job_name_with_starting_capital(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'Validname'}]}]
+		self.config.validate()
+
 	def test_accepts_valid_package_name(self):
 		self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
