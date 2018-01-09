@@ -151,7 +151,6 @@ class TestUltimateForm(BaseTest):
 				self.assertEquals(expected, given, (path, 'Expected to have the value:\n%s\nHowever, instead got:\n%s' % (expected, given)))
 
 
-                # Confirm that the new consumes: contains 'redis'
 		for release in cfg['releases']:
                     if release.has_key('consumes_for_deployment'):
                         self.assertDictEqual({'from': 'redis'}, release['consumes_for_deployment']['redis'])
