@@ -110,6 +110,7 @@ properties:
 {% endif %}
 {% endfor %}
 
+{% if job_type == 'deploy-all' or job_type == 'delete-all' %}
 consumes:
 {% for release in context.releases.values() if release.consumes %}
 {% for link_name, link in release.consumes.iteritems() %}
@@ -120,3 +121,4 @@ consumes:
 {% endif %}
 {% endfor %}
 {% endfor %}
+{% endif %}
