@@ -405,3 +405,18 @@ packages:
     properties:
       cf:
         some: property
+
+runtime_configs:
+  - name: tg-test-addon
+    runtime_config: |
+      releases:
+      - name: redis
+        version: 15
+      addons:
+      - name: tg-test-addon
+        jobs:
+        - name: tg-test-addon-job
+          release: redis
+        properties:
+          tg-test-addon:
+            greeting: Hello from the tg-test add-on

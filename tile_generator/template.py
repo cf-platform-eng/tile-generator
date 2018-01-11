@@ -63,6 +63,9 @@ def expand_selector(input):
 def render_yaml(input):
 	return yaml.safe_dump(input, default_flow_style=False, width=float("inf"))
 
+def render_yaml_literal(input):
+	return yaml.safe_dump(input, default_flow_style=False, default_style='|', width=float("inf"))
+
 def render_shell_string(input):
 	return '<%= Shellwords.escape ' + input + ' %>'
 
@@ -167,6 +170,7 @@ TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 TEMPLATE_ENVIRONMENT.filters['expand_selector'] = expand_selector
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
+TEMPLATE_ENVIRONMENT.filters['yaml_literal'] = render_yaml_literal
 TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
 TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
 TEMPLATE_ENVIRONMENT.filters['property'] = render_property

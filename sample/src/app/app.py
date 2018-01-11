@@ -74,6 +74,8 @@ def proxy():
 	response = requests.get(url, verify=False)
 	return response.content, response.status_code
 
+@app.route("/hello-from-addon")
+
 @app.route("/v2/catalog")
 def broker_catalog():
 	return json.dumps(catalog, indent=4)

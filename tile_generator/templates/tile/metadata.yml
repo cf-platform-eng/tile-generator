@@ -574,6 +574,11 @@ job_types:
 {% endfor %}
 {% endfor %}
 
+{% if tile_metadata.runtime_configs %}
+runtime_configs:
+{{ tile_metadata.runtime_configs | yaml_literal }}
+{% endif %}
+
 post_deploy_errands:
 {% for release in releases.values() %}
 {% for job in release.jobs %}

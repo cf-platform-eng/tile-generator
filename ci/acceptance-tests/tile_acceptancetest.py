@@ -202,6 +202,17 @@ class VerifyJobs(unittest.TestCase):
 		self.assertIn('cf set-env $1 TG_TEST_APP4_HOST ', deploy_all_sh)
 		self.assertIn('cf set-env $1 TG_TEST_APP4_HOSTS ', deploy_all_sh)
 
+class VerifyRuntimeConfig(unittest.TestCase):
+
+	def setUp(self):
+		self.assertTrue(os.path.exists('product/metadata'))
+		files = glob.glob('product/metadata/*.yml')
+		self.assertEqual(len(files), 1)
+		self.metadata = read_yaml(files[0])
+
+	def test_runtime_config_is_present(self):
+		self.assertIsNotNone(self.metadata.get('runtime_configs'))
+
 
 def find_by_name(lst, name):
 	return next(x for x in lst if x.get('name', None) == name)
