@@ -139,6 +139,7 @@ class Config(dict):
 
 		schema = {
 			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
+			'service_broker': {'type': 'boolean', 'required': False, 'default': False},
 			'label': {'type': 'string', 'required': True},
 			'description': {'type': 'string', 'required': True},
 			'icon_file': {'type': 'string', 'required': True, 'coerce': base64_img},
@@ -223,6 +224,7 @@ class Config(dict):
 		self.tile_metadata['metadata_version'] = str(self['metadata_version'])
 		# Note: tile.py uses self['stemcell_criteria']
 		self.tile_metadata['stemcell_criteria'] = self['stemcell_criteria']
+		self.tile_metadata['service_broker'] = self['service_broker']
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
