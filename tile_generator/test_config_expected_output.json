@@ -1,0 +1,3455 @@
+{
+  "apply_open_security_group": false,
+  "verbose": false,
+  "metadata_version": 1.8,
+  "update": {
+    "update_watch_time": "10000-(( .properties.update_watch_timeout ))",
+    "canary_watch_time": "10000-(( .properties.canary_watch_timeout ))"
+  },
+  "icon_file": "resources/icon.png",
+  "service_plan_forms": [
+    {
+      "description": "Custom Dynamic service plan 1 for Test Tile",
+      "variable_name": "CUSTOM_DYNAMIC_SERVICE_PLAN_1",
+      "properties": [
+        {
+          "configurable": true,
+          "type": "string",
+          "description": "The description of this plan",
+          "name": "description1"
+        },
+        {
+          "configurable": true,
+          "type": "string",
+          "description": "The license key for this plan",
+          "name": "license_key1"
+        },
+        {
+          "description": "The number of available seats for this license",
+          "default": 1,
+          "configurable": true,
+          "type": "integer",
+          "constraints": {
+            "max": 500,
+            "min": 1
+          },
+          "name": "num_seats1"
+        }
+      ],
+      "name": "custom_dynamic_service_plan_1",
+      "label": "Custom Dynamic Service Plan 1"
+    },
+    {
+      "description": "Custom Dynamic service plan 2 for Test Tile",
+      "variable_name": "CUSTOM_DYNAMIC_SERVICE_PLAN_2",
+      "properties": [
+        {
+          "configurable": true,
+          "type": "string",
+          "description": "The description of this plan",
+          "name": "description2"
+        },
+        {
+          "configurable": true,
+          "type": "string",
+          "description": "The api key for this plan",
+          "name": "api_key2"
+        },
+        {
+          "default": 1,
+          "configurable": true,
+          "type": "integer",
+          "description": "The number of licenses",
+          "name": "num_of_license2"
+        }
+      ],
+      "name": "custom_dynamic_service_plan_2",
+      "label": "Custom Dynamic Service Plan 2"
+    }
+  ],
+  "post_deploy_errands": [
+    {
+      "name": "deploy-all"
+    }
+  ],
+  "compilation_vm_disk_size": 10240,
+  "org": "test-tile-org",
+  "packages": [
+    {
+      "files": [
+        {
+          "path": "resources/app.zip",
+          "name": "app.zip"
+        }
+      ],
+      "is_cf": true,
+      "name": "tg_test_app1",
+      "type": "app",
+      "manifest": {
+        "path": "app.zip",
+        "buildpack": "python_buildpack",
+        "memory": "256M",
+        "command": "python app.py",
+        "instances": "(( .properties.app_instances.value ))"
+      },
+      "is_app": true,
+      "app_manifest": {
+        "path": "app.zip",
+        "buildpack": "python_buildpack",
+        "memory": "256M",
+        "command": "python app.py",
+        "instances": "(( .properties.app_instances.value ))"
+      },
+      "requires_cf_cli": true,
+      "properties": {
+        "tg_test_app1": {
+          "app_manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "memory": "256M",
+            "command": "python app.py",
+            "instances": "(( .properties.app_instances.value ))"
+          },
+          "auto_services": [],
+          "name": "tg_test_app1"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "src/app",
+          "name": "app"
+        }
+      ],
+      "is_cf": true,
+      "name": "tg_test_app1_auto_zip",
+      "type": "app",
+      "manifest": {
+        "path": "app",
+        "buildpack": "python_buildpack",
+        "command": "python app.py",
+        "memory": "256M"
+      },
+      "is_app": true,
+      "app_manifest": {
+        "path": "app",
+        "buildpack": "python_buildpack",
+        "command": "python app.py",
+        "memory": "256M"
+      },
+      "requires_cf_cli": true,
+      "properties": {
+        "tg_test_app1_auto_zip": {
+          "app_manifest": {
+            "path": "app",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "auto_services": [],
+          "name": "tg_test_app1_auto_zip"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "src/binary-app/binary-app.py",
+          "name": "binary-app.py"
+        }
+      ],
+      "is_cf": true,
+      "name": "tg_test_binary_app",
+      "type": "app",
+      "manifest": {
+        "path": "binary-app.py",
+        "buildpack": "binary_buildpack",
+        "command": "./binary-app.py",
+        "memory": "256M"
+      },
+      "is_app": true,
+      "app_manifest": {
+        "path": "binary-app.py",
+        "buildpack": "binary_buildpack",
+        "command": "./binary-app.py",
+        "memory": "256M"
+      },
+      "requires_cf_cli": true,
+      "properties": {
+        "tg_test_binary_app": {
+          "app_manifest": {
+            "path": "binary-app.py",
+            "buildpack": "binary_buildpack",
+            "command": "./binary-app.py",
+            "memory": "256M"
+          },
+          "auto_services": [],
+          "name": "tg_test_binary_app"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "resources/app.zip",
+          "name": "app.zip"
+        }
+      ],
+      "is_cf": true,
+      "name": "tg_test_broker1",
+      "enable_global_access_to_plans": true,
+      "type": "app-broker",
+      "is_broker_app": true,
+      "manifest": {
+        "path": "app.zip",
+        "buildpack": "python_buildpack",
+        "command": "python app.py",
+        "memory": "256M"
+      },
+      "is_app": true,
+      "is_broker": true,
+      "app_manifest": {
+        "path": "app.zip",
+        "buildpack": "python_buildpack",
+        "command": "python app.py",
+        "memory": "256M"
+      },
+      "requires_cf_cli": true,
+      "properties": {
+        "tg_test_broker1": {
+          "app_manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "auto_services": [],
+          "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+          "name": "tg_test_broker1"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "resources/app.zip",
+          "name": "app.zip"
+        }
+      ],
+      "is_cf": true,
+      "needs_cf_credentials": true,
+      "health_check": "none",
+      "name": "tg_test_app2",
+      "type": "app",
+      "app_manifest": {
+        "path": "app.zip",
+        "host": "tg-test-app2-hostname",
+        "command": "python app.py",
+        "buildpack": "python_buildpack",
+        "memory": "256M"
+      },
+      "is_app": true,
+      "properties": {
+        "tg_test_app2": {
+          "app_manifest": {
+            "path": "app.zip",
+            "host": "tg-test-app2-hostname",
+            "command": "python app.py",
+            "buildpack": "python_buildpack",
+            "memory": "256M"
+          },
+          "auto_services": [
+            {
+              "name": "tg-test-broker1-service",
+              "plan": "first-plan"
+            },
+            {
+              "name": "(( .properties.auto_service_name.value ))"
+            }
+          ],
+          "name": "tg_test_app2"
+        }
+      },
+      "auto_services": [
+        {
+          "name": "tg-test-broker1-service",
+          "plan": "first-plan"
+        },
+        {
+          "name": "(( .properties.auto_service_name.value ))"
+        }
+      ],
+      "manifest": {
+        "path": "app.zip",
+        "host": "tg-test-app2-hostname",
+        "command": "python app.py",
+        "buildpack": "python_buildpack",
+        "memory": "256M"
+      },
+      "requires_cf_cli": true,
+      "consumes": {
+        "nats": {
+          "from": "nats",
+          "deployment": "(( ..cf.deployment_name ))"
+        },
+        "redis": {
+          "from": "redis"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "resources/app.zip",
+          "name": "app.zip"
+        }
+      ],
+      "is_cf": true,
+      "properties": {
+        "tg_test_broker2": {
+          "app_manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "auto_services": [],
+          "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+          "name": "tg_test_broker2"
+        }
+      },
+      "internal_service_names": [
+        "service1",
+        "service2"
+      ],
+      "name": "tg_test_broker2",
+      "requires_cf_cli": true,
+      "is_broker_app": true,
+      "manifest": {
+        "path": "app.zip",
+        "buildpack": "python_buildpack",
+        "command": "python app.py",
+        "memory": "256M"
+      },
+      "is_app": true,
+      "is_broker": true,
+      "app_manifest": {
+        "path": "app.zip",
+        "buildpack": "python_buildpack",
+        "command": "python app.py",
+        "memory": "256M"
+      },
+      "type": "app-broker",
+      "consumes": {
+        "nats": {
+          "from": "nats",
+          "deployment": "(( ..cf.deployment_name ))"
+        },
+        "redis": {
+          "from": "redis"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "resources/buildpack.zip",
+          "name": "buildpack.zip"
+        }
+      ],
+      "is_cf": true,
+      "name": "tg_test_buildpack",
+      "requires_cf_cli": true,
+      "is_buildpack": true,
+      "path": "buildpack.zip",
+      "buildpack_order": 99,
+      "type": "buildpack",
+      "properties": {
+        "tg_test_buildpack": {
+          "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+          "name": "tg_test_buildpack"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "resources/decorator.zip",
+          "name": "decorator.zip"
+        }
+      ],
+      "is_cf": true,
+      "name": "tg_test_decorator",
+      "type": "decorator",
+      "is_buildpack": true,
+      "is_decorator": true,
+      "requires_meta_buildpack": true,
+      "path": "decorator.zip",
+      "requires_cf_cli": true,
+      "properties": {
+        "tg_test_decorator": {
+          "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+          "name": "tg_test_decorator"
+        }
+      }
+    },
+    {
+      "files": [],
+      "is_cf": true,
+      "name": "tg_test_app3",
+      "requires_cf_cli": true,
+      "image": "guidowb/sample-cf-app",
+      "is_docker_app": true,
+      "manifest": {
+        "memory": "256M"
+      },
+      "is_app": true,
+      "auto_services": [
+        {
+          "service_instance": "tg-test-svc",
+          "plan": "second-plan",
+          "name": "tg-test-broker1-service"
+        }
+      ],
+      "is_docker": true,
+      "app_manifest": {
+        "memory": "256M"
+      },
+      "type": "docker-app",
+      "properties": {
+        "tg_test_app3": {
+          "app_manifest": {
+            "memory": "256M"
+          },
+          "auto_services": [
+            {
+              "service_instance": "tg-test-svc",
+              "plan": "second-plan",
+              "name": "tg-test-broker1-service"
+            }
+          ],
+          "name": "tg_test_app3"
+        }
+      }
+    },
+    {
+      "files": [
+        {
+          "path": "docker:guidowb/sample-cf-app",
+          "name": "guidowb-sample-cf-app.tgz"
+        }
+      ],
+      "ephemeral_disk": 4096,
+      "properties": {
+        "tg_test_app4": {
+          "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+          "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+          "name": "tg_test_app4"
+        }
+      },
+      "name": "tg_test_app4",
+      "docker_images": [
+        "guidowb/sample-cf-app"
+      ],
+      "is_docker_bosh": true,
+      "manifest": {
+        "containers": [
+          {
+            "bind_ports": [
+              "80:80",
+              "443:443",
+              "8080:8080",
+              "8443:8443"
+            ],
+            "image": "guidowb/sample-cf-app",
+            "env_file": [
+              "/var/vcap/jobs/docker-bosh-tg_test_app4/bin/opsmgr.env"
+            ],
+            "name": "app"
+          }
+        ]
+      },
+      "instances": 1,
+      "is_docker": true,
+      "persistent_disk": 2048,
+      "memory": 512,
+      "routes": [
+        {
+          "prefix": "my-route",
+          "port": 8080
+        }
+      ],
+      "type": "docker-bosh",
+      "cpu": 2,
+      "requires_docker_bosh": true
+    },
+    {
+      "jobs": [
+        {
+          "templates": [
+            {
+              "release": "redis",
+              "name": "redis"
+            }
+          ],
+          "dynamic_ip": 1,
+          "template": "redis",
+          "static_ip": 0,
+          "instances": 2,
+          "default_internet_connected": false,
+          "properties": {
+            "password": "red!s"
+          },
+          "is_static": false,
+          "ephemeral_disk": 4096,
+          "name": "redis",
+          "varname": "redis",
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "author": "(( .properties.author.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "space": "(( .properties.space.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          },
+          "max_in_flight": 1,
+          "persistent_disk": 4096,
+          "memory": 512,
+          "type": "redis",
+          "cpu": 2
+        },
+        {
+          "templates": [
+            {
+              "release": "redis",
+              "name": "sanity-tests"
+            }
+          ],
+          "dynamic_ip": 1,
+          "template": "sanity-tests",
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "some": "property",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "space": "(( .properties.space.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "author": "(( .properties.author.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          },
+          "properties": {
+            "cf": {
+              "some": "property"
+            }
+          },
+          "is_static": false,
+          "ephemeral_disk": 4096,
+          "name": "sanity-tests",
+          "post_deploy": true,
+          "varname": "sanity_tests",
+          "lifecycle": "errand",
+          "persistent_disk": 0,
+          "memory": 512,
+          "run_post_deploy_errand_default": "when-changed",
+          "type": "sanity-tests",
+          "cpu": 2
+        }
+      ],
+      "name": "tg_test_app5",
+      "path": "resources/redis-13.1.2.tgz",
+      "is_bosh_release": true,
+      "type": "bosh-release",
+      "properties": {
+        "tg_test_app5": {
+          "name": "tg_test_app5"
+        }
+      }
+    }
+  ],
+  "all_properties": [
+    {
+      "name": "author",
+      "default": "Tile Ninja",
+      "type": "string",
+      "configurable": false,
+      "optional": false,
+      "label": "Author"
+    },
+    {
+      "type": "string",
+      "configurable": true,
+      "optional": true,
+      "name": "customer_name",
+      "label": "Full Name"
+    },
+    {
+      "description": "Address to use for junk mail",
+      "name": "street_address",
+      "type": "string",
+      "configurable": true,
+      "optional": false,
+      "label": "Street Address"
+    },
+    {
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "name": "city",
+      "label": "City"
+    },
+    {
+      "name": "zip_code",
+      "default": "90310",
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "label": "ZIP+4"
+    },
+    {
+      "name": "country",
+      "optional": false,
+      "configurable": true,
+      "type": "dropdown_select",
+      "options": [
+        {
+          "default": true,
+          "name": "country_us",
+          "label": "US"
+        },
+        {
+          "name": "country_elsewhere",
+          "label": "Elsewhere"
+        }
+      ],
+      "label": "Country"
+    },
+    {
+      "name": "example_collection",
+      "default": [
+        {
+          "album": "Christmas Carols",
+          "explicit": true,
+          "artist": "Ops Manatee"
+        }
+      ],
+      "type": "collection",
+      "property_blueprints": [
+        {
+          "type": "string",
+          "name": "album",
+          "label": "Album"
+        },
+        {
+          "type": "string",
+          "name": "artist",
+          "label": "Artist"
+        },
+        {
+          "type": "boolean",
+          "name": "explicit",
+          "label": "Explicit"
+        }
+      ],
+      "configurable": true,
+      "optional": false,
+      "label": "Albums"
+    },
+    {
+      "name": "example_selector",
+      "option_templates": [
+        {
+          "select_value": "Pizza",
+          "name": "pizza_option",
+          "property_blueprints": [
+            {
+              "label": "Pepperoni",
+              "type": "boolean",
+              "name": "pepperoni",
+              "configurable": true
+            },
+            {
+              "label": "Pineapple",
+              "type": "boolean",
+              "name": "pineapple",
+              "configurable": true
+            },
+            {
+              "type": "string",
+              "label": "Other Toppings",
+              "optional": true,
+              "name": "other_toppings",
+              "configurable": true
+            }
+          ]
+        },
+        {
+          "select_value": "Filet Mignon",
+          "name": "filet_mignon_option",
+          "property_blueprints": [
+            {
+              "label": "Complex type inside selector",
+              "type": "simple_credentials",
+              "name": "steak_creds",
+              "configurable": true
+            },
+            {
+              "name": "rarity_dropdown",
+              "default": "rare",
+              "label": "How rare?",
+              "type": "dropdown_select",
+              "options": [
+                {
+                  "name": "rare",
+                  "label": "Rare"
+                },
+                {
+                  "name": "medium",
+                  "label": "Medium"
+                },
+                {
+                  "name": "well-done",
+                  "label": "Well done"
+                }
+              ],
+              "configurable": true
+            }
+          ]
+        }
+      ],
+      "default": "Pizza",
+      "type": "selector",
+      "configurable": true,
+      "optional": false,
+      "label": "Food Choices"
+    },
+    {
+      "description": "Example of simple credentials type",
+      "name": "my_creds",
+      "optional": false,
+      "configurable": true,
+      "type": "simple_credentials",
+      "label": "Simple Credentials"
+    },
+    {
+      "name": "username",
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "constraints": [
+        {
+          "must_match_regex": "^[^!@#$%^&*()]*$",
+          "error_message": "This name cannot contain capital digits."
+        }
+      ],
+      "label": "Username"
+    },
+    {
+      "optional": false,
+      "configurable": true,
+      "type": "secret",
+      "name": "password",
+      "label": "Password"
+    },
+    {
+      "description": "Maximum amount of time to allow canaries to take before going healthy",
+      "name": "canary_watch_timeout",
+      "optional": false,
+      "configurable": true,
+      "type": "integer",
+      "label": "Canary Watch Timeout"
+    },
+    {
+      "description": "Maximum amount of time to allow non-canaries to take before going healthy",
+      "name": "update_watch_timeout",
+      "optional": false,
+      "configurable": true,
+      "type": "integer",
+      "label": "Update Watch Timeout"
+    },
+    {
+      "description": "Choose whether or not to enable this feature.",
+      "default": "feature_disabled",
+      "type": "selector",
+      "label": "Enable this feature?",
+      "option_templates": [
+        {
+          "select_value": "feature_enabled",
+          "label": "Enable feature",
+          "description": "Enable this feature (requires more config).",
+          "name": "feature_enabled",
+          "property_blueprints": [
+            {
+              "label": "Configure this feature",
+              "type": "string",
+              "name": "feature_config",
+              "configurable": true
+            }
+          ]
+        },
+        {
+          "select_value": "feature_disabled",
+          "label": "Disable feature",
+          "description": "Disable this feature (no more config).",
+          "name": "feature_disabled"
+        }
+      ],
+      "configurable": true,
+      "optional": false,
+      "name": "is_feature_enabled"
+    },
+    {
+      "name": "planets",
+      "type": "multi_select_options",
+      "label": "Planets",
+      "optional": true,
+      "options": [
+        {
+          "name": "mercury",
+          "label": "mercury"
+        },
+        {
+          "name": "Venus",
+          "label": "venus"
+        },
+        {
+          "name": "Earth",
+          "label": "earth"
+        },
+        {
+          "name": "Mars",
+          "label": "mars"
+        },
+        {
+          "name": "Jupiter",
+          "label": "jupiter"
+        },
+        {
+          "name": "Saturn",
+          "label": "saturn"
+        },
+        {
+          "name": "Uranus",
+          "label": "uranus"
+        },
+        {
+          "name": "Neptune",
+          "label": "neptune"
+        }
+      ],
+      "configurable": true
+    },
+    {
+      "name": "app_instances",
+      "default": 2,
+      "optional": false,
+      "configurable": true,
+      "type": "integer",
+      "label": "Dynamic app instance count"
+    },
+    {
+      "name": "auto_service_name",
+      "default": "tg-test-broker1-service",
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "label": "Auto services service name"
+    }
+  ],
+  "description": "A sample tile generated by tile-generator",
+  "stemcell_criteria": {
+    "version": "u'3445'",
+    "os": "ubuntu-trusty"
+  },
+  "properties": [
+    {
+      "name": "author",
+      "default": "Tile Ninja",
+      "type": "string",
+      "configurable": false,
+      "optional": false,
+      "label": "Author"
+    },
+    {
+      "type": "string",
+      "configurable": true,
+      "optional": true,
+      "name": "customer_name",
+      "label": "Full Name"
+    },
+    {
+      "description": "Address to use for junk mail",
+      "name": "street_address",
+      "type": "string",
+      "configurable": true,
+      "optional": false,
+      "label": "Street Address"
+    },
+    {
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "name": "city",
+      "label": "City"
+    },
+    {
+      "name": "zip_code",
+      "default": "90310",
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "label": "ZIP+4"
+    },
+    {
+      "name": "country",
+      "optional": false,
+      "configurable": true,
+      "type": "dropdown_select",
+      "options": [
+        {
+          "default": true,
+          "name": "country_us",
+          "label": "US"
+        },
+        {
+          "name": "country_elsewhere",
+          "label": "Elsewhere"
+        }
+      ],
+      "label": "Country"
+    },
+    {
+      "name": "example_collection",
+      "default": [
+        {
+          "album": "Christmas Carols",
+          "explicit": true,
+          "artist": "Ops Manatee"
+        }
+      ],
+      "type": "collection",
+      "property_blueprints": [
+        {
+          "type": "string",
+          "name": "album",
+          "label": "Album"
+        },
+        {
+          "type": "string",
+          "name": "artist",
+          "label": "Artist"
+        },
+        {
+          "type": "boolean",
+          "name": "explicit",
+          "label": "Explicit"
+        }
+      ],
+      "configurable": true,
+      "optional": false,
+      "label": "Albums"
+    },
+    {
+      "name": "example_selector",
+      "option_templates": [
+        {
+          "select_value": "Pizza",
+          "name": "pizza_option",
+          "property_blueprints": [
+            {
+              "label": "Pepperoni",
+              "type": "boolean",
+              "name": "pepperoni",
+              "configurable": true
+            },
+            {
+              "label": "Pineapple",
+              "type": "boolean",
+              "name": "pineapple",
+              "configurable": true
+            },
+            {
+              "type": "string",
+              "label": "Other Toppings",
+              "optional": true,
+              "name": "other_toppings",
+              "configurable": true
+            }
+          ]
+        },
+        {
+          "select_value": "Filet Mignon",
+          "name": "filet_mignon_option",
+          "property_blueprints": [
+            {
+              "label": "Complex type inside selector",
+              "type": "simple_credentials",
+              "name": "steak_creds",
+              "configurable": true
+            },
+            {
+              "name": "rarity_dropdown",
+              "default": "rare",
+              "label": "How rare?",
+              "type": "dropdown_select",
+              "options": [
+                {
+                  "name": "rare",
+                  "label": "Rare"
+                },
+                {
+                  "name": "medium",
+                  "label": "Medium"
+                },
+                {
+                  "name": "well-done",
+                  "label": "Well done"
+                }
+              ],
+              "configurable": true
+            }
+          ]
+        }
+      ],
+      "default": "Pizza",
+      "type": "selector",
+      "configurable": true,
+      "optional": false,
+      "label": "Food Choices"
+    },
+    {
+      "description": "Example of simple credentials type",
+      "name": "my_creds",
+      "optional": false,
+      "configurable": true,
+      "type": "simple_credentials",
+      "label": "Simple Credentials"
+    },
+    {
+      "name": "username",
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "constraints": [
+        {
+          "must_match_regex": "^[^!@#$%^&*()]*$",
+          "error_message": "This name cannot contain capital digits."
+        }
+      ],
+      "label": "Username"
+    },
+    {
+      "optional": false,
+      "configurable": true,
+      "type": "secret",
+      "name": "password",
+      "label": "Password"
+    },
+    {
+      "description": "Maximum amount of time to allow canaries to take before going healthy",
+      "name": "canary_watch_timeout",
+      "optional": false,
+      "configurable": true,
+      "type": "integer",
+      "label": "Canary Watch Timeout"
+    },
+    {
+      "description": "Maximum amount of time to allow non-canaries to take before going healthy",
+      "name": "update_watch_timeout",
+      "optional": false,
+      "configurable": true,
+      "type": "integer",
+      "label": "Update Watch Timeout"
+    },
+    {
+      "description": "Choose whether or not to enable this feature.",
+      "default": "feature_disabled",
+      "type": "selector",
+      "label": "Enable this feature?",
+      "option_templates": [
+        {
+          "select_value": "feature_enabled",
+          "label": "Enable feature",
+          "description": "Enable this feature (requires more config).",
+          "name": "feature_enabled",
+          "property_blueprints": [
+            {
+              "label": "Configure this feature",
+              "type": "string",
+              "name": "feature_config",
+              "configurable": true
+            }
+          ]
+        },
+        {
+          "select_value": "feature_disabled",
+          "label": "Disable feature",
+          "description": "Disable this feature (no more config).",
+          "name": "feature_disabled"
+        }
+      ],
+      "configurable": true,
+      "optional": false,
+      "name": "is_feature_enabled"
+    },
+    {
+      "name": "planets",
+      "type": "multi_select_options",
+      "label": "Planets",
+      "optional": true,
+      "options": [
+        {
+          "name": "mercury",
+          "label": "mercury"
+        },
+        {
+          "name": "Venus",
+          "label": "venus"
+        },
+        {
+          "name": "Earth",
+          "label": "earth"
+        },
+        {
+          "name": "Mars",
+          "label": "mars"
+        },
+        {
+          "name": "Jupiter",
+          "label": "jupiter"
+        },
+        {
+          "name": "Saturn",
+          "label": "saturn"
+        },
+        {
+          "name": "Uranus",
+          "label": "uranus"
+        },
+        {
+          "name": "Neptune",
+          "label": "neptune"
+        }
+      ],
+      "configurable": true
+    },
+    {
+      "name": "app_instances",
+      "default": 2,
+      "optional": false,
+      "configurable": true,
+      "type": "integer",
+      "label": "Dynamic app instance count"
+    },
+    {
+      "name": "auto_service_name",
+      "default": "tg-test-broker1-service",
+      "optional": false,
+      "configurable": true,
+      "type": "string",
+      "label": "Auto services service name"
+    }
+  ],
+  "pre_delete_errands": [
+    {
+      "name": "delete-all"
+    }
+  ],
+  "releases": [
+    {
+      "is_cf": true,
+      "jobs": [
+        {
+          "name": "docker-bosh-tg_test_app4",
+          "template": "docker-bosh",
+          "package": {
+            "files": [
+              {
+                "path": "docker:guidowb/sample-cf-app",
+                "name": "guidowb-sample-cf-app.tgz"
+              }
+            ],
+            "ephemeral_disk": 4096,
+            "properties": {
+              "tg_test_app4": {
+                "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+                "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+                "name": "tg_test_app4"
+              }
+            },
+            "name": "tg_test_app4",
+            "docker_images": [
+              "guidowb/sample-cf-app"
+            ],
+            "is_docker_bosh": true,
+            "manifest": {
+              "containers": [
+                {
+                  "bind_ports": [
+                    "80:80",
+                    "443:443",
+                    "8080:8080",
+                    "8443:8443"
+                  ],
+                  "image": "guidowb/sample-cf-app",
+                  "env_file": [
+                    "/var/vcap/jobs/docker-bosh-tg_test_app4/bin/opsmgr.env"
+                  ],
+                  "name": "app"
+                }
+              ]
+            },
+            "instances": 1,
+            "is_docker": true,
+            "persistent_disk": 2048,
+            "memory": 512,
+            "routes": [
+              {
+                "prefix": "my-route",
+                "port": 8080
+              }
+            ],
+            "type": "docker-bosh",
+            "cpu": 2,
+            "requires_docker_bosh": true
+          },
+          "type": "docker-bosh-tg_test_app4",
+          "properties": {},
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "space": "(( .properties.space.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "author": "(( .properties.author.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          }
+        },
+        {
+          "name": "deploy-all",
+          "template": "deploy-all",
+          "post_deploy": true,
+          "lifecycle": "errand",
+          "type": "deploy-all",
+          "properties": {},
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "space": "(( .properties.space.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "author": "(( .properties.author.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "user": "(( .deploy-all.app_credentials.identity ))",
+              "password": "(( .deploy-all.app_credentials.password ))",
+              "auto_services": [],
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "user": "(( .deploy-all.app_credentials.identity ))",
+              "password": "(( .deploy-all.app_credentials.password ))",
+              "auto_services": [],
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "security": {
+              "password": "(( .deploy-all.app_credentials.password ))",
+              "user": "(( .deploy-all.app_credentials.identity ))"
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          }
+        },
+        {
+          "properties": {},
+          "pre_delete": true,
+          "template": "delete-all",
+          "name": "delete-all",
+          "type": "delete-all",
+          "lifecycle": "errand",
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "space": "(( .properties.space.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "author": "(( .properties.author.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          }
+        }
+      ],
+      "name": "test-tile",
+      "consumes_cross_deployment": {
+        "nats": {
+          "from": "nats",
+          "deployment": "(( ..cf.deployment_name ))"
+        }
+      },
+      "requires_docker_bosh": true,
+      "requires_meta_buildpack": true,
+      "packages": [
+        {
+          "files": [
+            {
+              "path": "resources/app.zip",
+              "name": "app.zip"
+            }
+          ],
+          "is_cf": true,
+          "name": "tg_test_app1",
+          "type": "app",
+          "manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "memory": "256M",
+            "command": "python app.py",
+            "instances": "(( .properties.app_instances.value ))"
+          },
+          "is_app": true,
+          "app_manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "memory": "256M",
+            "command": "python app.py",
+            "instances": "(( .properties.app_instances.value ))"
+          },
+          "requires_cf_cli": true,
+          "properties": {
+            "tg_test_app1": {
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "memory": "256M",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))"
+              },
+              "auto_services": [],
+              "name": "tg_test_app1"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "src/app",
+              "name": "app"
+            }
+          ],
+          "is_cf": true,
+          "name": "tg_test_app1_auto_zip",
+          "type": "app",
+          "manifest": {
+            "path": "app",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "is_app": true,
+          "app_manifest": {
+            "path": "app",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "requires_cf_cli": true,
+          "properties": {
+            "tg_test_app1_auto_zip": {
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              },
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "src/binary-app/binary-app.py",
+              "name": "binary-app.py"
+            }
+          ],
+          "is_cf": true,
+          "name": "tg_test_binary_app",
+          "type": "app",
+          "manifest": {
+            "path": "binary-app.py",
+            "buildpack": "binary_buildpack",
+            "command": "./binary-app.py",
+            "memory": "256M"
+          },
+          "is_app": true,
+          "app_manifest": {
+            "path": "binary-app.py",
+            "buildpack": "binary_buildpack",
+            "command": "./binary-app.py",
+            "memory": "256M"
+          },
+          "requires_cf_cli": true,
+          "properties": {
+            "tg_test_binary_app": {
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              },
+              "auto_services": [],
+              "name": "tg_test_binary_app"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "resources/app.zip",
+              "name": "app.zip"
+            }
+          ],
+          "is_cf": true,
+          "name": "tg_test_broker1",
+          "enable_global_access_to_plans": true,
+          "type": "app-broker",
+          "is_broker_app": true,
+          "manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "is_app": true,
+          "is_broker": true,
+          "app_manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "requires_cf_cli": true,
+          "properties": {
+            "tg_test_broker1": {
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              },
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "name": "tg_test_broker1"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "resources/app.zip",
+              "name": "app.zip"
+            }
+          ],
+          "is_cf": true,
+          "needs_cf_credentials": true,
+          "health_check": "none",
+          "name": "tg_test_app2",
+          "type": "app",
+          "app_manifest": {
+            "path": "app.zip",
+            "host": "tg-test-app2-hostname",
+            "command": "python app.py",
+            "buildpack": "python_buildpack",
+            "memory": "256M"
+          },
+          "is_app": true,
+          "properties": {
+            "tg_test_app2": {
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              },
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2"
+            }
+          },
+          "auto_services": [
+            {
+              "name": "tg-test-broker1-service",
+              "plan": "first-plan"
+            },
+            {
+              "name": "(( .properties.auto_service_name.value ))"
+            }
+          ],
+          "manifest": {
+            "path": "app.zip",
+            "host": "tg-test-app2-hostname",
+            "command": "python app.py",
+            "buildpack": "python_buildpack",
+            "memory": "256M"
+          },
+          "requires_cf_cli": true,
+          "consumes": {
+            "nats": {
+              "from": "nats",
+              "deployment": "(( ..cf.deployment_name ))"
+            },
+            "redis": {
+              "from": "redis"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "resources/app.zip",
+              "name": "app.zip"
+            }
+          ],
+          "is_cf": true,
+          "properties": {
+            "tg_test_broker2": {
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              },
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "name": "tg_test_broker2"
+            }
+          },
+          "internal_service_names": [
+            "service1",
+            "service2"
+          ],
+          "name": "tg_test_broker2",
+          "requires_cf_cli": true,
+          "is_broker_app": true,
+          "manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "is_app": true,
+          "is_broker": true,
+          "app_manifest": {
+            "path": "app.zip",
+            "buildpack": "python_buildpack",
+            "command": "python app.py",
+            "memory": "256M"
+          },
+          "type": "app-broker",
+          "consumes": {
+            "nats": {
+              "from": "nats",
+              "deployment": "(( ..cf.deployment_name ))"
+            },
+            "redis": {
+              "from": "redis"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "resources/buildpack.zip",
+              "name": "buildpack.zip"
+            }
+          ],
+          "is_cf": true,
+          "name": "tg_test_buildpack",
+          "requires_cf_cli": true,
+          "is_buildpack": true,
+          "path": "buildpack.zip",
+          "buildpack_order": 99,
+          "type": "buildpack",
+          "properties": {
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "resources/decorator.zip",
+              "name": "decorator.zip"
+            }
+          ],
+          "is_cf": true,
+          "name": "tg_test_decorator",
+          "type": "decorator",
+          "is_buildpack": true,
+          "is_decorator": true,
+          "requires_meta_buildpack": true,
+          "path": "decorator.zip",
+          "requires_cf_cli": true,
+          "properties": {
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            }
+          }
+        },
+        {
+          "files": [],
+          "is_cf": true,
+          "name": "tg_test_app3",
+          "requires_cf_cli": true,
+          "image": "guidowb/sample-cf-app",
+          "is_docker_app": true,
+          "manifest": {
+            "memory": "256M"
+          },
+          "is_app": true,
+          "auto_services": [
+            {
+              "service_instance": "tg-test-svc",
+              "plan": "second-plan",
+              "name": "tg-test-broker1-service"
+            }
+          ],
+          "is_docker": true,
+          "app_manifest": {
+            "memory": "256M"
+          },
+          "type": "docker-app",
+          "properties": {
+            "tg_test_app3": {
+              "app_manifest": {
+                "memory": "256M"
+              },
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "plan": "second-plan",
+                  "name": "tg-test-broker1-service"
+                }
+              ],
+              "name": "tg_test_app3"
+            }
+          }
+        },
+        {
+          "files": [
+            {
+              "path": "docker:guidowb/sample-cf-app",
+              "name": "guidowb-sample-cf-app.tgz"
+            }
+          ],
+          "ephemeral_disk": 4096,
+          "properties": {
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            }
+          },
+          "name": "tg_test_app4",
+          "docker_images": [
+            "guidowb/sample-cf-app"
+          ],
+          "is_docker_bosh": true,
+          "manifest": {
+            "containers": [
+              {
+                "bind_ports": [
+                  "80:80",
+                  "443:443",
+                  "8080:8080",
+                  "8443:8443"
+                ],
+                "image": "guidowb/sample-cf-app",
+                "env_file": [
+                  "/var/vcap/jobs/docker-bosh-tg_test_app4/bin/opsmgr.env"
+                ],
+                "name": "app"
+              }
+            ]
+          },
+          "instances": 1,
+          "is_docker": true,
+          "persistent_disk": 2048,
+          "memory": 512,
+          "routes": [
+            {
+              "prefix": "my-route",
+              "port": 8080
+            }
+          ],
+          "type": "docker-bosh",
+          "cpu": 2,
+          "requires_docker_bosh": true
+        },
+        {
+          "files": [
+            {
+              "path": "/home/user/workspace/tile-generator/tile_generator/templates/src/common/utils.sh",
+              "name": "utils.sh"
+            }
+          ],
+          "name": "common",
+          "dir": "src",
+          "template": "common"
+        },
+        {
+          "files": [
+            {
+              "path": "http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel",
+              "name": "cf-linux-amd64.tgz"
+            },
+            {
+              "path": "/home/user/workspace/tile-generator/tile_generator/templates/src/templates/all_open.json",
+              "name": "all_open.json"
+            }
+          ],
+          "name": "cf_cli",
+          "dir": "blobs",
+          "template": "cf_cli"
+        }
+      ],
+      "requires_cf_cli": true,
+      "consumes": {
+        "nats": {
+          "from": "nats",
+          "deployment": "(( ..cf.deployment_name ))"
+        },
+        "redis": {
+          "from": "redis"
+        }
+      }
+    },
+    {
+      "jobs": [
+        {
+          "templates": [
+            {
+              "release": "redis",
+              "name": "redis"
+            }
+          ],
+          "dynamic_ip": 1,
+          "template": "redis",
+          "static_ip": 0,
+          "instances": 2,
+          "default_internet_connected": false,
+          "properties": {
+            "password": "red!s"
+          },
+          "is_static": false,
+          "ephemeral_disk": 4096,
+          "name": "redis",
+          "varname": "redis",
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "author": "(( .properties.author.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "space": "(( .properties.space.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          },
+          "max_in_flight": 1,
+          "persistent_disk": 4096,
+          "memory": 512,
+          "type": "redis",
+          "cpu": 2
+        },
+        {
+          "templates": [
+            {
+              "release": "redis",
+              "name": "sanity-tests"
+            }
+          ],
+          "dynamic_ip": 1,
+          "template": "sanity-tests",
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "some": "property",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "space": "(( .properties.space.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "author": "(( .properties.author.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          },
+          "properties": {
+            "cf": {
+              "some": "property"
+            }
+          },
+          "is_static": false,
+          "ephemeral_disk": 4096,
+          "name": "sanity-tests",
+          "post_deploy": true,
+          "varname": "sanity_tests",
+          "lifecycle": "errand",
+          "persistent_disk": 0,
+          "memory": 512,
+          "run_post_deploy_errand_default": "when-changed",
+          "type": "sanity-tests",
+          "cpu": 2
+        }
+      ],
+      "name": "tg_test_app5",
+      "path": "resources/redis-13.1.2.tgz",
+      "is_bosh_release": true,
+      "type": "bosh-release",
+      "properties": {
+        "tg_test_app5": {
+          "name": "tg_test_app5"
+        }
+      }
+    },
+    {
+      "path": "https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease",
+      "name": "docker-boshrelease"
+    },
+    {
+      "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release",
+      "name": "routing"
+    },
+    {
+      "path": "github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz",
+      "jobs": [
+        {
+          "name": "deploy-meta-buildpack",
+          "template": "deploy-all",
+          "post_deploy": true,
+          "lifecycle": "errand",
+          "type": "deploy-all",
+          "properties": {},
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "space": "(( .properties.space.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "author": "(( .properties.author.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "user": "(( .deploy-meta-buildpack.app_credentials.identity ))",
+              "password": "(( .deploy-meta-buildpack.app_credentials.password ))",
+              "auto_services": [],
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "user": "(( .deploy-meta-buildpack.app_credentials.identity ))",
+              "password": "(( .deploy-meta-buildpack.app_credentials.password ))",
+              "auto_services": [],
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "security": {
+              "password": "(( .deploy-meta-buildpack.app_credentials.password ))",
+              "user": "(( .deploy-meta-buildpack.app_credentials.identity ))"
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          }
+        },
+        {
+          "properties": {},
+          "pre_delete": true,
+          "template": "delete-all",
+          "name": "delete-meta-buildpack",
+          "type": "delete-all",
+          "lifecycle": "errand",
+          "manifest": {
+            "domain": "(( ..cf.cloud_controller.system_domain.value ))",
+            "example_selector": {
+              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.example_selector.value ))"
+            },
+            "auto_service_name": "(( .properties.auto_service_name.value ))",
+            "tg_test_app1_auto_zip": {
+              "auto_services": [],
+              "name": "tg_test_app1_auto_zip",
+              "app_manifest": {
+                "path": "app",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "cf": {
+              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))",
+              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))"
+            },
+            "tg_test_buildpack": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
+              "name": "tg_test_buildpack"
+            },
+            "planets": "(( .properties.planets.value ))",
+            "app_instances": "(( .properties.app_instances.value ))",
+            "customer_name": "(( .properties.customer_name.value ))",
+            "app_domains": [
+              "(( ..cf.cloud_controller.apps_domain.value ))"
+            ],
+            "city": "(( .properties.city.value ))",
+            "space": "(( .properties.space.value ))",
+            "is_feature_enabled": {
+              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))",
+              "value": "(( .properties.is_feature_enabled.value ))"
+            },
+            "zip_code": "(( .properties.zip_code.value ))",
+            "username": "(( .properties.username.value ))",
+            "tg_test_app4": {
+              "host": "(( .docker-bosh-tg_test_app4.first_ip ))",
+              "hosts": "(( .docker-bosh-tg_test_app4.ips ))",
+              "name": "tg_test_app4"
+            },
+            "tg_test_app5": {
+              "name": "tg_test_app5"
+            },
+            "tg_test_app2": {
+              "auto_services": [
+                {
+                  "name": "tg-test-broker1-service",
+                  "plan": "first-plan"
+                },
+                {
+                  "name": "(( .properties.auto_service_name.value ))"
+                }
+              ],
+              "name": "tg_test_app2",
+              "app_manifest": {
+                "path": "app.zip",
+                "host": "tg-test-app2-hostname",
+                "command": "python app.py",
+                "buildpack": "python_buildpack",
+                "memory": "256M"
+              }
+            },
+            "tg_test_app3": {
+              "auto_services": [
+                {
+                  "service_instance": "tg-test-svc",
+                  "name": "tg-test-broker1-service",
+                  "plan": "second-plan"
+                }
+              ],
+              "name": "tg_test_app3",
+              "app_manifest": {
+                "memory": "256M"
+              }
+            },
+            "tg_test_app1": {
+              "auto_services": [],
+              "name": "tg_test_app1",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "instances": "(( .properties.app_instances.value ))",
+                "memory": "256M"
+              }
+            },
+            "my_creds": {
+              "password": "(( .properties.my_creds.password ))",
+              "identity": "(( .properties.my_creds.identity ))"
+            },
+            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
+            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))",
+            "ssl": {
+              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
+            },
+            "org": "(( .properties.org.value ))",
+            "password": "(( .properties.password.value ))",
+            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))",
+            "tg_test_binary_app": {
+              "auto_services": [],
+              "name": "tg_test_binary_app",
+              "app_manifest": {
+                "path": "binary-app.py",
+                "buildpack": "binary_buildpack",
+                "command": "./binary-app.py",
+                "memory": "256M"
+              }
+            },
+            "country": "(( .properties.country.value ))",
+            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))",
+            "author": "(( .properties.author.value ))",
+            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))",
+            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))",
+            "tg_test_decorator": {
+              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))",
+              "name": "tg_test_decorator"
+            },
+            "tg_test_broker1": {
+              "name": "tg_test_broker1",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "tg_test_broker2": {
+              "name": "tg_test_broker2",
+              "auto_services": [],
+              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))",
+              "app_manifest": {
+                "path": "app.zip",
+                "buildpack": "python_buildpack",
+                "command": "python app.py",
+                "memory": "256M"
+              }
+            },
+            "example_collection": "(( .properties.example_collection.value ))",
+            "street_address": "(( .properties.street_address.value ))"
+          }
+        }
+      ],
+      "name": "meta-buildpack"
+    }
+  ],
+  "space": "test-tile-space",
+  "name": "test-tile",
+  "allow_paid_service_plans": true,
+  "label": "Generated Test Tile",
+  "forms": [
+    {
+      "label": "Contact Info",
+      "properties": [
+        {
+          "type": "string",
+          "configurable": true,
+          "optional": true,
+          "name": "customer_name",
+          "label": "Full Name"
+        },
+        {
+          "description": "Address to use for junk mail",
+          "name": "street_address",
+          "type": "string",
+          "configurable": true,
+          "optional": false,
+          "label": "Street Address"
+        },
+        {
+          "optional": false,
+          "configurable": true,
+          "type": "string",
+          "name": "city",
+          "label": "City"
+        },
+        {
+          "name": "zip_code",
+          "default": "90310",
+          "optional": false,
+          "configurable": true,
+          "type": "string",
+          "label": "ZIP+4"
+        },
+        {
+          "name": "country",
+          "optional": false,
+          "configurable": true,
+          "type": "dropdown_select",
+          "options": [
+            {
+              "default": true,
+              "name": "country_us",
+              "label": "US"
+            },
+            {
+              "name": "country_elsewhere",
+              "label": "Elsewhere"
+            }
+          ],
+          "label": "Country"
+        }
+      ],
+      "name": "contact_form",
+      "description": "Examples of basic property types"
+    },
+    {
+      "label": "Albums",
+      "properties": [
+        {
+          "name": "example_collection",
+          "default": [
+            {
+              "album": "Christmas Carols",
+              "explicit": true,
+              "artist": "Ops Manatee"
+            }
+          ],
+          "type": "collection",
+          "property_blueprints": [
+            {
+              "type": "string",
+              "name": "album",
+              "label": "Album"
+            },
+            {
+              "type": "string",
+              "name": "artist",
+              "label": "Artist"
+            },
+            {
+              "type": "boolean",
+              "name": "explicit",
+              "label": "Explicit"
+            }
+          ],
+          "configurable": true,
+          "optional": false,
+          "label": "Albums"
+        }
+      ],
+      "name": "albums_form",
+      "description": "Example of collection property type"
+    },
+    {
+      "label": "Food Order",
+      "properties": [
+        {
+          "name": "example_selector",
+          "option_templates": [
+            {
+              "select_value": "Pizza",
+              "name": "pizza_option",
+              "property_blueprints": [
+                {
+                  "label": "Pepperoni",
+                  "type": "boolean",
+                  "name": "pepperoni",
+                  "configurable": true
+                },
+                {
+                  "label": "Pineapple",
+                  "type": "boolean",
+                  "name": "pineapple",
+                  "configurable": true
+                },
+                {
+                  "type": "string",
+                  "label": "Other Toppings",
+                  "optional": true,
+                  "name": "other_toppings",
+                  "configurable": true
+                }
+              ]
+            },
+            {
+              "select_value": "Filet Mignon",
+              "name": "filet_mignon_option",
+              "property_blueprints": [
+                {
+                  "label": "Complex type inside selector",
+                  "type": "simple_credentials",
+                  "name": "steak_creds",
+                  "configurable": true
+                },
+                {
+                  "name": "rarity_dropdown",
+                  "default": "rare",
+                  "label": "How rare?",
+                  "type": "dropdown_select",
+                  "options": [
+                    {
+                      "name": "rare",
+                      "label": "Rare"
+                    },
+                    {
+                      "name": "medium",
+                      "label": "Medium"
+                    },
+                    {
+                      "name": "well-done",
+                      "label": "Well done"
+                    }
+                  ],
+                  "configurable": true
+                }
+              ]
+            }
+          ],
+          "default": "Pizza",
+          "type": "selector",
+          "configurable": true,
+          "optional": false,
+          "label": "Food Choices"
+        }
+      ],
+      "name": "food_form",
+      "description": "Example of selector property type"
+    },
+    {
+      "label": "Credentials",
+      "properties": [
+        {
+          "description": "Example of simple credentials type",
+          "name": "my_creds",
+          "optional": false,
+          "configurable": true,
+          "type": "simple_credentials",
+          "label": "Simple Credentials"
+        },
+        {
+          "name": "username",
+          "optional": false,
+          "configurable": true,
+          "type": "string",
+          "constraints": [
+            {
+              "must_match_regex": "^[^!@#$%^&*()]*$",
+              "error_message": "This name cannot contain capital digits."
+            }
+          ],
+          "label": "Username"
+        },
+        {
+          "optional": false,
+          "configurable": true,
+          "type": "secret",
+          "name": "password",
+          "label": "Password"
+        }
+      ],
+      "name": "credentials_form",
+      "description": "Examples of secret property types"
+    },
+    {
+      "label": "Update Settings",
+      "properties": [
+        {
+          "description": "Maximum amount of time to allow canaries to take before going healthy",
+          "name": "canary_watch_timeout",
+          "optional": false,
+          "configurable": true,
+          "type": "integer",
+          "label": "Canary Watch Timeout"
+        },
+        {
+          "description": "Maximum amount of time to allow non-canaries to take before going healthy",
+          "name": "update_watch_timeout",
+          "optional": false,
+          "configurable": true,
+          "type": "integer",
+          "label": "Update Watch Timeout"
+        }
+      ],
+      "name": "update_form",
+      "description": "Example of user-configured update Settings"
+    },
+    {
+      "label": "Selector without subproperties",
+      "properties": [
+        {
+          "description": "Choose whether or not to enable this feature.",
+          "default": "feature_disabled",
+          "type": "selector",
+          "label": "Enable this feature?",
+          "option_templates": [
+            {
+              "select_value": "feature_enabled",
+              "label": "Enable feature",
+              "description": "Enable this feature (requires more config).",
+              "name": "feature_enabled",
+              "property_blueprints": [
+                {
+                  "label": "Configure this feature",
+                  "type": "string",
+                  "name": "feature_config",
+                  "configurable": true
+                }
+              ]
+            },
+            {
+              "select_value": "feature_disabled",
+              "label": "Disable feature",
+              "description": "Disable this feature (no more config).",
+              "name": "feature_disabled"
+            }
+          ],
+          "configurable": true,
+          "optional": false,
+          "name": "is_feature_enabled"
+        }
+      ],
+      "name": "selector_without_subproperties",
+      "description": "Configure this feature."
+    },
+    {
+      "label": "Multi-Select Example",
+      "properties": [
+        {
+          "name": "planets",
+          "type": "multi_select_options",
+          "label": "Planets",
+          "optional": true,
+          "options": [
+            {
+              "name": "mercury",
+              "label": "mercury"
+            },
+            {
+              "name": "Venus",
+              "label": "venus"
+            },
+            {
+              "name": "Earth",
+              "label": "earth"
+            },
+            {
+              "name": "Mars",
+              "label": "mars"
+            },
+            {
+              "name": "Jupiter",
+              "label": "jupiter"
+            },
+            {
+              "name": "Saturn",
+              "label": "saturn"
+            },
+            {
+              "name": "Uranus",
+              "label": "uranus"
+            },
+            {
+              "name": "Neptune",
+              "label": "neptune"
+            }
+          ],
+          "configurable": true
+        }
+      ],
+      "name": "planets_form"
+    },
+    {
+      "label": "App manifest config",
+      "properties": [
+        {
+          "name": "app_instances",
+          "default": 2,
+          "optional": false,
+          "configurable": true,
+          "type": "integer",
+          "label": "Dynamic app instance count"
+        }
+      ],
+      "name": "app_manifest_form"
+    },
+    {
+      "label": "Auto services config",
+      "properties": [
+        {
+          "name": "auto_service_name",
+          "default": "tg-test-broker1-service",
+          "optional": false,
+          "configurable": true,
+          "type": "string",
+          "label": "Auto services service name"
+        }
+      ],
+      "name": "auto_services_form"
+    }
+  ],
+  "version": "0.0.1",
+  "purge_service_brokers": true,
+  "requires_docker_bosh": true,
+  "service_broker": false,
+  "sha1": false,
+  "history": {
+    "version": "0.0.1"
+  }
+}

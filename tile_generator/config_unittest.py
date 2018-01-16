@@ -71,8 +71,8 @@ class TestUltimateForm(BaseTest):
 		cfg.set_sha1(False)
 		cfg.set_cache(None)
 
-		with open(test_path + '/test_config_expected_output', 'r') as f:
-			expected_output = yaml.load(f.read())
+		with open(test_path + '/test_config_expected_output.json', 'r') as f:
+			expected_output = json.load(f)
 
 		ignored_keys = ['history', 'icon_file', 'compilation_vm_disk_size','requires_cf_cli',
 						'is_broker_app', 'is_decorator',
@@ -150,12 +150,11 @@ class TestUltimateForm(BaseTest):
 			else:
 				self.assertEquals(expected, given, (path, 'Expected to have the value:\n%s\nHowever, instead got:\n%s' % (expected, given)))
 
-
 		for release in cfg['releases']:
-                    if release.has_key('consumes_for_deployment'):
-                        self.assertDictEqual({'from': 'redis'}, release['consumes_for_deployment']['redis'])
-                        # Remove it so it is compatible with the OLD expected output
-                        release['consumes_for_deployment'].pop('redis')
+			if release.has_key('consumes_for_deployment'):
+				self.assertDictEqual({'from': 'redis'}, release['consumes_for_deployment']['redis'])
+				# Remove it so it is compatible with the OLD expected output
+				release['consumes_for_deployment'].pop('redis')
 
 		# Hacky way to turn config object into a plain dict
 		d_cfg = json.loads(json.dumps(cfg))
@@ -608,6 +607,13 @@ class TestTileSimpleFields(BaseTest):
 		self.config.validate()
 		self.assertIn('metadata_version', self.config.tile_metadata)
 		self.assertEqual(self.config.tile_metadata['metadata_version'], '1.8')
+
+	def test_sets_service_broker(self):
+		self.config.update({'service_broker': True})
+		self.config.validate()
+		self.assertIn('service_broker', self.config.tile_metadata)
+		self.assertTrue(self.config.tile_metadata['service_broker'])
+
 
 class TestTileIconFile(BaseTest):
 	def test_requires_icon_file(self):
