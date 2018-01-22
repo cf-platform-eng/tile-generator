@@ -167,10 +167,27 @@ class Config(dict):
 					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
-			'runtime_configs': {'type': 'list', 'default': [], 'schema': {
+			'runtime_configs': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
-					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
-					'runtime_config': {'type': 'string', 'required': True}}}}
+					'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+					'releases': {'type': 'list', 'schema': {
+						'type': 'dict', 'schema': {
+							'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+							'version': {'type': 'number', 'required': True},
+					}}},
+					'runtime_config': {'required': True, 'type': 'dict', 'schema': {
+						'addons': {'required': True, 'type': 'list', 'schema': {
+							'type': 'dict', 'schema': {
+								'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+								'jobs': {'required': True, 'type': 'list', 'schema': {
+									'type': 'dict', 'schema': {
+										'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+										'properties': {'type': 'dict'},
+										'release': {'type': 'string', 'required': True}
+								}}}
+						}}}
+					}}
+			}}}
 		}
 
 		self.update(self._validator.validate(self, schema))
@@ -232,6 +249,9 @@ class Config(dict):
 		self.tile_metadata['service_broker'] = self['service_broker']
 
 		# TODO: this probably should also be handled differently
+		for runtime_conf in self.get('runtime_configs', {}):
+			if runtime_conf.get('runtime_config'):
+				runtime_conf['runtime_config'] = yaml.dump(runtime_conf['runtime_config'], default_flow_style=False)
 		self.tile_metadata['runtime_configs'] = self.get('runtime_configs')
 
 

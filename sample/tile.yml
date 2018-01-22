@@ -408,7 +408,7 @@ packages:
 
 runtime_configs:
   - name: tg-test-addon
-    runtime_config: |
+    runtime_config:
       releases:
       - name: redis
         version: 15
