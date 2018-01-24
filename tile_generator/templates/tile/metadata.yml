@@ -239,7 +239,19 @@ form_types:
     description: "Enable global access to plans in the marketplace"
 {% endfor %}
 
-job_types:
+{% set job_types = [] %}
+{% for release in releases.values() %}
+{% for job in release.jobs if job.template and job.template == 'docker-bosh' %}
+{% do job_types.append(job.name) %}
+{% endfor %}
+{% endfor %}
+{% for release in releases.values() if not release['package-type'] == 'bosh-release' %}
+{% for job in release.jobs if not job.template == 'docker-bosh' %}
+{% do job_types.append(job.name) %}
+{% endfor %}
+{% endfor %}
+job_types: {% if not job_types %}[]{% endif %}
+
 {% if metadata_version < 1.8 %}
 #
 # Default compilation job
@@ -582,23 +594,35 @@ runtime_configs:
 {% endfor %}
 {% endif %}
 
-post_deploy_errands:
+{% set post_deploy_errands = [] %}
 {% for release in releases.values() %}
 {% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.post_deploy %}
-- name: {{ job.name }}
+{% do post_deploy_errands.append(job.name) %}
 {% endif %}
 {% endfor %}
 {% endfor %}
+post_deploy_errands: {% if not post_deploy_errands %}[]{% else %}
 
-pre_delete_errands:
+{% for job_name in post_deploy_errands %}
+- name: {{ job_name }}
+{% endfor %}
+{% endif %}
+
+{% set pre_delete_errands = [] %}
 {% for release in releases.values() %}
 {% for job in release.jobs %}
 {% if job.lifecycle and job.lifecycle == 'errand' and job.pre_delete %}
-- name: {{ job.name }}
+{% do pre_delete_errands.append(job.name) %}
 {% endif %}
 {% endfor %}
 {% endfor %}
+pre_delete_errands: {% if not pre_delete_errands %}[]{% else %}
+
+{% for job_name in pre_delete_errands %}
+- name: {{ job_name }}
+{% endfor %}
+{% endif %}
 
 update:
   canaries: {{ ( update and update.canaries ) or 1 }}

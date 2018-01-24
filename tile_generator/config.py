@@ -138,6 +138,13 @@ class Config(dict):
 		self.normalize_jobs()
 
 	def _validate_base_config(self):
+		# Disallow keywords, until a more strict schema can be used ie. disable allow_unknown
+		keywords = ['releases', 'all_properties']
+		for key in self.keys():
+			if key in keywords:
+				print('The key: %s is a protected keyword and cannot be used' % key, file=sys.stderr)
+				sys.exit(1)
+
 		schema = {
 			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
 			'service_broker': {'type': 'boolean', 'required': False, 'default': False},
@@ -174,7 +181,7 @@ class Config(dict):
 						'releases': {'required': True, 'type': 'list', 'schema': {
 							'type': 'dict', 'schema': {
 								'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
-								'version': {'type': 'string', 'required': True},
+								'version': {'type': 'string', 'required': True,'coerce': lambda x: str(x)},
 						}}},
 						'addons': {'required': True, 'type': 'list', 'schema': {
 							'type': 'dict', 'schema': {

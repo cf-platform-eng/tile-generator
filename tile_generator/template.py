@@ -165,7 +165,7 @@ def render(context, input):
 	template = Template(input)
 	return template.render(context)
 
-TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True)
+TEMPLATE_ENVIRONMENT = Environment(trim_blocks=True, lstrip_blocks=True, extensions=['jinja2.ext.do'])
 TEMPLATE_ENVIRONMENT.loader = FileSystemLoader(TEMPLATE_PATH)
 TEMPLATE_ENVIRONMENT.filters['hyphens'] = render_hyphens
 TEMPLATE_ENVIRONMENT.filters['expand_selector'] = expand_selector
