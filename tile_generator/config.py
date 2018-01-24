@@ -69,6 +69,15 @@ def merge_dict(dct, merge_dct):
 		else:
 			dct[k] = copy.deepcopy(merge_dct[k])
 
+# Pulling out from Config._validate to global for easy testing
+def _base64_img(image):
+			try:
+				with open(image, 'rb') as f:
+					return base64.b64encode(f.read())
+			except Exception as e:
+				print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
+				sys.exit(1)
+
 
 class Config(dict):
 
@@ -129,20 +138,12 @@ class Config(dict):
 		self.normalize_jobs()
 
 	def _validate_base_config(self):
-		def base64_img(image):
-			try:
-				with open(image, 'rb') as f:
-					return base64.b64encode(f.read())
-			except Exception as e:
-				print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
-				sys.exit(1)
-
 		schema = {
 			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
 			'service_broker': {'type': 'boolean', 'required': False, 'default': False},
 			'label': {'type': 'string', 'required': True},
 			'description': {'type': 'string', 'required': True},
-			'icon_file': {'type': 'string', 'required': True, 'coerce': base64_img},
+			'icon_file': {'type': 'string', 'required': True, 'coerce': _base64_img},
 			'metadata_version': {'type': 'number', 'default': 1.8},
 			'stemcell_criteria': {'type': 'dict', 'default': self.default_stemcell(), 'schema': {
 				'os': {'type': 'string'}, 'version': {'type': 'string'}}},
