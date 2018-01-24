@@ -59,10 +59,11 @@ class BaseTest(unittest.TestCase):
 
 
 @mock.patch('tile_generator.config.Config.read_history')
+@mock.patch('tile_generator.config._base64_img')
 class TestUltimateForm(BaseTest):
-	def test_diff_final_config_obj(self, mock_read_history):
+	def test_diff_final_config_obj(self, mock_read_history, mock_base64_img):
 		test_path = os.path.dirname(__file__)
-		cfg_file_path = os.path.join(test_path, 'test_sample_tile.yml')
+		cfg_file_path = os.path.join(test_path, '../sample/tile.yml')
 
 		with mock.patch('tile_generator.config.CONFIG_FILE', cfg_file_path):
 			cfg = self.config.read()
@@ -71,104 +72,81 @@ class TestUltimateForm(BaseTest):
 		cfg.set_sha1(False)
 		cfg.set_cache(None)
 
+		# Hacky way to turn config object into a plain dict
+		generated_output = json.loads(json.dumps(cfg))
+
 		with open(test_path + '/test_config_expected_output.json', 'r') as f:
 			expected_output = json.load(f)
-
-		ignored_keys = ['history', 'icon_file', 'compilation_vm_disk_size','requires_cf_cli',
-						'is_broker_app', 'is_decorator',
-						'requires_meta_buildpack', 'is_static',
-						'requires_docker_bosh', 'version']
-
-		# Remove obsolete keys from expected output
-		def remove_ignored_keys(obj):
-			if type(obj) is dict:
-				for k,v in obj.items():
-					if k in ignored_keys:
-						obj.pop(k)
-					remove_ignored_keys(v)
-			if type(obj) is list:
-				for item in obj:
-					remove_ignored_keys(item)
-
-		def fix_path(obj):
-			for release in obj['releases']:
-				for package in release.get('packages', []):
-					for f in package.get('files', []):
-						if 'tile_generator/templates/src/common/utils.sh' in f.get('path'):
-							f['path'] = 'tile_generator/templates/src/common/utils.sh'
-						if 'tile_generator/templates/src/templates/all_open.json' in f.get('path'):
-							f['path'] = 'tile_generator/templates/src/templates/all_open.json'
-
-		# Massage expected output to be compared
-		def handle_renamed_keys(obj):
-			for release in obj['releases']:
-				if release.get('consumes_cross_deployment'):
-					release['consumes_for_deployment'] = release.pop('consumes_cross_deployment')
-				if release.get('type'):
-					release['package-type'] = release.pop('type')
-				for package in release.get('packages', []):
-					if package.get('type'):
-						package['package-type'] = package.pop('type')
-				for job in release.get('jobs', []):
-					if job.get('package', {}).get('type'):
-						job['package']['package-type'] = job['package'].pop('type')
-			for package in obj['packages']:
-				package['package-type'] = package.pop('type')
-
-		remove_ignored_keys(expected_output)
-		handle_renamed_keys(expected_output)
-		fix_path(expected_output)
-
-		# Convert releases to a list of dicts instead of dict of dicts
-		cfg['releases'] = cfg['releases'].values()
-
-		def new_comparer(expected, given, path):
-			if type(expected) is dict:
-				self.assertTrue(type(given) is dict, (path, 'Expected to be a dict, but got %s' % type(given)))
-				for key in expected.keys():
-					self.assertTrue(given.has_key(key), 'The key %s is missing' % (path % key))
-					new_comparer(expected[key], given[key], path % key + '[%s]')
-
-			elif type(expected) is list:
-				total_length = len(expected)
-				self.assertTrue(type(given) is list, (path, 'Expected to be a list, but got %s' % type(given)))
-				self.assertEquals(total_length, len(given), (path, 'Expected to have length %s, but got %s' % (total_length, len(given))))
-				for index in range(total_length):
-					if type(expected[index]) is dict:
-						if expected[index].has_key('name'):
-							given_next = [e for e in given if e.get('name') == expected[index]['name']][0] or {}
-						else:
-							given_next = given[index]
-						new_comparer(expected[index], given_next, path % index + '[%s]')
-					elif type(expected[index]) is list:
-						expected = sorted(expected)
-						given = sorted(given)
-						new_comparer(expected[index], given[index], path % index + '[%s]')
-					else:
-						self.assertIn(expected[index], given, (path % index, 'Expected value:\n%s\nIs missing' % expected[index]))
-
-			else:
-				self.assertEquals(expected, given, (path, 'Expected to have the value:\n%s\nHowever, instead got:\n%s' % (expected, given)))
-
-		for release in cfg['releases']:
-			if release.has_key('consumes_for_deployment'):
-				self.assertDictEqual({'from': 'redis'}, release['consumes_for_deployment']['redis'])
-				# Remove it so it is compatible with the OLD expected output
-				release['consumes_for_deployment'].pop('redis')
-
-		# Hacky way to turn config object into a plain dict
-		d_cfg = json.loads(json.dumps(cfg))
+		
 		# Change the paths to files to be consistent
-		fix_path(d_cfg)
-		new_comparer(expected_output, d_cfg, '[%s]')
+		self.fix_path(generated_output)
+		self.fix_path(expected_output)
 
-		# Just to be double sure :)
-		expected = json.dumps(expected_output, sort_keys=True, indent=1).split('\n')
-		remove_ignored_keys(d_cfg)
-		generated = json.dumps(d_cfg, sort_keys=True, indent=1).split('\n')
+		# Remove keys whose values are dynamic and change with each run
+		self.remove_ignored_keys(generated_output)
+		self.remove_ignored_keys(expected_output)
+
+		# Ensure there is no extra elements in the generated output
+		expected = json.dumps(expected_output, sort_keys=True, indent=2).split('\n')
+		generated = json.dumps(generated_output, sort_keys=True, indent=2).split('\n')
 		self.assertEquals(len(expected), len(generated))
 		for line in expected:
 			self.assertIn(line, generated)
+
+	def fix_path(self, obj):
+		for release in obj['releases'].values():
+			for package in release.get('packages', []):
+				for f in package.get('files', []):
+					if 'tile_generator/templates/src/common/utils.sh' in f.get('path'):
+						f['path'] = 'tile_generator/templates/src/common/utils.sh'
+					if 'tile_generator/templates/src/templates/all_open.json' in f.get('path'):
+						f['path'] = 'tile_generator/templates/src/templates/all_open.json'
+
+	# Remove keys with dynamic values
+	def remove_ignored_keys(self, obj):
+		ignored_keys = ['history', 'compilation_vm_disk_size', 'version']
+
+		if type(obj) is dict:
+			for k,v in obj.items():
+				if k in ignored_keys:
+					obj.pop(k)
+				self.remove_ignored_keys(v)
+		if type(obj) is list:
+			for item in obj:
+				self.remove_ignored_keys(item)		
+
+	def deep_comparer(self, expected, given, path):
+		if type(expected) is dict:
+			self.assertTrue(type(given) is dict, (path, 
+				'Expected to be a dict, but got %s' % type(given)))
+			for key in expected.keys():
+				self.assertTrue(given.has_key(key), 'The key %s is missing' % (path % key))
+				self.deep_comparer(expected[key], given[key], path % key + '[%s]')
+
+		elif type(expected) is list:
+			total_length = len(expected)
+			self.assertTrue(type(given) is list, (path, 
+				'Expected to be a list, but got %s' % type(given)))
+			self.assertEquals(total_length, len(given), (path, 
+				'Expected to have length %s, but got %s' % (total_length, len(given))))
+			for index in range(total_length):
+				if type(expected[index]) is dict:
+					if expected[index].has_key('name'):
+						given_next = [e for e in given if e.get('name') == expected[index]['name']][0] or {}
+					else:
+						given_next = given[index]
+					self.deep_comparer(expected[index], given_next, path % index + '[%s]')
+				elif type(expected[index]) is list:
+					expected = sorted(expected)
+					given = sorted(given)
+					self.deep_comparer(expected[index], given[index], path % index + '[%s]')
+				else:
+					self.assertIn(expected[index], given, (path % index, 
+						'Expected value:\n%s\nIs missing' % expected[index]))
+
+		else:
+			self.assertEquals(expected, given, (path, 
+				'Expected to have the value:\n%s\nHowever, instead got:\n%s' % (expected, given)))
 
 
 class TestConfigValidation(BaseTest):
