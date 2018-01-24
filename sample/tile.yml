@@ -213,6 +213,14 @@ forms:
     label: Auto services service name
     default: tg-test-broker1-service
 
+- name: banner_form
+  label: Banner text config
+  properties:
+  - name: banner_text
+    type: string
+    label: Text for login banner
+    default: This banner was sponsored by runtime configs
+
 update:
   canary_watch_time: 10000-(( .properties.canary_watch_timeout ))
   update_watch_time: 10000-(( .properties.update_watch_timeout ))
@@ -407,16 +415,16 @@ packages:
         some: property
 
 runtime_configs:
-  - name: tg-test-addon
+  - name: example-runtime-config
     runtime_config:
       releases:
-      - name: redis
+      - name: os-conf
         version: 15
       addons:
-      - name: tg-test-addon
+      - name: login
         jobs:
-        - name: tg-test-addon-job
-          release: redis
+        - name: login-banner
+          release: os-conf
         properties:
-          tg-test-addon:
-            greeting: Hello from the tg-test add-on
+          login_banner:
+            text: (( .properties.banner_text.value ))

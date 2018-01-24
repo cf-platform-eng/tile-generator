@@ -211,22 +211,24 @@ class VerifyRuntimeConfig(unittest.TestCase):
 		self.metadata = read_yaml(files[0])
 
 	def test_runtime_config_is_present(self):
-		expected = yaml.load('''
-    releases:
-    - name: redis
-      version: 15
-    addons:
-    - name: tg-test-addon
-      jobs:
-      - name: tg-test-addon-job
-        release: redis
-      properties:
-        tg-test-addon:
-          greeting: Hello from the tg-test add-on'''
-     )
-		self.assertTrue(len(self.metadata.get('runtime_configs')) == 1)
-		self.assertEquals(yaml.load(self.metadata.get('runtime_configs')[0].get('runtime_config')),
-											expected)
+		expected = yaml.load(
+'''
+- name: example-runtime-config
+  runtime_config: |
+      addons:
+      - jobs:
+        - name: login-banner
+          release: os-conf
+        name: login
+        properties:
+          login_banner:
+            text: (( .properties.banner_text.value ))
+      releases:
+      - name: os-conf
+        version: '15'
+'''
+		)
+		self.assertEquals(self.metadata.get('runtime_configs'), expected)
 
 
 def find_by_name(lst, name):

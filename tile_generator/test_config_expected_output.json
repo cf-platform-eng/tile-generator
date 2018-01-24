@@ -286,6 +286,14 @@
       "name": "auto_service_name", 
       "optional": false, 
       "type": "string"
+    }, 
+    {
+      "configurable": true, 
+      "default": "This banner was sponsored by runtime configs", 
+      "label": "Text for login banner", 
+      "name": "banner_text", 
+      "optional": false, 
+      "type": "string"
     }
   ], 
   "allow_paid_service_plans": true, 
@@ -626,6 +634,20 @@
           "default": "tg-test-broker1-service", 
           "label": "Auto services service name", 
           "name": "auto_service_name", 
+          "optional": false, 
+          "type": "string"
+        }
+      ]
+    }, 
+    {
+      "label": "Banner text config", 
+      "name": "banner_form", 
+      "properties": [
+        {
+          "configurable": true, 
+          "default": "This banner was sponsored by runtime configs", 
+          "label": "Text for login banner", 
+          "name": "banner_text", 
           "optional": false, 
           "type": "string"
         }
@@ -1052,6 +1074,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -1222,6 +1245,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -1688,6 +1712,14 @@
       "name": "auto_service_name", 
       "optional": false, 
       "type": "string"
+    }, 
+    {
+      "configurable": true, 
+      "default": "This banner was sponsored by runtime configs", 
+      "label": "Text for login banner", 
+      "name": "banner_text", 
+      "optional": false, 
+      "type": "string"
     }
   ], 
   "purge_service_brokers": true, 
@@ -1709,6 +1741,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -1871,6 +1904,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -2054,6 +2088,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -2216,6 +2251,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -2369,6 +2405,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -3009,6 +3046,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -3179,6 +3217,7 @@
             "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
             "author": "(( .properties.author.value ))", 
             "auto_service_name": "(( .properties.auto_service_name.value ))", 
+            "banner_text": "(( .properties.banner_text.value ))", 
             "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
             "cf": {
               "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
@@ -3349,6 +3388,12 @@
     }
   }, 
   "requires_docker_bosh": true, 
+  "runtime_configs": [
+    {
+      "name": "example-runtime-config", 
+      "runtime_config": "addons:\n- jobs:\n  - name: login-banner\n    release: os-conf\n  name: login\n  properties:\n    login_banner:\n      text: (( .properties.banner_text.value ))\nreleases:\n- name: os-conf\n  version: '15'\n"
+    }
+  ], 
   "service_broker": false, 
   "service_plan_forms": [
     {

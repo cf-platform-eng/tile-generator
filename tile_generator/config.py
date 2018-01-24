@@ -170,19 +170,19 @@ class Config(dict):
 			'runtime_configs': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
 					'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
-					'releases': {'type': 'list', 'schema': {
-						'type': 'dict', 'schema': {
-							'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
-							'version': {'type': 'number', 'required': True},
-					}}},
 					'runtime_config': {'required': True, 'type': 'dict', 'schema': {
+						'releases': {'required': True, 'type': 'list', 'schema': {
+							'type': 'dict', 'schema': {
+								'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+								'version': {'type': 'string', 'required': True},
+						}}},
 						'addons': {'required': True, 'type': 'list', 'schema': {
 							'type': 'dict', 'schema': {
 								'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+								'properties': {'type': 'dict'},
 								'jobs': {'required': True, 'type': 'list', 'schema': {
 									'type': 'dict', 'schema': {
 										'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
-										'properties': {'type': 'dict'},
 										'release': {'type': 'string', 'required': True}
 								}}}
 						}}}

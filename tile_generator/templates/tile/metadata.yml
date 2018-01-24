@@ -576,7 +576,10 @@ job_types:
 
 {% if tile_metadata.runtime_configs %}
 runtime_configs:
-{{ tile_metadata.runtime_configs | yaml_literal }}
+{% for cfg in tile_metadata.runtime_configs %}
+- name: {{ cfg.name }}
+  runtime_config: {{ cfg.runtime_config | yaml_literal | indent }}
+{% endfor %}
 {% endif %}
 
 post_deploy_errands:
