@@ -322,6 +322,11 @@ class TestConfigValidation(BaseTest):
 		self.config['packages'] = [{'name': 'packagename', 'type': 'docker-app', 'manifest': {}}]
 		self.config.validate()
 
+	def test_error_using_keyword_as_input(self):
+		with self.assertRaises(SystemExit):
+			self.config['releases'] = ['This should break']
+			self.config.validate()
+
 
 class TestVersionMethods(unittest.TestCase):
 

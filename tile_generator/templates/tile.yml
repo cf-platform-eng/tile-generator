@@ -92,3 +92,24 @@ packages:
 #
 # migration: |
 #   properties['properties']['.properties.org']['value'] = 'system';
+
+# Bosh add-ons can be configured by adding runtime_configs to the
+# tile.yml
+#
+# runtime_configs:
+#   - name: MY-RUNTIME-CONFIG
+#     runtime_config: |
+#       releases:
+#       - name: os-conf
+#         version: 15
+#       addons:
+#       - name: MY-ADDON-NAME
+#         jobs:
+#         - name: MY-RUNTIME-CONFIG-JOB
+#           release: os-conf
+#         properties:
+#           MY-ADDON-NAME:
+#         ...
+#
+# Bosh releases referenced by add-ons must be either already present,
+# or added to the tile separately using a package of type bosh-release.
