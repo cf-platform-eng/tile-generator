@@ -245,7 +245,8 @@ form_types:
 {% do job_types.append(job.name) %}
 {% endfor %}
 {% endfor %}
-job_types: {% if not job_types %}[]{% endif %}
+
+job_types: {% if not job_types and not has_bosh_release_jobs %}[]{% endif %}
 
 {% if metadata_version < 1.8 %}
 #

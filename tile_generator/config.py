@@ -105,6 +105,7 @@ class Config(dict):
 			if k.startswith('Package'):
 				self._package_defs[v.package_type] = v
 
+		self['has_bosh_release_jobs'] = False
 		self.tile_metadata = {
 			'minimum_version_for_upgrade': '0.0.1',
 			'rank': 1,
@@ -282,6 +283,8 @@ class Config(dict):
 	def normalize_jobs(self):
 		for release in self.get('releases', {}).values():
 			for job in release.get('jobs', []):
+				if release.get('package-type') == 'bosh-release':
+					self['has_bosh_release_jobs'] = True
 				job['type'] = job.get('type', job['name'])
 				job['template'] = job.get('template', job['type'])
 				job['properties'] = job.get('properties', {})
