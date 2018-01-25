@@ -241,12 +241,7 @@ form_types:
 
 {% set job_types = [] %}
 {% for release in releases.values() %}
-{% for job in release.jobs if job.template and job.template == 'docker-bosh' %}
-{% do job_types.append(job.name) %}
-{% endfor %}
-{% endfor %}
-{% for release in releases.values() if not release['package-type'] == 'bosh-release' %}
-{% for job in release.jobs if not job.template == 'docker-bosh' %}
+{% for job in release.jobs if job.template %}
 {% do job_types.append(job.name) %}
 {% endfor %}
 {% endfor %}
