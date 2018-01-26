@@ -1,0 +1,36 @@
+---
+
+name: runtime-test
+
+releases:
+- name: runtime-test-release
+  version: latest
+
+stemcells:
+- alias: bosh-warden-boshlite-ubuntu-trusty-go_agent
+  os: ubuntu-trusty
+  version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 10
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+instance_groups:
+- name: runtime-test
+  instances: 1
+  azs: [z1]
+  jobs:
+  - name: hello
+    release: runtime-test-release
+  properties:
+    hello:
+      port: 8119
+  vm_type: minimal
+  cloud_properties:
+    tags:
+      - allow-ssh
+  stemcell: bosh-warden-boshlite-ubuntu-trusty-go_agent
+  networks:
+    - name: default

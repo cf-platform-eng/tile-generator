@@ -5,3 +5,6 @@ vendor/
 resources/*.zip
 resources/*.tgz
 docker-cache/
+
+!resources/no-op-release.tgz
+!resources/runtime-test-release.tgz

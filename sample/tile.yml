@@ -213,14 +213,6 @@ forms:
     label: Auto services service name
     default: tg-test-broker1-service
 
-- name: banner_form
-  label: Banner text config
-  properties:
-  - name: banner_text
-    type: string
-    label: Text for login banner
-    default: This banner was sponsored by runtime configs
-
 update:
   canary_watch_time: 10000-(( .properties.canary_watch_timeout ))
   update_watch_time: 10000-(( .properties.update_watch_timeout ))
@@ -414,17 +406,69 @@ packages:
       cf:
         some: property
 
+- name: runtime-test-release
+  type: bosh-release
+  path: resources/runtime-test-release.tgz
+
+- name: tg-test-app6
+  type: bosh-release
+  path: resources/no-op-release.tgz
+  jobs:
+  - name: node-yes
+    instances: 1
+    dynamic_ip: 1
+    templates:
+    - name: no-op
+      release: no-op-release
+    - name: route_registrar
+      release: routing #relies on the fact that docker-bosh adds routing
+      consumes:
+        nats:
+          from: nats
+          deployment: (( ..cf.deployment_name ))
+    properties:
+      route_registrar:
+        routes:
+        - name: runtime_conf_yes
+          port: 8119
+          registration_interval: 20s
+          uris:
+          - runtime-conf-yes.(( ..cf.cloud_controller.system_domain.value ))
+  - name: node-no
+    instances: 1
+    dynamic_ip: 1
+    templates:
+    - name: route_registrar
+      release: routing
+      consumes:
+        nats:
+          from: nats
+          deployment: (( ..cf.deployment_name ))
+    properties:
+      route_registrar:
+        routes:
+        - name: runtime_conf_no
+          port: 8119
+          registration_interval: 20s
+          uris:
+          - runtime-conf-no.(( ..cf.cloud_controller.system_domain.value ))
+
 runtime_configs:
-  - name: example-runtime-config
-    runtime_config:
-      releases:
-      - name: os-conf
-        version: 15
-      addons:
-      - name: login
+- name: example-runtime-config
+  runtime_config:
+    releases:
+    - name: runtime-test-release
+      version: 0.1.2
+    addons:
+    - name: runtime-test-release
+      jobs:
+      - name: hello
+        release: runtime-test-release
+      properties:
+        hello:
+         port:
+           8119
+      include:
         jobs:
-        - name: login-banner
-          release: os-conf
-        properties:
-          login_banner:
-            text: (( .properties.banner_text.value ))
+        - name: no-op
+          release: no-op-release

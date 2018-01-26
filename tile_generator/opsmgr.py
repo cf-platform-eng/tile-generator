@@ -550,11 +550,11 @@ def build_changes_1_7(product, deploy_errands, delete_errands):
 
 def get_cfinfo():
 	settings = get('/api/installation_settings').json()
-	settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
-	if len(settings) < 1:
+	cf_settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
+	if len(cf_settings) < 1:
 		raise Exception('Elastic Runtime is not installed')
-	settings = settings[0]
-	jobs = settings['jobs']
+	cf_settings = cf_settings[0]
+	jobs = cf_settings['jobs']
 	cc_properties = [ j for j in jobs if j['identifier'] == 'cloud_controller' ][0]['properties']
 	system_domain = [ p for p in cc_properties if p['identifier'] == 'system_domain' ][0]['value']
 	apps_domain = [ p for p in cc_properties if p['identifier'] == 'apps_domain' ][0]['value']
@@ -564,10 +564,11 @@ def get_cfinfo():
 	return {
 		'system_domain': system_domain,
 		'apps_domain': apps_domain,
+		'schema_version': settings.get("installation_schema_version"),
 		'admin_username': admin_credentials['identity'],
 		'admin_password': admin_credentials.get('password', None),
 		'system_services_username': system_services_credentials['identity'],
-		'system_services_password': system_services_credentials.get('password', None),
+		'system_services_password': system_services_credentials.get('password', None)
 	}
 
 def logs(install_id):

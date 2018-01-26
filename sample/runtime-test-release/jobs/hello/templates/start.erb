@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -e
+
+LOG_DIR="/var/vcap/sys/log/hello"
+RUN_DIR="/var/vcap/sys/run/hello"
+DATA_DIR="/var/vcap/store/hello"
+PIDFILE="$RUN_DIR/hello.pid"
+
+export PORT=<%= p("hello.port", "8118") %>
+
+mkdir -p "$LOG_DIR" "$RUN_DIR" "$DATA_DIR"
+chown -R vcap:vcap "$LOG_DIR" "$RUN_DIR" "$DATA_DIR"
+
+cp /var/vcap/jobs/hello/data/* $DATA_DIR
+
+/sbin/start-stop-daemon \
+  --pidfile "$PIDFILE" \
+  --make-pidfile \
+  --chuid vcap:vcap \
+  --chdir $DATA_DIR \
+  --start \
+  --exec /usr/bin/python2 \
+  -- -m SimpleHTTPServer $PORT \
+   >> "$LOG_DIR/hello.out.log" \
+  2>> "$LOG_DIR/hello.err.log"
