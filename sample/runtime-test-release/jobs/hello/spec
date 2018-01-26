@@ -1,0 +1,14 @@
+---
+name: hello
+
+templates:
+  start.erb: bin/start
+  stop.erb: bin/stop
+  index.html: data/index.html
+
+packages: []
+
+properties:
+  hello.port:
+    description: Port to listen on
+    default: 8118

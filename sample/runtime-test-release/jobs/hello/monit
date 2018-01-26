@@ -1,0 +1,5 @@
+check process hello
+  with pidfile /var/vcap/sys/run/hello/hello.pid
+  start program /var/vcap/jobs/hello/bin/start
+  stop program /var/vcap/jobs/hello/bin/stop
+  group vcap

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+PIDFILE="/var/vcap/sys/run/hello/hello.pid"
+
+/sbin/start-stop-daemon \
+  --pidfile "$PIDFILE" \
+  --retry TERM/20/QUIT/1/KILL \
+  --oknodo \
+  --stop
+
+rm /var/vcap/sys/run/hello/hello.pid

@@ -216,16 +216,20 @@ class VerifyRuntimeConfig(unittest.TestCase):
 - name: example-runtime-config
   runtime_config: |
       addons:
-      - jobs:
-        - name: login-banner
-          release: os-conf
-        name: login
+      - include:
+          jobs:
+          - name: no-op
+            release: no-op-release
+        jobs:
+        - name: hello
+          release: runtime-test-release
+        name: runtime-test-release
         properties:
-          login_banner:
-            text: (( .properties.banner_text.value ))
+          hello:
+            port: 8119
       releases:
-      - name: os-conf
-        version: '15'
+      - name: runtime-test-release
+        version: 0.1.2
 '''
 		)
 		self.assertEquals(self.metadata.get('runtime_configs'), expected)

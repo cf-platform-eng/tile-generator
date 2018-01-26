@@ -1,0 +1,8 @@
+---
+name: no-op
+
+templates: {}
+
+packages: []
+
+properties: {}
