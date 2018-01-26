@@ -458,7 +458,7 @@ runtime_configs:
   runtime_config:
     releases:
     - name: runtime-test-release
-      version: 0.1.2
+      version: 0.1.3
     addons:
     - name: runtime-test-release
       jobs:

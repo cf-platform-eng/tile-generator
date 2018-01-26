@@ -295,7 +295,7 @@
   "runtime_configs": [
     {
       "name": "example-runtime-config",
-      "runtime_config": "addons:\n- include:\n    jobs:\n    - name: no-op\n      release: no-op-release\n  jobs:\n  - name: hello\n    release: runtime-test-release\n  name: runtime-test-release\n  properties:\n    hello:\n      port: 8119\nreleases:\n- name: runtime-test-release\n  version: 0.1.2\n"
+      "runtime_config": "addons:\n- include:\n    jobs:\n    - name: no-op\n      release: no-op-release\n  jobs:\n  - name: hello\n    release: runtime-test-release\n  name: runtime-test-release\n  properties:\n    hello:\n      port: 8119\nreleases:\n- name: runtime-test-release\n  version: 0.1.3\n"
     }
   ],
   "pre_delete_errands": [
