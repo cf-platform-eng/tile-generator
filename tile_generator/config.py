@@ -323,9 +323,9 @@ class Config(dict):
 			if job.get('type') == 'deploy-all' and ExternalBroker in package_flags:
 				merge_dict(manifest, {
 					package['name']: {
-						'url': '(( .properties.{}_url.value ))'.format(pakage['name']),
-						'user': '(( .properties.{}_user.value ))'.format(pakage['name']),
-						'password': '(( .properties.{}_password.value ))'.format(pakage['name']),
+						'url': '(( .properties.{}_url.value ))'.format(package['name']),
+						'user': '(( .properties.{}_user.value ))'.format(package['name']),
+						'password': '(( .properties.{}_password.value ))'.format(package['name']),
 					}
 				})
 			elif job.get('type') == 'deploy-all' and Broker in package_flags:
