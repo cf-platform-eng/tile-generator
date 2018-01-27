@@ -1454,6 +1454,7 @@
           "properties": {},
           "name": "deploy-all",
           "post_deploy": true,
+          "requires_cf_cli": true,
           "manifest": {
             "tg_test_app6": {
               "name": "tg_test_app6"
@@ -1620,6 +1621,7 @@
         },
         {
           "pre_delete": true,
+          "requires_cf_cli": true,
           "manifest": {
             "tg_test_app6": {
               "name": "tg_test_app6"

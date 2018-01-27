@@ -121,6 +121,7 @@ class BoshRelease:
 		job_name = job['name']
 		job_type = job.get('type', job_name)
 		job_template = job.get('template', job_type)
+		requires_cf_cli = job.get('requires_cf_cli', False)
 		is_errand = job.get('lifecycle', None) == 'errand'
 		package = job.get('package', None)
 		self.__bosh('generate-job', job_type)
@@ -130,6 +131,7 @@ class BoshRelease:
 			'context': self.context,
 			'package': package,
 			'errand': is_errand,
+			'requires_cf_cli': requires_cf_cli
 		}
 		template.render(
 			os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
@@ -154,7 +156,7 @@ class BoshRelease:
 
 	def needs_zip(self, package):
 		# Only zip CF packages...
-		if not package.get('is_cf', False):
+		if not package.get('is_cf', False) and not package.get('zip_if_needed', False):
 			return False
 		files = package['files']
 		# ...if it has more than one file...
@@ -164,6 +166,7 @@ class BoshRelease:
 		elif len(files) == 1:
 			return not zipfile.is_zipfile(files[0]['path'])
 		return False
+
 	def add_blob(self,package):
 		for file in package ['files']:
 			self.__bosh('add-blob',os.path.realpath(file['path']),file['name'])
@@ -184,7 +187,7 @@ class BoshRelease:
 			staging_dir = tempfile.mkdtemp()
 			for file in package.get('files', []):
 				download(file['path'], os.path.join(staging_dir, file['name']), cache=self.context.get('cache', None))
-			path = package['manifest'].get('path', '')
+			path = package.get('manifest', {}).get('path', '')
 			dir_to_zip = os.path.join(staging_dir, path) if path else staging_dir
 			zipfilename = os.path.realpath(os.path.join(target_dir, package['name'] + '.zip'))
 			zip_dir(zipfilename, dir_to_zip)

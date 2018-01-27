@@ -319,7 +319,7 @@ class Config(dict):
 			manifest[service_plan_form['name']] = '(( .properties.{}.value ))'.format(service_plan_form['name'])
 		for package in self.get('packages', []):
 			package_flags = self._get_package_def(package).flags
-			merge_dict(manifest, package['properties'])
+			merge_dict(manifest, package.get('properties', {}))
 			if job.get('type') == 'deploy-all' and ExternalBroker in package_flags:
 				merge_dict(manifest, {
 					package['name']: {

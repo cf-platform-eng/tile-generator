@@ -80,14 +80,16 @@ class Cf(FlagBase):
                 'name': 'deploy-all',
                 'type': 'deploy-all',
                 'lifecycle': 'errand',
-                'post_deploy': True
+                'post_deploy': True,
+                'requires_cf_cli': True
             }]
         if 'delete-all' not in [job['name'] for job in release['jobs']]:
             release['jobs'] += [{
                 'name': 'delete-all',
                 'type': 'delete-all',
                 'lifecycle': 'errand',
-                'pre_delete': True
+                'pre_delete': True,
+                'requires_cf_cli': True
             }]
         if { 'name': 'deploy-all' } not in config_obj.get('post_deploy_errands', []):
             config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
@@ -263,3 +265,33 @@ class Buildpack(FlagBase):
             'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(packagename),
         })
         package['properties'] = properties
+
+class Helm(FlagBase):
+    @classmethod
+    def _apply(self, config_obj, package, release):
+        if 'deploy-charts' not in [job['name'] for job in release['jobs']]:
+            release['jobs'] += [{
+                'name': 'deploy-charts',
+                'type': 'deploy-charts',
+                'lifecycle': 'errand',
+                'post_deploy': True
+            }]
+        if 'delete-charts' not in [job['name'] for job in release['jobs']]:
+            release['jobs'] += [{
+                'name': 'delete-charts',
+                'type': 'delete-charts',
+                'lifecycle': 'errand',
+                'pre_delete': True
+            }]
+        if { 'name': 'deploy-charts' } not in config_obj.get('post_deploy_errands', []):
+            config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-charts' }]
+        if { 'name': 'delete-charts' } not in config_obj.get('pre_delete_errands', []):
+            config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-charts' }]
+        if False:
+            # Turning this off for now so that the tile can be installed in foundations that don't have PKS for testing
+            config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [
+                {
+                    'name': 'pivotal-container-service',
+                    'version': '>= 0.8'
+                }
+            ]
