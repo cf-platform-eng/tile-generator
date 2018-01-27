@@ -1,0 +1,97 @@
+---
+
+resources:
+
+- name: base-pipeline-docker-image
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator-pipeline
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: tile-generator-repo
+  type: git
+  source:
+    ignore_paths: [ "ci/docker-tile-generator", "ci/docker-tile-pipeline" ]
+    branch: helm
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/docker-tile-generator" ]
+    branch: {{github-branch}}
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-docker-image
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator-helm
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+jobs:
+
+- name: unit-tests
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+    - get: tile-generator-repo
+      trigger: true
+  - task: run-unit-tests
+    image: base-pipeline-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      run:
+        path: tile-generator-repo/ci/scripts/run-unittests.sh
+        args: [ "tile-generator-repo/tile_generator" ]
+
+- name: package-tile-generator
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ unit-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ unit-tests ]
+      trigger: true
+    - get: tile-generator-dockerfile-repo
+      trigger: true
+  - task: build-package
+    image: base-pipeline-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      outputs:
+      - name: tile-generator-package
+      run:
+        path: sh
+        args:
+        - -exc 
+        - |
+          cd tile-generator-repo
+          echo "0.9" >version.txt
+          python setup.py sdist
+          cp dist/tile-generator-*.tar.gz ../tile-generator-package/tile-generator-helm-0.9.tar.gz
+  - task: prepare-docker-build
+    image: base-pipeline-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-dockerfile-repo
+      - name: tile-generator-package
+      outputs:
+      - name: docker-build-dir
+      run:
+        path: sh
+        args:
+        - -c
+        - cp tile-generator-package/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+  - put: tile-generator-docker-image
+    params:
+      build: docker-build-dir
