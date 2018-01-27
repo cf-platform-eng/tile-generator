@@ -155,7 +155,7 @@ class BoshRelease:
 		)
 
 	def needs_zip(self, package):
-		# Only zip CF packages...
+		# Only zip package types that require single files
 		if not package.get('is_cf', False) and not package.get('zip_if_needed', False):
 			return False
 		files = package['files']
