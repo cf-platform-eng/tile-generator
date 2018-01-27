@@ -288,6 +288,9 @@ class Helm(FlagBase):
         if { 'name': 'delete-charts' } not in config_obj.get('pre_delete_errands', []):
             config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-charts' }]
         if False:
+            # Turning this off for now until we figure out the real dependencies for the errands
+            if not 'helm_cli' in [p['name'] for p in release['packages']]:
+                release['packages'] += []
             # Turning this off for now so that the tile can be installed in foundations that don't have PKS for testing
             config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [
                 {
