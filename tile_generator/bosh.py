@@ -124,12 +124,14 @@ class BoshRelease:
 		requires_cf_cli = job.get('requires_cf_cli', False)
 		is_errand = job.get('lifecycle', None) == 'errand'
 		package = job.get('package', None)
+		packages = job.get('packages', [])
 		self.__bosh('generate-job', job_type)
 		job_context = {
 			'job_name': job_name,
 			'job_type': job_type,
 			'context': self.context,
 			'package': package,
+			'packages': packages,
 			'errand': is_errand,
 			'requires_cf_cli': requires_cf_cli
 		}

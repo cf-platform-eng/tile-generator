@@ -16,6 +16,9 @@ packages:
 {% for package in context.packages if not package.is_bosh_release %}
 - {{ package.name }}
 {% endfor %}
+{% for package in packages %}
+- {{ package.name }}
+{% endfor %}
 {% else %}
 {% if package.requires_cf_cli %}
 - cf_cli
