@@ -5,14 +5,15 @@ import json
 
 def find_required_images(values):
     images = []
+    values = { k.lower():v for k,v in values.items() }
     for key, value in values.items():
         if key == 'image':
             if isinstance(value, dict):
                 image = value.get('repository')
-                tag = value.get('tag', None)
+                tag = value.get('tag', value.get('imagetag', None))
             else:
                 image = value
-                tag = values.get('imageTag', None)
+                tag = values.get('tag', values.get('imagetag', None))
             if tag is not None:
                 image += ':' + tag
             images += [ image ]
@@ -30,8 +31,8 @@ def get_chart_info(chart_dir):
         chart_values = yaml.safe_load(f)
 
     return {
-        'name': chart['name'],
-        'version': chart['version'],
+        'name': chart.get('name', chart.get('Name')),
+        'version': chart.get('version', chart.get('Version')),
         'required_images': find_required_images(chart_values),
     }
 
