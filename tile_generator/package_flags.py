@@ -289,12 +289,16 @@ class Helm(FlagBase):
             }]
         # Add errands if they are not already here
         if 'deploy-charts' not in [job['name'] for job in release['jobs']]:
-            release['jobs'] += [{
+            deploy_charts_job = {
                 'name': 'deploy-charts',
                 'type': 'deploy-charts',
                 'lifecycle': 'errand',
                 'post_deploy': True
-            }]
+            }
+            if image_package is not None:
+                deploy_charts_job['packages'] = deploy_charts_job.get('packages',[])
+                deploy_charts_job['packages'] += [ image_package ]
+            release['jobs'] += [ deploy_charts_job ]
         if 'delete-charts' not in [job['name'] for job in release['jobs']]:
             release['jobs'] += [{
                 'name': 'delete-charts',
