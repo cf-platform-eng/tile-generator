@@ -2,6 +2,7 @@
 from __future__ import print_function
 import os
 import sys
+import helm
 from . import template
 
 
@@ -269,6 +270,19 @@ class Buildpack(FlagBase):
 class Helm(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # Read the helm chart and bundle all required docker images
+        chart_info = helm.get_chart_info(package['path'])
+        for image in chart_info['required_images']:
+            image_name = image.split('/')[-1]
+            release['packages'] += [{
+                'name': image_name,
+                'files': [{
+                    'name': image_name,
+                    'path': 'docker:' + image
+                }],
+                'dir': 'blobs'
+            }]
+        # Add errands if they are not already here
         if 'deploy-charts' not in [job['name'] for job in release['jobs']]:
             release['jobs'] += [{
                 'name': 'deploy-charts',
