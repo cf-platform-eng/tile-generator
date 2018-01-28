@@ -274,13 +274,18 @@ class Helm(FlagBase):
         chart_info = helm.get_chart_info(package['path'])
         for image in chart_info['required_images']:
             image_name = image.split('/')[-1]
-            release['packages'] += [{
+            image_package_name = package['name'] + '-images'
+            image_package = ([p for p in release['packages'] if p['name'] == image_package_name] + [ None ])[0]
+            if image_package is None:
+                image_package = {
+                    'name': image_package_name,
+                    'files': [],
+                    'dir': 'blobs'
+                }
+                release['packages'] += [ image_package ]
+            image_package['files'] += [{
                 'name': image_name,
-                'files': [{
-                    'name': image_name,
-                    'path': 'docker:' + image
-                }],
-                'dir': 'blobs'
+                'path': 'docker:' + image
             }]
         # Add errands if they are not already here
         if 'deploy-charts' not in [job['name'] for job in release['jobs']]:
