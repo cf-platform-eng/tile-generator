@@ -88,6 +88,7 @@ def download(url, filename, cache=None):
 		try:
 			from docker.client import Client
 			docker_cli = Client.from_env()
+			docker_cli.pull(docker_image)
 			image = docker_cli.get_image(docker_image)
 			image_tar = open(filename,'w')
 			image_tar.write(image.data)
@@ -95,7 +96,8 @@ def download(url, filename, cache=None):
 		except KeyError as e:
 			print('docker not configured on this machine (or environment variables are not properly set)', file=sys.stderr)
 			sys.exit(1)
-		except:
+		except Exception as e:
+			print(e)
 			print(docker_image, 'not found on local machine', file=sys.stderr)
 			print('you must either pull the image, or download it and use the --cache option', file=sys.stderr)
 			sys.exit(1)
