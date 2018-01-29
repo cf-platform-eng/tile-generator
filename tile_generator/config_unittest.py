@@ -72,8 +72,10 @@ class TestUltimateForm(BaseTest):
 		cfg.set_sha1(False)
 		cfg.set_cache(None)
 
-		# Hacky way to turn config object into a plain dict
-		generated_output = json.loads(json.dumps(cfg))
+		with open(test_path + '/test_config_generated_output.json', 'w') as f:
+			generated_json = json.dumps(cfg, sort_keys=True, indent=2)
+			f.write(generated_json)
+			generated_output = json.loads(generated_json)
 
 		with open(test_path + '/test_config_expected_output.json', 'r') as f:
 			expected_output = json.load(f)
@@ -89,8 +91,8 @@ class TestUltimateForm(BaseTest):
 		self.deep_comparer(expected_output, generated_output, '[%s]')
 
 		# Ensure there is no extra elements in the generated output
-		expected = json.dumps(expected_output, sort_keys=True, indent=2).split('\n')
-		generated = json.dumps(generated_output, sort_keys=True, indent=2).split('\n')
+		expected = json.dumps(expected_output).split('\n')
+		generated = json.dumps(generated_output).split('\n')
 
 		self.assertEquals(len(expected), len(generated))
 		for line in expected:
