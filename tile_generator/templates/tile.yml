@@ -98,7 +98,7 @@ packages:
 #
 # runtime_configs:
 #   - name: MY-RUNTIME-CONFIG
-#     runtime_config: |
+#     runtime_config:
 #       releases:
 #       - name: os-conf
 #         version: 15
