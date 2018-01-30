@@ -1,14 +1,6 @@
 ---
-name: {{ tile_metadata.name }}
-label: {{ tile_metadata.label }}
-description: {{ tile_metadata.description }}
-icon_image: {{ tile_metadata.icon_image }}
+{{ tile_metadata.base | yaml }}
 product_version: {{ tile_metadata.product_version }}
-metadata_version: '{{ tile_metadata.metadata_version }}'
-minimum_version_for_upgrade: {{ tile_metadata.minimum_version_for_upgrade }}
-rank: {{ tile_metadata.rank }}
-serial: {{ tile_metadata.serial }}
-service_broker: {{ tile_metadata.service_broker or False }}
 
 releases:
 {% for release in releases.values() %}
@@ -19,10 +11,7 @@ releases:
 {% endif %}
 {% endfor %}
 
-stemcell_criteria:
-  os: {{ tile_metadata.stemcell_criteria.os or 'ubuntu-trusty' }}
-  requires_cpi: false
-  version: '{{ tile_metadata.stemcell_criteria.version or 3312 }}'
+{{ tile_metadata.stemcell_criteria | yaml }}
 
 property_blueprints:
 #
