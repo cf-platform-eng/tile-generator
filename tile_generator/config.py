@@ -196,7 +196,6 @@ class Config(dict):
 					}}
 			}}}
 		}
-
 		self.update(self._validator.validate(self, schema))
 
 
@@ -286,6 +285,19 @@ class Config(dict):
 				job['template'] = job.get('template', job['type'])
 				job['properties'] = job.get('properties', {})
 				job['manifest'] = self.build_job_manifest(job)
+
+		# This should be moved to where the tarbal is created.
+		# for release in self.get('releases', {}).values():
+		# 	# Build out tile-metadata
+		# 	if self.tile_metadata.get('releases') is None:
+		# 		self.tile_metadata['releases'] = []
+
+		# 	if release.get('file'):
+		# 		self.tile_metadata['releases'] += {
+		# 			'file': release['file'],
+		# 			'name': release['release_name'],
+		# 			'version': str(release['version'])
+		# 		}
 
 	def build_job_manifest(self, job):
 		# TODO: This whole thing needs to be changed to new world order
