@@ -27,6 +27,7 @@ import re
 import requests
 from . import package_definitions
 from . import template
+from .tile_metadata import TileMetadata
 
 CONFIG_FILE = "tile.yml"
 HISTORY_FILE = "tile-history.yml"
@@ -105,11 +106,7 @@ class Config(dict):
 			if k.startswith('Package'):
 				self._package_defs[v.package_type] = v
 
-		self.tile_metadata = {
-			'minimum_version_for_upgrade': '0.0.1',
-			'rank': 1,
-			'serial': True,
-		}
+		self.tile_metadata = dict()
 
 	def read(self):
 		self.read_config()
@@ -221,6 +218,7 @@ class Config(dict):
 
 	def validate(self):
 		self._validate_base_config()
+		self.build_tile_metadata()
 
 		# TODO: This should be handled differently
 		for form in self.get('forms', []):
@@ -244,22 +242,44 @@ class Config(dict):
 			property['configurable'] = property.get('configurable', False)
 			property['optional'] = property.get('optional', False)
 
-		# TODO: figure out how to do this more nicely
-		self.tile_metadata['name'] = self['name']
-		self.tile_metadata['label'] = self['label']
-		self.tile_metadata['description'] = self['description']
-		self.tile_metadata['icon_image'] = self['icon_file']
-		self.tile_metadata['metadata_version'] = str(self['metadata_version'])
-		# Note: tile.py uses self['stemcell_criteria']
-		self.tile_metadata['stemcell_criteria'] = self['stemcell_criteria']
-		self.tile_metadata['service_broker'] = self['service_broker']
+	def build_tile_metadata(self):
+		tile_metadata = TileMetadata(self)
+		self.tile_metadata.update(tile_metadata.build())
 
-		# TODO: this probably should also be handled differently
-		for runtime_conf in self.get('runtime_configs', {}):
-			if runtime_conf.get('runtime_config'):
-				runtime_conf['runtime_config'] = yaml.dump(runtime_conf['runtime_config'], default_flow_style=False)
-		self.tile_metadata['runtime_configs'] = self.get('runtime_configs')
+		self.tile_metadata['property_blueprints'] = [
+			{
+				'configurable': True,
+				'default': self['org'],
+				'name': 'org',
+				'type': 'string'
+			},
+			{
+				'configurable': True,
+				'default': self['space'],
+				'name': 'space',
+				'type': 'string'
+			},
+			{
+				'configurable': True,
+				'default': self['apply_open_security_group'],
+				'name': 'apply_open_security_group',
+				'type': 'boolean'
+			},
+			{
+				'configurable': True,
+				'default': 'VARallow_paid_service_plans',
+				'name': 'allow_paid_service_plans',
+				'type': 'boolean'
+			},
+		]
 
+		if self.get('requires_docker_bosh'):
+			self.tile_metadata['property_blueprints'].append({
+				'configurable': False,
+				'name': 'generated_rsa_cert_credentials',
+				'optional': False,
+				'type': 'rsa_cert_credentials'
+			})
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
