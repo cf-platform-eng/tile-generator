@@ -247,7 +247,6 @@ class Broker(FlagBase):
             'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(packagename),
         })
         package['properties'] = properties
-	config_obj.tile_metadata['service_broker'] = True
 
 
 class Buildpack(FlagBase):

@@ -465,16 +465,16 @@ class TestDefaultOptions(BaseTest):
 		self.assertEqual(self.config['metadata_version'], 1.8)
 
 	def test_default_minimum_version_for_upgrade(self):
-		self.config.update({})
-		self.assertEqual(self.config.tile_metadata['minimum_version_for_upgrade'], '0.0.1')
+		self.config.validate()
+		self.assertEqual(self.config.tile_metadata['base']['minimum_version_for_upgrade'], '0.0.1')
 
 	def test_default_rank(self):
-		self.config.update({})
-		self.assertEqual(self.config.tile_metadata['rank'], 1)
+		self.config.validate()
+		self.assertEqual(self.config.tile_metadata['base']['rank'], 1)
 
 	def test_default_serial(self):
-		self.config.update({})
-		self.assertTrue(self.config.tile_metadata['serial'])
+		self.config.validate()
+		self.assertTrue(self.config.tile_metadata['base']['serial'])
 
 
 @mock.patch('os.path.getsize')
@@ -519,8 +519,8 @@ class TestTileName(BaseTest):
 		name = 'my-tile'
 		self.config.update({'name': name})
 		self.config.validate()
-		self.assertIn('name', self.config.tile_metadata)
-		self.assertEqual(self.config.tile_metadata['name'], name)
+		self.assertIn('name', self.config.tile_metadata['base'])
+		self.assertEqual(self.config.tile_metadata['base']['name'], name)
 
 	def test_requires_product_name(self):
 		with self.assertRaises(SystemExit):
@@ -574,8 +574,8 @@ class TestTileSimpleFields(BaseTest):
 	def test_sets_label(self):
 		self.config.update({'label': 'my-label'})
 		self.config.validate()
-		self.assertIn('label',self.config.tile_metadata)
-		self.assertEqual(self.config.tile_metadata['label'], 'my-label')
+		self.assertIn('label',self.config.tile_metadata['base'])
+		self.assertEqual(self.config.tile_metadata['base']['label'], 'my-label')
 
 	def test_requires_description(self):
 		with self.assertRaises(SystemExit):
@@ -587,20 +587,20 @@ class TestTileSimpleFields(BaseTest):
 	def test_sets_description(self):
 		self.config.update({'description': 'my tile description'})
 		self.config.validate()
-		self.assertIn('description',self.config.tile_metadata)
-		self.assertEqual(self.config.tile_metadata['description'], 'my tile description')
+		self.assertIn('description',self.config.tile_metadata['base'])
+		self.assertEqual(self.config.tile_metadata['base']['description'], 'my tile description')
 
 	def test_sets_metadata_version(self):
 		self.config.update({'metadata_version': 1.8})
 		self.config.validate()
-		self.assertIn('metadata_version', self.config.tile_metadata)
-		self.assertEqual(self.config.tile_metadata['metadata_version'], '1.8')
+		self.assertIn('metadata_version', self.config.tile_metadata['base'])
+		self.assertEqual(self.config.tile_metadata['base']['metadata_version'], '1.8')
 
 	def test_sets_service_broker(self):
 		self.config.update({'service_broker': True})
 		self.config.validate()
-		self.assertIn('service_broker', self.config.tile_metadata)
-		self.assertTrue(self.config.tile_metadata['service_broker'])
+		self.assertIn('service_broker', self.config.tile_metadata['base'])
+		self.assertTrue(self.config.tile_metadata['base']['service_broker'])
 
 
 class TestTileIconFile(BaseTest):
@@ -629,9 +629,9 @@ class TestTileIconFile(BaseTest):
 		self.icon_file.write('foo')
 		self.icon_file.flush()
 		self.config.validate()
-		self.assertIn('icon_image', self.config.tile_metadata)
+		self.assertIn('icon_image', self.config.tile_metadata['base'])
 		# Base64-encoded string from `echo -n foo | base64`
-		self.assertEqual(self.config.tile_metadata['icon_image'], 'Zm9v')
+		self.assertEqual(self.config.tile_metadata['base']['icon_image'], 'Zm9v')
 
 if __name__ == '__main__':
 	unittest.main()
