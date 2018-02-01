@@ -329,6 +329,16 @@ class TestConfigValidation(BaseTest):
 			self.config['releases'] = ['This should break']
 			self.config.validate()
 
+	def test_releases_maintain_order(self):
+		self.config['packages'] = [
+			{ 'name': 'z-name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'd-name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'a-name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'b-name', 'type': 'bosh-release', 'manifest': {}},
+		]
+		self.config.validate()
+		self.assertEquals([r['name'] for r in self.config['releases'].values()],
+			['z_name', 'd_name', 'a_name', 'b_name'])
 
 class TestVersionMethods(unittest.TestCase):
 

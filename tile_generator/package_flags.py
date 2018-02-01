@@ -61,8 +61,6 @@ class BoshRelease(FlagBase):
         if config_obj.get('releases', {}).get(release_name):
             print('duplicate bosh release', release_name, 'in configuration', file=sys.stderr)
             sys.exit(1)
-        if not config_obj.get('releases'):
-            config_obj['releases'] = dict()
         config_obj['releases'][release_name] = release
         self._apply(config_obj, package, release)
 

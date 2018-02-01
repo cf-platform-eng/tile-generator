@@ -25,6 +25,7 @@ import sys
 import yaml
 import re
 import requests
+from collections import OrderedDict
 from . import package_definitions
 from . import template
 from .tile_metadata import TileMetadata
@@ -224,6 +225,9 @@ class Config(dict):
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
 			self['all_properties'] += properties
+
+		# Reserve the order of releases based on order of `packages` list
+		self['releases'] = OrderedDict()
 
 		# This could be handled in the base config schema with a `oneof`
 		# for `packages` however errors are not very human readable
