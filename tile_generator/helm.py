@@ -15,7 +15,7 @@ def find_required_images(values):
                 image = value
                 tag = values.get('tag', values.get('imagetag', None))
             if tag is not None:
-                image += ':' + tag
+                image += ':' + str(tag)
             images += [ image ]
         else:
             if isinstance(value, dict):
