@@ -9,7 +9,7 @@ def find_required_images(values):
     for key, value in values.items():
         if key == 'image':
             if isinstance(value, dict):
-                image = value.get('repository')
+                image = value.get('repository', value.get('name'))
                 tag = value.get('tag', value.get('imagetag', None))
             else:
                 image = value
