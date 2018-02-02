@@ -219,8 +219,7 @@ class Config(dict):
 
 	def validate(self):
 		self._validate_base_config()
-		self.build_tile_metadata()
-
+		
 		# TODO: This should be handled differently
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
@@ -236,7 +235,6 @@ class Config(dict):
 			self._apply_package_flags(self, package)
 			self._nomalize_package_file_lists(package)
 
-
 		# TODO: wtf is going on here and why?
 		for property in self['all_properties']:
 			property['name'] = property['name'].lower().replace('-','_')
@@ -246,44 +244,12 @@ class Config(dict):
 			property['configurable'] = property.get('configurable', False)
 			property['optional'] = property.get('optional', False)
 
+		self.build_tile_metadata()
+
 	def build_tile_metadata(self):
 		tile_metadata = TileMetadata(self)
 		self.tile_metadata.update(tile_metadata.build())
-
-		self.tile_metadata['property_blueprints'] = [
-			{
-				'configurable': True,
-				'default': self['org'],
-				'name': 'org',
-				'type': 'string'
-			},
-			{
-				'configurable': True,
-				'default': self['space'],
-				'name': 'space',
-				'type': 'string'
-			},
-			{
-				'configurable': True,
-				'default': self['apply_open_security_group'],
-				'name': 'apply_open_security_group',
-				'type': 'boolean'
-			},
-			{
-				'configurable': True,
-				'default': 'VARallow_paid_service_plans',
-				'name': 'allow_paid_service_plans',
-				'type': 'boolean'
-			},
-		]
-
-		if self.get('requires_docker_bosh'):
-			self.tile_metadata['property_blueprints'].append({
-				'configurable': False,
-				'name': 'generated_rsa_cert_credentials',
-				'optional': False,
-				'type': 'rsa_cert_credentials'
-			})
+		self.tile_metadata.update(tile_metadata._build_property_blueprints())
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
