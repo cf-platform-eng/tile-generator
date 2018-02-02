@@ -2670,6 +2670,7 @@
           "name": "deploy-all", 
           "post_deploy": true, 
           "properties": {}, 
+          "requires_cf_cli": true, 
           "template": "deploy-all", 
           "type": "deploy-all"
         }, 
@@ -2830,6 +2831,7 @@
           "name": "delete-all", 
           "pre_delete": true, 
           "properties": {}, 
+          "requires_cf_cli": true, 
           "template": "delete-all", 
           "type": "delete-all"
         }, 
