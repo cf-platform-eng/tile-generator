@@ -7,10 +7,13 @@ def find_required_images(values):
     images = []
     values = { k.lower():v for k,v in values.items() }
     for key, value in values.items():
-        if key == 'image':
+        if key in [ 'image', 'repository' ]:
             if isinstance(value, dict):
                 image = value.get('repository', value.get('name'))
                 tag = value.get('tag', value.get('imagetag', None))
+                if image is None:
+                    images += find_required_images(value)
+                    continue
             else:
                 image = value
                 tag = values.get('tag', values.get('imagetag', None))
