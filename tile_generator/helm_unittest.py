@@ -114,3 +114,8 @@ class TestImageFinder(unittest.TestCase):
         images = helm.find_required_images(values)
         self.assertEqual(len(images), 1)
         self.assertEqual(images[0], "foo/bar:1.2")
+
+    def test_handles_empty_values(self): # Case found in weave-cloud helm chart
+        values = None
+        images = helm.find_required_images(values)
+        self.assertEqual(len(images), 0)

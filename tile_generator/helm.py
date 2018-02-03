@@ -5,7 +5,7 @@ import json
 
 def find_required_images(values):
     images = []
-    values = { k.lower():v for k,v in values.items() }
+    values = values is not None and { k.lower():v for k,v in values.items() } or {}
     for key, value in values.items():
         if key in [ 'image', 'repository' ]:
             if isinstance(value, dict):
