@@ -3,4 +3,7 @@
 site/
 /.dir-locals.el
 test_config_generated_output.json
+<<<<<<< HEAD
 .vscode/
+=======
+>>>>>>> TestUltimateForm: Save a generated output and sort keys for expected output
