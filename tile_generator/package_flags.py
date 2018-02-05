@@ -275,8 +275,10 @@ class Helm(FlagBase):
         for image in chart_info['required_images']:
             image_name = image.split('/')[-1]
             image_package_name = package['name'] + '-images'
-            image_package = ([p for p in release['packages'] if p['name'] == image_package_name] + [ None ])[0]
-            if image_package is None:
+            image_packages = [p for p in release['packages'] if p['name'] == image_package_name]
+            if image_packages:
+                image_package = image_packages[0]
+            else:
                 image_package = {
                     'name': image_package_name,
                     'files': [],
