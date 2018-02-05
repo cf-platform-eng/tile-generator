@@ -2,6 +2,7 @@
 from __future__ import print_function
 import os
 import sys
+import helm
 from . import template
 
 
@@ -78,14 +79,16 @@ class Cf(FlagBase):
                 'name': 'deploy-all',
                 'type': 'deploy-all',
                 'lifecycle': 'errand',
-                'post_deploy': True
+                'post_deploy': True,
+                'requires_cf_cli': True
             }]
         if 'delete-all' not in [job['name'] for job in release['jobs']]:
             release['jobs'] += [{
                 'name': 'delete-all',
                 'type': 'delete-all',
                 'lifecycle': 'errand',
-                'pre_delete': True
+                'pre_delete': True,
+                'requires_cf_cli': True
             }]
         if { 'name': 'deploy-all' } not in config_obj.get('post_deploy_errands', []):
             config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
@@ -260,3 +263,60 @@ class Buildpack(FlagBase):
             'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(packagename),
         })
         package['properties'] = properties
+
+class Helm(FlagBase):
+    @classmethod
+    def _apply(self, config_obj, package, release):
+        # Read the helm chart and bundle all required docker images
+        chart_info = helm.get_chart_info(package['path'])
+        for image in chart_info['required_images']:
+            image_name = image.split('/')[-1]
+            image_package_name = package['name'] + '-images'
+            image_packages = [p for p in release['packages'] if p['name'] == image_package_name]
+            if image_packages:
+                image_package = image_packages[0]
+            else:
+                image_package = {
+                    'name': image_package_name,
+                    'files': [],
+                    'dir': 'blobs'
+                }
+                release['packages'] += [ image_package ]
+            image_package['files'] += [{
+                'name': image_name,
+                'path': 'docker:' + image
+            }]
+        # Add errands if they are not already here
+        if 'deploy-charts' not in [job['name'] for job in release['jobs']]:
+            deploy_charts_job = {
+                'name': 'deploy-charts',
+                'type': 'deploy-charts',
+                'lifecycle': 'errand',
+                'post_deploy': True
+            }
+            if image_package is not None:
+                deploy_charts_job['packages'] = deploy_charts_job.get('packages',[])
+                deploy_charts_job['packages'] += [ image_package ]
+            release['jobs'] += [ deploy_charts_job ]
+        if 'delete-charts' not in [job['name'] for job in release['jobs']]:
+            release['jobs'] += [{
+                'name': 'delete-charts',
+                'type': 'delete-charts',
+                'lifecycle': 'errand',
+                'pre_delete': True
+            }]
+        if { 'name': 'deploy-charts' } not in config_obj.get('post_deploy_errands', []):
+            config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-charts' }]
+        if { 'name': 'delete-charts' } not in config_obj.get('pre_delete_errands', []):
+            config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-charts' }]
+        if False:
+            # Turning this off for now until we figure out the real dependencies for the errands
+            if not 'helm_cli' in [p['name'] for p in release['packages']]:
+                release['packages'] += []
+            # Turning this off for now so that the tile can be installed in foundations that don't have PKS for testing
+            config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [
+                {
+                    'name': 'pivotal-container-service',
+                    'version': '>= 0.8'
+                }
+            ]
