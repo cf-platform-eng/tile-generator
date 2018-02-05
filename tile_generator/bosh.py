@@ -121,7 +121,6 @@ class BoshRelease:
 		job_name = job['name']
 		job_type = job.get('type', job_name)
 		job_template = job.get('template', job_type)
-		requires_cf_cli = job.get('requires_cf_cli', False)
 		is_errand = job.get('lifecycle', None) == 'errand'
 		package = job.get('package', None)
 		packages = job.get('packages', [])
@@ -133,7 +132,6 @@ class BoshRelease:
 			'package': package,
 			'packages': packages,
 			'errand': is_errand,
-			'requires_cf_cli': requires_cf_cli
 		}
 		template.render(
 			os.path.join(self.release_dir, 'jobs', job_type, 'spec'),

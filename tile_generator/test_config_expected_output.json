@@ -2668,9 +2668,13 @@
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
           "name": "deploy-all", 
+          "packages": [
+            {
+              "name": "cf_cli"
+            }
+          ], 
           "post_deploy": true, 
           "properties": {}, 
-          "requires_cf_cli": true, 
           "template": "deploy-all", 
           "type": "deploy-all"
         }, 
@@ -2829,9 +2833,13 @@
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
           "name": "delete-all", 
+          "packages": [
+            {
+              "name": "cf_cli"
+            }
+          ], 
           "pre_delete": true, 
           "properties": {}, 
-          "requires_cf_cli": true, 
           "template": "delete-all", 
           "type": "delete-all"
         }, 
@@ -3468,7 +3476,6 @@
           "template": "common"
         }
       ], 
-      "requires_cf_cli": true, 
       "requires_docker_bosh": true, 
       "requires_meta_buildpack": true
     }, 

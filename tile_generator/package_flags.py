@@ -72,7 +72,6 @@ class Cf(FlagBase):
         # TODO: Remove the dependency on this in templates
         package['is_cf'] = True
         release['is_cf'] = True
-        release['requires_cf_cli'] = True
 
         if 'deploy-all' not in [job['name'] for job in release['jobs']]:
             release['jobs'] += [{
@@ -80,7 +79,7 @@ class Cf(FlagBase):
                 'type': 'deploy-all',
                 'lifecycle': 'errand',
                 'post_deploy': True,
-                'requires_cf_cli': True
+		'packages': [{'name': 'cf_cli'}],
             }]
         if 'delete-all' not in [job['name'] for job in release['jobs']]:
             release['jobs'] += [{
@@ -88,7 +87,7 @@ class Cf(FlagBase):
                 'type': 'delete-all',
                 'lifecycle': 'errand',
                 'pre_delete': True,
-                'requires_cf_cli': True
+		'packages': [{'name': 'cf_cli'}],
             }]
         if { 'name': 'deploy-all' } not in config_obj.get('post_deploy_errands', []):
             config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
