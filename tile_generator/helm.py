@@ -3,6 +3,8 @@ import sys
 import yaml
 import json
 
+import requests
+
 def find_required_images(values):
     images = []
     values = values is not None and { k.lower():v for k,v in values.items() } or {}
@@ -38,6 +40,12 @@ def get_chart_info(chart_dir):
         'version': chart.get('version', chart.get('Version')),
         'required_images': find_required_images(chart_values),
     }
+
+def get_latest_release_tag():
+    result = requests.get('https://api.github.com/repos/kubernetes/helm/releases/latest')
+    result.raise_for_status()
+    release = result.json()
+    return release['tag_name']
 
 if __name__ == '__main__':
     for chart in sys.argv[1:]:
