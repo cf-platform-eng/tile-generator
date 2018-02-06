@@ -103,7 +103,6 @@ class Cf(FlagBase):
                     'name': 'all_open.json',
                     'path': template.path('src/templates/all_open.json')
                 }],
-                'template': 'cf_cli',
                 'dir': 'blobs'
             }]
         config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [
