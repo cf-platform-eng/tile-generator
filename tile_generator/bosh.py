@@ -179,9 +179,6 @@ class BoshRelease:
 		package_dir = os.path.realpath(os.path.join(self.release_dir, 'packages', name))
 		mkdir_p(target_dir)
 		template_dir = 'packages'
-		alternate_template = package.get('template', None)
-		if alternate_template is not None:
-			template_dir = os.path.join(template_dir, alternate_template)
 		# Download files for package
 		if self.needs_zip(package):
 			staging_dir = tempfile.mkdtemp()

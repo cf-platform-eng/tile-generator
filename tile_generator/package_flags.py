@@ -129,7 +129,6 @@ class DockerBosh(FlagBase):
                 'name': 'utils.sh',
                 'path': template.path('src/common/utils.sh')
             }],
-            'template': 'common',
             'dir': 'src'
         }]
 

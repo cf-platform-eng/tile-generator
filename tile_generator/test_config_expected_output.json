@@ -3471,8 +3471,7 @@
               "path": "/home/user/workspace/tile-generator/tile_generator/templates/src/common/utils.sh"
             }
           ], 
-          "name": "common", 
-          "template": "common"
+          "name": "common"
         }
       ], 
       "requires_docker_bosh": true, 
