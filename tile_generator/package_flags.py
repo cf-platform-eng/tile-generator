@@ -315,7 +315,6 @@ class Helm(FlagBase):
                     'name': 'helm-linux-amd64.tar.gz',
                     'path': 'https://kubernetes-helm.storage.googleapis.com/helm-{}-linux-amd64.tar.gz'.format(latest_helm_tag),
                 }],
-                'template': 'helm_cli',
                 'dir': 'blobs'
             }]
         if False:
