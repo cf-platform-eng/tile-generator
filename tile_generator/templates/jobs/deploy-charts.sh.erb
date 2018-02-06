@@ -1,3 +1,26 @@
 #!/bin/bash
 
-# TBD - Deploy all helm charts in this release
+set -e
+set -x
+
+export PATH="/var/vcap/packages/pks_cli:/var/vcap/packages/helm_cli/linux-amd64:$PATH"
+
+export PKS_HOST=<%= Shellwords.escape(p('pks_host')) %>
+export PKS_USERNAME=<%= Shellwords.escape(p('pks_username')) %>
+export PKS_PASSWORD=<%= Shellwords.escape(p('pks_password')) %>
+export PKS_CLUSTER_NAME=<%= Shellwords.escape(p('pks_cluster')) %>
+
+
+pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-verification # FIXME --ca-cert /path/to/cert
+pks get-credentials "$PKS_CLUSTER_NAME"
+helm init
+
+# Maybe run a docker registry in the cluster to use? https://stackoverflow.com/a/42564191
+# Or use Harbor if it's there?
+for image in /var/vcap/packages/*-images/*; do
+  echo "FIXME: use the packaged image $image"
+done
+
+for chart in /var/vcap/packages/*/*/Chart.yaml; do
+  helm install $(dirname $chart)
+done

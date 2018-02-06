@@ -307,6 +307,16 @@ class Helm(FlagBase):
             config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-charts' }]
         if { 'name': 'delete-charts' } not in config_obj.get('pre_delete_errands', []):
             config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-charts' }]
+        if not 'pks_cli' in [p['name'] for p in release['packages']]:
+            release['packages'] += [{
+                'name': 'pks_cli',
+                'files': [{
+                    'name': 'pks',
+                    'path': 'https://storage.googleapis.com/pks-public/bin/linux/pks',
+                    'chmod': '+x',
+                }],
+                'dir': 'blobs'
+            }]
         if not 'helm_cli' in [p['name'] for p in release['packages']]:
             latest_helm_tag = helm.get_latest_release_tag()
             release['packages'] += [{
@@ -318,11 +328,28 @@ class Helm(FlagBase):
                 }],
                 'dir': 'blobs'
             }]
-        if False:
-            # Turning this off for now so that the tile can be installed in foundations that don't have PKS for testing
-            config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [
-                {
-                    'name': 'pivotal-container-service',
-                    'version': '>= 0.8'
-                }
-            ]
+        config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [{
+            'name': 'pivotal-container-service',
+            'version': '>= 0.8'
+        }]
+        pks_form_properties = [
+            # {
+            #     # Can we get this from Ops Manager? Else, should to add shared BOSH link.
+            #     'name': 'pks_host',
+            #     'label': 'PKS API Host',
+            #     'type': 'string',
+            #     'configurable': True,
+            # },
+            {
+                'name': 'pks_cluster',
+                'label': 'Target PKS Cluster',
+                'type': 'string',
+                'configurable': True,
+            }
+        ]
+        config_obj['forms'].append({
+            'name': 'pks_configuration',
+            'label': 'PKS Configuration',
+            'properties': pks_form_properties,
+        })
+        config_obj['all_properties'].extend(pks_form_properties)

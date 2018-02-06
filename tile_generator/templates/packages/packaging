@@ -9,4 +9,7 @@ tar -C ${BOSH_INSTALL_TARGET} -vxf {{ package.name }}/{{ file.name }}
 {% else %}
 cp {{ package.name }}/{{ file.name }} ${BOSH_INSTALL_TARGET}
 {% endif %}
+{% if file.chmod %}
+chmod {{ file.chmod }} ${BOSH_INSTALL_TARGET}/{{ file.name }}
+{% endif %}
 {% endfor %}

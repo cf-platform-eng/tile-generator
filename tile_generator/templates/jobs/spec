@@ -51,6 +51,12 @@ properties:
     description: 'Basic auth user'
   security.password:
     description: 'Basic auth password'
+  pks_username:
+    description: 'Username for the PKS API'
+  pks_password:
+    description: 'Password for the PKS API'
+  pks_host:
+    description: 'Host of the PKS API'
 {% for property in context.all_properties %}
   {{ property.name }}:
     description: {{ property.description or property.name }}

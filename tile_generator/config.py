@@ -348,6 +348,12 @@ class Config(dict):
 					'password': '(( .{}.app_credentials.password ))'.format(job['name']),
 				}
 			})
+		if job.get('type') == 'deploy-charts':
+			merge_dict(manifest, {
+				'pks_username': '(( ..pivotal-container-service.pks_basic_auth.identity ))',
+				'pks_password': '(( ..pivotal-container-service.pks_basic_auth.password ))',
+                                'pks_host': '(( ..pivotal-container-service.pks-api.first_ip ))',
+			})
 		merge_dict(manifest, job['properties'])
 		for property in self.get('all_properties', []):
 			merge_dict(manifest, template.render_property(property))
