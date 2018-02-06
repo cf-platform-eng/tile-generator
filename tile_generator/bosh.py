@@ -203,7 +203,7 @@ class BoshRelease:
 		package_context = {
 			'context': self.context,
 			'package': package,
-			'files': [ file['name'] for file in package.get('files', []) ]
+			'files': package.get('files', []),
 		}
 		template.render(
 			os.path.join(package_dir, 'spec'),

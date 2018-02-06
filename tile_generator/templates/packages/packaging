@@ -2,11 +2,11 @@
 set -e
 
 {% for file in files %}
-{% if file.endswith('.zip') %}
-unzip -d ${BOSH_INSTALL_TARGET} {{ package.name }}/{{ file }}
-{% elif file.endswith('.tar.gz') or file.endswith('.tgz') or file.endswith('tar') %}
-tar -C ${BOSH_INSTALL_TARGET} -vxf {{ package.name }}/{{ file }}
+{% if file.unzip %}
+unzip -d ${BOSH_INSTALL_TARGET} {{ package.name }}/{{ file.name }}
+{% elif file.untar %}
+tar -C ${BOSH_INSTALL_TARGET} -vxf {{ package.name }}/{{ file.name }}
 {% else %}
-cp {{ package.name }}/{{ file }} ${BOSH_INSTALL_TARGET}
+cp {{ package.name }}/{{ file.name }} ${BOSH_INSTALL_TARGET}
 {% endif %}
 {% endfor %}

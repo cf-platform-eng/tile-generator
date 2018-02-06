@@ -98,7 +98,8 @@ class Cf(FlagBase):
                 'name': 'cf_cli',
                 'files': [{
                     'name': 'cf-linux-amd64.tgz',
-                    'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
+                    'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel',
+                    'untar': True,
                 },{
                     'name': 'all_open.json',
                     'path': template.path('src/templates/all_open.json')
@@ -313,6 +314,7 @@ class Helm(FlagBase):
                 'files': [{
                     'name': 'helm-linux-amd64.tar.gz',
                     'path': 'https://kubernetes-helm.storage.googleapis.com/helm-{}-linux-amd64.tar.gz'.format(latest_helm_tag),
+                    'untar': True,
                 }],
                 'dir': 'blobs'
             }]

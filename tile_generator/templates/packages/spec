@@ -5,5 +5,5 @@ dependencies: []
 
 files:
 {% for file in files %}
-- {{ package.name }}/{{ file }}
+- {{ package.name }}/{{ file.name }}
 {% endfor %}

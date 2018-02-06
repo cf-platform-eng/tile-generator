@@ -3098,7 +3098,8 @@
           "files": [
             {
               "name": "cf-linux-amd64.tgz", 
-              "path": "http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel"
+              "path": "http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel",
+              "untar": true
             }, 
             {
               "name": "all_open.json", 
