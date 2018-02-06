@@ -5,7 +5,7 @@ set -e
 {% if file.endswith('.zip') %}
 unzip -d ${BOSH_INSTALL_TARGET} {{ package.name }}/{{ file }}
 {% elif file.endswith('.tar.gz') or file.endswith('.tgz') or file.endswith('tar') %}
-tar -C ${BOSH_INSTALL_DIR} -vxf {{ package.name }}/{{ file }}
+tar -C ${BOSH_INSTALL_TARGET} -vxf {{ package.name }}/{{ file }}
 {% else %}
 cp {{ package.name }}/{{ file }} ${BOSH_INSTALL_TARGET}
 {% endif %}
