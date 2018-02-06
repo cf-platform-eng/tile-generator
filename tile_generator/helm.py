@@ -11,14 +11,17 @@ def find_required_images(values):
     for key, value in values.items():
         if key in [ 'image', 'repository' ]:
             if isinstance(value, dict):
-                image = value.get('repository', value.get('name'))
-                tag = value.get('tag', value.get('imagetag', None))
+                image = value.get('repository', value.get('name', value.get('image')))
+                tag = value.get('tag', value.get('imagetag'))
                 if image is None:
-                    images += find_required_images(value)
-                    continue
+                    if tag is None:
+                        images += find_required_images(value)
+                        continue
+                    image = tag
+                    tag = None
             else:
                 image = value
-                tag = values.get('tag', values.get('imagetag', None))
+                tag = values.get('tag', values.get('imagetag'))
             if tag is not None:
                 image += ':' + str(tag)
             images += [ image ]

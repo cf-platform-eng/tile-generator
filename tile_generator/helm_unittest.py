@@ -119,3 +119,13 @@ class TestImageFinder(unittest.TestCase):
         values = None
         images = helm.find_required_images(values)
         self.assertEqual(len(images), 0)
+
+    def test_handles_tag_only(self): # Case found in anchore helm chart
+        values = {
+            'image': {
+                'tag': 'foo/bar:1.2'
+            }
+        }
+        images = helm.find_required_images(values)
+        self.assertEqual(len(images), 1)
+        self.assertEqual(images[0], "foo/bar:1.2")
