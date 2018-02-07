@@ -5,7 +5,7 @@ set -x
 
 export PATH="/var/vcap/packages/pks_cli:/var/vcap/packages/helm_cli/linux-amd64:$PATH"
 
-export PKS_HOST=<%= Shellwords.escape(p('pks_host')) %>
+export PKS_HOST=$(grep \\.pivotal-container-service\\.infrastructure\\.pivotal-container-service-.\*\\.bosh /etc/hosts | cut -d ' ' -f 1)
 export PKS_USERNAME=<%= Shellwords.escape(p('pks_username')) %>
 export PKS_PASSWORD=<%= Shellwords.escape(p('pks_password')) %>
 export PKS_CLUSTER_NAME=<%= Shellwords.escape(p('pks_cluster')) %>

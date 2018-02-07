@@ -292,8 +292,10 @@ class Helm(FlagBase):
                 'lifecycle': 'errand',
                 'post_deploy': True
             }
+            deploy_charts_job['packages'] = deploy_charts_job.get('packages',[])
+            deploy_charts_job['packages'] += [{ 'name': 'pks_cli' }]
+            deploy_charts_job['packages'] += [{ 'name': 'helm_cli' }]
             if image_package is not None:
-                deploy_charts_job['packages'] = deploy_charts_job.get('packages',[])
                 deploy_charts_job['packages'] += [ image_package ]
             release['jobs'] += [ deploy_charts_job ]
         if 'delete-charts' not in [job['name'] for job in release['jobs']]:
@@ -333,13 +335,6 @@ class Helm(FlagBase):
             'version': '>= 0.8'
         }]
         pks_form_properties = [
-            # {
-            #     # Can we get this from Ops Manager? Else, should to add shared BOSH link.
-            #     'name': 'pks_host',
-            #     'label': 'PKS API Host',
-            #     'type': 'string',
-            #     'configurable': True,
-            # },
             {
                 'name': 'pks_cluster',
                 'label': 'Target PKS Cluster',

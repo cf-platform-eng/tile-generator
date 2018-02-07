@@ -350,9 +350,8 @@ class Config(dict):
 			})
 		if job.get('type') == 'deploy-charts':
 			merge_dict(manifest, {
-				'pks_username': '(( ..pivotal-container-service.pks_basic_auth.identity ))',
-				'pks_password': '(( ..pivotal-container-service.pks_basic_auth.password ))',
-                                'pks_host': '(( ..pivotal-container-service.pks-api.first_ip ))',
+				'pks_username': '(( ..pivotal-container-service.properties.pks_basic_auth.identity ))',
+				'pks_password': '(( ..pivotal-container-service.properties.pks_basic_auth.password ))',
 			})
 		merge_dict(manifest, job['properties'])
 		for property in self.get('all_properties', []):

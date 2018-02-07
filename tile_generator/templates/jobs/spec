@@ -55,8 +55,6 @@ properties:
     description: 'Username for the PKS API'
   pks_password:
     description: 'Password for the PKS API'
-  pks_host:
-    description: 'Host of the PKS API'
 {% for property in context.all_properties %}
   {{ property.name }}:
     description: {{ property.description or property.name }}
