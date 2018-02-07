@@ -206,8 +206,8 @@ function delete_older_versions() {
 
 function wait_til_service_running() {
 	for i in `seq 1 40`; do
-		STATUS=$(cf service $1 | grep "Status:")
-		if [ "$STATUS" = "Status: create in progress" ]; then
+		STATUS=$($CF service $1 | grep -i "status:")
+		if [[ "$STATUS" =~ "create in progress" ]]; then
 			echo "cf service $1 shows '$STATUS'. Waiting..."
 			sleep 30
 		else
