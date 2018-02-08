@@ -12,6 +12,8 @@ export PKS_USERNAME=<%= Shellwords.escape(p('pks_username')) %>
 export PKS_PASSWORD=<%= Shellwords.escape(p('pks_password')) %>
 export PKS_CLUSTER_NAME=<%= Shellwords.escape(p('pks_cluster')) %>
 
+export BOSH_DEPLOYMENT=<%= spec.deployment %>
+
 # Use PKS to connect kubectl to the named cluster
 #
 pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-verification # FIXME --ca-cert /path/to/cert
@@ -34,6 +36,7 @@ while ! helm list 2>/dev/null; do
   echo -n .
 	sleep 1
 done
+echo
 
 # Maybe run a docker registry in the cluster to use? https://stackoverflow.com/a/42564191
 # Or use Harbor if it's there?
@@ -52,5 +55,12 @@ done
 # Now install all helm charts
 #
 for chart in /var/vcap/packages/*/*/Chart.yaml; do
-  helm install $(dirname $chart)
+  # FIXME - This only works for a single helm chart
+  HELM_NAME="${BOSH_DEPLOYMENT}"
+  HELM_RELEASE=$(helm list "^${HELM_NAME}\$")
+  if [ -z "$HELM_RELEASE" ]; then
+    helm install -n "${HELM_NAME}" $(dirname $chart)
+  else
+    echo "${HELM_NAME} is already deployed"
+  fi
 done
