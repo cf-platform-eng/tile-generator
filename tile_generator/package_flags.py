@@ -295,6 +295,7 @@ class Helm(FlagBase):
             deploy_charts_job['packages'] = deploy_charts_job.get('packages',[])
             deploy_charts_job['packages'] += [{ 'name': 'pks_cli' }]
             deploy_charts_job['packages'] += [{ 'name': 'helm_cli' }]
+            deploy_charts_job['packages'] += [{ 'name': 'kubectl_cli' }]
             if image_package is not None:
                 deploy_charts_job['packages'] += [ image_package ]
             release['jobs'] += [ deploy_charts_job ]
@@ -327,6 +328,17 @@ class Helm(FlagBase):
                     'name': 'helm-linux-amd64.tar.gz',
                     'path': 'https://kubernetes-helm.storage.googleapis.com/helm-{}-linux-amd64.tar.gz'.format(latest_helm_tag),
                     'untar': True,
+                }],
+                'dir': 'blobs'
+            }]
+        if not 'kubectl_cli' in [p['name'] for p in release['packages']]:
+            latest_kubectl_tag = helm.get_latest_kubectl_tag()
+            release['packages'] += [{
+                'name': 'kubectl_cli',
+                'files': [{
+                    'name': 'kubectl',
+                    'path': 'https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl'.format(latest_kubectl_tag),
+                    'chmod': '+x',
                 }],
                 'dir': 'blobs'
             }]

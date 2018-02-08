@@ -3,17 +3,37 @@
 set -e
 set -x
 
-export PATH="/var/vcap/packages/pks_cli:/var/vcap/packages/helm_cli/linux-amd64:$PATH"
+export PATH="/var/vcap/packages/pks_cli:$PATH"
+export PATH="/var/vcap/packages/helm_cli/linux-amd64:$PATH"
+export PATH="/var/vcap/packages/kubectl_cli:$PATH"
 
 export PKS_HOST=$(grep \\.pivotal-container-service\\.infrastructure\\.pivotal-container-service-.\*\\.bosh /etc/hosts | cut -d ' ' -f 1)
 export PKS_USERNAME=<%= Shellwords.escape(p('pks_username')) %>
 export PKS_PASSWORD=<%= Shellwords.escape(p('pks_password')) %>
 export PKS_CLUSTER_NAME=<%= Shellwords.escape(p('pks_cluster')) %>
 
-
+# Use PKS to connect kubectl to the named cluster
+#
 pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-verification # FIXME --ca-cert /path/to/cert
 pks get-credentials "$PKS_CLUSTER_NAME"
+
+# Install Tiller
+#
 helm init
+
+# Create a service account with the right permissions for tiller to do it's thing with RBAC enabled
+#
+kubectl create serviceaccount --namespace kube-system tiller || true
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller || true
+kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}' || true
+
+# Wait for tiller to become ready
+#
+echo -n "waiting for tiller"
+while ! helm list 2>/dev/null; do
+  echo -n .
+	sleep 1
+done
 
 # Maybe run a docker registry in the cluster to use? https://stackoverflow.com/a/42564191
 # Or use Harbor if it's there?
@@ -21,6 +41,16 @@ for image in /var/vcap/packages/*-images/*; do
   echo "FIXME: use the packaged image $image"
 done
 
+# Unzip any zipped helm charts
+#
+for zip in /var/vcap/packages/*/*.zip; do
+  if unzip -l ${zip} \*/Chart.yaml >/dev/null; then
+    (cd $(dirname ${zip}); unzip ${zip})
+  fi
+done
+
+# Now install all helm charts
+#
 for chart in /var/vcap/packages/*/*/Chart.yaml; do
   helm install $(dirname $chart)
 done

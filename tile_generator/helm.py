@@ -50,6 +50,12 @@ def get_latest_release_tag():
     release = result.json()
     return release['tag_name']
 
+def get_latest_kubectl_tag():
+    result = requests.get('https://storage.googleapis.com/kubernetes-release/release/stable.txt')
+    result.raise_for_status()
+    release = result.text.strip()
+    return release
+
 if __name__ == '__main__':
     for chart in sys.argv[1:]:
         print(json.dumps(get_chart_info(chart), indent=4))
