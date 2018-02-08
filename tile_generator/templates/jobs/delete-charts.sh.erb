@@ -1,3 +1,42 @@
 #!/bin/bash
 
 # TBD - Delete all helm charts deployed by this release
+
+set -e
+set -x
+
+export PATH="/var/vcap/packages/pks_cli:$PATH"
+export PATH="/var/vcap/packages/helm_cli/linux-amd64:$PATH"
+export PATH="/var/vcap/packages/kubectl_cli:$PATH"
+
+export PKS_HOST=$(grep \\.pivotal-container-service\\.infrastructure\\.pivotal-container-service-.\*\\.bosh /etc/hosts | cut -d ' ' -f 1)
+export PKS_USERNAME=<%= Shellwords.escape(p('pks_username')) %>
+export PKS_PASSWORD=<%= Shellwords.escape(p('pks_password')) %>
+export PKS_CLUSTER_NAME=<%= Shellwords.escape(p('pks_cluster')) %>
+
+export BOSH_DEPLOYMENT=<%= spec.deployment %>
+
+# Use PKS to connect kubectl to the named cluster
+#
+pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-verification # FIXME --ca-cert /path/to/cert
+pks get-credentials "$PKS_CLUSTER_NAME"
+
+# Check if tiller is there. If not, there's nothing to do
+#
+if ! helm list 2>/dev/null; then
+    echo "tiller is not installed in this cluster, nothing to remove"
+    exit 0
+fi
+
+# We do not remove tiller itself, as it may be shared with other tiles
+
+# FIXME Remove any cached docker images that were pushed by this release
+
+# FIXME - This only works for a single helm chart
+HELM_NAME="${BOSH_DEPLOYMENT}"
+HELM_RELEASE=$(helm list "^${HELM_NAME}\$")
+if [ -z "$HELM_RELEASE" ]; then
+    echo "${HELM_NAME} is not deployed"
+else
+    helm delete "${HELM_NAME}" --purge
+fi
