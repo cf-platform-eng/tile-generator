@@ -249,7 +249,6 @@ class Config(dict):
 	def build_tile_metadata(self):
 		tile_metadata = TileMetadata(self)
 		self.tile_metadata.update(tile_metadata.build())
-		self.tile_metadata.update(tile_metadata._build_property_blueprints())
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
