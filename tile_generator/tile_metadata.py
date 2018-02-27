@@ -11,6 +11,7 @@ class TileMetadata(object):
         self._build_stemcell_criteria()
         self._build_property_blueprints()
         self._build_form_types()
+        self._build_job_types()
         return self.tile_metadata
 
     def _build_base(self):
@@ -300,6 +301,378 @@ class TileMetadata(object):
 
         # Return value
         self.tile_metadata['form_types'] = form_types
+
+    def _build_job_types(self):
+        job_types = list()
+        # Default compilation job
+        if self.config['metadata_version'] < 1.8:
+            compilation_job = {
+                "dynamic_ip": 1, 
+                "max_in_flight": 1, 
+                "name": "compilation", 
+                "single_az_only": True, 
+                "resource_label": "compilation", 
+                "resource_definitions": [
+                {
+                    "default": 4096, 
+                    "type": "integer", 
+                    "name": "ram", 
+                    "configurable": True
+                }, 
+                {
+                    "default": self.config.get("compilation_vm_disk_size"), 
+                    "type": "integer", 
+                    "name": "ephemeral_disk", 
+                    "configurable": True
+                }, 
+                {
+                    "default": 0, 
+                    "type": "integer", 
+                    "name": "persistent_disk", 
+                    "configurable": True
+                }, 
+                {
+                    "default": 2, 
+                    "type": "integer", 
+                    "name": "cpu", 
+                    "configurable": True
+                }
+                ], 
+                "static_ip": 0
+            }
+            instance_def = {
+                'configurable': True,
+                'default': 1,
+                'name': 'instances',
+                'type': 'integer'
+            }
+            if self.config['metadata_version'] < 1.7:
+                compilation_job['instance_definitions'] = [instance_def]
+            else:
+                compilation_job['instance_definition'] = instance_def
+
+            job_types.append(compilation_job)
+
+
+        #
+        # {{ job.template }} job for {{ job.package.name }}
+        #
+        for release in self.config.get('releases', {}).values():
+            for job in [j for j in release.get('jobs', []) if j.get('template') and j.get('template') == 'docker-bosh']:
+                release_job = {
+                    'dynamic_ip': 0,
+                    'errand': False,
+                    'max_in_flight': 1,
+                    'name': job.get('name'),
+                    'resource_definitions': [
+                        {'configurable': True,
+                        'constraints': {'min': job.get('package').get('memory')},
+                        'default': job.get('package').get('memory'),
+                        'name': 'ram',
+                        'type': 'integer'},
+                        {'configurable': True,
+                        'constraints': {'min': job.get('package').get('ephemeral_disk')},
+                        'default': job.get('package').get('ephemeral_disk'),
+                        'name': 'ephemeral_disk',
+                        'type': 'integer'},
+                        {'configurable': True,
+                        'constraints': {'min': job.get('package').get('persistent_disk', 0)},
+                        'default': job.get('package').get('persistent_disk', 0),
+                        'name': 'persistent_disk',
+                        'type': 'integer'},
+                        {'configurable': True,
+                        'constraints': {'min': job.get('package').get('cpu')},
+                        'default': job.get('package').get('cpu'),
+                        'name': 'cpu',
+                        'type': 'integer'}],
+                    'resource_label': job.get('name'),
+                    'single_az_only': False,
+                    'static_ip': 1,
+                    'templates': [
+                        {'name': 'containers', 'release': 'docker'},
+                        {'name': 'docker', 'release': 'docker'},
+                        {'name': job.get('type'), 'release': release.get('name')},
+                        {'consumes': 'nats:\n  from: nats\n  deployment: (( ..cf.deployment_name ))\n',
+                            'name': 'route_registrar',
+                            'release': 'routing'}
+                    ],
+                    'property_blueprints': [
+                        {
+                            'default': {'identity': 'vcap'},
+                            'name': 'vm_credentials',
+                            'type': 'salted_credentials'},
+                        {
+                            'name': 'app_credentials',
+                            'type': 'salted_credentials'
+                        }
+                    ],
+                    'manifest': {
+                        'allow_paid_service_plans': '(( .properties.allow_paid_service_plans.value ))',
+                        'app_domains': ['(( ..cf.cloud_controller.apps_domain.value ))'],
+                        'apply_open_security_group': '(( .properties.apply_open_security_group.value ))',
+                        'cf': {
+                            'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',
+                            'admin_user': '(( ..cf.uaa.system_services_credentials.identity ))'},
+                        'domain': '(( ..cf.cloud_controller.system_domain.value ))',
+                        'org': '(( .properties.org.value ))',
+                        'security': {
+                            'password': '(( .' + job.get('name') + '.app_credentials.password ))',
+                            'user': '(( .' + job.get('name') + '.app_credentials.identity ))'},
+                        'space': '(( .properties.space.value ))',
+                        'ssl': {'skip_cert_verify': '(( ..cf.ha_proxy.skip_cert_verify.value ))'},
+                        'tls_cacert': '(( $ops_manager.ca_certificate ))',
+                        'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
+                        'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
+                    }
+                }
+
+                release_job['manifest'].update(job.get('package', {}).get('manifest', {}))
+                release_job_manifest = release_job['manifest']
+                
+                routes = {'routes': list()}
+                for route in job.get('package', {}).get('routes', []):
+                    route_name = route.get('prefix') + '-' + job.get('package').get('name').replace('_','-')
+                    routes['routes'].append({
+                        'name': route_name,
+                        'port': route.get('port'),
+                        'registration_interval': '20s',
+                        'uris': ['%s.(( ..cf.cloud_controller.system_domain.value ))' % route_name]
+                    })
+                release_job_manifest['route_registrar'] = routes
+
+                for prop in self.config.get('all_properties'):
+                    prop = template_helper.render_property(prop)
+                    release_job_manifest.update(prop)
+
+                for service_plan_form in self.config.get('service_plan_forms', []):
+                    form_name = service_plan_form.get('name')
+                    release_job_manifest[form_name] =  '(( .properties.' + form_name + '.value ))'
+
+                for package in self.config.get('packages', []):
+                    pkg_name = package.get('name')
+                    pkg_manifest = {'name': pkg_name}
+                    if package.get('is_external_broker'):
+                        pkg_manifest.update({
+                            'url': '(( .properties.' + pkg_name + '_url.value ))',
+                            'user': '(( .' + pkg_name + '_user.value ))',
+                            'password': '(( .' + pkg_name + '_password.value ))',
+                        })
+                    elif package.get('is_broker'):
+                        pkg_manifest.update({
+                            'user': '(( .' + job.get('name') + '.app_credentials.identity ))',
+                            'password': '(( .' + job.get('name') + '.app_credentials.password ))',
+                        })
+
+                    if package.get('is_broker'):
+                        pkg_manifest.update({
+                            'enable_global_access_to_plans': '(( .properties.' + pkg_name + '_enable_global_access_to_plans.value ))',
+                        })
+
+                    if package.get('is_buildpack'):
+                        pkg_manifest.update({
+                            'buildpack_order': '(( .properties.' + pkg_name + '_buildpack_order.value ))',
+                        })
+
+                    if package.get('is_docker_bosh'):
+                        pkg_manifest.update({
+                            'host': '(( .docker-bosh-' + pkg_name + '.first_ip ))',
+                            'hosts': '(( .docker-bosh-' + pkg_name + '.ips ))',
+                        })
+
+                    if package.get('is_bosh_release'):
+                        for job in package.get('jobs', []):
+                            if job.get('is_static'):
+                                pkg_manifest.update({
+                                    job.get('varname'): {
+                                        'host': '(( .' + job.get('name') + '.first_ip ))',
+                                        'hosts': '(( .' + job.get('name') + '.ips ))',
+                                    }
+                                })
+
+                    release_job_manifest[pkg_name] = pkg_manifest
+
+                instance_def = {
+                'configurable': True,
+                'default': job.get('instances'),
+                'name': 'instances',
+                'type': 'integer'
+                }
+                if self.config['metadata_version'] < 1.7:
+                    release_job['instance_definitions'] = [instance_def]
+                else:
+                    release_job['instance_definition'] = instance_def
+
+                job_types.append(release_job)
+
+            if release.get('package-type') == 'bosh-release':
+                for job in release.get('jobs', []):
+                    bosh_release_job = {
+                        'name': job.get('name'), 
+                        'resource_label': job.get('label') or job.get('name'),
+                        'dynamic_ip': job.get('dynamic_ip', 0),
+                        'max_in_flight': job.get('max_in_flight', 1),
+                        'single_az_only': job.get('single_az_only', True if job.get('lifecycle') == 'errand' else False),
+                        'static_ip': job.get('static_ip', 0),
+                        'property_blueprints': [{
+                            'default': {'identity': 'vcap'},
+                            'name': 'vm_credentials',
+                            'type': 'salted_credentials'
+                        }],
+                        'manifest': yaml.dump(job.get('manifest'), default_flow_style=False),
+                    }
+                    if job.get('lifecycle') == 'errand':
+                        bosh_release_job['errand'] = True
+                        if job.get('run_post_deploy_errand_default'):
+                            bosh_release_job['run_post_deploy_errand_default'] = job.get('run_post_deploy_errand_default')
+                        if job.get('run_pre_delete_errand_default'):
+                            bosh_release_job['run_pre_delete_errand_default'] = job.get('run_pre_delete_errand_default')
+
+                    bosh_release_job['templates'] = list()
+                    for template in job.get('templates'):
+                        temp = {
+                            'name': template.get('name'), 
+                            'release': template.get('release')
+                        }
+                        if template.get('consumes'):
+                            temp['consumes'] = str(yaml.dump(template.get('consumes'), default_flow_style=False))
+                        if template.get('provides'):
+                            temp['provides'] = str(yaml.dump(template.get('provides'), default_flow_style=False))
+                        bosh_release_job['templates'].append(temp)
+
+                    bosh_release_job['resource_definitions'] = [{
+                        "default": job.get('memory', 512), 
+                        "configurable": True, 
+                        "type": "integer", 
+                        "name": "ram", 
+                        "constraints": {
+                          "min": job.get('memory', 0)
+                        }
+                      }, 
+                      {
+                        "default": job.get('ephemeral_disk', 4096), 
+                        "configurable": True, 
+                        "type": "integer", 
+                        "name": "ephemeral_disk", 
+                        "constraints": {
+                          "min": job.get('ephemeral_disk', 0)
+                        }
+                      }, 
+                      {
+                        "default": job.get('persistent_disk', 0), 
+                        "configurable": False if job.get('lifecycle') == 'errand' else True, 
+                        "type": "integer", 
+                        "name": "persistent_disk", 
+                        "constraints": {
+                          "min": job.get('persistent_disk', 0)
+                        }
+                      }, 
+                      {
+                        "default": job.get('cpu', 1), 
+                        "configurable": True, 
+                        "type": "integer", 
+                        "name": "cpu", 
+                        "constraints": {
+                          "min": job.get('cpu', 1)
+                        }
+                    }]
+                
+                    if job.get('default_internet_connected') != None:
+                        bosh_release_job['default_internet_connected'] = job.get('default_internet_connected')
+
+                    instance_def = {
+                    'configurable': True,
+                    'default': job.get('instances', 1),
+                    'name': 'instances',
+                    'type': 'integer'
+                    }
+                    if job.get('singleton') or job.get('lifecycle') == 'errand':
+                        instance_def['configurable'] = False
+                        instance_def['default'] = 1
+                    if self.config['metadata_version'] < 1.7:
+                        bosh_release_job['instance_definitions'] = [instance_def]
+                    else:
+                        bosh_release_job['instance_definition'] = instance_def
+
+                    job_types.append(bosh_release_job)
+
+            #
+            # {{ job.type }} job
+            #
+            if not release.get('package-type') == 'bosh-release':
+                for job in [j for j in release.get('jobs', []) if not j.get('template') == 'docker-bosh']:
+                    job_type = {
+                        'name': job.get('name'),
+                        'resource_label': job.get('name'),
+                        'errand': True,
+                        "templates": [{
+                            "release": release.get('name'), 
+                            "name": job.get('type'),
+                        }],
+                        "resource_definitions": [{
+                            "default": 1024, 
+                            "type": "integer", 
+                            "name": "ram", 
+                            "configurable": True
+                          }, 
+                          {
+                            "default": 4096, 
+                            "type": "integer", 
+                            "name": "ephemeral_disk", 
+                            "configurable": True
+                          }, 
+                          {
+                            "default": 0, 
+                            "configurable": False if job.get('lifecycle') == 'errand' else True, 
+                            "type": "integer", 
+                            "name": "persistent_disk", 
+                            "constraints": {
+                              "min": 0
+                            }
+                          }, 
+                          {
+                            "default": 1, 
+                            "type": "integer", 
+                            "name": "cpu", 
+                            "configurable": True
+                        }],
+                        "static_ip": 0, 
+                        "dynamic_ip": 1,
+                        "max_in_flight": 1, 
+                        "single_az_only": True,
+                        "property_blueprints": [{
+                            "default": {"identity": "vcap"}, 
+                            "type": "salted_credentials", 
+                            "name": "vm_credentials"
+                          }, 
+                          {
+                            "type": "salted_credentials", 
+                            "name": "app_credentials"
+                          }
+                        ], 
+                        "manifest": job.get('manifest')
+                    }
+                    if job.get('run_post_deploy_errand_default'):
+                        job_type['run_post_deploy_errand_default'] = job.get('run_post_deploy_errand_default')
+                    if job.get('run_pre_delete_errand_default'):
+                        job_type['run_pre_delete_errand_default'] = job.get('run_pre_delete_errand_default')
+                    if release.get('consumes_for_deployment'):
+                        job_type['templates'][0]["consumes"] = release.get('consumes_for_deployment')
+
+                    instance_def = {
+                    'configurable': False,
+                    'default': 1,
+                    'name': 'instances',
+                    'type': 'integer'
+                    }
+                    if self.config['metadata_version'] < 1.7:
+                        job_type['instance_definitions'] = [instance_def]
+                    else:
+                        job_type['instance_definition'] = instance_def
+
+                    job_types.append(job_type)
+
+        # Return value
+        self.tile_metadata['job_types'] = job_types
 
     def _build_runtime_config(self):
         # TODO: this should be making a copy not clobbering the original.

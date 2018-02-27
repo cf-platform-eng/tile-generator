@@ -134,6 +134,7 @@ class Config(dict):
 		self.validate()
 		self.upgrade()
 		self.normalize_jobs()
+		self.build_tile_metadata()
 
 	def _validate_base_config(self):
 		# Disallow keywords, until a more strict schema can be used ie. disable allow_unknown
@@ -243,8 +244,6 @@ class Config(dict):
 				property['default'] = default
 			property['configurable'] = property.get('configurable', False)
 			property['optional'] = property.get('optional', False)
-
-		self.build_tile_metadata()
 
 	def build_tile_metadata(self):
 		tile_metadata = TileMetadata(self)
