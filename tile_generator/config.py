@@ -28,7 +28,6 @@ import requests
 from collections import OrderedDict
 from . import package_definitions
 from . import template
-from .tile_metadata import TileMetadata
 
 CONFIG_FILE = "tile.yml"
 HISTORY_FILE = "tile-history.yml"
@@ -107,8 +106,6 @@ class Config(dict):
 			if k.startswith('Package'):
 				self._package_defs[v.package_type] = v
 
-		self.tile_metadata = dict()
-
 	def read(self):
 		self.read_config()
 		self.read_history()
@@ -134,7 +131,6 @@ class Config(dict):
 		self.validate()
 		self.upgrade()
 		self.normalize_jobs()
-		self.build_tile_metadata()
 
 	def _validate_base_config(self):
 		# Disallow keywords, until a more strict schema can be used ie. disable allow_unknown
@@ -245,10 +241,6 @@ class Config(dict):
 			property['configurable'] = property.get('configurable', False)
 			property['optional'] = property.get('optional', False)
 
-	def build_tile_metadata(self):
-		tile_metadata = TileMetadata(self)
-		self.tile_metadata.update(tile_metadata.build())
-
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
 		stemcell_criteria['os'] = stemcell_criteria.get('os', 'ubuntu-trusty')
@@ -273,19 +265,6 @@ class Config(dict):
 				job['template'] = job.get('template', job['type'])
 				job['properties'] = job.get('properties', {})
 				job['manifest'] = self.build_job_manifest(job)
-
-		# This should be moved to where the tarbal is created.
-		# for release in self.get('releases', {}).values():
-		# 	# Build out tile-metadata
-		# 	if self.tile_metadata.get('releases') is None:
-		# 		self.tile_metadata['releases'] = []
-
-		# 	if release.get('file'):
-		# 		self.tile_metadata['releases'] += {
-		# 			'file': release['file'],
-		# 			'name': release['release_name'],
-		# 			'version': str(release['version'])
-		# 		}
 
 	def build_job_manifest(self, job):
 		# TODO: This whole thing needs to be changed to new world order
@@ -426,7 +405,6 @@ class Config(dict):
 			version = '.'.join(semver)
 		history['version'] = version
 		self['version'] = version
-		self.tile_metadata['product_version'] = str(version)
 
 def read_yaml(file):
 	return yaml.safe_load(file)

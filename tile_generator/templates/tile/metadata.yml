@@ -1,6 +1,5 @@
 ---
 {{ tile_metadata.base | yaml }}
-product_version: {{ tile_metadata.product_version }}
 
 releases:
 {% for release in releases.values() %}
@@ -66,14 +65,6 @@ update:
   max_in_flight: {{ ( update and update.max_in_flight ) or 1 }}
   update_watch_time: {{ ( update and update.update_watch_time ) or '10000-100000' }}
 
-{% for product in tile_metadata.requires_product_versions %}
-{% if loop.first %}
-requires_product_versions:
-{% endif %}
-- name: {{ product.name }}
-  version: '{{ product.version }}'
-{% endfor %}
-
 provides_product_versions:
 - name: {{ tile_metadata.base.name }}
-  version: '{{ tile_metadata.product_version }}'
+  version: '{{ tile_metadata.base.product_version }}'

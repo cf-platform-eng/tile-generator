@@ -1,6 +1,14 @@
 import yaml
 from . import template as template_helper
 
+
+# Inspired by: https://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter
+class literal_unicode(unicode): pass
+def literal_unicode_representer(dumper, data):
+    return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
+yaml.SafeDumper.add_representer(literal_unicode, literal_unicode_representer)
+
+
 class TileMetadata(object):
     def __init__(self, config):
         self.config = config
@@ -12,6 +20,7 @@ class TileMetadata(object):
         self._build_property_blueprints()
         self._build_form_types()
         self._build_job_types()
+        self._build_runtime_config()
         return self.tile_metadata
 
     def _build_base(self):
@@ -26,6 +35,16 @@ class TileMetadata(object):
         base['icon_image'] = self.config['icon_file']
         base['metadata_version'] = str(self.config['metadata_version'])
         base['service_broker'] = self.config['service_broker']
+
+        base['product_version'] = str(self.config.get('version'))
+        product_versions = list()
+        for k, v in self.config.get('requires_product_versions', {}).items():
+            product_versions.append({
+                'name': k,
+                'version': v,
+                })
+        if product_versions: 
+            base['requires_product_versions'] = product_versions
         self.tile_metadata['base'] = base
 
     def _build_stemcell_criteria(self):
@@ -118,7 +137,7 @@ class TileMetadata(object):
                     #
                     self.tile_metadata['property_blueprints'].append(
                       {
-                        "default": package.get('enable_global_access_to_plans') or 'false', 
+                        "default": package.get('enable_global_access_to_plans') or False, 
                         "type": "boolean", 
                         "name": package['name'] + "_enable_global_access_to_plans", 
                         "configurable": True
@@ -182,6 +201,7 @@ class TileMetadata(object):
                                 "reference": p_input['name'], 
                                 "label": p_input['label']
                             })
+                    if not prop_input["property_inputs"]: prop_input["property_inputs"] = None
 
                 if prop.get('option_templates'):
                     prop_input["selector_property_inputs"] = list()
@@ -201,9 +221,12 @@ class TileMetadata(object):
                             if p_input.get('placeholder'):
                                 option_dict_element["placeholder"] = p_input['placeholder']
                             option_dict["property_inputs"].append(option_dict_element)
+                        if not option_dict["property_inputs"]: option_dict["property_inputs"] = None
                         prop_input["selector_property_inputs"].append(option_dict)
                 custom_form["property_inputs"].append(prop_input)
+            if not custom_form["property_inputs"]: custom_form["property_inputs"] = None
             form_types.append(custom_form)
+
 
         # Custom Service Plan forms from the tile.yml file
         for service_plan_form in self.config.get('service_plan_forms', []):
@@ -392,7 +415,12 @@ class TileMetadata(object):
                         {'name': 'containers', 'release': 'docker'},
                         {'name': 'docker', 'release': 'docker'},
                         {'name': job.get('type'), 'release': release.get('name')},
-                        {'consumes': 'nats:\n  from: nats\n  deployment: (( ..cf.deployment_name ))\n',
+                        {'consumes': 
+                            literal_unicode(
+                                'nats:\n'
+                                '  from: nats\n'
+                                '  deployment: (( ..cf.deployment_name ))\n'
+                            ),
                             'name': 'route_registrar',
                             'release': 'routing'}
                     ],
@@ -490,6 +518,7 @@ class TileMetadata(object):
                                 })
 
                     release_job_manifest[pkg_name] = pkg_manifest
+                release_job['manifest'] = literal_unicode(template_helper.render_yaml(release_job_manifest))
 
                 instance_def = {
                 'configurable': True,
@@ -518,7 +547,7 @@ class TileMetadata(object):
                             'name': 'vm_credentials',
                             'type': 'salted_credentials'
                         }],
-                        'manifest': yaml.dump(job.get('manifest'), default_flow_style=False),
+                        'manifest': literal_unicode(template_helper.render_yaml(job.get('manifest'))),
                     }
                     if job.get('lifecycle') == 'errand':
                         bosh_release_job['errand'] = True
@@ -534,9 +563,9 @@ class TileMetadata(object):
                             'release': template.get('release')
                         }
                         if template.get('consumes'):
-                            temp['consumes'] = str(yaml.dump(template.get('consumes'), default_flow_style=False))
+                            temp['consumes'] = literal_unicode(yaml.dump(template.get('consumes'), default_flow_style=False))
                         if template.get('provides'):
-                            temp['provides'] = str(yaml.dump(template.get('provides'), default_flow_style=False))
+                            temp['provides'] = literal_unicode(yaml.dump(template.get('provides'), default_flow_style=False))
                         bosh_release_job['templates'].append(temp)
 
                     bosh_release_job['resource_definitions'] = [{
@@ -649,14 +678,14 @@ class TileMetadata(object):
                             "name": "app_credentials"
                           }
                         ], 
-                        "manifest": job.get('manifest')
+                        "manifest": literal_unicode(template_helper.render_yaml(job.get('manifest')))
                     }
                     if job.get('run_post_deploy_errand_default'):
                         job_type['run_post_deploy_errand_default'] = job.get('run_post_deploy_errand_default')
                     if job.get('run_pre_delete_errand_default'):
                         job_type['run_pre_delete_errand_default'] = job.get('run_pre_delete_errand_default')
                     if release.get('consumes_for_deployment'):
-                        job_type['templates'][0]["consumes"] = release.get('consumes_for_deployment')
+                        job_type['templates'][0]["consumes"] = literal_unicode(yaml.dump(release.get('consumes_for_deployment'), default_flow_style=False))
 
                     instance_def = {
                     'configurable': False,
