@@ -27,6 +27,7 @@ from StringIO import StringIO
 
 from . import config
 from .config import Config
+from .tile_metadata import TileMetadata
 
 
 @contextmanager
@@ -254,8 +255,9 @@ class TestConfigValidation(BaseTest):
 	def test_requires_product_versions(self):
 		self.config['packages'] = [{'name': 'packagename', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
-		self.assertIn('requires_product_versions', self.config.tile_metadata)
-		requires_product_versions = self.config.tile_metadata['requires_product_versions']
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('requires_product_versions', tile_metadata['base'])
+		requires_product_versions = tile_metadata['base']['requires_product_versions']
 		self.assertIn('name', requires_product_versions[0])
 		self.assertIn('version', requires_product_versions[0])
 
@@ -340,7 +342,7 @@ class TestConfigValidation(BaseTest):
 		self.assertEquals([r['name'] for r in self.config['releases'].values()],
 			['z_name', 'd_name', 'a_name', 'b_name'])
 
-class TestVersionMethods(unittest.TestCase):
+class TestVersionMethods(BaseTest):
 
 	def test_accepts_valid_semver(self):
 		self.assertTrue(config.is_semver('11.2.25'))
@@ -364,46 +366,60 @@ class TestVersionMethods(unittest.TestCase):
 		self.assertFalse(config.is_semver('11.2.25dev1'))
 
 	def test_initial_version(self):
-		config = Config(history={})
-		config.set_version(None)
-		self.assertEquals(config['version'], '0.0.1')
-		self.assertEquals(config.tile_metadata['product_version'], '0.0.1')
+		self.config['history'] = {}
+		self.config.set_version(None)
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEquals(self.config['version'], '0.0.1')
+		self.assertEquals(tile_metadata['base']['product_version'], '0.0.1')
 
 	def test_default_version_update(self):
-		config = Config(history={'version':'1.2.3'})
-		config.set_version(None)
-		self.assertEquals(config['version'], '1.2.4')
-		self.assertEquals(config.tile_metadata['product_version'], '1.2.4')
+		self.config['history'] = {'version':'1.2.3'}
+		self.config.set_version(None)
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEquals(self.config['version'], '1.2.4')
+		self.assertEquals(tile_metadata['base']['product_version'], '1.2.4')
 
 	def test_patch_version_update(self):
-		config = Config(history={'version':'1.2.3'})
-		config.set_version('patch')
-		self.assertEquals(config['version'], '1.2.4')
-		self.assertEquals(config.tile_metadata['product_version'], '1.2.4')
+		self.config['history'] = {'version':'1.2.3'}
+		self.config.set_version('patch')
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEquals(self.config['version'], '1.2.4')
+		self.assertEquals(tile_metadata['base']['product_version'], '1.2.4')
 
 	def test_minor_version_update(self):
-		config = Config(history={'version':'1.2.3'})
-		config.set_version('minor')
-		self.assertEquals(config['version'], '1.3.0')
-		self.assertEquals(config.tile_metadata['product_version'], '1.3.0')
+		self.config['history'] = {'version':'1.2.3'}
+		self.config.set_version('minor')
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEquals(self.config['version'], '1.3.0')
+		self.assertEquals(tile_metadata['base']['product_version'], '1.3.0')
 
 	def test_major_version_update(self):
-		config = Config(history={'version':'1.2.3'})
-		config.set_version('major')
-		self.assertEquals(config['version'], '2.0.0')
-		self.assertEquals(config.tile_metadata['product_version'], '2.0.0')
+		self.config['history'] = {'version':'1.2.3'}
+		self.config.set_version('major')
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEquals(self.config['version'], '2.0.0')
+		self.assertEquals(tile_metadata['base']['product_version'], '2.0.0')
 
 	def test_explicit_version_update(self):
-		config = Config(history={'version':'1.2.3'})
-		config.set_version('5.0.1')
-		self.assertEquals(config['version'], '5.0.1')
-		self.assertEquals(config.tile_metadata['product_version'], '5.0.1')
+		self.config['history'] = {'version':'1.2.3'}
+		self.config.set_version('5.0.1')
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEquals(self.config['version'], '5.0.1')
+		self.assertEquals(tile_metadata['base']['product_version'], '5.0.1')
 
 	def test_annotated_version_update(self):
-		config = Config(history={'version':'1.2.3-alpha.1'})
-		config.set_version('1.2.4')
-		self.assertEquals(config['version'], '1.2.4')
-		self.assertEquals(config.tile_metadata['product_version'], '1.2.4')
+		self.config['history'] = {'version':'1.2.3-alpha.1'}
+		self.config.set_version('1.2.4')
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEquals(self.config['version'], '1.2.4')
+		self.assertEquals(tile_metadata['base']['product_version'], '1.2.4')
 
 	def test_illegal_old_version_update(self):
 		with self.assertRaises(SystemExit):
@@ -476,15 +492,18 @@ class TestDefaultOptions(BaseTest):
 
 	def test_default_minimum_version_for_upgrade(self):
 		self.config.validate()
-		self.assertEqual(self.config.tile_metadata['base']['minimum_version_for_upgrade'], '0.0.1')
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEqual(tile_metadata['base']['minimum_version_for_upgrade'], '0.0.1')
 
 	def test_default_rank(self):
 		self.config.validate()
-		self.assertEqual(self.config.tile_metadata['base']['rank'], 1)
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertEqual(tile_metadata['base']['rank'], 1)
 
 	def test_default_serial(self):
 		self.config.validate()
-		self.assertTrue(self.config.tile_metadata['base']['serial'])
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertTrue(tile_metadata['base']['serial'])
 
 
 @mock.patch('os.path.getsize')
@@ -529,8 +548,9 @@ class TestTileName(BaseTest):
 		name = 'my-tile'
 		self.config.update({'name': name})
 		self.config.validate()
-		self.assertIn('name', self.config.tile_metadata['base'])
-		self.assertEqual(self.config.tile_metadata['base']['name'], name)
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('name', tile_metadata['base'])
+		self.assertEqual(tile_metadata['base']['name'], name)
 
 	def test_requires_product_name(self):
 		with self.assertRaises(SystemExit):
@@ -584,8 +604,9 @@ class TestTileSimpleFields(BaseTest):
 	def test_sets_label(self):
 		self.config.update({'label': 'my-label'})
 		self.config.validate()
-		self.assertIn('label',self.config.tile_metadata['base'])
-		self.assertEqual(self.config.tile_metadata['base']['label'], 'my-label')
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('label', tile_metadata['base'])
+		self.assertEqual(tile_metadata['base']['label'], 'my-label')
 
 	def test_requires_description(self):
 		with self.assertRaises(SystemExit):
@@ -597,20 +618,23 @@ class TestTileSimpleFields(BaseTest):
 	def test_sets_description(self):
 		self.config.update({'description': 'my tile description'})
 		self.config.validate()
-		self.assertIn('description',self.config.tile_metadata['base'])
-		self.assertEqual(self.config.tile_metadata['base']['description'], 'my tile description')
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('description', tile_metadata['base'])
+		self.assertEqual(tile_metadata['base']['description'], 'my tile description')
 
 	def test_sets_metadata_version(self):
 		self.config.update({'metadata_version': 1.8})
 		self.config.validate()
-		self.assertIn('metadata_version', self.config.tile_metadata['base'])
-		self.assertEqual(self.config.tile_metadata['base']['metadata_version'], '1.8')
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('metadata_version', tile_metadata['base'])
+		self.assertEqual(tile_metadata['base']['metadata_version'], '1.8')
 
 	def test_sets_service_broker(self):
 		self.config.update({'service_broker': True})
 		self.config.validate()
-		self.assertIn('service_broker', self.config.tile_metadata['base'])
-		self.assertTrue(self.config.tile_metadata['base']['service_broker'])
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('service_broker', tile_metadata['base'])
+		self.assertTrue(tile_metadata['base']['service_broker'])
 
 
 class TestTileIconFile(BaseTest):
@@ -639,9 +663,10 @@ class TestTileIconFile(BaseTest):
 		self.icon_file.write('foo')
 		self.icon_file.flush()
 		self.config.validate()
-		self.assertIn('icon_image', self.config.tile_metadata['base'])
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('icon_image', tile_metadata['base'])
 		# Base64-encoded string from `echo -n foo | base64`
-		self.assertEqual(self.config.tile_metadata['base']['icon_image'], 'Zm9v')
+		self.assertEqual(tile_metadata['base']['icon_image'], 'Zm9v')
 
 if __name__ == '__main__':
 	unittest.main()

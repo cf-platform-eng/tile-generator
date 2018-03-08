@@ -264,7 +264,7 @@ class TileMetadata(object):
             "description": "Configurable settings for buildpacks",
             "property_inputs": list(),
         }
-        for package in [p for p in self.config.get('packages') if p.get('is_buildpack')]:
+        for package in [p for p in self.config.get('packages', []) if p.get('is_buildpack')]:
             buildpack_form["property_inputs"].append({
                 "description": "Enter order for the " + (package.get('label') or package.get('name')) + " buildpack", 
                 "reference": ".properties." + package.get('name') + "_buildpack_order", 
@@ -282,7 +282,7 @@ class TileMetadata(object):
             "description": "Configurable settings for external service brokers", 
             "property_inputs": list(),
         }
-        for package in [p for p in self.config.get('packages') if p.get('is_external_broker')]:
+        for package in [p for p in self.config.get('packages', []) if p.get('is_external_broker')]:
             external_broker_form["property_inputs"].append(
                 {
                     "description": "Enter the External uri/endpoint (with http or https protocol) for the Service Broker", 
@@ -312,7 +312,7 @@ class TileMetadata(object):
             "property_inputs": list(),
         }
 
-        for package in [p for p in self.config.get('packages') if p.get('is_broker')]:
+        for package in [p for p in self.config.get('packages', []) if p.get('is_broker')]:
             service_access_form["property_inputs"].append({
                 "description": "Enable global access to plans in the marketplace", 
                 "reference": ".properties." + package['name'] + "_enable_global_access_to_plans", 
