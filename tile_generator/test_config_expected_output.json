@@ -3098,7 +3098,7 @@
           "files": [
             {
               "name": "cf-linux-amd64.tgz", 
-              "path": "http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel",
+              "path": "http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel", 
               "untar": true
             }, 
             {
@@ -4264,10 +4264,44 @@
     }
   }, 
   "requires_docker_bosh": true, 
+  "requires_product_versions": {
+    "cf": ">= 1.9"
+  }, 
   "runtime_configs": [
     {
       "name": "example-runtime-config", 
-      "runtime_config": "addons:\n- include:\n    jobs:\n    - name: no-op\n      release: no-op-release\n  jobs:\n  - name: hello\n    release: runtime-test-release\n  name: runtime-test-release\n  properties:\n    hello:\n      port: 8119\nreleases:\n- name: runtime-test-release\n  version: 0.1.3\n"
+      "runtime_config": {
+        "addons": [
+          {
+            "include": {
+              "jobs": [
+                {
+                  "name": "no-op", 
+                  "release": "no-op-release"
+                }
+              ]
+            }, 
+            "jobs": [
+              {
+                "name": "hello", 
+                "release": "runtime-test-release"
+              }
+            ], 
+            "name": "runtime-test-release", 
+            "properties": {
+              "hello": {
+                "port": 8119
+              }
+            }
+          }
+        ], 
+        "releases": [
+          {
+            "name": "runtime-test-release", 
+            "version": "0.1.3"
+          }
+        ]
+      }
     }
   ], 
   "service_broker": false, 

@@ -28,7 +28,6 @@ import requests
 from collections import OrderedDict
 from . import package_definitions
 from . import template
-from .tile_metadata import TileMetadata
 
 CONFIG_FILE = "tile.yml"
 HISTORY_FILE = "tile-history.yml"
@@ -106,8 +105,6 @@ class Config(dict):
 		for k, v in package_definitions.__dict__.items():
 			if k.startswith('Package'):
 				self._package_defs[v.package_type] = v
-
-		self.tile_metadata = dict()
 
 	def read(self):
 		self.read_config()
@@ -219,8 +216,7 @@ class Config(dict):
 
 	def validate(self):
 		self._validate_base_config()
-		self.build_tile_metadata()
-
+		
 		# TODO: This should be handled differently
 		for form in self.get('forms', []):
 			properties = form.get('properties', [])
@@ -236,7 +232,6 @@ class Config(dict):
 			self._apply_package_flags(self, package)
 			self._nomalize_package_file_lists(package)
 
-
 		# TODO: wtf is going on here and why?
 		for property in self['all_properties']:
 			property['name'] = property['name'].lower().replace('-','_')
@@ -245,45 +240,6 @@ class Config(dict):
 				property['default'] = default
 			property['configurable'] = property.get('configurable', False)
 			property['optional'] = property.get('optional', False)
-
-	def build_tile_metadata(self):
-		tile_metadata = TileMetadata(self)
-		self.tile_metadata.update(tile_metadata.build())
-
-		self.tile_metadata['property_blueprints'] = [
-			{
-				'configurable': True,
-				'default': self['org'],
-				'name': 'org',
-				'type': 'string'
-			},
-			{
-				'configurable': True,
-				'default': self['space'],
-				'name': 'space',
-				'type': 'string'
-			},
-			{
-				'configurable': True,
-				'default': self['apply_open_security_group'],
-				'name': 'apply_open_security_group',
-				'type': 'boolean'
-			},
-			{
-				'configurable': True,
-				'default': 'VARallow_paid_service_plans',
-				'name': 'allow_paid_service_plans',
-				'type': 'boolean'
-			},
-		]
-
-		if self.get('requires_docker_bosh'):
-			self.tile_metadata['property_blueprints'].append({
-				'configurable': False,
-				'name': 'generated_rsa_cert_credentials',
-				'optional': False,
-				'type': 'rsa_cert_credentials'
-			})
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
@@ -309,19 +265,6 @@ class Config(dict):
 				job['template'] = job.get('template', job['type'])
 				job['properties'] = job.get('properties', {})
 				job['manifest'] = self.build_job_manifest(job)
-
-		# This should be moved to where the tarbal is created.
-		# for release in self.get('releases', {}).values():
-		# 	# Build out tile-metadata
-		# 	if self.tile_metadata.get('releases') is None:
-		# 		self.tile_metadata['releases'] = []
-
-		# 	if release.get('file'):
-		# 		self.tile_metadata['releases'] += {
-		# 			'file': release['file'],
-		# 			'name': release['release_name'],
-		# 			'version': str(release['version'])
-		# 		}
 
 	def build_job_manifest(self, job):
 		# TODO: This whole thing needs to be changed to new world order
@@ -462,7 +405,6 @@ class Config(dict):
 			version = '.'.join(semver)
 		history['version'] = version
 		self['version'] = version
-		self.tile_metadata['product_version'] = str(version)
 
 def read_yaml(file):
 	return yaml.safe_load(file)

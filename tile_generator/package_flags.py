@@ -106,12 +106,9 @@ class Cf(FlagBase):
                 }],
                 'dir': 'blobs'
             }]
-        config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [
-            {
-                'name': 'cf',
-                'version': '>= 1.9'
-            }
-        ]
+        if not config_obj.get('requires_product_versions'): 
+            config_obj['requires_product_versions'] = dict()
+        config_obj['requires_product_versions']['cf'] = '>= 1.9'
 
 
 class DockerBosh(FlagBase):
@@ -342,10 +339,9 @@ class Helm(FlagBase):
                 }],
                 'dir': 'blobs'
             }]
-        config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [{
-            'name': 'pivotal-container-service',
-            'version': '>= 0.8'
-        }]
+        if not config_obj.get('requires_product_versions'): 
+            config_obj['requires_product_versions'] = dict()
+        config_obj['requires_product_versions']['pivotal-container-service'] = '>= 0.8'
         pks_form_properties = [
             {
                 'name': 'pks_cluster',
