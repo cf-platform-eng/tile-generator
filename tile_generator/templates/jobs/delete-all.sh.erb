@@ -85,7 +85,7 @@ function delete_all_versions() {
 
 function delete_service_broker() {
     {% if context.purge_service_brokers %}
-    services=`$CF service-access | awk "/broker: $1/{flag=1;next}/broker: /{flag=0}flag" | egrep -v "access *orgs" | grep "."  | awk '{print $1}' | uniq`
+    services=`$CF service-access | sed -n "/^broker: $PKG$/,/^broker: /p" | grep -v -e "^[[:space:]]*$\|^broker:\|service *plan *access *orgs" | tr -s ' ' | cut -d ' ' -f 2 | uniq`
     for service in $services; do
       cf purge-service-offering -f "$service"
     done
