@@ -1043,7 +1043,6 @@
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
           "instances": 2, 
-          "is_static": false, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
             "app_domains": [
@@ -1218,7 +1217,6 @@
           "cpu": 2, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
-          "is_static": false, 
           "lifecycle": "errand", 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -1420,7 +1418,6 @@
         {
           "dynamic_ip": 1, 
           "instances": 1, 
-          "is_static": false, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
             "app_domains": [
@@ -1623,7 +1620,6 @@
         {
           "dynamic_ip": 1, 
           "instances": 1, 
-          "is_static": false, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
             "app_domains": [
@@ -3487,7 +3483,6 @@
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
           "instances": 2, 
-          "is_static": false, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
             "app_domains": [
@@ -3662,7 +3657,6 @@
           "cpu": 2, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
-          "is_static": false, 
           "lifecycle": "errand", 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -3853,7 +3847,6 @@
         {
           "dynamic_ip": 1, 
           "instances": 1, 
-          "is_static": false, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
             "app_domains": [
@@ -4056,7 +4049,6 @@
         {
           "dynamic_ip": 1, 
           "instances": 1, 
-          "is_static": false, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
             "app_domains": [

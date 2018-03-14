@@ -47,14 +47,6 @@ function import_opsmgr_variables() {
 	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
 	export {{ package.name | upper }}_HOSTS={{ ( 'properties.' + package.name + '.hosts' ) | shell_string }}
 	{% endfor %}
-	{% for package in context.packages if package['package-type'] == 'bosh-release' %}
-	{% for job in package.jobs %}
-	{% if job.is_static %}
-	export {{ package.name | upper }}_{{ job.varname | upper }}_HOST={{ ( 'properties.' + package.name + '.' + job.varname + '.host' ) | shell_string }}
-	export {{ package.name | upper }}_{{ job.varname | upper }}_HOSTS={{ ( 'properties.' + package.name + '.' + job.varname + '.hosts' ) | shell_string }}
-	{% endif %}
-	{% endfor %}
-	{% endfor %}
 	<% empty_dict = {} %>
 	<% empty_list = [] %>
 	{% for release in context.releases.values() if release.consumes %}
@@ -169,14 +161,6 @@ function add_env_vars() {
 	{% for package in context.packages if package['package-type'] == 'docker-bosh' %}
 	cf set-env $1 {{ package.name | upper }}_HOST "${{ package.name | upper }}_HOST"
 	cf set-env $1 {{ package.name | upper }}_HOSTS "${{ package.name | upper }}_HOSTS"
-	{% endfor %}
-	{% for package in context.packages if package['package-type'] == 'bosh-release' %}
-	{% for job in package.jobs %}
-	{% if job.is_static %}
-	cf set-env $1 {{ package.name | upper }}_{{ job.varname | upper }}_HOST "${{ package.name | upper }}_{{ job.varname | upper }}_HOST"
-	cf set-env $1 {{ package.name | upper }}_{{ job.varname | upper }}_HOSTS "${{ package.name | upper }}_{{ job.varname | upper }}_HOSTS"
-	{% endif %}
-	{% endfor %}
 	{% endfor %}
 
 	# Addresses and Properties Provided by bosh links

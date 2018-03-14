@@ -507,16 +507,6 @@ class TileMetadata(object):
                             'hosts': '(( .docker-bosh-' + pkg_name + '.ips ))',
                         })
 
-                    if package.get('is_bosh_release'):
-                        for job in package.get('jobs', []):
-                            if job.get('is_static'):
-                                pkg_manifest.update({
-                                    job.get('varname'): {
-                                        'host': '(( .' + job.get('name') + '.first_ip ))',
-                                        'hosts': '(( .' + job.get('name') + '.ips ))',
-                                    }
-                                })
-
                     release_job_manifest[pkg_name] = pkg_manifest
                 release_job['manifest'] = literal_unicode(template_helper.render_yaml(release_job_manifest))
 

@@ -43,16 +43,6 @@ class BoshRelease(FlagBase):
 
         packagename = package['name']
         properties = {'name': packagename}
-        for job in package.get('jobs', []):
-            jobname = job['name']
-            job['is_static'] = job.get('static_ip', 0) > 0
-            if job.get('static_ip', 0) > 0:
-                properties.update({
-                    job['varname']: {
-                        'host': '(( .{}.first_ip ))'.format(jobname),
-                        'hosts': '(( .{}.ips ))'.format(jobname),
-                    },
-                })
         package['properties'] = {packagename: properties}
 
     @classmethod
