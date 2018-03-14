@@ -512,7 +512,7 @@ class TileMetadata(object):
 
                 instance_def = {
                 'configurable': True,
-                'default': job.get('instances'),
+                'default': job.get('instances', 1),
                 'name': 'instances',
                 'type': 'integer'
                 }
