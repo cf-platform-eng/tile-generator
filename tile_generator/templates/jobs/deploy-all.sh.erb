@@ -43,23 +43,19 @@ function import_opsmgr_variables() {
 	{% for property in context.all_properties %}
 	{{ property | env_variable | indent }}
 	{% endfor %}
-	{% for package in context.packages if package['package-type'] == 'docker-bosh' %}
-	export {{ package.name | upper }}_HOST={{ ( 'properties.' + package.name + '.host' ) | shell_string }}
-	export {{ package.name | upper }}_HOSTS={{ ( 'properties.' + package.name + '.hosts' ) | shell_string }}
-	{% endfor %}
 	<% empty_dict = {} %>
 	<% empty_list = [] %>
 	{% for release in context.releases.values() if release.consumes %}
 	{% for link in release.consumes %}
 	<% if_link('{{ link }}') do |link| %>
 	<% hosts = link.instances.map { |instance| instance.address } %>
-	export {{ link | upper }}_HOST="<%= link.instances.empty? ? ( puts "" ) : ( puts link.instances[0].address ) %>"
-	export {{ link | upper }}_HOSTS=<%= Shellwords.escape(hosts.to_json) %>
-        export {{ link | upper }}_PROPERTIES=<%= Shellwords.escape(link.properties.to_json) %>
-        <% end.else do %>
-	export {{ link | upper }}_HOST=<%= Shellwords.escape(empty_list.to_json) %>
-	export {{ link | upper }}_HOSTS=<%= Shellwords.escape(empty_list.to_json) %>
-        export {{ link | upper }}_PROPERTIES=<%= Shellwords.escape(empty_dict.to_json) %>
+	export {{ link | shell_variable_name }}_HOST="<%= link.instances.empty? ? ( puts "" ) : ( puts link.instances[0].address ) %>"
+	export {{ link | shell_variable_name }}_HOSTS=<%= Shellwords.escape(hosts.to_json) %>
+	export {{ link | shell_variable_name }}_PROPERTIES=<%= Shellwords.escape(link.properties.to_json) %>
+	<% end.else do %>
+	export {{ link | shell_variable_name }}_HOST=<%= Shellwords.escape(empty_list.to_json) %>
+	export {{ link | shell_variable_name }}_HOSTS=<%= Shellwords.escape(empty_list.to_json) %>
+	export {{ link | shell_variable_name }}_PROPERTIES=<%= Shellwords.escape(empty_dict.to_json) %>
 	<% end %>
 	{% endfor %}
 	{% endfor %}
@@ -166,9 +162,9 @@ function add_env_vars() {
 	# Addresses and Properties Provided by bosh links
 	{% for release in context.releases.values() if release.consumes %}
 	{% for link in release.consumes %}
-	cf set-env $1 {{ link | upper }}_HOST "${{ link | upper }}_HOST"
-	cf set-env $1 {{ link | upper }}_HOSTS "${{ link | upper }}_HOSTS"
-	cf set-env $1 {{ link | upper }}_PROPERTIES "${{ link | upper }}_PROPERTIES"
+	cf set-env $1 {{ link | shell_variable_name }}_HOST "${{ link | shell_variable_name }}_HOST"
+	cf set-env $1 {{ link | shell_variable_name }}_HOSTS "${{ link | shell_variable_name }}_HOSTS"
+	cf set-env $1 {{ link | shell_variable_name }}_PROPERTIES "${{ link | shell_variable_name }}_PROPERTIES"
 	{% endfor %}
 	{% endfor %}
 

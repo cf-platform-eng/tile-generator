@@ -139,11 +139,7 @@ class DockerBosh(FlagBase):
 
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
-        properties[packagename].update(
-            {'name': packagename,
-            'host': '(( .docker-bosh-{}.first_ip ))'.format(packagename),
-            'hosts': '(( .docker-bosh-{}.ips ))'.format(packagename),
-        })
+        properties[packagename].update({'name': packagename})
         package['properties'] = properties
         for container in package['manifest']['containers']:
             envfile = container.get('env_file', [])

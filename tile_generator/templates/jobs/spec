@@ -95,12 +95,6 @@ properties:
   {{ package.name }}.buildpack_order:
     description: 'Order of the Buildpack'
 {% endif %}
-{% if package.is_docker_bosh %}
-  {{ package.name }}.host:
-    description: '(First) Hostname for the container'
-  {{ package.name }}.hosts:
-    description: '(All) Hostnames for the container'
-{% endif %}
 {% endfor %}
 
 {% if job_type == 'deploy-all' or job_type == 'delete-all' %}

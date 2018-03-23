@@ -501,12 +501,6 @@ class TileMetadata(object):
                             'buildpack_order': '(( .properties.' + pkg_name + '_buildpack_order.value ))',
                         })
 
-                    if package.get('is_docker_bosh'):
-                        pkg_manifest.update({
-                            'host': '(( .docker-bosh-' + pkg_name + '.first_ip ))',
-                            'hosts': '(( .docker-bosh-' + pkg_name + '.ips ))',
-                        })
-
                     release_job_manifest[pkg_name] = pkg_manifest
                 release_job['manifest'] = literal_unicode(template_helper.render_yaml(release_job_manifest))
 

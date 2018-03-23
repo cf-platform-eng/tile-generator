@@ -39,3 +39,17 @@ class TestPropertyFilter(unittest.TestCase):
 				'password': '(( .properties.prop.password ))',
 			}
 		})
+
+class TestVariableNameFilter(unittest.TestCase):
+	def test_no_change(self):
+		self.assertEqual(template.render_shell_variable_name('FOO'), 'FOO')
+		self.assertEqual(template.render_shell_variable_name('F00'), 'F00')
+		self.assertEqual(template.render_shell_variable_name('FOO_BAR'), 'FOO_BAR')
+
+	def test_hyphen_to_underscore(self):
+		self.assertEqual(template.render_shell_variable_name('FOO-BAR'), 'FOO_BAR')
+		self.assertEqual(template.render_shell_variable_name('FOO--BAR'), 'FOO_BAR')
+
+	def test_uppercases_letters(self):
+		self.assertEqual(template.render_shell_variable_name('foo'), 'FOO')
+		self.assertEqual(template.render_shell_variable_name('Foo'), 'FOO')

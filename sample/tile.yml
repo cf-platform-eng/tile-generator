@@ -300,6 +300,8 @@ packages:
     nats:
       from: nats
       deployment: (( ..cf.deployment_name ))
+    docker-tcp:
+      from: docker
   manifest:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages

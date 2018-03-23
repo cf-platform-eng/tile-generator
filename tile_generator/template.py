@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 import os
+import re
 import sys
 import errno
 import yaml
@@ -160,6 +161,10 @@ def render_property(property):
 			out = { property['name']: '(( .properties.{}.value ))'.format(property['name']) }
 	return out
 
+def render_shell_variable_name(s):
+        """Convert s to a shell variable identifier."""
+        return re.sub(r'[^a-zA-Z0-9]+', '_', s).upper()
+
 @contextfilter
 def render(context, input):
 	template = Template(input)
@@ -172,6 +177,7 @@ TEMPLATE_ENVIRONMENT.filters['expand_selector'] = expand_selector
 TEMPLATE_ENVIRONMENT.filters['yaml'] = render_yaml
 TEMPLATE_ENVIRONMENT.filters['yaml_literal'] = render_yaml_literal
 TEMPLATE_ENVIRONMENT.filters['shell_string'] = render_shell_string
+TEMPLATE_ENVIRONMENT.filters['shell_variable_name'] = render_shell_variable_name
 TEMPLATE_ENVIRONMENT.filters['plans_json'] = render_plans_json
 TEMPLATE_ENVIRONMENT.filters['property'] = render_property
 TEMPLATE_ENVIRONMENT.filters['env_variable'] = render_env_variable

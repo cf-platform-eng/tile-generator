@@ -807,6 +807,9 @@
         }
       ], 
       "consumes": {
+        "docker-tcp": {
+          "from": "docker"
+        }, 
         "nats": {
           "deployment": "(( ..cf.deployment_name ))", 
           "from": "nats"
@@ -1022,8 +1025,6 @@
       "persistent_disk": 2048, 
       "properties": {
         "tg_test_app4": {
-          "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-          "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
           "name": "tg_test_app4"
         }
       }, 
@@ -1141,8 +1142,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -1317,8 +1316,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -1528,8 +1525,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -1730,8 +1725,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -2237,8 +2230,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -2401,8 +2392,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -2482,6 +2471,9 @@
     }, 
     "test-tile": {
       "consumes": {
+        "docker-tcp": {
+          "from": "docker"
+        }, 
         "nats": {
           "deployment": "(( ..cf.deployment_name ))", 
           "from": "nats"
@@ -2491,6 +2483,9 @@
         }
       }, 
       "consumes_for_deployment": {
+        "docker-tcp": {
+          "from": "docker"
+        }, 
         "nats": {
           "deployment": "(( ..cf.deployment_name ))", 
           "from": "nats"
@@ -2605,8 +2600,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -2774,8 +2767,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -2938,8 +2929,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -3031,8 +3020,6 @@
             "persistent_disk": 2048, 
             "properties": {
               "tg_test_app4": {
-                "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-                "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
                 "name": "tg_test_app4"
               }
             }, 
@@ -3233,6 +3220,9 @@
             }
           ], 
           "consumes": {
+            "docker-tcp": {
+              "from": "docker"
+            }, 
             "nats": {
               "deployment": "(( ..cf.deployment_name ))", 
               "from": "nats"
@@ -3448,8 +3438,6 @@
           "persistent_disk": 2048, 
           "properties": {
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }
           }, 
@@ -3581,8 +3569,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -3757,8 +3743,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -3957,8 +3941,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
@@ -4159,8 +4141,6 @@
               "name": "tg_test_app3"
             }, 
             "tg_test_app4": {
-              "host": "(( .docker-bosh-tg_test_app4.first_ip ))", 
-              "hosts": "(( .docker-bosh-tg_test_app4.ips ))", 
               "name": "tg_test_app4"
             }, 
             "tg_test_app5": {
