@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function
 from setuptools import setup
 import os
 import sys
+from tile_generator.version import version_string
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -32,12 +33,7 @@ def read_readme():
 			return f.read()
 
 def get_version():
-	version_file = os.path.join(here, 'version.txt')
-	try:
-		with open(version_file) as f:
-			return f.read()
-	except:
-		return '0.0.0'
+	return version_string
 
 setup(
 	name = "tile-generator",

@@ -29,8 +29,10 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(PATH, os.path.join('..', 'lib')))
 from . import opsmgr
 from . import erb
+from.version import version_string
 
 @click.group()
+@click.version_option(version_string, '-v', '--version', message='%(prog)s version %(version)s')
 @click.option('-t', '--target')
 @click.option('-n', '--non-interactive', is_flag=True)
 def cli(target, non_interactive):

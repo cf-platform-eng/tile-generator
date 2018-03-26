@@ -26,8 +26,10 @@ from . import build
 from . import template
 from . import config
 from .config import Config
+from.version import version_string
 
 @click.group()
+@click.version_option(version_string, '-v', '--version', message='%(prog)s version %(version)s')
 def cli():
 	pass
 

@@ -286,7 +286,7 @@ jobs:
         - |
           cd tile-generator-repo
           VERSION=`cat ../version/version`
-          cp ../final-version/version version.txt
+          echo "version_string = '$VERSION'" > tile_generator/version.py
           python setup.py sdist
           cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-${VERSION}.tar.gz
     on_failure:

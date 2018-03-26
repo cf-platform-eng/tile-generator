@@ -38,6 +38,7 @@ import datetime
 from .tile_metadata import TileMetadata
 from .bosh import *
 from .util import *
+from .version import version_string
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
@@ -77,11 +78,7 @@ def build_tile(context):
     pivotal_file = os.path.join('product', tile_name + '-' + tile_version + '.pivotal')
     print('include tile generator version and inputs')
     with open(os.path.join('product', 'tile-generator', 'version'), 'wb') as f:
-        subprocess.check_call(
-            ["pip", "show", "tile-generator"],
-            stderr=subprocess.STDOUT,
-            stdout=f,
-            cwd=".")
+        f.write(version_string)
     shutil.copy('tile.yml', os.path.join('product', 'tile-generator', 'tile.yml'))
     with zipfile.ZipFile(pivotal_file, 'w') as f:
         for release in context.get('releases', {}).values():
