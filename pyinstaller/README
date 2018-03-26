@@ -1,0 +1,7 @@
+These files are meant to be used to build tile and pcf commands with pyinstaller.
+To build:
+1. create a virtual env
+2. pip install -e <tile generator path>
+3. pip install pyinstaller
+4. pyinstaller (pcf/tile).spec
+The resulting binary can be found in ./dist/
