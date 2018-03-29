@@ -37,7 +37,7 @@ function create_venv {
   virtualenv -q -p python2 $VENV
   source $VENV/bin/activate
   # Build for current project. Assumes tile-generator src is up a dir
-  pip install -e ../
+  pip install -e $SCRIPT_DIR/../
   pip install pyinstaller
 }
 
@@ -47,9 +47,9 @@ fi
 
 if [ ! -n "$1" ]; then
   # No options passed. Do the build.
-  rm -rf dist/
-  pyinstaller pcf.spec
-  pyinstaller tile.spec
+  source $VENV/bin/activate
+  pyinstaller -y $SCRIPT_DIR/pcf.spec
+  pyinstaller -y $SCRIPT_DIR/tile.spec
 fi
 
 while [ -n "$1" ]; do
