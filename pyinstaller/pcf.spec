@@ -1,8 +1,11 @@
 # -*- mode: python -*-
+import os
+import platform
+import sys
 
 block_cipher = None
+arch = '64bit' if sys.maxsize > 2**32 else '32bit'
 
-import os
 dirs = [os.path.abspath(d[0]) for d in os.walk(os.path.join('..', 'tile_generator', 'templates'))]
 files = [(os.path.join(d,'*'), d) for d in dirs]
 
@@ -24,7 +27,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='pcf',
+          name='pcf_' + platform.system().lower() + '-' + arch,
           debug=False,
           strip=False,
           upx=False,

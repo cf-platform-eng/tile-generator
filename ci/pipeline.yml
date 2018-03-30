@@ -102,6 +102,14 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
+- name: tile-generator-package-release
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: release/bundle-(?P<version>.*).tar.gz
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
 - name: generated-tile
   type: s3
   source:
@@ -279,6 +287,7 @@ jobs:
       - name: final-version
       outputs:
       - name: tile-generator-dist
+      - name: tile-generator-dist-release
       run:
         path: sh
         args:
@@ -287,8 +296,16 @@ jobs:
           cd tile-generator-repo
           VERSION=`cat ../version/version`
           echo "version_string = '$VERSION'" > tile_generator/version.py
+          ./pyinstaller/build-binaries.sh
           python setup.py sdist
-          cp dist/tile-generator-*.tar.gz ../tile-generator-dist/tile-generator-${VERSION}.tar.gz
+          cp dist/* ../tile-generator-dist/
+
+          rm -rf dist/
+          FINAL_VERSION=`cat ../final-version/version`
+          echo "version_string = '$FINAL_VERSION'" > tile_generator/version.py
+          ./pyinstaller/build-binaries.sh
+          python setup.py sdist
+          tar -cvzf ../tile-generator-dist-release/bundle-"$FINAL_VERSION".tar.gz dist/*
     on_failure:
       aggregate:
       - put: slack-alert
@@ -301,13 +318,16 @@ jobs:
       - put: tile-generator-package
         params:
           file: tile-generator-dist/tile-generator-*.tar.gz
+      - put: tile-generator-package-release
+        params:
+          file: tile-generator-dist-release/bundle-*.tar.gz
       - put: tile-generator-github-prerelease
         params:
           name: version/version
           tag: version/version
           tag_prefix: v
           globs:
-          - tile-generator-dist/tile-generator-*.tar.gz
+          - tile-generator-dist/*
 
 - name: install-tile-generator
   disable_manual_trigger: true
@@ -317,6 +337,9 @@ jobs:
       passed: [ package-tile-generator ]
       trigger: true
     - get: tile-generator-package
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-package-release
       passed: [ package-tile-generator ]
       trigger: true
     - get: tile-generator-repo
@@ -372,6 +395,9 @@ jobs:
     - get: version
       passed: [ install-tile-generator ]
     - get: tile-generator-package
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: tile-generator-package-release
       passed: [ install-tile-generator ]
       trigger: true
   - task: build-sample-apps
@@ -469,6 +495,9 @@ jobs:
     - get: tile-generator-package
       passed: [ build-tile ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ build-tile ]
+      trigger: true
   - task: run-acceptance-tests
     image: tile-generator-docker-image
     config:
@@ -505,6 +534,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ acceptance-tests ]
+      trigger: true
   - put: pcf-environment-1-11
     params:
       acquire: true
@@ -525,6 +557,9 @@ jobs:
     - get: version
       passed: [ claim-1-11 ]
     - get: tile-generator-package
+      passed: [ claim-1-11 ]
+      trigger: true
+    - get: tile-generator-package-release
       passed: [ claim-1-11 ]
       trigger: true
     - get: pcf-environment-1-11
@@ -574,6 +609,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deploy-tile-1-11 ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deploy-tile-1-11 ]
+      trigger: true
   - task: run-deployment-tests
     image: tile-generator-docker-image
     config:
@@ -618,6 +656,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deployment-tests-1-11 ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deployment-tests-1-11 ]
+      trigger: true
   - task: remove-tile
     image: tile-generator-docker-image
     config:
@@ -658,6 +699,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ acceptance-tests ]
+      trigger: true
   - put: pcf-environment-1-12
     params:
       acquire: true
@@ -678,6 +722,9 @@ jobs:
     - get: version
       passed: [ claim-1-12 ]
     - get: tile-generator-package
+      passed: [ claim-1-12 ]
+      trigger: true
+    - get: tile-generator-package-release
       passed: [ claim-1-12 ]
       trigger: true
     - get: pcf-environment-1-12
@@ -727,6 +774,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deploy-tile-1-12 ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deploy-tile-1-12 ]
+      trigger: true
   - task: run-deployment-tests
     image: tile-generator-docker-image
     config:
@@ -771,6 +821,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deployment-tests-1-12 ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deployment-tests-1-12 ]
+      trigger: true
   - task: remove-tile
     image: tile-generator-docker-image
     config:
@@ -811,6 +864,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ acceptance-tests ]
+      trigger: true
   - put: pcf-environment-2-0
     params:
       acquire: true
@@ -831,6 +887,9 @@ jobs:
     - get: version
       passed: [ claim-2-0 ]
     - get: tile-generator-package
+      passed: [ claim-2-0 ]
+      trigger: true
+    - get: tile-generator-package-release
       passed: [ claim-2-0 ]
       trigger: true
     - get: pcf-environment-2-0
@@ -880,6 +939,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deploy-tile-2-0 ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deploy-tile-2-0 ]
+      trigger: true
   - task: run-deployment-tests
     image: tile-generator-docker-image
     config:
@@ -924,6 +986,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deployment-tests-2-0 ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deployment-tests-2-0 ]
+      trigger: true
   - task: remove-tile
     image: tile-generator-docker-image
     config:
@@ -964,6 +1029,9 @@ jobs:
     - get: tile-generator-package
       passed: [ acceptance-tests ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ acceptance-tests ]
+      trigger: true
   - put: pcf-environment-multi-az
     params:
       acquire: true
@@ -984,6 +1052,9 @@ jobs:
     - get: version
       passed: [ claim-multi-az ]
     - get: tile-generator-package
+      passed: [ claim-multi-az ]
+      trigger: true
+    - get: tile-generator-package-release
       passed: [ claim-multi-az ]
       trigger: true
     - get: pcf-environment-multi-az
@@ -1033,6 +1104,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deploy-tile-multi-az ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deploy-tile-multi-az ]
+      trigger: true
   - task: run-deployment-tests
     image: tile-generator-docker-image
     config:
@@ -1077,6 +1151,9 @@ jobs:
     - get: tile-generator-package
       passed: [ deployment-tests-multi-az ]
       trigger: true
+    - get: tile-generator-package-release
+      passed: [ deployment-tests-multi-az ]
+      trigger: true
   - task: remove-tile
     image: tile-generator-docker-image
     config:
@@ -1105,16 +1182,19 @@ jobs:
   plan:
   - aggregate:
     - get: tile-generator-docker-image
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-multi-az ]
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-multi-az ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-multi-az ]
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-multi-az ]
       trigger: true
     - get: tile-generator-package
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-multi-az ]
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-multi-az ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-multi-az ]
       trigger: true
     - get: version
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-multi-az ]
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-multi-az ]
       trigger: true
 
 - name: create-release
@@ -1124,7 +1204,7 @@ jobs:
       passed: [ most-recent ]
       params:
         save: true
-    - get: tile-generator-package
+    - get: tile-generator-package-release
       passed: [ most-recent ]
     - get: version
       passed: [ most-recent ]
@@ -1136,17 +1216,16 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: tile-generator-package
+      - name: tile-generator-package-release
       - name: version
       outputs:
-      - name: renamed-files
+      - name: release-files
       run:
         path: sh
         args:
         - -exc
         - |
-          FINAL_VERSION=`cat version/version`
-          cp tile-generator-package/tile-generator-*.tar.gz renamed-files/tile-generator-${FINAL_VERSION}.tar.gz
+          tar -xvf tile-generator-package-release/release/bundle-*.tar.gz release-files/
   - aggregate:
     - put: tile-generator-github-release
       params:
@@ -1154,7 +1233,7 @@ jobs:
         tag: version/version
         tag_prefix: v
         globs:
-        - renamed-files/tile-generator-*.tar.gz
+        - release-files/*
     - put: tile-generator-docker-image-release
       params:
         load: tile-generator-docker-image
@@ -1163,7 +1242,7 @@ jobs:
         tag_as_latest: true
     - put: tile-generator-pypi-release
       params:
-        glob: renamed-files/tile-generator-*.tar.gz
+        glob: release-files/tile-generator-*.tar.gz
   - put: version
     params:
       bump: patch
