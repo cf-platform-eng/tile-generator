@@ -6,8 +6,8 @@ import sys
 block_cipher = None
 arch = '64bit' if sys.maxsize > 2**32 else '32bit'
 
-dirs = [os.path.abspath(d[0]) for d in os.walk(os.path.join('..', 'tile_generator', 'templates'))]
-files = [(os.path.join(d,'*'), d) for d in dirs]
+dirs = [os.path.abspath(d[0]) for d in os.walk(os.path.join('.', 'tile_generator', 'templates'))]
+files = [(os.path.join(d,'*'), os.path.relpath(d)) for d in dirs]
 
 a = Analysis(['pcf_entrypoint.py'],
              pathex=['.'],
