@@ -288,24 +288,50 @@ jobs:
       outputs:
       - name: tile-generator-dist
       - name: tile-generator-dist-release
+      params: 
+        mac_ssh_key: ((mac_ssh_key))
       run:
-        path: sh
+        path: bash
         args:
         - -exc 
         - |
           cd tile-generator-repo
-          VERSION=`cat ../version/version`
-          echo "version_string = '$VERSION'" > tile_generator/version.py
-          ./pyinstaller/build-binaries.sh
-          python setup.py sdist
-          cp dist/* ../tile-generator-dist/
+          echo "$mac_ssh_key" > mac_ssh_key
+          chmod 600 mac_ssh_key
 
-          rm -rf dist/
+          function build(){
+            rm -rf dist*
+            for VER in "$VERSION" "$FINAL_VERSION"; do
+              echo "version_string = '$VER'" > tile_generator/version.py
+              ./pyinstaller/build-binaries.sh
+              if [ -z "$SKIP_SDIST" ]; then
+                python setup.py sdist
+              fi
+              mv dist dist-"$VER"
+            done
+          }
+
+          function build-remote(){
+            HEAD=`git log --pretty=format:'%h' -n 1`
+            ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t administrator@207.254.45.60 "$(typeset -f build)
+              SKIP_SDIST='true'
+              VERSION="$VERSION"
+              FINAL_VERSION="$FINAL_VERSION"
+              cd tile-generator
+              git reset --hard "$HEAD"
+              build
+              rm -rf dist/
+            "
+            scp -oStrictHostKeyChecking=no -i mac_ssh_key -r administrator@207.254.45.60:tile-generator/dist* .
+          }
+
+          VERSION=`cat ../version/version`
           FINAL_VERSION=`cat ../final-version/version`
-          echo "version_string = '$FINAL_VERSION'" > tile_generator/version.py
-          ./pyinstaller/build-binaries.sh
-          python setup.py sdist
-          tar -cvzf ../tile-generator-dist-release/bundle-"$FINAL_VERSION".tar.gz dist/*
+          build
+          build-remote
+
+          cp dist-"$VERSION"/* ../tile-generator-dist/
+          tar -cvzf ../tile-generator-dist-release/bundle-"$FINAL_VERSION".tar.gz dist-"$FINAL_VERSION"/*
     on_failure:
       aggregate:
       - put: slack-alert
