@@ -16,12 +16,12 @@ property_blueprints:
 {{ tile_metadata.property_blueprints | yaml }}
 
 form_types: {% if not tile_metadata.form_types %}[]{% else %}
-
 {{ tile_metadata.form_types | yaml }}
 {% endif %}
 
-job_types:
+job_types: {% if not tile_metadata.job_types %}[]{% else %}
 {{ tile_metadata.job_types | yaml }}
+{% endif %}
 
 {% if tile_metadata.runtime_configs %}
 runtime_configs:
