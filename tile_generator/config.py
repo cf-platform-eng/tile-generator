@@ -193,6 +193,20 @@ class Config(dict):
 		}
 		self.update(self._validator.validate(self, schema))
 
+		# WARNING: !!! This is really bad !!!
+		# Because we are not using a strict schema and we are populating the config with internal data
+		# structures. We have to pass any additionally unknown keys semi-manually to tile_metadata class.
+		unknown_keys = list(set(self) - set(schema.keys()) - set(['history',
+																														  'post_deploy_errands',
+																														  'pre_delete_errands',
+																														  'properties',
+																														  'releases',
+																														  'requires_docker_bosh',
+																														  'requires_product_versions',
+																														  'update']))
+		if unknown_keys:
+			self['__unknown_keys'] = unknown_keys
+
 
 	def _validate_package(self, package):
 		package_schema = self._get_package_def(package).schema()
