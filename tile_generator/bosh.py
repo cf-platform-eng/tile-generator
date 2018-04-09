@@ -236,8 +236,8 @@ def ensure_bosh():
 
 	if bosh_exec:
 		output = subprocess.check_output(["bosh", "--version"], stderr=subprocess.STDOUT, cwd=".")
-		if not output.startswith("version 2."):
-			print("You are running older bosh version. Please upgrade to 'bosh 2.0' command should be on the path. See https://bosh.io/docs/cli-v2.html for installation instructions")
+		if not output.startswith("version 2.") and not output.startswith("version 3."):
+			print("You are running older bosh version. Please upgrade to bosh 2.0 or later. See https://bosh.io/docs/cli-v2.html for installation instructions")
 			sys.exit(1)
 
 def run_bosh(working_dir, *argv, **kw):
