@@ -295,6 +295,10 @@ class Config(dict):
 				'admin_user': '(( ..cf.uaa.system_services_credentials.identity ))',
 				'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',
 			},
+			'uaa': {
+				'admin_client': '(( ..cf.uaa.admin_client_credentials.identity ))',
+				'admin_client_secret': '(( ..cf.uaa.admin_client_credentials.password ))',
+			},
 			'apply_open_security_group': '(( .properties.apply_open_security_group.value ))',
 			'allow_paid_service_plans': '(( .properties.allow_paid_service_plans.value ))',
 		}
