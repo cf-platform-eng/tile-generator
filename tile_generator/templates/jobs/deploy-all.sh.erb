@@ -402,6 +402,10 @@ export NEEDS_CF_CREDS="{{ package.needs_cf_credentials }}"
 export HEALTH_CHECK="{{ package.health_check }}"
 deploy_app "$PKG_NAME" "$APP_NAME" "$APP_HOST" "$DOCKER_IMAGE" "$NEEDS_CF_CREDS" "$HEALTH_CHECK" <%= Shellwords.escape(p('{{ package.name }}.app_manifest').to_json) %>
 
+{% if package.pre_start %}
+{{ package.pre_start | render }}
+{% endif %}
+
 <% p('{{ package.name }}.auto_services').each do |service| %>
 export SVC_NAME="<%= service['name'] %>"
 export SVC_PLAN="<%= service.fetch('plan', '') %>"

@@ -52,11 +52,13 @@ class BaseTest(unittest.TestCase):
 		self.icon_file = tempfile.NamedTemporaryFile()
 		self.config = Config(name='validname', icon_file=self.icon_file.name,
 												 label='some_label', description='This is required')
+		self.pre_start_file = tempfile.NamedTemporaryFile()
 
 	def tearDown(self):
 		self.latest_stemcell_patcher.stop()
 		self._update_compilation_vm_disk_size_patcher.stop()
 		self.icon_file.close()
+		self.pre_start_file.close()
 
 
 @mock.patch('tile_generator.config.Config.read_history')
@@ -692,6 +694,15 @@ class TestTileIconFile(BaseTest):
 		self.assertIn('icon_image', tile_metadata['base'])
 		# Base64-encoded string from `echo -n foo | base64`
 		self.assertEqual(tile_metadata['base']['icon_image'], 'Zm9v')
+
+class TestPreStartFile(BaseTest):
+	def test_loads_pre_start_file(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}, 'pre_start_file': self.pre_start_file.name }]
+		self.pre_start_file.write('some prestart code')
+		self.pre_start_file.flush()
+		self.config.validate()
+		self.assertEqual(self.config['packages'][0]['pre_start'], 'some prestart code')
+
 
 if __name__ == '__main__':
 	unittest.main()
