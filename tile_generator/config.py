@@ -133,22 +133,22 @@ class Config(dict):
 		self.normalize_jobs()
 
 	def _validate_base_config(self):
-		# Disallow keywords, until a more strict schema can be used ie. disable allow_unknown
-		keywords = ['releases', 'all_properties']
-		for key in self.keys():
-			if key in keywords:
-				print('The key: %s is a protected keyword and cannot be used' % key, file=sys.stderr)
-				sys.exit(1)
-
 		schema = {
 			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
 			'service_broker': {'type': 'boolean', 'required': False, 'default': False},
+			'properties': {'type': 'list', 'default': [], 'schema': {
+				'type': 'dict', 'default': {}}},
 			'label': {'type': 'string', 'required': True},
 			'description': {'type': 'string', 'required': True},
 			'icon_file': {'type': 'string', 'required': True, 'coerce': _base64_img},
 			'metadata_version': {'type': 'number', 'default': 1.8},
 			'stemcell_criteria': {'type': 'dict', 'default': self.default_stemcell(), 'schema': {
 				'os': {'type': 'string'}, 'version': {'type': 'string'}}},
+			'update': {'type': 'dict', 'schema': {
+				'canaries': {'type': 'number', 'default': 1},
+				'canary_watch_time': {'type': 'string', 'default': '10000-100000'},
+				'max_in_flight': {'type': 'number', 'default': 1},
+				'update_watch_time': {'type': 'string', 'default': '10000-100000'}}},
 			'all_properties': {'type': 'list', 'default_setter': lambda doc: doc.get('properties', [])},
 			'org': {'type': 'string', 'default_setter': lambda doc: doc['name'] + '-org'},
 			'space': {'type': 'string', 'default_setter': lambda doc: doc['name'] + '-space'},
@@ -191,22 +191,22 @@ class Config(dict):
 					}}
 			}}}
 		}
-		self.update(self._validator.validate(self, schema))
 
-		# WARNING: !!! This is really bad !!!
-		# Because we are not using a strict schema and we are populating the config with internal data
-		# structures. We have to pass any additionally unknown keys semi-manually to tile_metadata class.
-		unknown_keys = list(set(self) - set(schema.keys()) - set(['history',
-																														  'post_deploy_errands',
-																														  'pre_delete_errands',
-																														  'properties',
-																														  'releases',
-																														  'requires_docker_bosh',
-																														  'requires_product_versions',
-																														  'update']))
+		# These are all keys that are used later that hammer the config obj. This should be changed.
+		keywords = ['releases', 'all_properties', 'post_deploy_errands', 'pre_delete_errands',
+								'requires_docker_bosh', 'requires_product_versions', 'unknown_keys']
+		for key in self.keys():
+			if key in keywords:
+				print('The key: %s is a protected keyword and cannot be used' % key, file=sys.stderr)
+				sys.exit(1)
+
+		# Because we are populating the config with internal data structures. We have to pass 
+		# any additionally unknown keys semi-manually to tile_metadata class.
+		unknown_keys = list(set(self) - set(schema.keys()) - set(['history']))
 		if unknown_keys:
-			self['__unknown_keys'] = unknown_keys
+			self['unknown_keys'] = unknown_keys
 
+		self.update(self._validator.validate(self, schema))
 
 	def _validate_package(self, package):
 		package_schema = self._get_package_def(package).schema()

@@ -4344,7 +4344,9 @@
     "version": "1234"
   }, 
   "update": {
+    "canaries": 1, 
     "canary_watch_time": "10000-(( .properties.canary_watch_timeout ))", 
+    "max_in_flight": 1, 
     "update_watch_time": "10000-(( .properties.update_watch_timeout ))"
   }, 
   "verbose": false, 

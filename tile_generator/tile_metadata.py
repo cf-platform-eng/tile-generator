@@ -46,8 +46,7 @@ class TileMetadata(object):
         if product_versions: 
             base['requires_product_versions'] = product_versions
 
-        # This is BAD way of handling unknown keys. This should be fixed
-        for key in self.config.get('__unknown_keys', []):
+        for key in self.config.get('unknown_keys', []):
             base[key] = self.config[key]
 
         self.tile_metadata['base'] = base
