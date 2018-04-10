@@ -341,4 +341,3 @@ class Helm(FlagBase):
             'label': 'PKS Configuration',
             'properties': pks_form_properties,
         })
-        config_obj['all_properties'].extend(pks_form_properties)

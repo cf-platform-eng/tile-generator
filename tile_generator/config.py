@@ -79,6 +79,12 @@ def _base64_img(image):
 				print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
 				sys.exit(1)
 
+# This is temporary until next major release
+def show_warning(thing):
+	print()
+	print('DeprecationWarning: %s expected, got %s !!!' % (thing.replace('-', '_'), thing))
+	print()
+
 
 class Config(dict):
 
@@ -209,6 +215,11 @@ class Config(dict):
 		self.update(self._validator.validate(self, schema))
 
 	def _validate_package(self, package):
+		if package.get('name', '').find('-') >= 0:
+			show_warning(package.get('name'))
+		for job in package.get('jobs', []):
+				if job.get('varname', '').find('-') >= 0:
+					show_warning(job.get('varname'))
 		package_schema = self._get_package_def(package).schema()
 		package.update(self._validator.validate(package, package_schema))
 
@@ -230,11 +241,6 @@ class Config(dict):
 
 	def validate(self):
 		self._validate_base_config()
-		
-		# TODO: This should be handled differently
-		for form in self.get('forms', []):
-			properties = form.get('properties', [])
-			self['all_properties'] += properties
 
 		# Reserve the order of releases based on order of `packages` list
 		self['releases'] = OrderedDict()
@@ -246,8 +252,15 @@ class Config(dict):
 			self._apply_package_flags(self, package)
 			self._nomalize_package_file_lists(package)
 
+		# TODO: This should be handled differently
+		for form in self.get('forms', []):
+			properties = form.get('properties', [])
+			self['all_properties'] += properties
+
 		# TODO: wtf is going on here and why?
 		for property in self['all_properties']:
+			if property['name'].find('-') >= 0:
+				show_warning(property['name'])
 			property['name'] = property['name'].lower().replace('-','_')
 			default = property.get('default', property.pop('value', None)) # NOTE this intentionally removes property['value']
 			if default is not None:
