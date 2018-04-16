@@ -1,8 +1,9 @@
 # Remove this once all the sys.exit(1) is removed
 from __future__ import print_function
+import helm
+import uuid
 import os
 import sys
-import helm
 from . import template
 
 
@@ -105,8 +106,6 @@ class DockerBosh(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
         # TODO: Remove the dependency on this in templates
-        package['is_docker_bosh'] = True
-
         config_obj['requires_docker_bosh'] = True
 
         release['requires_docker_bosh'] = True
@@ -141,7 +140,7 @@ class DockerBosh(FlagBase):
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update({'name': packagename})
         package['properties'] = properties
-        for container in package['manifest']['containers']:
+        for container in package.get('manifest', {}).get('containers', []):
             envfile = container.get('env_file', [])
             envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr.env'.format(package['name']))
             container['env_file'] = envfile
@@ -341,3 +340,185 @@ class Helm(FlagBase):
             'label': 'PKS Configuration',
             'properties': pks_form_properties,
         })
+
+
+class Kibosh(FlagBase):
+    @classmethod
+    def _apply(self, config_obj, package, release):
+        packagename = package['name']
+        config_obj['forms'] += [
+            {
+                "label": "Kubernetes Cluster", 
+                "description": "Cluster where instances will be deployed", 
+                "name": "k8s_form", 
+                "properties": [
+                    {
+                        "configurable": True,
+                        "type": "text", 
+                        "name": "k8s_cluster_ca_cert", 
+                        "label": "Cluster CA Cert"
+                    }, 
+                    {
+                        "configurable": True,
+                        "type": "string", 
+                        "name": "k8s_cluster_server", 
+                        "label": "Cluster URL"
+                    }, 
+                    {
+                        "configurable": True,
+                        "type": "text", 
+                        "name": "k8s_cluster_token", 
+                        "label": "Cluster Token"
+                    }
+                ]
+            }, 
+            {
+                "label": "Registry", 
+                "description": "Private Registry for helm images", 
+                "name": "registry_form", 
+                "properties": [
+                    {
+                        "configurable": True,
+                        "type": "string", 
+                        "name": "registry_server", 
+                        "optional": True, 
+                        "label": "Registry Server"
+                    }, 
+                    {
+                        "configurable": True,
+                        "type": "string", 
+                        "name": "registry_user", 
+                        "optional": True, 
+                        "label": "Registry User"
+                    }, 
+                    {
+                        "configurable": True,
+                        "type": "text", 
+                        "name": "registry_pass", 
+                        "optional": True, 
+                        "label": "Registry Password"
+                    }
+                ]
+            }
+        ]
+        config_obj['all_properties'] += [
+            {
+                "type": "string", 
+                "name": "service_id", 
+                "value": str(uuid.uuid5(uuid.NAMESPACE_URL, 'serviceid/%s' % packagename))
+            }, 
+            {
+                "type": "string", 
+                "name": "service_name", 
+                "value": packagename
+            }, 
+            {
+                "label": "Kibosh Broker Creds", 
+                "type": "simple_credentials", 
+                "description": "Username and Password for Kibosh Broker", 
+                "name": "kibosh_broker_creds"
+            }
+        ]
+        config_obj['releases']['docker'] = {
+            'name': 'docker',
+            'package-type': 'bosh-release',
+            'path': 'github://cloudfoundry-incubator/docker-boshrelease/docker.tgz',
+            'is_bosh_release': True,
+        }
+        config_obj['releases']['kibosh'] = {
+            'name': 'kibosh',
+            'package-type': 'bosh-release',
+            'path': 'github://cf-platform-eng/kibosh/kibosh-release.tgz',
+            'is_bosh_release': True,
+            'jobs': [
+                {
+                    'name': 'kibosh',
+                    'varname': 'kibosh',
+                    'templates': [{'release': 'kibosh', 'name': 'kibosh'},
+                                  {'release': release['name'], 'name': packagename}],
+                    'properties': {
+                        'registry': {
+                            'username': '(( .properties.registry_user.value ))',
+                            'password': '(( .properties.registry_pass.value ))',
+                            'server': '(( .properties.registry_server.value ))'
+                        }, 
+                        'kibosh': {
+                            'ca_data': '(( .properties.k8s_cluster_ca_cert.value ))',
+                            'username': '(( .properties.kibosh_broker_creds.identity ))',
+                            'password': '(( .properties.kibosh_broker_creds.password ))',
+                            'service_name': '(( .properties.service_name.value ))',
+                            'server': '(( .properties.k8s_cluster_server.value ))',
+                            'token': '(( .properties.k8s_cluster_token.value ))',
+                            'service_id': '(( .properties.service_id.value ))',
+                            'helm_chart_dir': '/var/vcap/packages/%s/chart' % packagename,
+                        }
+                    },
+                }, {
+                    'name': 'loader',
+                    'varname': 'loader',
+                    'templates': [{'release': 'kibosh', 'name': 'load-image'},
+                                  {'release': release['name'], 'name': packagename},
+                                  {'release': 'docker', 'name': 'docker'}],
+                    'properties': {
+                        'chart_path': '/var/vcap/packages/%s/chart' % packagename,
+                        'registry': {'username': '(( .properties.registry_user.value ))',
+                            'password': '(( .properties.registry_pass.value ))',
+                            'server': '(( .properties.registry_server.value ))'
+                        }
+                    },
+                }, {
+                    'name': 'register',
+                    'post_deploy': True,
+                    'varname': 'register',
+                    'lifecycle': 'errand',
+                    'templates': [{'release': 'kibosh', 'name': 'register-broker'}],
+                    'properties': {
+                        'broker_name': '(( .properties.service_name.value ))',
+                        'disable_ssl_cert_verification': '(( ..cf.ha_proxy.skip_cert_verify.value ))',
+                        'cf': {
+                            'api_url': 'https://api.(( ..cf.cloud_controller.system_domain.value ))',
+                            'admin_username': '(( ..cf.uaa.system_services_credentials.identity ))',
+                            'admin_password': '(( ..cf.uaa.system_services_credentials.password ))'
+                        }
+                    },
+                }, {
+                    'name': 'deregistrar',
+                    'pre_delete': True,
+                    'varname': 'deregistrar',
+                    'lifecycle': 'errand',
+                    'templates': [{'release': 'kibosh', 'name': 'delete-all-and-deregister'}],
+                    'properties': {
+                        'broker_name': '(( .properties.service_name.value ))',
+                        'disable_ssl_cert_verification': '(( ..cf.ha_proxy.skip_cert_verify.value ))', 
+                        'cf': {
+                            'uaa_url': 'https://uaa.(( ..cf.cloud_controller.system_domain.value ))',
+                            'api_url': 'https://api.(( ..cf.cloud_controller.system_domain.value ))',
+                            'admin_username': '(( ..cf.uaa.system_services_credentials.identity ))',
+                            'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',
+                        }
+                    },
+                }
+            ],
+        }
+        release['jobs'] += [{
+                'name': 'charts_to_disk',
+                'type': 'charts_to_disk',
+                'packages': [{'name': packagename}],
+            }]
+        release['packages'] = [{
+                'name': packagename,
+                'zip_if_needed': True,
+                'files': [{
+                    'name': 'chart',
+                    'path': package['helm_chart_dir'],
+                    'unzip': True,
+                }],
+        }]
+        # This should be handled differently. We should be injecting the job here instead
+        # and not have to have a release['jobs'].
+        release['is_kibosh'] = True
+        properties = package.get('properties', {packagename: {}})
+        properties[packagename].update({'name': packagename})
+        properties['kibosh'] = {'name': 'kibosh'}
+        properties['docker'] ={'name': 'docker'}
+        package['properties'] = properties

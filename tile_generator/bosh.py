@@ -182,7 +182,10 @@ class BoshRelease:
 		# Download files for package
 		if self.needs_zip(package):
 			staging_dir = tempfile.mkdtemp()
+			file_options = dict()
 			for file in package.get('files', []):
+				for key in [k for k in file.keys() if k not in ['name', 'path']]:
+					file_options[key] = file[key]
 				download(file['path'], os.path.join(staging_dir, file['name']), cache=self.context.get('cache', None))
 			path = package.get('manifest', {}).get('path', '')
 			dir_to_zip = os.path.join(staging_dir, path) if path else staging_dir
@@ -193,7 +196,9 @@ class BoshRelease:
 			for job in self.jobs:
 				if job.get('manifest', {}).get(package['name'], {}).get('app_manifest'):
 					job['manifest'][package['name']]['app_manifest']['path'] = newpath
-			package['files'] = [{ 'path': zipfilename, 'name': os.path.basename(zipfilename) }]
+			result = { 'path': zipfilename, 'name': os.path.basename(zipfilename) }
+			result.update(file_options)
+			package['files'] = [result]
 			self.__bosh('add-blob',zipfilename,os.path.join(name,os.path.basename(zipfilename)))
 		else:
 			for file in package.get('files', []):
