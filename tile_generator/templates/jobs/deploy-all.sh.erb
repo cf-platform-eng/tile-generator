@@ -35,6 +35,8 @@ function import_opsmgr_variables() {
 	export SECURITY_USER_PASSWORD={{ 'properties.security.password' | shell_string }}
 	export APPLY_OPEN_SECURITY_GROUP={{ 'properties.apply_open_security_group' | shell_string }}
 	export ALLOW_PAID_SERVICE_PLANS={{ 'properties.allow_paid_service_plans' | shell_string }}
+	export UAA_ADMIN_CLIENT=<%= properties.uaa.admin_client %>
+	export UAA_ADMIN_CLIENT_SECRET=<%= properties.uaa.admin_client_secret %>
 
 	{% for service_plan_form in context.service_plan_forms %}
 	{{ service_plan_form | plans_json | indent }}
