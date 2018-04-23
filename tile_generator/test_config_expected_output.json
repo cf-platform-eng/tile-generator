@@ -1190,6 +1190,10 @@
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
             }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
+            }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
@@ -1363,6 +1367,10 @@
             "tg_test_decorator": {
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
+            }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
             }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
@@ -1573,6 +1581,10 @@
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
             }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
+            }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
@@ -1772,6 +1784,10 @@
             "tg_test_decorator": {
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
+            }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
             }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
@@ -2282,6 +2298,10 @@
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
             }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
+            }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
@@ -2439,6 +2459,10 @@
             "tg_test_decorator": {
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
+            }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
             }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
@@ -2652,6 +2676,10 @@
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
             }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
+            }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
@@ -2815,6 +2843,10 @@
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
             }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
+            }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
@@ -2976,6 +3008,10 @@
             "tg_test_decorator": {
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
+            }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
             }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
@@ -3617,6 +3653,10 @@
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
             }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
+            }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
@@ -3790,6 +3830,10 @@
             "tg_test_decorator": {
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
+            }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
             }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
@@ -3988,6 +4032,10 @@
             "tg_test_decorator": {
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
+            }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
             }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
@@ -4188,6 +4236,10 @@
             "tg_test_decorator": {
               "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
               "name": "tg_test_decorator"
+            }, 
+            "uaa": {
+              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
+              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
             }, 
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
             "username": "(( .properties.username.value ))", 
