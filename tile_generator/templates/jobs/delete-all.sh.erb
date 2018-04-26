@@ -79,7 +79,7 @@ function delete_empty_org() {
 
 function delete_all_versions() {
 	$CF apps | grep "^$1-" | while read app rest; do
-		cf delete -rf $app
+		cf delete -r -f $app
 	done
 }
 
