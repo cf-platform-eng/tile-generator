@@ -1251,7 +1251,7 @@ jobs:
         args:
         - -exc
         - |
-          tar -xvf tile-generator-package-release/release/bundle-*.tar.gz release-files/
+          tar -xvf tile-generator-package-release/bundle-*.tar.gz -C release-files/
   - aggregate:
     - put: tile-generator-github-release
       params:
@@ -1259,7 +1259,7 @@ jobs:
         tag: version/version
         tag_prefix: v
         globs:
-        - release-files/*
+        - release-files/dist/*
     - put: tile-generator-docker-image-release
       params:
         load: tile-generator-docker-image
@@ -1268,7 +1268,7 @@ jobs:
         tag_as_latest: true
     - put: tile-generator-pypi-release
       params:
-        glob: release-files/tile-generator-*.tar.gz
+        glob: release-files/dist/tile-generator-*.tar.gz
   - put: version
     params:
       bump: patch
