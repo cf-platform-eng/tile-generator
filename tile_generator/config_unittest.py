@@ -242,14 +242,22 @@ class TestConfigValidation(BaseTest):
 			self.config['packages'] = [{'name': 'Invalid', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 			self.config.validate()
 
-	def test_refuses_underscores_in_package_name(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'invalid_name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-			self.config.validate()
+	def test_accepts_underscores_in_package_name(self):
+		self.config['packages'] = [{'name': 'valid_name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config.validate()
 
 	def test_refuses_package_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{'name': '1-invalid-name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+			self.config.validate()
+
+	def test_refuses_package_name_ending_with_nonalphanumeric(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'invalid-name-', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+			self.config.validate()
+
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'invalid-name_', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 			self.config.validate()
 
 	def test_requires_product_versions(self):
@@ -583,14 +591,22 @@ class TestTileName(BaseTest):
 			self.config.update({'name': 'Invalid'})
 			self.config.validate()
 
-	def test_refuses_underscores_in_product_name(self):
-		with self.assertRaises(SystemExit):
-			self.config.update({'name': 'invalid_name'})
-			self.config.validate()
+	def test_accepts_underscores_in_product_name(self):
+		self.config.update({'name': 'valid_name'})
+		self.config.validate()
 
 	def test_refuses_product_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
 			self.config.update({'name': '1-invalid-name'})
+			self.config.validate()
+
+	def test_refuses_product_name_ending_with_nonalphanumeric(self):
+		with self.assertRaises(SystemExit):
+			self.config.update({'name': 'invalid-name-'})
+			self.config.validate()
+
+		with self.assertRaises(SystemExit):
+			self.config.update({'name': 'invalid-name_'})
 			self.config.validate()
 
 class TestTileSimpleFields(BaseTest):

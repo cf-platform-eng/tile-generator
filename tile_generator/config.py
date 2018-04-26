@@ -140,7 +140,7 @@ class Config(dict):
 
 	def _validate_base_config(self):
 		schema = {
-			'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 			'service_broker': {'type': 'boolean', 'required': False, 'default': False},
 			'properties': {'type': 'list', 'default': [], 'schema': {
 				'type': 'dict', 'default': {}}},
@@ -172,25 +172,25 @@ class Config(dict):
 					'variable_name': {'type': 'string', 'required': True, 'default_setter': lambda doc: doc['name'].upper()}}}},
 			'packages': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
-					'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
 			'runtime_configs': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
-					'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 					'runtime_config': {'required': True, 'type': 'dict', 'schema': {
 						'releases': {'required': True, 'type': 'list', 'schema': {
 							'type': 'dict', 'schema': {
-								'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+								'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 								'version': {'type': 'string', 'required': True,'coerce': lambda x: str(x)},
 						}}},
 						'addons': {'required': True, 'type': 'list', 'schema': {
 							'type': 'dict', 'schema': {
-								'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+								'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 								'properties': {'type': 'dict'},
 								'jobs': {'required': True, 'type': 'list', 'schema': {
 									'type': 'dict', 'schema': {
-										'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
+										'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 										'release': {'type': 'string', 'required': True}
 								}}}
 						}}}
