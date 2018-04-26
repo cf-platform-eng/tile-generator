@@ -140,7 +140,7 @@ class Config(dict):
 
 	def _validate_base_config(self):
 		schema = {
-			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
+			'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
 			'service_broker': {'type': 'boolean', 'required': False, 'default': False},
 			'properties': {'type': 'list', 'default': [], 'schema': {
 				'type': 'dict', 'default': {}}},
@@ -172,7 +172,7 @@ class Config(dict):
 					'variable_name': {'type': 'string', 'required': True, 'default_setter': lambda doc: doc['name'].upper()}}}},
 			'packages': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
-					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
+					'name': {'type': 'string', 'required': True, 'regex': '[a-zA-Z][a-zA-Z0-9_-]*$'},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
 			'runtime_configs': {'type': 'list', 'schema': {
