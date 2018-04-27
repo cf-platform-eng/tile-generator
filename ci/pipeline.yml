@@ -312,12 +312,13 @@ jobs:
           }
 
           function build-remote(){
-            HEAD=`git log --pretty=format:'%h' -n 1`
+            HEAD="$HEAD"
             ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t administrator@207.254.45.60 "$(typeset -f build)
               SKIP_SDIST='true'
               VERSION="$VERSION"
               FINAL_VERSION="$FINAL_VERSION"
               cd tile-generator
+              git fetch origin
               git reset --hard "$HEAD"
               build
               rm -rf dist/
@@ -328,6 +329,7 @@ jobs:
           VERSION=`cat ../version/version`
           FINAL_VERSION=`cat ../final-version/version`
           build
+          HEAD=`git log --pretty=format:'%h' -n 1`
           build-remote
 
           cp dist-"$VERSION"/* ../tile-generator-dist/
