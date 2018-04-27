@@ -85,7 +85,7 @@ class BoshRelease:
 	def download_tarball(self):
 		mkdir_p(self.release_dir)
 		tarball = os.path.join(self.release_dir, self.name + '.tgz')
-		download(self.path, tarball, self.context.get('cache', None))
+		download(self.path, tarball, self.context.get('cache'))
 		manifest = self.get_manifest(tarball)
 		self.tarball = os.path.join(self.release_dir, manifest['name'] + '-' + manifest['version'] + '.tgz')
 		os.rename(tarball, self.tarball)
