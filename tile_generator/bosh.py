@@ -78,7 +78,7 @@ class BoshRelease:
 		if self.tarball is not None and os.path.isfile(self.tarball):
 			return self.tarball
 		if self.path is not None:
-			print('bosh download release', self.name)
+			print('download bosh release', self.name)
 			return self.download_tarball()
 		return self.build_tarball()
 
