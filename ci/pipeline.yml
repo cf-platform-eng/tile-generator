@@ -331,7 +331,7 @@ jobs:
           build-remote
 
           cp dist-"$VERSION"/* ../tile-generator-dist/
-          tar -cvzf ../tile-generator-dist-release/bundle-"$FINAL_VERSION".tar.gz dist-"$FINAL_VERSION"/*
+          tar -cvzf ../tile-generator-dist-release/bundle-"$VERSION".tar.gz dist-"$FINAL_VERSION"/*
     on_failure:
       aggregate:
       - put: slack-alert
@@ -1259,7 +1259,7 @@ jobs:
         tag: version/version
         tag_prefix: v
         globs:
-        - release-files/dist/*
+        - release-files/dist*/*
     - put: tile-generator-docker-image-release
       params:
         load: tile-generator-docker-image
@@ -1268,7 +1268,7 @@ jobs:
         tag_as_latest: true
     - put: tile-generator-pypi-release
       params:
-        glob: release-files/dist/tile-generator-*.tar.gz
+        glob: release-files/dist*/tile-generator-*.tar.gz
   - put: version
     params:
       bump: patch
