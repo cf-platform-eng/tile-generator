@@ -175,6 +175,7 @@ class Config(dict):
 					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
+			'requires_product_versions': {'type': 'dict'},
 			'runtime_configs': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
 					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
@@ -200,7 +201,7 @@ class Config(dict):
 
 		# These are all keys that are used later that hammer the config obj. This should be changed.
 		keywords = ['releases', 'all_properties', 'post_deploy_errands', 'pre_delete_errands',
-								'requires_docker_bosh', 'requires_product_versions', 'unknown_keys']
+								'requires_docker_bosh', 'unknown_keys']
 		for key in self.keys():
 			if key in keywords:
 				print('The key: %s is a protected keyword and cannot be used' % key, file=sys.stderr)

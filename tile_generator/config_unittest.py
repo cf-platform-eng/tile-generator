@@ -269,6 +269,15 @@ class TestConfigValidation(BaseTest):
 		self.assertIn('name', requires_product_versions[0])
 		self.assertIn('version', requires_product_versions[0])
 
+	def test__manually_addded_requires_product_versions(self):
+		self.config['requires_product_versions'] = {'p-mysql': '~> 1.7'}
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertIn('requires_product_versions', tile_metadata['base'])
+		requires_product_versions = tile_metadata['base']['requires_product_versions']
+		self.assertIn('name', requires_product_versions[0])
+		self.assertIn('version', requires_product_versions[0])
+
 	def test_refuses_docker_bosh_package_without_image(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
