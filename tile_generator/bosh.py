@@ -134,25 +134,19 @@ class BoshRelease:
 			'errand': is_errand,
 		}
 		if self.config['is_kibosh']:
-			path = self.release_dir + "/jobs/" + job_type
+			path = os.path.join(self.release_dir, 'jobs', job_type)
 			shutil.rmtree(path, True)
-			path = self.release_dir + "/jobs/" + job_type + "/templates"
-			mkdir_p(path)
+			mkdir_p(os.path.join(path, 'templates'))
+			with open(os.path.join(path, 'spec'), 'w') as f:
+				f.write(("---\n"
+					"name: %s\n\n"
+					'packages:\n'
+					'- %s\n') % (job_type, job_type))
 
-			path = self.release_dir + "/jobs/" + job_type + "/spec"
-			with open(path, "a") as f:
-				f.write("---\n")
-				f.write("name: " + job_type + "\n")
-				f.write("\n")
-				f.write("packages:\n")
-				f.write("- " + job_type + "\n")
-
-			path = self.release_dir + "/jobs/" + job_type + "/monit"
-			with open(path, 'a'):
+			path = os.path.join(path, 'monit')
+			with open(path, 'w'):
 				os.utime(path, None)
-
 		else:
-
 			template.render(
 				os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
 				os.path.join('jobs', 'spec'),
