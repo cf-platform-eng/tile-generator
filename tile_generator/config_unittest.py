@@ -231,7 +231,7 @@ class TestConfigValidation(BaseTest):
 		self.config.validate()
 
 	def test_accepts_valid_package_name_with_number(self):
-		self.config['packages'] = [{'name': 'valid-name-2', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config['packages'] = [{'name': 'valid_name_2', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
 
 	def test_refuses_spaces_in_package_name(self):
@@ -283,7 +283,7 @@ class TestConfigValidation(BaseTest):
 	def test_refuses_docker_bosh_package_without_image(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
-				'name': 'bad-docker-bosh',
+				'name': 'bad_docker_bosh',
 				'type': 'docker-bosh',
 				'manifest': 'containers: [name: a]'
 			}]
@@ -291,7 +291,7 @@ class TestConfigValidation(BaseTest):
 
 	def test_accepts_docker_bosh_package_with_image(self):
 		self.config['packages'] = [{
-			'name': 'good-docker-bosh',
+			'name': 'good_docker_bosh',
 			'type': 'docker-bosh',
 			'docker_images': ['my/image'],
 			'manifest': 'containers: [name: a]'
@@ -301,7 +301,7 @@ class TestConfigValidation(BaseTest):
 	def test_refuses_docker_bosh_package_without_manifest(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
-				'name': 'bad-docker-bosh',
+				'name': 'bad_docker_bosh',
 				'type': 'docker-bosh',
 				'docker_images': ['my/image']
 			}]
@@ -310,7 +310,7 @@ class TestConfigValidation(BaseTest):
 	def test_refuses_docker_bosh_package_with_bad_manifest(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
-				'name': 'bad-docker-bosh',
+				'name': 'bad_docker_bosh',
 				'type': 'docker-bosh',
 				'docker_images': ['my/image'],
 				'manifest': '!^%'
@@ -320,7 +320,7 @@ class TestConfigValidation(BaseTest):
 	def test_validates_docker_bosh_container_names(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
-				'name': 'good-docker-bosh',
+				'name': 'good_docker_bosh',
 				'type': 'docker-bosh',
 				'docker_images': ['cholick/foo'],
 				'manifest': '''
@@ -352,10 +352,10 @@ class TestConfigValidation(BaseTest):
 
 	def test_releases_maintain_order(self):
 		self.config['packages'] = [
-			{ 'name': 'z-name', 'type': 'bosh-release', 'manifest': {}},
-			{ 'name': 'd-name', 'type': 'bosh-release', 'manifest': {}},
-			{ 'name': 'a-name', 'type': 'bosh-release', 'manifest': {}},
-			{ 'name': 'b-name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'z_name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'd_name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'a_name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'b_name', 'type': 'bosh-release', 'manifest': {}},
 		]
 		self.config.validate()
 		self.assertEquals([r['name'] for r in self.config['releases'].values()],
@@ -483,29 +483,29 @@ class TestVersionMethods(BaseTest):
 
 class TestDefaultOptions(BaseTest):
 	def test_purge_service_broker_is_true_by_default(self):
-		self.config.update({'name': 'tile-generator-unittest'})
+		self.config.update({'name': 'tile_generator_unittest'})
 		self.config.validate()
 		self.assertTrue(self.config['purge_service_brokers'])
 
 	def test_purge_service_broker_is_overridden(self):
 		self.config.update({'purge_service_brokers': False,
-				 'name': 'tile-generator-unittest'})
+				 'name': 'tile_generator_unittest'})
 		self.config.validate()
 		self.assertFalse(self.config['purge_service_brokers'])
 
 	def test_normalize_jobs_default_job_properties(self):
 		self.config.update({
-			'releases': {'my-job': {
+			'releases': {'my_job': {
 				'jobs': [{
-					'name': 'my-job'
+					'name': 'my_job'
 				}]
 			}}
 		})
 		self.config.normalize_jobs()
-		self.assertEqual(self.config['releases']['my-job']['jobs'][0]['properties'], {})
+		self.assertEqual(self.config['releases']['my_job']['jobs'][0]['properties'], {})
 
 	def test_default_metadata_version(self):
-		self.config.update({'name': 'my-tile'})
+		self.config.update({'name': 'my_tile'})
 		self.config.validate()
 		self.assertEqual(self.config['metadata_version'], 1.8)
 
@@ -531,7 +531,7 @@ class TestVMDiskSize(BaseTest):
 		# Don't patch _update_compilation_vm_disk_size_patcher
 		self._update_compilation_vm_disk_size_patcher.stop()
 		mock_getsize.return_value = 0
-		self.config.update({'name': 'tile-generator-unittest'})
+		self.config.update({'name': 'tile_generator_unittest'})
 		self.config['packages'] = [{
 			'name': 'validname', 'type': 'app',
 			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
@@ -547,7 +547,7 @@ class TestVMDiskSize(BaseTest):
 	def test_big_default_vm_disk_size(self, mock_getsize):
 		# Don't patch _update_compilation_vm_disk_size_patcher
 		self._update_compilation_vm_disk_size_patcher.stop()
-		self.config.update({'name': 'tile-generator-unittest'})
+		self.config.update({'name': 'tile_generator_unittest'})
 		self.config['packages'] = [{
 			'name': 'validname', 'type': 'app',
 			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
@@ -577,19 +577,19 @@ class TestTileName(BaseTest):
 			self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphen(self):
-		self.config.update({'name': 'valid-name'})
+		self.config.update({'name': 'valid_name'})
 		self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphens(self):
-		self.config.update({'name': 'valid-name-too'})
+		self.config.update({'name': 'valid_name_too'})
 		self.config.validate()
 
 	def test_accepts_valid_product_name_with_number(self):
-		self.config.update({'name': 'valid-name-2'})
+		self.config.update({'name': 'valid_name_2'})
 		self.config.validate()
 
 	def test_accepts_valid_product_name_with_one_letter_prefix(self):
-		self.config.update({'name': 'p-tile'})
+		self.config.update({'name': 'p_tile'})
 		self.config.validate()
 
 	def test_refuses_spaces_in_product_name(self):

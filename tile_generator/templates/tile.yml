@@ -22,7 +22,7 @@ description: Longer description of the tile's purpose
 # http://docs.pivotal.io/tiledev/tile-generator.html
 #
 packages:
-- name: my-application
+- name: my_application
   type: app
 #  label: My fabulous appplication      # Package name for use in human-readable labels in OpsManager
   manifest:
@@ -101,18 +101,18 @@ packages:
 # tile.yml
 #
 # runtime_configs:
-#   - name: MY-RUNTIME-CONFIG
+#   - name: MY_RUNTIME_CONFIG
 #     runtime_config:
 #       releases:
 #       - name: os-conf
 #         version: 15
 #       addons:
-#       - name: MY-ADDON-NAME
+#       - name: MY_ADDON_NAME
 #         jobs:
-#         - name: MY-RUNTIME-CONFIG-JOB
+#         - name: MY_RUNTIME_CONFIG_JOB
 #           release: os-conf
 #         properties:
-#           MY-ADDON-NAME:
+#           MY_ADDON_NAME:
 #         ...
 #
 # Bosh releases referenced by add-ons must be either already present,

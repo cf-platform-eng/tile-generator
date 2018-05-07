@@ -31,7 +31,7 @@ class VerifyApp4Proxy(unittest.TestCase):
 
 	def setUp(self):
 		self.cfinfo = opsmgr.get_cfinfo()
-		self.proxy = 'http://tg-test-app1.' + self.cfinfo['apps_domain']
+		self.proxy = 'http://tg_test_app1.' + self.cfinfo['apps_domain']
 		self.env = self.getEnv(self.proxy)
 		self.host = self.env.get('DOCKER_TCP_HOST')
 		if self.host is not None:
@@ -51,7 +51,7 @@ class VerifyApp4(unittest.TestCase):
 
 	def setUp(self):
 		self.cfinfo = opsmgr.get_cfinfo()
-		self.hostname = 'my-route-tg-test-app4.' + self.cfinfo['system_domain']
+		self.hostname = 'my_route_tg_test_app4.' + self.cfinfo['system_domain']
 		self.url = 'http://' + self.hostname
 
 	def test_responds_to_hello(self):

@@ -214,12 +214,12 @@ class VerifyRuntimeConfig(unittest.TestCase):
 	def test_runtime_config_is_present(self):
 		expected = yaml.load(
 '''
-- name: example-runtime-config
+- name: example_runtime_config
   runtime_config: |
       addons:
       - include:
           jobs:
-          - name: no-op
+          - name: no_op
             release: no-op-release
         jobs:
         - name: hello
