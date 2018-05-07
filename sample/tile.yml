@@ -5,6 +5,6 @@ description: Kibosh Example Tile
 icon_file: resources/icon.png
 
 packages:
-- name: my_chart
+- name: spacebears
   type: kibosh
-  helm_chart_dir: dummy-chart/example-chart/
+  helm_chart_dir: example-chart

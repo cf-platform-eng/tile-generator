@@ -133,26 +133,46 @@ class BoshRelease:
 			'packages': packages,
 			'errand': is_errand,
 		}
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
-			os.path.join('jobs', 'spec'),
-			job_context
-		)
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'templates', job_type + '.sh.erb'),
-			os.path.join('jobs', job_template + '.sh.erb'),
-			job_context
-		)
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'templates', 'opsmgr.env.erb'),
-			os.path.join('jobs', 'opsmgr.env.erb'),
-			job_context
-		)
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'monit'),
-			os.path.join('jobs', 'monit'),
-			job_context
-		)
+		if self.config['is_kibosh']:
+			path = self.release_dir + "/jobs/" + job_type
+			shutil.rmtree(path, True)
+			path = self.release_dir + "/jobs/" + job_type + "/templates"
+			mkdir_p(path)
+
+			path = self.release_dir + "/jobs/" + job_type + "/spec"
+			with open(path, "a") as f:
+				f.write("---\n")
+				f.write("name: " + job_type + "\n")
+				f.write("\n")
+				f.write("packages:\n")
+				f.write("- " + job_type + "\n")
+
+			path = self.release_dir + "/jobs/" + job_type + "/monit"
+			with open(path, 'a'):
+				os.utime(path, None)
+
+		else:
+
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
+				os.path.join('jobs', 'spec'),
+				job_context
+			)
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'templates', job_type + '.sh.erb'),
+				os.path.join('jobs', job_template + '.sh.erb'),
+				job_context
+			)
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'templates', 'opsmgr.env.erb'),
+				os.path.join('jobs', 'opsmgr.env.erb'),
+				job_context
+			)
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'monit'),
+				os.path.join('jobs', 'monit'),
+				job_context
+			)
 
 	def needs_zip(self, package):
 		# Only zip package types that require single files

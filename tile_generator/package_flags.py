@@ -425,6 +425,12 @@ class Kibosh(FlagBase):
             'path': 'github://cloudfoundry-incubator/docker-boshrelease/docker.tgz',
             'is_bosh_release': True,
         }
+        config_obj['releases']['cf-cli'] = {
+            'name': 'cf-cli',
+            'package-type': 'bosh-release',
+            'path': 'https://bosh.io/d/github.com/bosh-packages/cf-cli-release',
+            'is_bosh_release': True,
+        }
         config_obj['releases']['kibosh'] = {
             'name': 'kibosh',
             'package-type': 'bosh-release',
@@ -471,7 +477,8 @@ class Kibosh(FlagBase):
                     'post_deploy': True,
                     'varname': 'register',
                     'lifecycle': 'errand',
-                    'templates': [{'release': 'kibosh', 'name': 'register-broker'}],
+                    'templates': [{'release': 'kibosh', 'name': 'register-broker'},
+                                  {'release': 'cf-cli', 'name': 'cf-cli-6-linux'}],
                     'properties': {
                         'broker_name': '(( .properties.service_name.value ))',
                         'disable_ssl_cert_verification': '(( ..cf.ha_proxy.skip_cert_verify.value ))',
@@ -501,18 +508,25 @@ class Kibosh(FlagBase):
             ],
         }
         release['jobs'] += [{
-                'name': 'charts_to_disk',
-                'type': 'charts_to_disk',
+                'name': packagename,
+                'type': packagename,
                 'packages': [{'name': packagename}],
             }]
         release['packages'] = [{
                 'name': packagename,
                 'zip_if_needed': True,
-                'files': [{
-                    'name': 'chart',
-                    'path': package['helm_chart_dir'],
-                    'unzip': True,
-                }],
+                'files': [
+                    {
+                      'name': 'chart',
+                      'path': package['helm_chart_dir'],
+                      'unzip': True,
+                    },
+                    {
+                      'name': 'chart/images/tiller.tgz',
+                      'path': 'github://cf-platform-eng/kibosh/tiller.tgz',
+                      'unzip': True,
+                    }
+                ],
         }]
         # This should be handled differently. We should be injecting the job here instead
         # and not have to have a release['jobs'].
