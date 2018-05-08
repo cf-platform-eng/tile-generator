@@ -133,7 +133,7 @@ class BoshRelease:
 			'packages': packages,
 			'errand': is_errand,
 		}
-		if self.config['is_kibosh']:
+		if self.config.get('is_kibosh'):
 			path = os.path.join(self.release_dir, 'jobs', job_type)
 			shutil.rmtree(path, True)
 			mkdir_p(os.path.join(path, 'templates'))

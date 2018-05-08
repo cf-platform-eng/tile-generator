@@ -1001,7 +1001,6 @@
       ], 
       "instances": 1, 
       "is_docker": true, 
-      "is_docker_bosh": true, 
       "manifest": {
         "containers": [
           {
@@ -3032,7 +3031,6 @@
             ], 
             "instances": 1, 
             "is_docker": true, 
-            "is_docker_bosh": true, 
             "manifest": {
               "containers": [
                 {
@@ -3450,7 +3448,6 @@
           ], 
           "instances": 1, 
           "is_docker": true, 
-          "is_docker_bosh": true, 
           "manifest": {
             "containers": [
               {

@@ -80,6 +80,7 @@ class PackageDockerBosh(BasePackage):
     flags = [flag.DockerBosh] # flag.Docker
     _schema = {
         # TODO: Remove the dependency on this in templates
+        'is_docker': {'type': 'boolean', 'default': True},
         'docker_images': {'required': True},
         'routes': {'required': False, 'type': 'list', 'schema': {'type': 'dict', 'schema': {
             'prefix': {'required': True},
