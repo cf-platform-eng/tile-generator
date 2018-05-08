@@ -1,0 +1,40 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "fullname" . }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: "{{ .Release.Name }}"
+        heritage: "{{ .Release.Service }}"
+    spec:
+      containers:
+      - name: spacebears-db-node
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000
+        env:
+        - name: ADMIN_USERNAME
+          value: {{ .Values.spacebears.username }}
+        - name: ADMIN_PASSWORD
+          value: {{ .Values.spacebears.password }}
+      - image: cfplatformeng/debug
+        command:
+          - sleep
+          - "3600"
+        imagePullPolicy: Always
+        name: debug
+      restartPolicy: Always
+

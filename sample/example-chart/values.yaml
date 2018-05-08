@@ -1,0 +1,8 @@
+---
+# image source is https://github.com/cf-platform-eng/pcf-examples/tree/master/src/docker
+image: cfplatformeng/spacebears
+imageTag: latest
+
+spacebears:
+  username: admin_db
+  password: monkey123

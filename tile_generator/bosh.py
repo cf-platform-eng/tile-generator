@@ -133,26 +133,40 @@ class BoshRelease:
 			'packages': packages,
 			'errand': is_errand,
 		}
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
-			os.path.join('jobs', 'spec'),
-			job_context
-		)
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'templates', job_type + '.sh.erb'),
-			os.path.join('jobs', job_template + '.sh.erb'),
-			job_context
-		)
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'templates', 'opsmgr.env.erb'),
-			os.path.join('jobs', 'opsmgr.env.erb'),
-			job_context
-		)
-		template.render(
-			os.path.join(self.release_dir, 'jobs', job_type, 'monit'),
-			os.path.join('jobs', 'monit'),
-			job_context
-		)
+		if self.config['is_kibosh']:
+			path = os.path.join(self.release_dir, 'jobs', job_type)
+			shutil.rmtree(path, True)
+			mkdir_p(os.path.join(path, 'templates'))
+			with open(os.path.join(path, 'spec'), 'w') as f:
+				f.write(("---\n"
+					"name: %s\n\n"
+					'packages:\n'
+					'- %s\n') % (job_type, job_type))
+
+			path = os.path.join(path, 'monit')
+			with open(path, 'w'):
+				os.utime(path, None)
+		else:
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'spec'),
+				os.path.join('jobs', 'spec'),
+				job_context
+			)
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'templates', job_type + '.sh.erb'),
+				os.path.join('jobs', job_template + '.sh.erb'),
+				job_context
+			)
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'templates', 'opsmgr.env.erb'),
+				os.path.join('jobs', 'opsmgr.env.erb'),
+				job_context
+			)
+			template.render(
+				os.path.join(self.release_dir, 'jobs', job_type, 'monit'),
+				os.path.join('jobs', 'monit'),
+				job_context
+			)
 
 	def needs_zip(self, package):
 		# Only zip package types that require single files
@@ -182,7 +196,10 @@ class BoshRelease:
 		# Download files for package
 		if self.needs_zip(package):
 			staging_dir = tempfile.mkdtemp()
+			file_options = dict()
 			for file in package.get('files', []):
+				for key in [k for k in file.keys() if k not in ['name', 'path']]:
+					file_options[key] = file[key]
 				download(file['path'], os.path.join(staging_dir, file['name']), cache=self.context.get('cache', None))
 			path = package.get('manifest', {}).get('path', '')
 			dir_to_zip = os.path.join(staging_dir, path) if path else staging_dir
@@ -193,7 +210,9 @@ class BoshRelease:
 			for job in self.jobs:
 				if job.get('manifest', {}).get(package['name'], {}).get('app_manifest'):
 					job['manifest'][package['name']]['app_manifest']['path'] = newpath
-			package['files'] = [{ 'path': zipfilename, 'name': os.path.basename(zipfilename) }]
+			result = { 'path': zipfilename, 'name': os.path.basename(zipfilename) }
+			result.update(file_options)
+			package['files'] = [result]
 			self.__bosh('add-blob',zipfilename,os.path.join(name,os.path.basename(zipfilename)))
 		else:
 			for file in package.get('files', []):

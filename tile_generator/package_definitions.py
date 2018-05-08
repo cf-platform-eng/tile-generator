@@ -80,7 +80,6 @@ class PackageDockerBosh(BasePackage):
     flags = [flag.DockerBosh] # flag.Docker
     _schema = {
         # TODO: Remove the dependency on this in templates
-        'is_docker': {'type': 'boolean', 'default': True},
         'docker_images': {'required': True},
         'routes': {'required': False, 'type': 'list', 'schema': {'type': 'dict', 'schema': {
             'prefix': {'required': True},
@@ -161,7 +160,14 @@ class PackageHelm(BasePackage):
     package_type = 'helm'
     flags = [flag.Helm]
     _schema = {
-        'name': {'type': 'string', 'required': True },
         'path': {'type': 'string', 'required': True },
         'zip_if_needed': {'type': 'boolean', 'default': True}
+    }
+
+
+class PackageKibosh(BasePackage):
+    package_type = 'kibosh'
+    flags = [flag.Kibosh]
+    _schema = {
+        'helm_chart_dir': {'type': 'string', 'required': True },
     }

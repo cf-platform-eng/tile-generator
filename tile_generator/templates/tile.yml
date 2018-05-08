@@ -31,6 +31,11 @@ packages:
 #   command: python app.py
 #   memory: 256M
 
+# New kibosh package type only applicable for PKS
+# - name: my_pks_service
+#   type: kibosh
+#   helm_chart_dir: example-chart    # Directory which contains the helm chart to be deployed
+
 # Include stemcell criteria if you don't want to accept the default.
 # Since this stemcell is only used to run pre and post errands, we
 # strongly recommend you leave this alone so that your tile always
