@@ -188,7 +188,9 @@ class App(FlagBase):
             config_obj['compilation_vm_disk_size'] = max(
                 config_obj['compilation_vm_disk_size'],
                 4 * _update_compilation_vm_disk_size(manifest))
-
+        if package.get('pre_start_file'):
+            with open(package.get('pre_start_file'),'r') as f:
+                package['pre_start'] = f.read();
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update(
