@@ -661,6 +661,16 @@ class TestTileSimpleFields(BaseTest):
 		self.assertIn('service_broker', tile_metadata['base'])
 		self.assertTrue(tile_metadata['base']['service_broker'])
 
+class TestKiboshType(BaseTest):
+	def test_kibosh_jobs(self):
+		self.config['packages'] = [{'name': 'spacebears', 'type': 'kibosh', 'helm_chart_dir': 'example-chart'}]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+
+		actual_jobs = [job['name'] for job in tile_metadata['job_types']]
+		expected_jobs = ['deregistrar', 'kibosh', 'loader', 'register']
+		self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
+
 
 class TestTileIconFile(BaseTest):
 	def test_requires_icon_file(self):
