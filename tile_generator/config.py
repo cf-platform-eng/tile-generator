@@ -298,6 +298,7 @@ class Config(dict):
 		# TODO: This whole thing needs to be changed to new world order
 		# This should not have to happen
 		from .package_flags import ExternalBroker, Broker
+
 		manifest = {
 			'domain': '(( ..cf.cloud_controller.system_domain.value ))',
 			'app_domains': ['(( ..cf.cloud_controller.apps_domain.value ))'],
