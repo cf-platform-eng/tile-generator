@@ -80,7 +80,7 @@ def build_tile(context):
     with open(os.path.join('product', 'tile-generator', 'version'), 'wb') as f:
         f.write(version_string)
     shutil.copy('tile.yml', os.path.join('product', 'tile-generator', 'tile.yml'))
-    with zipfile.ZipFile(pivotal_file, 'w') as f:
+    with zipfile.ZipFile(pivotal_file, 'w', allowZip64=True) as f:
         for release in context.get('releases', {}).values():
             print('tile include release', release['release_name'] + '-' + release['version'])
             shutil.copy(release['tarball'], os.path.join('product/releases', release['file']))

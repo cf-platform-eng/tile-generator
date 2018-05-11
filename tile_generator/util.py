@@ -118,7 +118,7 @@ def download(url, filename, cache=None):
 			print(filename, 'is not a file or directory. Cannot cache.', file=sys.stderr)
 
 def zip_dir(zipfilename, dirname):
-	with zipfile.ZipFile(zipfilename, 'w') as packagezip:
+	with zipfile.ZipFile(zipfilename, 'w', allowZip64=True) as packagezip:
 		if os.path.isdir(dirname):
 			for root, dirs, files in os.walk(dirname):
 				for file in files:

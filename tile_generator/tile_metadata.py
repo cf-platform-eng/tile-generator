@@ -385,9 +385,6 @@ class TileMetadata(object):
         # {{ job.template }} job for {{ job.package.name }}
         #
         for release in self.config.get('releases', {}).values():
-            if release.get('is_kibosh'):
-                continue
-                
             for job in [j for j in release.get('jobs', []) if j.get('template') and j.get('template') == 'docker-bosh']:
                 release_job = {
                     'dynamic_ip': 0,
@@ -620,6 +617,8 @@ class TileMetadata(object):
             #
             if not release.get('package-type') == 'bosh-release':
                 for job in [j for j in release.get('jobs', []) if not j.get('template') == 'docker-bosh']:
+                    if release.get('package-type') == 'kibosh' and job.get('name').startswith('charts_for_'):
+                        continue
                     job_type = {
                         'name': job.get('name'),
                         'resource_label': job.get('name'),

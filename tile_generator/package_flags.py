@@ -441,9 +441,10 @@ class Kibosh(FlagBase):
             'jobs': [
                 {
                     'name': 'kibosh',
+                    'dynamic_ip': 1,
                     'varname': 'kibosh',
                     'templates': [{'release': 'kibosh', 'name': 'kibosh'},
-                                  {'release': release['name'], 'name': packagename}],
+                                  {'release': release['name'], 'name': 'charts_for_%s' % packagename}],
                     'properties': {
                         'registry': {
                             'username': '(( .properties.registry_user.value ))',
@@ -458,17 +459,18 @@ class Kibosh(FlagBase):
                             'server': '(( .properties.k8s_cluster_server.value ))',
                             'token': '(( .properties.k8s_cluster_token.value ))',
                             'service_id': '(( .properties.service_id.value ))',
-                            'helm_chart_dir': '/var/vcap/packages/%s/chart' % packagename,
+                            'helm_chart_dir': '/var/vcap/packages/charts_for_%s/chart' % packagename,
                         }
                     },
                 }, {
                     'name': 'loader',
+                    'dynamic_ip': 1,
                     'varname': 'loader',
                     'templates': [{'release': 'kibosh', 'name': 'load-image'},
-                                  {'release': release['name'], 'name': packagename},
+                                  {'release': release['name'], 'name': 'charts_for_%s' % packagename},
                                   {'release': 'docker', 'name': 'docker'}],
                     'properties': {
-                        'chart_path': '/var/vcap/packages/%s/chart' % packagename,
+                        'chart_path': '/var/vcap/packages/charts_for_%s/chart' % packagename,
                         'registry': {'username': '(( .properties.registry_user.value ))',
                             'password': '(( .properties.registry_pass.value ))',
                             'server': '(( .properties.registry_server.value ))'
@@ -476,6 +478,7 @@ class Kibosh(FlagBase):
                     },
                 }, {
                     'name': 'register',
+                    'dynamic_ip': 1,
                     'post_deploy': True,
                     'varname': 'register',
                     'lifecycle': 'errand',
@@ -492,6 +495,7 @@ class Kibosh(FlagBase):
                     },
                 }, {
                     'name': 'deregistrar',
+                    'dynamic_ip': 1,
                     'pre_delete': True,
                     'varname': 'deregistrar',
                     'lifecycle': 'errand',
@@ -509,30 +513,31 @@ class Kibosh(FlagBase):
                 }
             ],
         }
+        release['package-type'] = package['package-type']
+        charts_to_disk_pkg = {
+            'name': 'charts_for_%s' % packagename,
+            'zip_if_needed': True,
+            'files': [
+                {
+                  'name': 'chart',
+                  'path': package['helm_chart_dir'],
+                  'unzip': True,
+                },
+                {
+                  'name': 'chart/images/tiller.tgz',
+                  'path': 'github://cf-platform-eng/kibosh/tiller.tgz',
+                  'unzip': True,
+                }
+            ],
+        }
         release['jobs'] += [{
-                'name': packagename,
-                'type': packagename,
-                'packages': [{'name': packagename}],
-            }]
-        release['packages'] = [{
-                'name': packagename,
-                'zip_if_needed': True,
-                'files': [
-                    {
-                      'name': 'chart',
-                      'path': package['helm_chart_dir'],
-                      'unzip': True,
-                    },
-                    {
-                      'name': 'chart/images/tiller.tgz',
-                      'path': 'github://cf-platform-eng/kibosh/tiller.tgz',
-                      'unzip': True,
-                    }
-                ],
+            'name': 'charts_for_%s' % packagename,
+            'type': 'charts_for_%s' % packagename,
+            'package': charts_to_disk_pkg,
         }]
+        release['packages'] += [charts_to_disk_pkg]
         # This should be handled differently. We should be injecting the job here instead
         # and not have to have a release['jobs'].
-        release['is_kibosh'] = True
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update({'name': packagename})
         properties['kibosh'] = {'name': 'kibosh'}

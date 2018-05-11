@@ -133,7 +133,7 @@ class BoshRelease:
 			'packages': packages,
 			'errand': is_errand,
 		}
-		if self.config.get('is_kibosh'):
+		if self.config.get('package-type') == 'kibosh' and job_type.startswith('charts_for_'):
 			path = os.path.join(self.release_dir, 'jobs', job_type)
 			shutil.rmtree(path, True)
 			mkdir_p(os.path.join(path, 'templates'))
