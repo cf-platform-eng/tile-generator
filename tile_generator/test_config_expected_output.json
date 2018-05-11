@@ -281,7 +281,7 @@
     }, 
     {
       "configurable": true, 
-      "default": "tg_test_broker1_service", 
+      "default": "tg_test_broker1-service", 
       "label": "Auto services service name", 
       "name": "auto_service_name", 
       "optional": false, 
@@ -624,7 +624,7 @@
       "properties": [
         {
           "configurable": true, 
-          "default": "tg_test_broker1_service", 
+          "default": "tg_test_broker1-service", 
           "label": "Auto services service name", 
           "name": "auto_service_name", 
           "optional": false, 
@@ -799,7 +799,7 @@
       }, 
       "auto_services": [
         {
-          "name": "tg_test_broker1_service", 
+          "name": "tg_test_broker1-service", 
           "plan": "first-plan"
         }, 
         {
@@ -848,7 +848,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg_test_broker1_service", 
+              "name": "tg_test_broker1-service", 
               "plan": "first-plan"
             }, 
             {
@@ -955,7 +955,7 @@
       }, 
       "auto_services": [
         {
-          "name": "tg_test_broker1_service", 
+          "name": "tg_test_broker1-service", 
           "plan": "second-plan", 
           "service_instance": "tg-test-svc"
         }
@@ -978,7 +978,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg_test_broker1_service", 
+              "name": "tg_test_broker1-service", 
               "plan": "second-plan", 
               "service_instance": "tg-test-svc"
             }
@@ -1118,7 +1118,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1133,7 +1133,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -1296,7 +1296,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1311,7 +1311,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -1509,7 +1509,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1524,7 +1524,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -1713,7 +1713,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1728,7 +1728,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2126,7 +2126,7 @@
     }, 
     {
       "configurable": true, 
-      "default": "tg_test_broker1_service", 
+      "default": "tg_test_broker1-service", 
       "label": "Auto services service name", 
       "name": "auto_service_name", 
       "optional": false, 
@@ -2222,7 +2222,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2237,7 +2237,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2388,7 +2388,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2403,7 +2403,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2600,7 +2600,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2615,7 +2615,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2771,7 +2771,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2786,7 +2786,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2937,7 +2937,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2952,7 +2952,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3246,7 +3246,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg_test_broker1_service", 
+              "name": "tg_test_broker1-service", 
               "plan": "first-plan"
             }, 
             {
@@ -3295,7 +3295,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3402,7 +3402,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg_test_broker1_service", 
+              "name": "tg_test_broker1-service", 
               "plan": "second-plan", 
               "service_instance": "tg-test-svc"
             }
@@ -3425,7 +3425,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3579,7 +3579,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3594,7 +3594,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3757,7 +3757,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3772,7 +3772,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3959,7 +3959,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3974,7 +3974,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -4163,7 +4163,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -4178,7 +4178,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg_test_broker1_service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
