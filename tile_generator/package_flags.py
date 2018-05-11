@@ -522,6 +522,7 @@ class Kibosh(FlagBase):
                   'name': 'chart',
                   'path': package['helm_chart_dir'],
                   'unzip': True,
+                  'chmod': '+r',
                 },
                 {
                   'name': 'chart/images/tiller.tgz',
