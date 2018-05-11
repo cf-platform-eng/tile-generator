@@ -72,7 +72,7 @@ class VerifyApp3(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		space= vcap_application.get('space_name')
-		self.assertEquals(space, 'test_tile_space')
+		self.assertEquals(space, 'test-tile-space')
 
 	def test_does_not_receive_admin_credentials(self):
 		headers = { 'Accept': 'application/json' }
