@@ -395,7 +395,7 @@ add_target_org_to_admin
 
 {% if package.is_app %}
 export PKG_NAME={{ package.name }}
-export APP_NAME={{ package.name | hyphens }}-{{ context.version }}
+export APP_NAME={{ package.name }}-{{ context.version }}
 export APP_HOST={{ (package.manifest and package.manifest.host) or package.name | hyphens }}
 export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
 export NEEDS_CF_CREDS="{{ package.needs_cf_credentials }}"
@@ -414,11 +414,11 @@ provision_auto_service "$PKG_NAME" "$APP_NAME" "$SVC_NAME" "$SVC_PLAN" "$SVC_INS
 
 <% end %>
 
-start_app {{ package.name | hyphens }} "$APP_NAME"
+start_app {{ package.name }} "$APP_NAME"
 {% endif %}
 
 {% if package.is_broker %}
-export BROKER_NAME={{ package.name | hyphens }}
+export BROKER_NAME={{ package.name }}
 export BROKER_USER={{ ( 'properties.' + package.name + '.user' ) | shell_string }}
 export BROKER_PASS={{ ( 'properties.' + package.name + '.password' ) | shell_string }}
 export BROKER_SERVICES="{{ package.internal_service_names }}"
