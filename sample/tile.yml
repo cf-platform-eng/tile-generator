@@ -305,7 +305,7 @@ packages:
   manifest:
     path: resources/app.zip
     command: python app.py            # This is required for python, optional for many other languages
-    host: tg_test_app2_hostname       # Override hostname, default: app name
+    host: tg-test-app2-hostname       # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
     buildpack: python_buildpack
   health_check: none                  # Turn off health monitoring, default: true

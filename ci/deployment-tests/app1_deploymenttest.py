@@ -25,7 +25,7 @@ class VerifyApp1(unittest.TestCase):
 
 	def setUp(self):
 		self.cfinfo = opsmgr.get_cfinfo()
-		self.hostname = 'tg_test_app1.' + self.cfinfo['apps_domain']
+		self.hostname = 'tg-test-app1.' + self.cfinfo['apps_domain']
 		self.url = 'http://' + self.hostname
 
 	def test_responds_to_hello(self):
@@ -78,7 +78,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		name = vcap_application.get('application_name')
-		self.assertTrue(name.startswith('tg_test_app1_'))
+		self.assertTrue(name.startswith('tg_test_app1-'))
 
 	def test_is_in_correct_space(self):
 		headers = { 'Accept': 'application/json' }

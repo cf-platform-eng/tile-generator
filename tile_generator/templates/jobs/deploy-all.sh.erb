@@ -396,7 +396,7 @@ add_target_org_to_admin
 {% if package.is_app %}
 export PKG_NAME={{ package.name }}
 export APP_NAME={{ package.name }}-{{ context.version }}
-export APP_HOST={{ (package.manifest and package.manifest.host) or package.name }}
+export APP_HOST={{ (package.manifest and package.manifest.host) or package.name | hyphens }}
 export DOCKER_IMAGE="{{ ( package.is_docker and '--docker-image ' + package.image ) or '' }}"
 export NEEDS_CF_CREDS="{{ package.needs_cf_credentials }}"
 export HEALTH_CHECK="{{ package.health_check }}"
