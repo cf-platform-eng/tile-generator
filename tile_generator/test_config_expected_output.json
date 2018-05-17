@@ -793,7 +793,7 @@
       "app_manifest": {
         "buildpack": "python_buildpack", 
         "command": "python app.py", 
-        "host": "tg_test_app2_hostname", 
+        "host": "tg-test-app2-hostname", 
         "memory": "256M", 
         "path": "app.zip"
       }, 
@@ -830,7 +830,7 @@
       "manifest": {
         "buildpack": "python_buildpack", 
         "command": "python app.py", 
-        "host": "tg_test_app2_hostname", 
+        "host": "tg-test-app2-hostname", 
         "memory": "256M", 
         "path": "app.zip"
       }, 
@@ -842,7 +842,7 @@
           "app_manifest": {
             "buildpack": "python_buildpack", 
             "command": "python app.py", 
-            "host": "tg_test_app2_hostname", 
+            "host": "tg-test-app2-hostname", 
             "memory": "256M", 
             "path": "app.zip"
           }, 
@@ -1112,7 +1112,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -1290,7 +1290,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -1503,7 +1503,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -1707,7 +1707,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -2216,7 +2216,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -2382,7 +2382,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -2594,7 +2594,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -2765,7 +2765,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -2931,7 +2931,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -3240,7 +3240,7 @@
           "app_manifest": {
             "buildpack": "python_buildpack", 
             "command": "python app.py", 
-            "host": "tg_test_app2_hostname", 
+            "host": "tg-test-app2-hostname", 
             "memory": "256M", 
             "path": "app.zip"
           }, 
@@ -3277,7 +3277,7 @@
           "manifest": {
             "buildpack": "python_buildpack", 
             "command": "python app.py", 
-            "host": "tg_test_app2_hostname", 
+            "host": "tg-test-app2-hostname", 
             "memory": "256M", 
             "path": "app.zip"
           }, 
@@ -3289,7 +3289,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -3573,7 +3573,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -3751,7 +3751,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -3953,7 +3953,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
@@ -4157,7 +4157,7 @@
               "app_manifest": {
                 "buildpack": "python_buildpack", 
                 "command": "python app.py", 
-                "host": "tg_test_app2_hostname", 
+                "host": "tg-test-app2-hostname", 
                 "memory": "256M", 
                 "path": "app.zip"
               }, 
