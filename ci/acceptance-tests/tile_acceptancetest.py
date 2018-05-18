@@ -230,7 +230,7 @@ class VerifyRuntimeConfig(unittest.TestCase):
             port: 8119
       releases:
       - name: runtime-test-release
-        version: 0.1.4
+        version: 0.1.5
 '''
 		)
 		self.assertEquals(self.metadata.get('runtime_configs'), expected)

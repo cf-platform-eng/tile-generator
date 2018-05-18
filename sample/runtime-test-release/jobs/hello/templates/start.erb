@@ -13,7 +13,7 @@ mkdir -p "$LOG_DIR" "$RUN_DIR" "$DATA_DIR"
 chown -R vcap:vcap "$LOG_DIR" "$RUN_DIR" "$DATA_DIR"
 
 cp /var/vcap/jobs/hello/data/* $DATA_DIR
-chmod 666 $DATA_DIR
+chmod +r $DATA_DIR/*
 
 /sbin/start-stop-daemon \
   --pidfile "$PIDFILE" \
