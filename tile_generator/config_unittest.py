@@ -74,7 +74,7 @@ class TestUltimateForm(BaseTest):
 		cfg.set_verbose(False)
 		cfg.set_sha1(False)
 		cfg.set_cache(None)
-
+		
 		with open(test_path + '/test_config_generated_output.json', 'w') as f:
 			generated_json = json.dumps(cfg, sort_keys=True, indent=2)
 			f.write(generated_json)
