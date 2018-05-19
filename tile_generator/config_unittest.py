@@ -672,6 +672,8 @@ class TestKiboshType(BaseTest):
 		actual_jobs = [job['name'] for job in tile_metadata['job_types']]
 		expected_jobs = ['deregistrar', 'kibosh', 'loader', 'register']
 		self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
+                loader_is_errand = [job.get('errand') for job in tile_metadata['job_types'] if job.get('name') == 'loader'][0]
+                self.assertTrue(loader_is_errand)
 
 
 class TestTileIconFile(BaseTest):
