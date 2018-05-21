@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: spacebears-db-node
-        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        image: {{ .Values.image }}
         imagePullPolicy: Always
         ports:
         - containerPort: 9000
@@ -30,11 +30,3 @@ spec:
           value: {{ .Values.spacebears.username }}
         - name: ADMIN_PASSWORD
           value: {{ .Values.spacebears.password }}
-      - image: cfplatformeng/debug
-        command:
-          - sleep
-          - "3600"
-        imagePullPolicy: Always
-        name: debug
-      restartPolicy: Always
-

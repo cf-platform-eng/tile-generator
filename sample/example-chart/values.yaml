@@ -6,3 +6,6 @@ imageTag: latest
 spacebears:
   username: admin_db
   password: monkey123
+
+service:
+  type: LoadBalancer
