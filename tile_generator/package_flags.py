@@ -465,6 +465,8 @@ class Kibosh(FlagBase):
                 }, {
                     'name': 'loader',
                     'dynamic_ip': 1,
+                    'post_deploy': True,
+                    'lifecycle': 'errand',
                     'varname': 'loader',
                     'templates': [{'release': 'kibosh', 'name': 'load-image'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename},
