@@ -1,0 +1,763 @@
+{% raw %}---
+
+groups:
+
+- name: ci
+  jobs:
+  - build-base-image
+  - unit-tests
+  - bump-prerelease
+  - package-tile-generator
+  - install-tile-generator
+  - build-tile
+  - acceptance-tests
+  {% endraw %}{% for cluster in clusters %}- claim-{{ cluster }}
+  - deploy-tile-{{ cluster }}
+  - deployment-tests-{{ cluster }}
+  - remove-tile-{{ cluster }}{% if not loop.last %}
+  {% endif %}{% endfor %}{% raw %}
+
+- name: release
+  jobs:
+  - bump-minor
+  - bump-major
+  - most-recent
+  - create-release
+
+resource_types:
+
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+- name: pypi
+  type: docker-image
+  source:
+    repository: cfplatformeng/concourse-pypi-resource
+
+resources:
+
+- name: tile-generator-repo
+  type: git
+  source:
+    ignore_paths: [ "ci/docker-tile-generator", "ci/docker-tile-pipeline" ]
+    branch: {{github-branch}}
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-github-prerelease
+  type: github-release
+  source:
+    user: cf-platform-eng
+    repository: tile-generator
+    access_token: {{github-release-token}}
+    release: false
+    pre_release: true
+
+- name: tile-generator-github-release
+  type: github-release
+  source:
+    user: cf-platform-eng
+    repository: tile-generator
+    access_token: {{github-release-token}}
+
+- name: tile-generator-pypi-release
+  type: pypi
+  source:
+    name: tile-generator
+    username: {{pypi-user}}
+    password: {{pypi-password}}
+
+- name: base-pipeline-dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/docker-tile-pipeline" ]
+    branch: {{github-branch}}
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-dockerfile-repo
+  type: git
+  source:
+    paths: [ "ci/docker-tile-generator" ]
+    branch: {{github-branch}}
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: tile-generator-package
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: tile-generator-(?P<version>.*).tar.gz
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: tile-generator-package-release
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: release/bundle-(?P<version>.*).tar.gz
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: generated-tile
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: test-tile-(?P<version>.*)\.pivotal
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: redis-boshrelease
+  type: github-release
+  source:
+    owner: cloudfoundry-community
+    repository: redis-boshrelease
+    access_token: {{github-release-token}}
+
+- name: tile-history
+  type: s3
+  source:
+    bucket: {{s3-bucket}}
+    regexp: tile\-history-(?P<version>.*)\.yml
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: base-pipeline-docker-image
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator-pipeline
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: tile-generator-docker-image
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator-prerelease
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: tile-generator-docker-image-release
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+- name: app-docker-image
+  type: docker-image
+  source:
+    repository: cfplatformeng/tile-generator-sample-app
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+
+{% endraw %}{% for cluster in clusters %}- name: pcf-environment-{{ cluster }}
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
+    branch: master
+    pool: pcf{% if not cluster[0].isdigit() %}_{% endif %}{{ cluster.replace('-', '_') }}
+    {% raw %}private_key: {{github-pool-private-key}}{% endraw %}{% if not loop.last %}
+
+{% endif %}{% endfor %}{% raw %}
+
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{slack-hook}}
+
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:cf-platform-eng/tile-generator
+    branch: version
+    file: version
+    private_key: {{github-semver-private-key}}
+
+jobs:
+
+- name: build-base-image
+  plan:
+  - get: base-pipeline-dockerfile-repo
+    trigger: true
+  - put: base-pipeline-docker-image
+    params:
+      build: base-pipeline-dockerfile-repo/ci/docker-tile-pipeline
+
+- name: unit-tests
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ build-base-image ]
+      trigger: true
+    - get: tile-generator-repo
+      trigger: true
+  - task: run-unit-tests
+    image: base-pipeline-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      run:
+        path: tile-generator-repo/ci/scripts/run-unittests.sh
+        args: [ "tile-generator-repo/tile_generator" ]
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Unit tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: bump-prerelease
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ unit-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ unit-tests ]
+      trigger: true
+  - put: version
+    params:
+      pre: dev
+
+- name: package-tile-generator
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ bump-prerelease ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ bump-prerelease ]
+      trigger: true
+    - get: version
+      passed: [ bump-prerelease ]
+      trigger: true
+    - get: final-version
+      resource: version
+      params:
+        bump: final
+  - task: build-package
+    image: base-pipeline-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: version
+      - name: final-version
+      outputs:
+      - name: tile-generator-dist
+      - name: tile-generator-dist-release
+      params: 
+        mac_ssh_key: ((mac_ssh_key))
+      run:
+        path: bash
+        args:
+        - -exc 
+        - |
+          cd tile-generator-repo
+          echo "$mac_ssh_key" > mac_ssh_key
+          chmod 600 mac_ssh_key
+
+          function build(){
+            rm -rf dist*
+            for VER in "$VERSION" "$FINAL_VERSION"; do
+              echo "version_string = '$VER'" > tile_generator/version.py
+              ./pyinstaller/build-binaries.sh
+              if [ -z "$SKIP_SDIST" ]; then
+                python setup.py sdist
+              fi
+              mv dist dist-"$VER"
+            done
+          }
+
+          function build-remote(){
+            HEAD="$HEAD"
+            ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t administrator@207.254.45.60 "$(typeset -f build)
+              SKIP_SDIST='true'
+              VERSION="$VERSION"
+              FINAL_VERSION="$FINAL_VERSION"
+              cd tile-generator
+              git fetch origin
+              git reset --hard "$HEAD"
+              build
+              rm -rf dist/
+            "
+            scp -oStrictHostKeyChecking=no -i mac_ssh_key -r administrator@207.254.45.60:tile-generator/dist* .
+          }
+
+          VERSION=`cat ../version/version`
+          FINAL_VERSION=`cat ../final-version/version`
+          build
+          HEAD=`git log --pretty=format:'%h' -n 1`
+          build-remote
+
+          cp dist-"$VERSION"/* ../tile-generator-dist/
+          tar -cvzf ../tile-generator-dist-release/bundle-"$VERSION".tar.gz dist-"$FINAL_VERSION"/*
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Tile Generator package build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+  - aggregate:
+      - put: tile-generator-package
+        params:
+          file: tile-generator-dist/tile-generator-*.tar.gz
+      - put: tile-generator-package-release
+        params:
+          file: tile-generator-dist-release/bundle-*.tar.gz
+      - put: tile-generator-github-prerelease
+        params:
+          name: version/version
+          tag: version/version
+          tag_prefix: v
+          globs:
+          - tile-generator-dist/*
+
+- name: install-tile-generator
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: base-pipeline-docker-image
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ package-tile-generator ]
+      trigger: true
+    - get: version
+      passed: [ package-tile-generator ]
+    - get: tile-generator-dockerfile-repo
+      trigger: true
+  - task: prepare-docker-build
+    image: base-pipeline-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-dockerfile-repo
+      - name: tile-generator-package
+      outputs:
+      - name: docker-build-dir
+      run:
+        path: sh
+        args:
+        - -c
+        - cp tile-generator-package/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Tile Generator docker build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+  - put: tile-generator-docker-image
+    params:
+      build: docker-build-dir
+      tag: version/version
+      tag_prefix: v
+
+- name: build-tile
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: redis-boshrelease
+      version:
+        tag: v13.1.2
+    - get: tile-history
+      trigger: false
+    - get: tile-generator-repo
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: version
+      passed: [ install-tile-generator ]
+    - get: tile-generator-package
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ install-tile-generator ]
+      trigger: true
+  - task: build-sample-apps
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: redis-boshrelease
+      outputs:
+      - name: sample-tile-build
+      run:
+        path: sh
+        args:
+        - -c
+        - cp redis-boshrelease/redis-*.tgz tile-generator-repo/sample/resources/ && tile-generator-repo/sample/src/build.sh sample-tile-build
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Sample app build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+  - put: app-docker-image
+    params:
+      build: sample-tile-build/src
+  - get: app-docker-image
+    params:
+      save: true
+  - task: populate-docker-cache
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: app-docker-image
+      outputs:
+      - name: docker-cache
+      run:
+        path: sh
+        args: [ "-c", 'cp app-docker-image/image docker-cache/guidowb-sample-cf-app.tgz']
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Sample app docker build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+  - task: build-sample-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: sample-tile-build
+      - name: tile-history
+      - name: docker-cache
+      - name: version
+      outputs:
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/tile-build.sh
+        args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache", "version" ]
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Tile build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+  - put: tile-history
+    params:
+      file: generated-tile/tile-history-*.yml
+  - put: generated-tile
+    params:
+      file: generated-tile/*.pivotal
+
+- name: acceptance-tests
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ build-tile ]
+      trigger: true
+    - get: generated-tile
+      passed: [ build-tile ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ build-tile ]
+      trigger: true
+    - get: version
+      passed: [ build-tile ]
+    - get: tile-generator-package
+      passed: [ build-tile ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ build-tile ]
+      trigger: true
+  - task: run-acceptance-tests
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-acceptancetests.sh
+        args: [ "generated-tile" ]
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: {{slack-channel}}
+          icon_emoji: ':concourse:'
+          text: 'Acceptance tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+{% endraw %}{% for cluster in clusters %}- name: claim-{{ cluster }}
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: generated-tile
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: version
+      passed: [ acceptance-tests ]
+    - get: tile-generator-package
+      passed: [ acceptance-tests ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ acceptance-tests ]
+      trigger: true
+  - put: pcf-environment-{{ cluster }}
+    params:
+      acquire: true
+
+- name: deploy-tile-{{ cluster }}
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ claim-{{ cluster }} ]
+      trigger: true
+    - get: generated-tile
+      passed: [ claim-{{ cluster }} ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ claim-{{ cluster }} ]
+      trigger: true
+    - get: version
+      passed: [ claim-{{ cluster }} ]
+    - get: tile-generator-package
+      passed: [ claim-{{ cluster }} ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ claim-{{ cluster }} ]
+      trigger: true
+    - get: pcf-environment-{{ cluster }}
+      passed: [ claim-{{ cluster }} ]
+      trigger: true
+  - task: run-deploy-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-{{ cluster }}
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploytile.sh
+        args: [ "generated-tile", "pcf-environment-{{ cluster }}"{% if cluster != 'multi-az' %}, "ert"{%endif%} ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-{{ cluster }}
+        params:
+          release: pcf-environment-{{ cluster }}
+      - put: slack-alert
+        params:
+          {% raw %}channel: {{slack-channel}}{% endraw %}
+          icon_emoji: ':concourse:'
+          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: deployment-tests-{{ cluster }}
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deploy-tile-{{ cluster }} ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deploy-tile-{{ cluster }} ]
+      trigger: true
+    - get: pcf-environment-{{ cluster }}
+      passed: [ deploy-tile-{{ cluster }} ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deploy-tile-{{ cluster }} ]
+      trigger: true
+    - get: version
+      passed: [ deploy-tile-{{ cluster }} ]
+    - get: tile-generator-package
+      passed: [ deploy-tile-{{ cluster }} ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ deploy-tile-{{ cluster }} ]
+      trigger: true
+  - task: run-deployment-tests
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-{{ cluster }}
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
+        args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
+    on_failure:
+      aggregate:
+      - put: pcf-environment-{{ cluster }}
+        params:
+          release: pcf-environment-{{ cluster }}
+      - put: slack-alert
+        params:
+          {% raw %}channel: {{slack-channel}}{% endraw %}
+          icon_emoji: ':concourse:'
+          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+
+- name: remove-tile-{{ cluster }}
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ deployment-tests-{{ cluster }} ]
+      trigger: true
+    - get: generated-tile
+      passed: [ deployment-tests-{{ cluster }} ]
+      trigger: true
+    - get: pcf-environment-{{ cluster }}
+      passed: [ deployment-tests-{{ cluster }} ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ deployment-tests-{{ cluster }} ]
+      trigger: true
+    - get: version
+      passed: [ deployment-tests-{{ cluster }} ]
+    - get: tile-generator-package
+      passed: [ deployment-tests-{{ cluster }} ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ deployment-tests-{{ cluster }} ]
+      trigger: true
+  - task: remove-tile
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment-{{ cluster }}
+      - name: generated-tile
+      run:
+        path: tile-generator-repo/ci/scripts/run-removetile.sh
+        args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
+    ensure:
+      put: pcf-environment-{{ cluster }}
+      params:
+        release: pcf-environment-{{ cluster }}
+    on_failure:
+      put: slack-alert
+      params:
+        {% raw %}channel: {{slack-channel}}{% endraw %}
+        icon_emoji: ':concourse:'
+        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+        username: Tile Generator{% if not loop.last %}
+
+{% endif %}{% endfor %}{% raw %}
+
+- name: most-recent
+  disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      trigger: true
+    - get: tile-generator-package
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      trigger: true
+    - get: tile-generator-package-release
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      trigger: true
+    - get: version
+      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      trigger: true
+
+- name: create-release
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ most-recent ]
+      params:
+        save: true
+    - get: tile-generator-package-release
+      passed: [ most-recent ]
+    - get: version
+      passed: [ most-recent ]
+  - put: version
+    params:
+      bump: final
+  - task: rename-files
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-package-release
+      - name: version
+      outputs:
+      - name: release-files
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          tar -xvf tile-generator-package-release/bundle-*.tar.gz -C release-files/
+  - aggregate:
+    - put: tile-generator-github-release
+      params:
+        name: version/version
+        tag: version/version
+        tag_prefix: v
+        globs:
+        - release-files/dist*/*
+    - put: tile-generator-docker-image-release
+      params:
+        load: tile-generator-docker-image
+        tag: version/version
+        tag_prefix: v
+        tag_as_latest: true
+    - put: tile-generator-pypi-release
+      params:
+        glob: release-files/dist*/tile-generator-*.tar.gz
+  - put: version
+    params:
+      bump: patch
+
+- name: bump-minor
+  plan:
+  - put: version
+    params:
+      bump: minor
+
+- name: bump-major
+  plan:
+  - put: version
+    params:
+      bump: major
+{% endraw %}
