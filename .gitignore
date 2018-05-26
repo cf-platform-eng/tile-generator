@@ -1,3 +1,5 @@
+.venv
+.envrc
 *.pyc
 *.egg-info/
 site/
