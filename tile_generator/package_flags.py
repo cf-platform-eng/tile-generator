@@ -348,79 +348,87 @@ class Kibosh(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
         packagename = package['name']
-        config_obj['forms'] += [
-            {
-                "label": "Kubernetes Cluster", 
-                "description": "Cluster where instances will be deployed", 
-                "name": "k8s_form", 
-                "properties": [
-                    {
-                        "configurable": True,
-                        "type": "text", 
-                        "name": "k8s_cluster_ca_cert", 
-                        "label": "Cluster CA Cert"
-                    }, 
-                    {
-                        "configurable": True,
-                        "type": "string", 
-                        "name": "k8s_cluster_server", 
-                        "label": "Cluster URL"
-                    }, 
-                    {
-                        "configurable": True,
-                        "type": "text", 
-                        "name": "k8s_cluster_token", 
-                        "label": "Cluster Token"
-                    }
-                ]
-            }, 
-            {
-                "label": "Registry", 
-                "description": "Private Registry for helm images", 
-                "name": "registry_form", 
-                "properties": [
-                    {
-                        "configurable": True,
-                        "type": "string", 
-                        "name": "registry_server", 
-                        "optional": True, 
-                        "label": "Registry Server"
-                    }, 
-                    {
-                        "configurable": True,
-                        "type": "string", 
-                        "name": "registry_user", 
-                        "optional": True, 
-                        "label": "Registry User"
-                    }, 
-                    {
-                        "configurable": True,
-                        "type": "text", 
-                        "name": "registry_pass", 
-                        "optional": True, 
-                        "label": "Registry Password"
-                    }
-                ]
-            }
-        ]
-        config_obj['all_properties'] += [
-            {
-                "type": "string", 
-                "name": "service_id", 
-                "value": str(uuid.uuid5(uuid.NAMESPACE_URL, 'serviceid/%s' % packagename))
-            }, 
-            {
-                "type": "string", 
-                "name": "service_name", 
-                "value": packagename
-            }, 
-            {
-                "label": "Kibosh Broker Creds", 
-                "type": "simple_credentials", 
-                "description": "Username and Password for Kibosh Broker", 
-                "name": "kibosh_broker_creds"
-            }
-        ]
+
+        # For now we assume that the form and property values are shared.
+        form_names = [f['name'] for f in config_obj['forms']]
+        if 'k8s_form' not in form_names:
+            config_obj['forms'] += [
+                {
+                    "label": "Kubernetes Cluster", 
+                    "description": "Cluster where instances will be deployed", 
+                    "name": "k8s_form", 
+                    "properties": [
+                        {
+                            "configurable": True,
+                            "type": "text", 
+                            "name": "k8s_cluster_ca_cert", 
+                            "label": "Cluster CA Cert"
+                        }, 
+                        {
+                            "configurable": True,
+                            "type": "string", 
+                            "name": "k8s_cluster_server", 
+                            "label": "Cluster URL"
+                        }, 
+                        {
+                            "configurable": True,
+                            "type": "text", 
+                            "name": "k8s_cluster_token", 
+                            "label": "Cluster Token"
+                        }
+                    ]
+                }, 
+                {
+                    "label": "Registry", 
+                    "description": "Private Registry for helm images", 
+                    "name": "registry_form", 
+                    "properties": [
+                        {
+                            "configurable": True,
+                            "type": "string", 
+                            "name": "registry_server", 
+                            "optional": True, 
+                            "label": "Registry Server"
+                        }, 
+                        {
+                            "configurable": True,
+                            "type": "string", 
+                            "name": "registry_user", 
+                            "optional": True, 
+                            "label": "Registry User"
+                        }, 
+                        {
+                            "configurable": True,
+                            "type": "text", 
+                            "name": "registry_pass", 
+                            "optional": True, 
+                            "label": "Registry Password"
+                        }
+                    ]
+                }
+            ]
+
+        property_names = [p['name'] for p in config_obj['all_properties']]
+        if 'kibosh_broker_creds' not in property_names:
+            config_obj['all_properties'] += [
+                {
+                    "type": "string", 
+                    "name": "service_id", 
+                    "value": str(uuid.uuid5(uuid.NAMESPACE_URL, 'serviceid/%s' % packagename))
+                }, 
+                {
+                    "type": "string", 
+                    "name": "service_name", 
+                    "value": packagename
+                }, 
+                {
+                    "label": "Kibosh Broker Creds", 
+                    "type": "simple_credentials", 
+                    "description": "Username and Password for Kibosh Broker", 
+                    "name": "kibosh_broker_creds"
+                }
+            ]
+            
         config_obj['releases']['docker'] = {
             'name': 'docker',
             'package-type': 'bosh-release',
