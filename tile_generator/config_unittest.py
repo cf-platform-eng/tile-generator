@@ -271,8 +271,8 @@ class TestConfigValidation(BaseTest):
 		self.assertIn('name', requires_product_versions[0])
 		self.assertIn('version', requires_product_versions[0])
 
-	def test__manually_addded_requires_product_versions(self):
-		self.config['requires_product_versions'] = {'p-mysql': '~> 1.7'}
+	def test_manually_addded_requires_product_versions(self):
+		self.config['requires_product_versions'] = [{'name': 'cf', 'version': '>= 1.9'}]
 		self.config.validate()
 		tile_metadata = TileMetadata(self.config).build()
 		self.assertIn('requires_product_versions', tile_metadata['base'])

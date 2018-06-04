@@ -79,7 +79,8 @@ packages:
 # products.
 #
 # requires_product_versions:
-#   p-mysql: '~> 1.7'
+# - name: p-mysql
+#   version: '~> 1.7'
 
 # Customize upgrade parameters if the defaults don't meet your needs.
 #

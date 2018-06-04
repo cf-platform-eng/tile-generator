@@ -4285,9 +4285,12 @@
     }
   }, 
   "requires_docker_bosh": true, 
-  "requires_product_versions": {
-    "cf": ">= 1.9"
-  }, 
+  "requires_product_versions": [
+    {
+      "name": "cf",
+      "version": ">= 1.9"
+    }
+  ],
   "runtime_configs": [
     {
       "name": "example_runtime_config", 

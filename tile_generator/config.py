@@ -175,7 +175,11 @@ class Config(dict):
 					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
-			'requires_product_versions': {'type': 'dict'},
+			'requires_product_versions': {'type': 'list', 'schema': {
+				'type': 'dict', 'schema': {
+					'name': {'type': 'string', 'required': True},
+					'version': {'type': 'string', 'required': True},
+				}}},
 			'runtime_configs': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
 					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},

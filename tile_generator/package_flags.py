@@ -98,9 +98,13 @@ class Cf(FlagBase):
                 'dir': 'blobs'
             }]
         if not config_obj.get('requires_product_versions'): 
-            config_obj['requires_product_versions'] = dict()
-        config_obj['requires_product_versions']['cf'] = '>= 1.9'
+            config_obj['requires_product_versions'] = list()
 
+        if not 'cf' in [p['name'] for p in config_obj['requires_product_versions']]:
+            config_obj['requires_product_versions'].append({
+                'name': 'cf', 
+                'version': '>= 1.9'
+            })
 
 class DockerBosh(FlagBase):
     @classmethod
@@ -327,8 +331,14 @@ class Helm(FlagBase):
                 'dir': 'blobs'
             }]
         if not config_obj.get('requires_product_versions'): 
-            config_obj['requires_product_versions'] = dict()
-        config_obj['requires_product_versions']['pivotal-container-service'] = '>= 0.8'
+            config_obj['requires_product_versions'] = list()
+
+        if not 'pivotal-container-service' in [p['name'] for p in config_obj['requires_product_versions']]:
+            config_obj['requires_product_versions'].append({
+                'name': 'pivotal-container-service', 
+                'version': '>= 0.8'
+            })
+
         pks_form_properties = [
             {
                 'name': 'pks_cluster',

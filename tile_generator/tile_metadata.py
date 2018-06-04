@@ -35,16 +35,8 @@ class TileMetadata(object):
         base['icon_image'] = self.config['icon_file']
         base['metadata_version'] = str(self.config['metadata_version'])
         base['service_broker'] = self.config['service_broker']
-
         base['product_version'] = str(self.config.get('version'))
-        product_versions = list()
-        for k, v in self.config.get('requires_product_versions', {}).items():
-            product_versions.append({
-                'name': k,
-                'version': v,
-                })
-        if product_versions: 
-            base['requires_product_versions'] = product_versions
+        base['requires_product_versions'] = self.config.get('requires_product_versions')
 
         for key in self.config.get('unknown_keys', []):
             base[key] = self.config[key]
