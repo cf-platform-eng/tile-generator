@@ -418,6 +418,20 @@ class Kibosh(FlagBase):
                 }
             ]
 
+        config_obj['forms'] += [{
+            "label": "Plan access control for %s" % packagename,
+            "description": "Enable or disable public access to plans.",
+            "name": "%s_global_access_form" % packagename,
+            "properties": [{
+                "label": "Enable global access to plans",
+                "type": "boolean",
+                "configurable": True,
+                "default": package.get('enable_global_access_to_plans', True),
+                "description": "Enable service access to the listed service plans",
+                "name": "%s_global_access" % packagename,
+            }]
+        }]
+
         property_names = [p['name'] for p in config_obj['all_properties']]
         if 'kibosh_broker_creds' not in property_names:
             config_obj['all_properties'] += [
@@ -429,7 +443,7 @@ class Kibosh(FlagBase):
                 {
                     "type": "string", 
                     "name": "service_name", 
-                    "value": packagename
+                    "value": packagename.replace('_', '-')
                 }, 
                 {
                     "label": "Kibosh Broker Creds", 
@@ -505,6 +519,7 @@ class Kibosh(FlagBase):
                     'templates': [{'release': 'kibosh', 'name': 'register-broker'},
                                   {'release': 'cf-cli', 'name': 'cf-cli-6-linux'}],
                     'properties': {
+                        'enable_service_access': '(( .properties.%s_global_access.value ))' % packagename,
                         'broker_name': '(( .properties.service_name.value ))',
                         'disable_ssl_cert_verification': '(( ..cf.ha_proxy.skip_cert_verify.value ))',
                         'cf': {
