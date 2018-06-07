@@ -485,12 +485,14 @@ class Kibosh(FlagBase):
                     'dynamic_ip': 1,
                     'post_deploy': True,
                     'lifecycle': 'errand',
+                    'ephemeral_disk': 16384,
                     'varname': 'loader',
                     'templates': [{'release': 'kibosh', 'name': 'load-image'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename},
                                   {'release': 'docker', 'name': 'docker'}],
                     'properties': {
                         'chart_path': '/var/vcap/packages/charts_for_%s/chart' % packagename,
+                        'store_dir': '/var/vcap/data',
                         'registry': {'username': '(( .properties.registry_user.value ))',
                             'password': '(( .properties.registry_pass.value ))',
                             'server': '(( .properties.registry_server.value ))'
