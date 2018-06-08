@@ -2,6 +2,10 @@
 
 [MySQL](https://MySQL.org) is one of the most popular database servers in the world. Notable users include Wikipedia, Facebook and Google.
 
+## Modifications
+
+This helm chart is forked from the [Kubernetes stable MySQL helm chart](https://github.com/kubernetes/charts/tree/master/stable/mysql). We have modified it so it is suitable for use with [Kibosh](https://github.com/cf-platform-eng/kibosh).
+
 ## Introduction
 
 This chart bootstraps a single node MySQL deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
