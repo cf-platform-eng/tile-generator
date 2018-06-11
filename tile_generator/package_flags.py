@@ -18,6 +18,15 @@ def _update_compilation_vm_disk_size(manifest):
     return package_size
 
 
+def get_disk_size_for_chart(start_path):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return 4096 + (total_size // (1024 * 1024))
+
+
 class FlagBase(object):
     @classmethod
     def generate_release(self, config_obj, package):
@@ -475,6 +484,7 @@ class Kibosh(FlagBase):
                     'name': 'kibosh',
                     'dynamic_ip': 1,
                     'varname': 'kibosh',
+                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir'])),
                     'templates': [{'release': 'kibosh', 'name': 'kibosh'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename}],
                     'properties': {
@@ -499,12 +509,14 @@ class Kibosh(FlagBase):
                     'dynamic_ip': 1,
                     'post_deploy': True,
                     'lifecycle': 'errand',
+                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir']) * 3),
                     'varname': 'loader',
                     'templates': [{'release': 'kibosh', 'name': 'load-image'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename},
                                   {'release': 'docker', 'name': 'docker'}],
                     'properties': {
                         'chart_path': '/var/vcap/packages/charts_for_%s/chart' % packagename,
+                        'store_dir': '/var/vcap/data',
                         'registry': {'username': '(( .properties.registry_user.value ))',
                             'password': '(( .properties.registry_pass.value ))',
                             'server': '(( .properties.registry_server.value ))'
