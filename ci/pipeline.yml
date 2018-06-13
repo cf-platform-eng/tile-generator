@@ -1625,9 +1625,9 @@ jobs:
     - put: tile-generator-pypi-release
       params:
         glob: release-files/dist*/tile-generator-*.tar.gz
-  - put: version
-    params:
-      bump: patch
+    - put: version
+      params:
+        bump: patch
 
 - name: bump-minor
   plan:

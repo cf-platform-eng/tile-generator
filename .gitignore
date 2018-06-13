@@ -4,3 +4,4 @@ site/
 /.dir-locals.el
 test_config_generated_output.json
 .vscode/
+/ci/pipeline.yml
