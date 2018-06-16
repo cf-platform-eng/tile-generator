@@ -1,0 +1,7 @@
+---
+- name: small
+  description: small disk/memory plan for mysql
+  file: small.yaml
+- name: large
+  description: large disk/memory plan for mysql
+  file: large.yaml
