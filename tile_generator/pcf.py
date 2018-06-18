@@ -417,6 +417,11 @@ def bosh_env_cmd():
 	print('BOSH USERNAME={}'.format(director_creds['credential']['value']['identity']))
 	print('BOSH PASSWORD={}'.format(director_creds['credential']['value']['password']))
 
+@cli.command('password')
+def password():
+	creds = opsmgr.get_credentials()
+        print(creds['opsmgr']['password'])
+
 @cli.command('history')
 def history_cmd():
 	history = opsmgr.get_history()
