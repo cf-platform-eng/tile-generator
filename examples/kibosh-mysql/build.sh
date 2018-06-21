@@ -1,5 +1,5 @@
 #!/bin/sh
 
-mkdir -p images
+mkdir -p mysql/images
 # TODO Populate images directory with images used in this chart.
 tile build "$@"
