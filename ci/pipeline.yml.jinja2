@@ -9,6 +9,9 @@ groups:
   - bump-prerelease
   - package-tile-generator
   - install-tile-generator
+{% endraw %}{% for tile in tiles %}
+  - build-{{tile}}
+{% endfor %}{% raw %}
   - build-tile
   - acceptance-tests
   {% endraw %}{% for cluster in clusters %}- claim-{{ cluster }}
@@ -371,6 +374,44 @@ jobs:
       build: docker-build-dir
       tag: version/version
       tag_prefix: v
+
+{% endraw %}{% for tile in tiles %}
+- name: build-{{tile}}
+  # disable_manual_trigger: true
+  plan:
+  - aggregate:
+    - get: tile-generator-docker-image
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: tile-generator-repo
+      passed: [ install-tile-generator ]
+      trigger: true
+    - get: version
+      passed: [ install-tile-generator ]
+  - task: build-tiles
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: tile-generator-repo
+      - name: version
+      outputs:
+      - name: tile
+      run:
+        path: sh
+        args:
+        - -c
+        - cd tile-generator-repo/examples/{{tile}} && ./build.sh $(cat ../../../version/version) && cp product/*.pivotal tile/
+    # TODO publish the tile to PivNet.
+    on_failure:
+      aggregate:
+      - put: slack-alert
+        params:
+          channel: '@mboldt' #{% raw %}{{slack-channel}}{% endraw %}
+          icon_emoji: ':concourse:'
+          text: 'Tile build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          username: Tile Generator
+{% endfor %}{% raw %}
 
 - name: build-tile
   disable_manual_trigger: true
