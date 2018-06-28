@@ -1,5 +1,5 @@
 ---
-name: kibosh-mysql
+name: z-test-kibosh-mysql
 icon_file: resources/icon.png
 label: Test Kibosh MySQL
 description: Test tile for Kibosh with MySQL helm chart
