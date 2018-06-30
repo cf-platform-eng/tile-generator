@@ -59,7 +59,10 @@ def download(url, filename, cache=None):
 		file_name = os.path.basename(repo_name)
 		repo_name = os.path.dirname(repo_name)
 		url = "https://api.github.com/repos/" + repo_name + "/releases/latest"
-		response = requests.get(url, stream=True)
+		headers = {}
+		if os.getenv('GITHUB_API_TOKEN'):
+			headers['Authorization'] = 'token ' + os.environ['GITHUB_API_TOKEN']
+		response = requests.get(url, headers=headers, stream=True)
 		response.raise_for_status()
 		release = response.json()
 		assets = release.get('assets', [])
