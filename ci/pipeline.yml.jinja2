@@ -397,12 +397,13 @@ jobs:
       - name: version
       outputs:
       - name: tile
+      params:
+        GITHUB_API_TOKEN: {% raw %}{{github-api-token}}{% endraw %}
       run:
         path: sh
         args:
-        - -c
-        - cd tile-generator-repo/examples/{{tile}} && ./build.sh $(cat ../../../version/version) && cp product/*.pivotal tile/
-    # TODO publish the tile to PivNet.
+        - -xc
+        - cd tile-generator-repo/examples/{{tile}} && ./build.sh $(cat ../../../version/version) && cp product/*.pivotal ../../../tile/
     on_failure:
       aggregate:
       - put: slack-alert
@@ -495,6 +496,8 @@ jobs:
       - name: version
       outputs:
       - name: generated-tile
+      params:
+        GITHUB_API_TOKEN: {{github-api-token}}
       run:
         path: tile-generator-repo/ci/scripts/tile-build.sh
         args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache", "version" ]
