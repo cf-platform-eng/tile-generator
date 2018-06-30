@@ -40,6 +40,12 @@ resource_types:
   source:
     repository: cfplatformeng/concourse-pypi-resource
 
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
 resources:
 
 - name: tile-generator-repo
@@ -165,7 +171,17 @@ resources:
     pool: pcf{% if not cluster[0].isdigit() %}_{% endif %}{{ cluster.replace('-', '_') }}
     {% raw %}private_key: {{github-pool-private-key}}{% endraw %}{% if not loop.last %}
 
-{% endif %}{% endfor %}{% raw %}
+{% endif %}{% endfor %}
+
+{% for tile in tiles %}- name: pivnet-{{tile}}
+  type: pivnet
+  source:
+    api_token: {% raw %}{{pivnet-api-token}}{% endraw %}
+    product_slug: z-test-{{tile}}
+    endpoint: https://pivnet-integration.cfapps.io
+    bucket: pivotal-network-staging
+
+{% endfor %}{% raw %}
 
 - name: slack-alert
   type: slack-notification
@@ -412,6 +428,10 @@ jobs:
           icon_emoji: ':concourse:'
           text: 'Tile build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
+  - put: pivnet-{{tile}}
+    params:
+      file_glob: tile/.*\.pivotal
+      s3_filepath_prefix: z-test-kibosh-mysql
 {% endfor %}{% raw %}
 
 - name: build-tile
