@@ -180,6 +180,8 @@ resources:
     product_slug: z-test-{{tile}}
     endpoint: https://pivnet-integration.cfapps.io
     bucket: pivotal-network-staging
+    access_key_id: {% raw %}{{pivnet-bucket-id}}{% endraw %}
+    secret_access_key: {% raw %}{{pivnet-bucket-secret}}{% endraw %}
 
 {% endfor %}{% raw %}
 
@@ -420,7 +422,7 @@ jobs:
         args:
         - -exc
         - |
-          export VERSION="$(cat ../../../version/version)"
+          export VERSION="$(cat version/version)"
           cd tile-generator-repo/examples/{{tile}}
           ./build.sh "$VERSION"
           cp product/*.pivotal ../../../tile/
@@ -435,7 +437,7 @@ jobs:
           username: Tile Generator
   - put: pivnet-{{tile}}
     params:
-      file_glob: tile/.*\.pivotal
+      file_glob: tile/*.pivotal
       metadata_file: tile/pivnet-metadata.yml
       s3_filepath_prefix: z-test-kibosh-mysql
 {% endfor %}{% raw %}
