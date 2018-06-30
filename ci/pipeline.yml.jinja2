@@ -388,7 +388,7 @@ jobs:
       trigger: true
     - get: version
       passed: [ install-tile-generator ]
-  - task: build-tiles
+  - task: build-tile
     image: tile-generator-docker-image
     config:
       platform: linux
