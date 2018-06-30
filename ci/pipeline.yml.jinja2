@@ -418,8 +418,13 @@ jobs:
       run:
         path: sh
         args:
-        - -xc
-        - cd tile-generator-repo/examples/{{tile}} && ./build.sh $(cat ../../../version/version) && cp product/*.pivotal ../../../tile/
+        - -exc
+        - |
+          export VERSION="$(cat ../../../version/version)"
+          cd tile-generator-repo/examples/{{tile}}
+          ./build.sh "$VERSION"
+          cp product/*.pivotal ../../../tile/
+          ../make-pivnet-manifest > ../../../tile/pivnet-metadata.yml
     on_failure:
       aggregate:
       - put: slack-alert
@@ -431,6 +436,7 @@ jobs:
   - put: pivnet-{{tile}}
     params:
       file_glob: tile/.*\.pivotal
+      metadata_file: tile/pivnet-metadata.yml
       s3_filepath_prefix: z-test-kibosh-mysql
 {% endfor %}{% raw %}
 

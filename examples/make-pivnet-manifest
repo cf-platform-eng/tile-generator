@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -eu
+
+cat <<EOF
+---
+release:
+  eula_slug: apache_2_eula
+  release_type: Developer Release
+  version: $VERSION
+EOF
