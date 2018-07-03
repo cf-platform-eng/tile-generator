@@ -437,7 +437,7 @@ jobs:
     params:
       file_glob: tile/*.pivotal
       metadata_file: tile/pivnet-metadata.yml
-      s3_filepath_prefix: z-test-{{tile}}
+      s3_filepath_prefix: product-files/z-test-{{tile}}
 {% endfor %}{% raw %}
 
 - name: build-tile
