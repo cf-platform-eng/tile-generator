@@ -155,7 +155,7 @@ class Config(dict):
 				'canary_watch_time': {'type': 'string', 'default': '10000-100000'},
 				'max_in_flight': {'type': 'number', 'default': 1},
 				'update_watch_time': {'type': 'string', 'default': '10000-100000'}}},
-			'all_properties': {'type': 'list', 'default_setter': lambda doc: doc.get('properties', [])},
+			'all_properties': {'type': 'list', 'default_setter': lambda doc: list(doc.get('properties', []))},
 			'org': {'type': 'string', 'default_setter': lambda doc: doc['name'] + '-org'},
 			'space': {'type': 'string', 'default_setter': lambda doc: doc['name'] + '-space'},
 			'apply_open_security_group': {'type': 'boolean', 'default': False},
