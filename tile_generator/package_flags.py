@@ -18,12 +18,14 @@ def _update_compilation_vm_disk_size(manifest):
     return package_size
 
 
-def get_disk_size_for_chart(start_path):
+def get_disk_size_for_chart(*chart_paths):
     total_size = 0
-    for dirpath, _, filenames in os.walk(start_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
+    for chart_path in chart_paths:
+        if chart_path != None:
+            for dirpath, _, filenames in os.walk(chart_path):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    total_size += os.path.getsize(fp)
     return 4096 + (total_size // (1024 * 1024))
 
 
