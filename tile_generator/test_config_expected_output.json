@@ -931,25 +931,6 @@
       }
     }, 
     {
-      "files": [
-        {
-          "name": "decorator.zip", 
-          "path": "resources/decorator.zip"
-        }
-      ], 
-      "is_buildpack": true, 
-      "is_cf": true, 
-      "name": "tg_test_decorator", 
-      "package-type": "decorator", 
-      "path": "decorator.zip", 
-      "properties": {
-        "tg_test_decorator": {
-          "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-          "name": "tg_test_decorator"
-        }
-      }
-    }, 
-    {
       "app_manifest": {
         "memory": "256M"
       }, 
@@ -1185,10 +1166,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
-            }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1362,10 +1339,6 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
             }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
@@ -1576,10 +1549,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
-            }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1779,10 +1748,6 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
             }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
@@ -2139,344 +2104,6 @@
       "name": "docker-boshrelease", 
       "path": "https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease"
     }, 
-    "meta-buildpack": {
-      "jobs": [
-        {
-          "lifecycle": "errand", 
-          "manifest": {
-            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
-            "app_domains": [
-              "(( ..cf.cloud_controller.apps_domain.value ))"
-            ], 
-            "app_instances": "(( .properties.app_instances.value ))", 
-            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
-            "author": "(( .properties.author.value ))", 
-            "auto_service_name": "(( .properties.auto_service_name.value ))", 
-            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
-            "cf": {
-              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
-              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))"
-            }, 
-            "city": "(( .properties.city.value ))", 
-            "country": "(( .properties.country.value ))", 
-            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))", 
-            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))", 
-            "customer_name": "(( .properties.customer_name.value ))", 
-            "domain": "(( ..cf.cloud_controller.system_domain.value ))", 
-            "example_collection": "(( .properties.example_collection.value ))", 
-            "example_selector": {
-              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))", 
-              "value": "(( .properties.example_selector.value ))"
-            }, 
-            "is_feature_enabled": {
-              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))", 
-              "value": "(( .properties.is_feature_enabled.value ))"
-            }, 
-            "my_creds": {
-              "identity": "(( .properties.my_creds.identity ))", 
-              "password": "(( .properties.my_creds.password ))"
-            }, 
-            "org": "(( .properties.org.value ))", 
-            "password": "(( .properties.password.value ))", 
-            "planets": "(( .properties.planets.value ))", 
-            "runtime_test_release": {
-              "name": "runtime_test_release"
-            }, 
-            "security": {
-              "password": "(( .deploy-meta-buildpack.app_credentials.password ))", 
-              "user": "(( .deploy-meta-buildpack.app_credentials.identity ))"
-            }, 
-            "space": "(( .properties.space.value ))", 
-            "ssl": {
-              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
-            }, 
-            "street_address": "(( .properties.street_address.value ))", 
-            "tg_test_app1": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "instances": "(( .properties.app_instances.value ))", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [], 
-              "name": "tg_test_app1"
-            }, 
-            "tg_test_app1_auto_zip": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "memory": "256M", 
-                "path": "app"
-              }, 
-              "auto_services": [], 
-              "name": "tg_test_app1_auto_zip"
-            }, 
-            "tg_test_app2": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "host": "tg-test-app2-hostname", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [
-                {
-                  "name": "tg_test_broker1-service", 
-                  "plan": "first-plan"
-                }, 
-                {
-                  "name": "(( .properties.auto_service_name.value ))"
-                }
-              ], 
-              "name": "tg_test_app2"
-            }, 
-            "tg_test_app3": {
-              "app_manifest": {
-                "memory": "256M"
-              }, 
-              "auto_services": [
-                {
-                  "name": "tg_test_broker1-service", 
-                  "plan": "second-plan", 
-                  "service_instance": "tg-test-svc"
-                }
-              ], 
-              "name": "tg_test_app3"
-            }, 
-            "tg_test_app4": {
-              "name": "tg_test_app4"
-            }, 
-            "tg_test_app5": {
-              "name": "tg_test_app5"
-            }, 
-            "tg_test_app6": {
-              "name": "tg_test_app6"
-            }, 
-            "tg_test_binary_app": {
-              "app_manifest": {
-                "buildpack": "binary_buildpack", 
-                "command": "./binary_app.py", 
-                "memory": "256M", 
-                "path": "binary_app.py"
-              }, 
-              "auto_services": [], 
-              "name": "tg_test_binary_app"
-            }, 
-            "tg_test_broker1": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [], 
-              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))", 
-              "name": "tg_test_broker1", 
-              "password": "(( .deploy-meta-buildpack.app_credentials.password ))", 
-              "user": "(( .deploy-meta-buildpack.app_credentials.identity ))"
-            }, 
-            "tg_test_broker2": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [], 
-              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))", 
-              "name": "tg_test_broker2", 
-              "password": "(( .deploy-meta-buildpack.app_credentials.password ))", 
-              "user": "(( .deploy-meta-buildpack.app_credentials.identity ))"
-            }, 
-            "tg_test_buildpack": {
-              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
-              "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
-            }, 
-            "uaa": {
-              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
-              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
-            }, 
-            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
-            "username": "(( .properties.username.value ))", 
-            "zip_code": "(( .properties.zip_code.value ))"
-          }, 
-          "name": "deploy-meta-buildpack", 
-          "post_deploy": true, 
-          "properties": {}, 
-          "template": "deploy-all", 
-          "type": "deploy-all"
-        }, 
-        {
-          "lifecycle": "errand", 
-          "manifest": {
-            "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
-            "app_domains": [
-              "(( ..cf.cloud_controller.apps_domain.value ))"
-            ], 
-            "app_instances": "(( .properties.app_instances.value ))", 
-            "apply_open_security_group": "(( .properties.apply_open_security_group.value ))", 
-            "author": "(( .properties.author.value ))", 
-            "auto_service_name": "(( .properties.auto_service_name.value ))", 
-            "canary_watch_timeout": "(( .properties.canary_watch_timeout.value ))", 
-            "cf": {
-              "admin_password": "(( ..cf.uaa.system_services_credentials.password ))", 
-              "admin_user": "(( ..cf.uaa.system_services_credentials.identity ))"
-            }, 
-            "city": "(( .properties.city.value ))", 
-            "country": "(( .properties.country.value ))", 
-            "custom_dynamic_service_plan_1": "(( .properties.custom_dynamic_service_plan_1.value ))", 
-            "custom_dynamic_service_plan_2": "(( .properties.custom_dynamic_service_plan_2.value ))", 
-            "customer_name": "(( .properties.customer_name.value ))", 
-            "domain": "(( ..cf.cloud_controller.system_domain.value ))", 
-            "example_collection": "(( .properties.example_collection.value ))", 
-            "example_selector": {
-              "selected_option": "(( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))", 
-              "value": "(( .properties.example_selector.value ))"
-            }, 
-            "is_feature_enabled": {
-              "selected_option": "(( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))", 
-              "value": "(( .properties.is_feature_enabled.value ))"
-            }, 
-            "my_creds": {
-              "identity": "(( .properties.my_creds.identity ))", 
-              "password": "(( .properties.my_creds.password ))"
-            }, 
-            "org": "(( .properties.org.value ))", 
-            "password": "(( .properties.password.value ))", 
-            "planets": "(( .properties.planets.value ))", 
-            "runtime_test_release": {
-              "name": "runtime_test_release"
-            }, 
-            "space": "(( .properties.space.value ))", 
-            "ssl": {
-              "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
-            }, 
-            "street_address": "(( .properties.street_address.value ))", 
-            "tg_test_app1": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "instances": "(( .properties.app_instances.value ))", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [], 
-              "name": "tg_test_app1"
-            }, 
-            "tg_test_app1_auto_zip": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "memory": "256M", 
-                "path": "app"
-              }, 
-              "auto_services": [], 
-              "name": "tg_test_app1_auto_zip"
-            }, 
-            "tg_test_app2": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "host": "tg-test-app2-hostname", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [
-                {
-                  "name": "tg_test_broker1-service", 
-                  "plan": "first-plan"
-                }, 
-                {
-                  "name": "(( .properties.auto_service_name.value ))"
-                }
-              ], 
-              "name": "tg_test_app2"
-            }, 
-            "tg_test_app3": {
-              "app_manifest": {
-                "memory": "256M"
-              }, 
-              "auto_services": [
-                {
-                  "name": "tg_test_broker1-service", 
-                  "plan": "second-plan", 
-                  "service_instance": "tg-test-svc"
-                }
-              ], 
-              "name": "tg_test_app3"
-            }, 
-            "tg_test_app4": {
-              "name": "tg_test_app4"
-            }, 
-            "tg_test_app5": {
-              "name": "tg_test_app5"
-            }, 
-            "tg_test_app6": {
-              "name": "tg_test_app6"
-            }, 
-            "tg_test_binary_app": {
-              "app_manifest": {
-                "buildpack": "binary_buildpack", 
-                "command": "./binary_app.py", 
-                "memory": "256M", 
-                "path": "binary_app.py"
-              }, 
-              "auto_services": [], 
-              "name": "tg_test_binary_app"
-            }, 
-            "tg_test_broker1": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [], 
-              "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))", 
-              "name": "tg_test_broker1"
-            }, 
-            "tg_test_broker2": {
-              "app_manifest": {
-                "buildpack": "python_buildpack", 
-                "command": "python app.py", 
-                "memory": "256M", 
-                "path": "app.zip"
-              }, 
-              "auto_services": [], 
-              "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))", 
-              "name": "tg_test_broker2"
-            }, 
-            "tg_test_buildpack": {
-              "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
-              "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
-            }, 
-            "uaa": {
-              "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
-              "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
-            }, 
-            "update_watch_timeout": "(( .properties.update_watch_timeout.value ))", 
-            "username": "(( .properties.username.value ))", 
-            "zip_code": "(( .properties.zip_code.value ))"
-          }, 
-          "name": "delete-meta-buildpack", 
-          "pre_delete": true, 
-          "properties": {}, 
-          "template": "delete-all", 
-          "type": "delete-all"
-        }
-      ], 
-      "name": "meta-buildpack", 
-      "path": "github://cf-platform-eng/meta-buildpack/meta-buildpack.tgz"
-    }, 
     "routing": {
       "name": "routing", 
       "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release"
@@ -2671,10 +2298,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
-            }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -2838,10 +2461,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
-            }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -3003,10 +2622,6 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
             }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
@@ -3378,25 +2993,6 @@
           }
         }, 
         {
-          "files": [
-            {
-              "name": "decorator.zip", 
-              "path": "resources/decorator.zip"
-            }
-          ], 
-          "is_buildpack": true, 
-          "is_cf": true, 
-          "name": "tg_test_decorator", 
-          "package-type": "decorator", 
-          "path": "decorator.zip", 
-          "properties": {
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
-            }
-          }
-        }, 
-        {
           "app_manifest": {
             "memory": "256M"
           }, 
@@ -3492,8 +3088,7 @@
           "name": "common"
         }
       ], 
-      "requires_docker_bosh": true, 
-      "requires_meta_buildpack": true
+      "requires_docker_bosh": true
     }, 
     "tg_test_app5": {
       "is_bosh_release": true, 
@@ -3645,10 +3240,6 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
             }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
@@ -3823,10 +3414,6 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
             }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
@@ -4025,10 +3612,6 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
             }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
@@ -4229,10 +3812,6 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
-            }, 
-            "tg_test_decorator": {
-              "buildpack_order": "(( .properties.tg_test_decorator_buildpack_order.value ))", 
-              "name": "tg_test_decorator"
             }, 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
