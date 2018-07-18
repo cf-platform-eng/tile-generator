@@ -111,10 +111,10 @@ if target_org; then
 		{% else %}
 
 		{% if package.is_broker %}
-		delete_service_broker {{ package.name | hyphens }}
+		delete_service_broker {{ package.name }}
 		{% endif %}
 		{% if package.is_app %}
-		delete_all_versions {{ package.name | hyphens }}
+		delete_all_versions {{ package.name }}
 		{% endif %}
 		{% if package.is_buildpack %}
 		cf delete-buildpack -f {{ package.name }}
