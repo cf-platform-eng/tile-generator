@@ -213,6 +213,8 @@ class TileMetadata(object):
                         }
                         option_dict["property_inputs"] = list()
                         for p_input in option.get('property_blueprints', []):
+                            if not p_input.get('configurable', True):
+                                continue
                             option_dict_element = {
                                 "reference": ".properties.%s.%s.%s" % (prop['name'], option['name'], p_input['name']), 
                                 "label": p_input['label']
