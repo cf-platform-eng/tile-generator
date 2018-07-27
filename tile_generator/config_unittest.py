@@ -620,6 +620,18 @@ class TestTileName(BaseTest):
 			self.config.update({'name': 'invalid-name_'})
 			self.config.validate()
 
+  # TODO: !!! Remove once we enforce underscores only. !!!
+	def test_having_hyphens_does_not_change_behavior(self):
+		self.config['packages'] = [{'name': 'my-broker', 'type': 'app-broker', 'manifest': {
+			'path': 'resources/app.zip', 'command': 'python app.py', 
+			'memory': '256M', 'buildpack': 'python_buildpack'
+		}}, {'name': 'test-external-broker', 'type': 'external-broker'}]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		for prop in ['my_broker_enable_global_access_to_plans', 'test_external_broker_enable_global_access_to_plans',
+								 'test_external_broker_url', 'test_external_broker_user', 'test_external_broker_password']:
+			self.assertIn(prop, [p['name'] for p in tile_metadata['property_blueprints']])
+
 class TestTileSimpleFields(BaseTest):
 	def test_requires_label(self):
 		with self.assertRaises(SystemExit):
