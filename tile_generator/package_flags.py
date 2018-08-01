@@ -222,12 +222,11 @@ class ExternalBroker(FlagBase):
 
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
-        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
         properties[packagename].update(
             {'name': packagename,
-            'url': '(( .properties.{}_url.value ))'.format(packagename).replace('-', '_'),
-            'user': '(( .properties.{}_user.value ))'.format(packagename).replace('-', '_'),
-            'password': '(( .properties.{}_password.value ))'.format(packagename).replace('-', '_'),
+            'url': '(( .properties.{}_url.value ))'.format(package['varname']),
+            'user': '(( .properties.{}_user.value ))'.format(package['varname']),
+            'password': '(( .properties.{}_password.value ))'.format(package['varname']),
         })
         package['properties'] = properties
 
@@ -239,10 +238,9 @@ class Broker(FlagBase):
         package['is_broker'] = True
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
-        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
         properties[packagename].update(
             {'name': packagename,
-            'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(packagename).replace('-', '_'),
+            'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(package['varname']),
         })
         package['properties'] = properties
 
@@ -255,10 +253,9 @@ class Buildpack(FlagBase):
 
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
-        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
         properties[packagename].update(
             {'name': packagename,
-            'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(packagename).replace('-', '_'),
+            'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(package['varname']),
         })
         package['properties'] = properties
 

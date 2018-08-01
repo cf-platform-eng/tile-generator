@@ -123,8 +123,7 @@ class TileMetadata(object):
                       {
                         "default": package.get('buildpack_order') or 99, 
                         "type": "integer",
-                        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                        "name": "{}_buildpack_order".format(package['name']).replace('-', '_'), 
+                        "name": "{}_buildpack_order".format(package['varname']), 
                         "configurable": True
                       }
                     )
@@ -135,9 +134,8 @@ class TileMetadata(object):
                     self.tile_metadata['property_blueprints'].append(
                       {
                         "default": package.get('enable_global_access_to_plans') or False, 
-                        "type": "boolean", 
-                        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                        "name": '{}_enable_global_access_to_plans'.format(package['name']).replace('-', '_'),
+                        "type": "boolean",
+                        "name": '{}_enable_global_access_to_plans'.format(package['varname']),
                         "configurable": True
                       }
                     )
@@ -148,20 +146,17 @@ class TileMetadata(object):
                     self.tile_metadata['property_blueprints'] += [
                       { 
                         "type": "string",
-                        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                        "name": '{}_url'.format(package['name']).replace('-', '_'),
+                        "name": '{}_url'.format(package['varname']),
                         "configurable": True
                       },
                       { 
                         "type": "string",
-                        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                        "name": '{}_user'.format(package['name']).replace('-', '_'),
+                        "name": '{}_user'.format(package['varname']),
                         "configurable": True
                       },
                       { 
                         "type": "secret",
-                        # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                        "name": '{}_password'.format(package['name']).replace('-', '_'), 
+                        "name": '{}_password'.format(package['varname']), 
                         "configurable": True
                       }
                     ]
@@ -289,20 +284,17 @@ class TileMetadata(object):
             external_broker_form["property_inputs"] += [
                 {
                     "description": "Enter the External uri/endpoint (with http or https protocol) for the Service Broker",
-                    # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                    "reference": ".properties.{}_url".format(package['name']).replace('-', '_'), 
+                    "reference": ".properties.{}_url".format(package['varname']), 
                     "label": "Service Broker Application URI for " + (package.get('label') or package.get('name')),
                 }, 
                 {
                     "description": "Enter the username for accessing the Service Broker",
-                    # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                    "reference": ".properties.{}_user".format(package['name']).replace('-', '_'), 
+                    "reference": ".properties.{}_user".format(package['varname']), 
                     "label": "Service Broker Username for " + (package.get('label') or package.get('name')),
                 }, 
                 {
                     "description": "Enter the password for accessing the Service Broker",
-                    # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                    "reference": ".properties.{}_password".format(package['name']).replace('-', '_'), 
+                    "reference": ".properties.{}_password".format(package['varname']), 
                     "label": "Service Broker Password for " + (package.get('label') or package.get('name')),
                 }
             ]
@@ -321,8 +313,7 @@ class TileMetadata(object):
         for package in [p for p in self.config.get('packages', []) if p.get('is_broker')]:
             service_access_form["property_inputs"].append({
                 "description": "Enable global access to plans in the marketplace",
-                # TODO: !!! Remove the '-' to '_' hack once we enforce underscores only. !!!
-                "reference": ".properties.{}_enable_global_access_to_plans".format(package['name']).replace('-', '_'),
+                "reference": ".properties.{}_enable_global_access_to_plans".format(package['varname']),
                 "label": "Enable global access to plans of service " + (package.get('label') or package.get('name')),
             })
 

@@ -419,21 +419,21 @@ start_app {{ package.name }} "$APP_NAME"
 
 {% if package.is_broker %}
 export BROKER_NAME={{ package.name }}
-export BROKER_USER={{ ( 'properties.' + package.name + '.user' ) | shell_string }}
-export BROKER_PASS={{ ( 'properties.' + package.name + '.password' ) | shell_string }}
+export BROKER_USER={{ ( 'properties.' + package.varname + '.user' ) | shell_string }}
+export BROKER_PASS={{ ( 'properties.' + package.varname + '.password' ) | shell_string }}
 export BROKER_SERVICES="{{ package.internal_service_names }}"
 {% if package.is_external_broker %}
-export BROKER_URL={{ ( 'properties.' + package.name + '.url' ) | shell_string }}
+export BROKER_URL={{ ( 'properties.' + package.varname + '.url' ) | shell_string }}
 {% else %}
 export BROKER_URL=$SCHEME://${APP_HOST}.${APP_DOMAIN}
 {% endif %}
-export GLOBAL_ACCESS={{ ( 'properties.' + package.name + '.enable_global_access_to_plans' ) | shell_string }}
+export GLOBAL_ACCESS={{ ( 'properties.' + package.varname + '.enable_global_access_to_plans' ) | shell_string }}
 register_broker "$BROKER_NAME" "$BROKER_USER" "$BROKER_PASS" "$BROKER_URL" "$GLOBAL_ACCESS" "$BROKER_SERVICES"
 {% endif %}
 
 {% if package.is_buildpack %}
 export BUILDPACK_NAME={{ package.name }}
-export BUILDPACK_ORDER={{ ( 'properties.' + package.name + '.buildpack_order' ) | shell_string }}
+export BUILDPACK_ORDER={{ ( 'properties.' + package.varname + '.buildpack_order' ) | shell_string }}
 export BUILDPACK_FILE=$PACKAGE_PATH/{{ package.name }}/{{ package.path }}
 push_buildpack "$BUILDPACK_NAME" "$BUILDPACK_ORDER" "$BUILDPACK_FILE"
 {% endif %}

@@ -71,16 +71,16 @@ properties:
   {{ package.name }}.name:
     description: 'Name of package'
 {% if package.is_external_broker %}
-  {{ package.name }}.url:
+  {{ package.varname }}.url:
     description: 'URL to access service'
-  {{ package.name }}.user:
+  {{ package.varname }}.user:
      description: 'Basic auth username to access service'
-  {{ package.name }}.password:
+  {{ package.varname }}.password:
      description: 'Basic auth password to access service'
 {% elif package.is_broker %}
-  {{ package.name }}.user:
+  {{ package.varname }}.user:
      description: 'Basic auth username'
-  {{ package.name }}.password:
+  {{ package.varname }}.password:
      description: 'Basic auth password'
 {% endif %}
 {% if package.is_app %}
@@ -91,12 +91,12 @@ properties:
      default: []
 {% endif %}
 {% if package.is_broker %}
-  {{ package.name }}.enable_global_access_to_plans:
+  {{ package.varname }}.enable_global_access_to_plans:
     description: 'Access to all service plans'
     default: false
 {% endif %}
 {% if package.is_buildpack %}
-  {{ package.name }}.buildpack_order:
+  {{ package.varname }}.buildpack_order:
     description: 'Order of the Buildpack'
 {% endif %}
 {% endfor %}
