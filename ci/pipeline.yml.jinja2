@@ -290,6 +290,9 @@ jobs:
               ./pyinstaller/build-binaries.sh
               if [ -z "$SKIP_SDIST" ]; then
                 python setup.py sdist
+                # Setuptools normalizes versions and does not support semver.
+                # See https://github.com/pypa/setuptools/issues/308
+                mv dist/tile-generator-*.tar.gz dist/tile-generator-"$VER".tar.gz || true
               fi
               mv dist dist-"$VER"
             done
