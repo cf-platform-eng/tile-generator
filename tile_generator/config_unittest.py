@@ -94,8 +94,8 @@ class TestUltimateForm(BaseTest):
 		self.deep_comparer(expected_output, generated_output, '[%s]')
 
 		# Ensure there is no extra elements in the generated output
-		expected = json.dumps(expected_output).split('\n')
-		generated = json.dumps(generated_output).split('\n')
+		expected = json.dumps(expected_output, indent=2).split('\n')
+		generated = json.dumps(generated_output, indent=2).split('\n')
 
 		self.assertEquals(len(expected), len(generated))
 		for line in expected:
