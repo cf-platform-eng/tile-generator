@@ -17,7 +17,7 @@
 # limitations under the License.
 
 LOCAL_TEST_DIR='temp_local_test'
-SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "$0" )/.." && pwd )"
 
 command -v tile >/dev/null 2>&1 || { echo "Command 'tile' not found." >&2; exit 1; }
 
@@ -26,16 +26,20 @@ command -v tile >/dev/null 2>&1 || { echo "Command 'tile' not found." >&2; exit 
 rm -rf "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
 mkdir "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
 
-if [ "$1" = "norebuild" ] || [ ! -e "${SCRIPT_DIR}"/sample/product/*.pivotal ]; then
+if [ "$1" = "withcache" ]; then
     echo "########################################################"
-    echo "# Using existing .pivotal file in sample/product/ dir. #"
+    echo "# Building a new .pivotal file using cache option.     #"
     echo "########################################################"
-    cp ${SCRIPT_DIR}/sample/product/*.pivotal "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
-    cp ${SCRIPT_DIR}/sample/tile-history*.yml "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
+    pushd ${SCRIPT_DIR}/sample
+    mkdir -p cache
+    tile build --cache cache
+    cp product/*.pivotal "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
+    cp tile-history*.yml "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
+    popd
 else
     echo "#############################################################"
-    echo "# Creating a new .pivotal file. Use 'norebuild' argument to #"
-    echo "# use the existing .pivotal file in sample/product/ dir.    #"
+    echo "# Creating a new .pivotal file. Use 'withcache' argument to #"
+    echo "# build using the cache option for 'tile build'.            #"
     echo "#############################################################"
     "${SCRIPT_DIR}"/ci/scripts/tile-build.sh "${SCRIPT_DIR}"/sample "${SCRIPT_DIR}"/sample "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
 fi
