@@ -676,7 +676,8 @@
           "auto_services": [], 
           "name": "tg_test_app1"
         }
-      }
+      }, 
+      "varname": "tg_test_app1"
     }, 
     {
       "app_manifest": {
@@ -712,7 +713,8 @@
           "auto_services": [], 
           "name": "tg_test_app1_auto_zip"
         }
-      }
+      }, 
+      "varname": "tg_test_app1_auto_zip"
     }, 
     {
       "app_manifest": {
@@ -748,7 +750,8 @@
           "auto_services": [], 
           "name": "tg_test_binary_app"
         }
-      }
+      }, 
+      "varname": "tg_test_binary_app"
     }, 
     {
       "app_manifest": {
@@ -787,7 +790,8 @@
           "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))", 
           "name": "tg_test_broker1"
         }
-      }
+      }, 
+      "varname": "tg_test_broker1"
     }, 
     {
       "app_manifest": {
@@ -857,7 +861,8 @@
           ], 
           "name": "tg_test_app2"
         }
-      }
+      }, 
+      "varname": "tg_test_app2"
     }, 
     {
       "app_manifest": {
@@ -908,7 +913,8 @@
           "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))", 
           "name": "tg_test_broker2"
         }
-      }
+      }, 
+      "varname": "tg_test_broker2"
     }, 
     {
       "buildpack_order": 99, 
@@ -928,7 +934,8 @@
           "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
           "name": "tg_test_buildpack"
         }
-      }
+      }, 
+      "varname": "tg_test_buildpack"
     }, 
     {
       "app_manifest": {
@@ -966,7 +973,8 @@
           ], 
           "name": "tg_test_app3"
         }
-      }
+      }, 
+      "varname": "tg_test_app3"
     }, 
     {
       "cpu": 2, 
@@ -1013,7 +1021,8 @@
           "port": 8080, 
           "prefix": "my-route"
         }
-      ]
+      ], 
+      "varname": "tg_test_app4"
     }, 
     {
       "is_bosh_release": true, 
@@ -1376,7 +1385,8 @@
         "tg_test_app5": {
           "name": "tg_test_app5"
         }
-      }
+      }, 
+      "varname": "tg_test_app5"
     }, 
     {
       "is_bosh_release": true, 
@@ -1387,7 +1397,8 @@
         "runtime_test_release": {
           "name": "runtime_test_release"
         }
-      }
+      }, 
+      "varname": "runtime_test_release"
     }, 
     {
       "is_bosh_release": true, 
@@ -1796,7 +1807,8 @@
         "tg_test_app6": {
           "name": "tg_test_app6"
         }
-      }
+      }, 
+      "varname": "tg_test_app6"
     }
   ], 
   "post_deploy_errands": [
@@ -1838,7 +1850,8 @@
         "runtime_test_release": {
           "name": "runtime_test_release"
         }
-      }
+      }, 
+      "varname": "runtime_test_release"
     }, 
     "test-tile": {
       "consumes": {
@@ -2398,7 +2411,8 @@
                 "port": 8080, 
                 "prefix": "my-route"
               }
-            ]
+            ], 
+            "varname": "tg_test_app4"
           }, 
           "properties": {}, 
           "template": "docker-bosh", 
@@ -2444,7 +2458,8 @@
               "auto_services": [], 
               "name": "tg_test_app1"
             }
-          }
+          }, 
+          "varname": "tg_test_app1"
         }, 
         {
           "dir": "blobs", 
@@ -2495,7 +2510,8 @@
               "auto_services": [], 
               "name": "tg_test_app1_auto_zip"
             }
-          }
+          }, 
+          "varname": "tg_test_app1_auto_zip"
         }, 
         {
           "app_manifest": {
@@ -2531,7 +2547,8 @@
               "auto_services": [], 
               "name": "tg_test_binary_app"
             }
-          }
+          }, 
+          "varname": "tg_test_binary_app"
         }, 
         {
           "app_manifest": {
@@ -2570,7 +2587,8 @@
               "enable_global_access_to_plans": "(( .properties.tg_test_broker1_enable_global_access_to_plans.value ))", 
               "name": "tg_test_broker1"
             }
-          }
+          }, 
+          "varname": "tg_test_broker1"
         }, 
         {
           "app_manifest": {
@@ -2640,7 +2658,8 @@
               ], 
               "name": "tg_test_app2"
             }
-          }
+          }, 
+          "varname": "tg_test_app2"
         }, 
         {
           "app_manifest": {
@@ -2691,7 +2710,8 @@
               "enable_global_access_to_plans": "(( .properties.tg_test_broker2_enable_global_access_to_plans.value ))", 
               "name": "tg_test_broker2"
             }
-          }
+          }, 
+          "varname": "tg_test_broker2"
         }, 
         {
           "buildpack_order": 99, 
@@ -2711,7 +2731,8 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }
-          }
+          }, 
+          "varname": "tg_test_buildpack"
         }, 
         {
           "app_manifest": {
@@ -2749,7 +2770,8 @@
               ], 
               "name": "tg_test_app3"
             }
-          }
+          }, 
+          "varname": "tg_test_app3"
         }, 
         {
           "cpu": 2, 
@@ -2796,7 +2818,8 @@
               "port": 8080, 
               "prefix": "my-route"
             }
-          ]
+          ], 
+          "varname": "tg_test_app4"
         }, 
         {
           "dir": "src", 
@@ -3172,7 +3195,8 @@
         "tg_test_app5": {
           "name": "tg_test_app5"
         }
-      }
+      }, 
+      "varname": "tg_test_app5"
     }, 
     "tg_test_app6": {
       "is_bosh_release": true, 
@@ -3581,7 +3605,8 @@
         "tg_test_app6": {
           "name": "tg_test_app6"
         }
-      }
+      }, 
+      "varname": "tg_test_app6"
     }
   }, 
   "requires_docker_bosh": true, 

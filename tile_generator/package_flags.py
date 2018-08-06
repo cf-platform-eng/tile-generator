@@ -226,9 +226,9 @@ class ExternalBroker(FlagBase):
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update(
             {'name': packagename,
-            'url': '(( .properties.{}_url.value ))'.format(packagename),
-            'user': '(( .properties.{}_user.value ))'.format(packagename),
-            'password': '(( .properties.{}_password.value ))'.format(packagename),
+            'url': '(( .properties.{}_url.value ))'.format(package['varname']),
+            'user': '(( .properties.{}_user.value ))'.format(package['varname']),
+            'password': '(( .properties.{}_password.value ))'.format(package['varname']),
         })
         package['properties'] = properties
 
@@ -242,7 +242,7 @@ class Broker(FlagBase):
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update(
             {'name': packagename,
-            'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(packagename),
+            'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(package['varname']),
         })
         package['properties'] = properties
 
@@ -257,7 +257,7 @@ class Buildpack(FlagBase):
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update(
             {'name': packagename,
-            'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(packagename),
+            'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(package['varname']),
         })
         package['properties'] = properties
 

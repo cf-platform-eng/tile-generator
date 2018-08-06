@@ -106,14 +106,13 @@ class BoshRelease:
 		for job in self.jobs:
 			self.add_job(job)
 		self.__bosh('upload-blobs')
-		filename=self.name+'-'+self.context['version'] + '.tgz'
+		filename=self.name + '-' + self.context['version'] + '.tgz'
 
+		args = ['create-release', '--force','--final', '--tarball', filename, '--version', self.context['version']]
 		if self.context.get('sha1'):
-			self.tarball = self.__bosh('create-release', '--force','--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
-		else:
-			self.tarball = self.__bosh('create-release', '--force','--sha2', '--final', '--tarball',filename, '--version', self.context['version'], capture='Release tarball')
+			args.insert(3, '--sha2')
 
-
+		self.tarball = self.__bosh(*args, capture='Release tarball')
 		self.tarball = os.path.join(self.release_dir,filename)
 		return self.tarball
 
@@ -241,14 +240,6 @@ class BoshRelease:
 
 def ensure_bosh():
 	bosh_exec = spawn.find_executable('bosh')
-	## check the version
-	## bosh --version
-	## version 2.0.1-74fad57-2017-02-15T20:17:00Z
-	##
-	## Succeeded
-	## bosh --version
-	## BOSH 1.3262.26.0
-
 	if not bosh_exec:
 		print("'bosh' command should be on the path. See https://bosh.io for installation instructions")
 		sys.exit(1)
@@ -256,12 +247,20 @@ def ensure_bosh():
 	if bosh_exec:
 		output = subprocess.check_output(["bosh", "--version"], stderr=subprocess.STDOUT, cwd=".")
 		if output.startswith("version 1."):
-			print("You are running older bosh version. Please upgrade to 'bosh 2.0' command should be on the path. See https://bosh.io/docs/cli-v2.html for installation instructions")
+			print("You are running an older version of bosh. Please upgrade to the latest version. See https://bosh.io/docs/cli-v2.html for installation instructions")
 			sys.exit(1)
 
 def run_bosh(working_dir, *argv, **kw):
 	ensure_bosh()
-	## change the commands
+
+	# Ensure that the working_dir is a git repo, needed for bosh's create-release.
+	# This is used to avoid this bug https://www.pivotaltracker.com/story/show/159156765
+	if 'create-release' in argv:
+		print(working_dir)
+		cmd = 'if ! git rev-parse --git-dir 2> /dev/null; then git init; fi'
+		subprocess.call(cmd, shell=True, cwd=working_dir)
+
+	# Change the commands
 	argv = list(argv)
 	print('bosh', ' '.join(argv))
 	command = ['bosh', '--no-color', '--non-interactive'] + argv
