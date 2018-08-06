@@ -504,6 +504,7 @@ class Kibosh(FlagBase):
                             'token': '(( .properties.k8s_cluster_token.value ))',
                             'service_id': '(( .properties.service_id.value ))',
                             'helm_chart_dir': '/var/vcap/packages/charts_for_%s/chart' % packagename,
+                            'operator_dir': '/var/vcap/packages/charts_for_%s/operator_chart' % packagename,
                         }
                     },
                 }, {
@@ -580,6 +581,15 @@ class Kibosh(FlagBase):
                 }
             ],
         }
+
+        if 'operator_dir' in package and os.path.isdir(package['operator_dir']):
+            charts_to_disk_pkg['files'].append({
+                'name': 'operator_chart',
+                'path': package['operator_dir'],
+                'unzip': True,
+                'chmod': '+r',
+            })
+
         release['jobs'] += [{
             'name': 'charts_for_%s' % packagename,
             'type': 'charts_for_%s' % packagename,
