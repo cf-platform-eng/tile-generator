@@ -280,14 +280,15 @@ class TestConfigValidation(BaseTest):
 		self.assertIn('name', requires_product_versions[0])
 		self.assertIn('version', requires_product_versions[0])
 
-	def test_refuses_docker_bosh_package_without_image(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{
-				'name': 'bad_docker_bosh',
-				'type': 'docker-bosh',
-				'manifest': 'containers: [name: a]'
-			}]
-			self.config.validate()
+	# This breaks the use case where a user wants to use a local file not in the registry	
+	# def test_refuses_docker_bosh_package_without_image(self):
+	# 	with self.assertRaises(SystemExit):
+	# 		self.config['packages'] = [{
+	# 			'name': 'bad_docker_bosh',
+	# 			'type': 'docker-bosh',
+	# 			'manifest': 'containers: [name: a]'
+	# 		}]
+	# 		self.config.validate()
 
 	def test_accepts_docker_bosh_package_with_image(self):
 		self.config['packages'] = [{
