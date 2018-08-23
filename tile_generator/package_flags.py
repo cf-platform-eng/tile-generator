@@ -486,7 +486,7 @@ class Kibosh(FlagBase):
                     'name': 'kibosh',
                     'dynamic_ip': 1,
                     'varname': 'kibosh',
-                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir'])),
+                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir'], package['operator_dir'])),
                     'templates': [{'release': 'kibosh', 'name': 'kibosh'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename}],
                     'properties': {
@@ -512,7 +512,7 @@ class Kibosh(FlagBase):
                     'dynamic_ip': 1,
                     'post_deploy': True,
                     'lifecycle': 'errand',
-                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir']) * 3),
+                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir'], package['operator_dir']) * 3),
                     'varname': 'loader',
                     'templates': [{'release': 'kibosh', 'name': 'load-image'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename},
