@@ -280,14 +280,15 @@ class TestConfigValidation(BaseTest):
 		self.assertIn('name', requires_product_versions[0])
 		self.assertIn('version', requires_product_versions[0])
 
-	def test_refuses_docker_bosh_package_without_image(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{
-				'name': 'bad_docker_bosh',
-				'type': 'docker-bosh',
-				'manifest': 'containers: [name: a]'
-			}]
-			self.config.validate()
+	# This breaks the use case where a user wants to use a local file not in the registry	
+	# def test_refuses_docker_bosh_package_without_image(self):
+	# 	with self.assertRaises(SystemExit):
+	# 		self.config['packages'] = [{
+	# 			'name': 'bad_docker_bosh',
+	# 			'type': 'docker-bosh',
+	# 			'manifest': 'containers: [name: a]'
+	# 		}]
+	# 		self.config.validate()
 
 	def test_accepts_docker_bosh_package_with_image(self):
 		self.config['packages'] = [{
@@ -360,6 +361,7 @@ class TestConfigValidation(BaseTest):
 		self.config.validate()
 		self.assertEquals([r['name'] for r in self.config['releases'].values()],
 			['z_name', 'd_name', 'a_name', 'b_name'])
+
 
 class TestVersionMethods(BaseTest):
 
@@ -524,6 +526,49 @@ class TestDefaultOptions(BaseTest):
 		tile_metadata = TileMetadata(self.config).build()
 		self.assertTrue(tile_metadata['base']['serial'])
 
+class TestMetadataOutput(BaseTest):
+	def test_display_type_renders_correctly(self):
+		self.config['forms'] = [{
+			'description': 'Test for display_type',
+      'label': 'Test',
+      'name': 'some_form',
+      'properties': [{'display_type': 'text_area',
+                      'label': 'Password',
+                      'name': 'password',
+                      'type': 'secret'}]
+    }]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		self.assertNotIn('display_type', tile_metadata['form_types'][0].keys())
+		self.assertEquals('text_area', tile_metadata['form_types'][0]['property_inputs'][0]['display_type'])
+
+	# TODO: !!! Remove once we enforce underscores only. !!!
+	def test_having_hyphens_does_not_change_behavior(self):
+		self.config['packages'] = [
+			{
+				'name': 'my-broker', 'type': 'app-broker',
+				'manifest': {
+					'path': 'resources/app.zip', 'command': 'python app.py',
+					'memory': '256M', 'buildpack': 'python_buildpack'
+				}
+			}, {
+				'name': 'test-external-broker', 'type': 'external-broker'
+			},
+			{
+				'name': 'my-buildpack', 'type': 'buildpack', 'buildpack_order': 99,
+				'manifest': {
+					'path': 'resources/app.zip', 'command': 'python app.py',
+					'memory': '256M', 'buildpack': 'python_buildpack'
+				}
+			}
+		]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		for prop in ['my_broker_enable_global_access_to_plans', 'test_external_broker_enable_global_access_to_plans',
+								 'test_external_broker_url', 'test_external_broker_user', 'test_external_broker_password',
+								 'my_buildpack_buildpack_order']:
+			self.assertIn(prop, [p['name'] for p in tile_metadata['property_blueprints']])
+
 
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(BaseTest):
@@ -620,17 +665,6 @@ class TestTileName(BaseTest):
 			self.config.update({'name': 'invalid-name_'})
 			self.config.validate()
 
-  # TODO: !!! Remove once we enforce underscores only. !!!
-	def test_having_hyphens_does_not_change_behavior(self):
-		self.config['packages'] = [{'name': 'my-broker', 'type': 'app-broker', 'manifest': {
-			'path': 'resources/app.zip', 'command': 'python app.py', 
-			'memory': '256M', 'buildpack': 'python_buildpack'
-		}}, {'name': 'test-external-broker', 'type': 'external-broker'}]
-		self.config.validate()
-		tile_metadata = TileMetadata(self.config).build()
-		for prop in ['my_broker_enable_global_access_to_plans', 'test_external_broker_enable_global_access_to_plans',
-								 'test_external_broker_url', 'test_external_broker_user', 'test_external_broker_password']:
-			self.assertIn(prop, [p['name'] for p in tile_metadata['property_blueprints']])
 
 class TestTileSimpleFields(BaseTest):
 	def test_requires_label(self):

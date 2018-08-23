@@ -188,6 +188,9 @@ class TileMetadata(object):
                     "description": prop.get('description') or prop.get('label')
                 }
                 
+                if prop.get('display_type'):
+                    prop_input['display_type'] = prop.pop('display_type')
+
                 if prop.get('property_blueprints'):
                     prop_input["property_inputs"] = list()
                     for p_input in prop.get('property_blueprints', []):
@@ -265,7 +268,7 @@ class TileMetadata(object):
         for package in [p for p in self.config.get('packages', []) if p.get('is_buildpack')]:
             buildpack_form["property_inputs"].append({
                 "description": "Enter order for the " + (package.get('label') or package.get('name')) + " buildpack", 
-                "reference": ".properties." + package.get('name') + "_buildpack_order", 
+                "reference": ".properties.{}_buildpack_order".format(package['varname']),
                 "label": (package.get('label') or package.get('name')) + " Buildpack Order",
             })
 
