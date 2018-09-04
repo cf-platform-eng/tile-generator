@@ -263,6 +263,7 @@ class Buildpack(FlagBase):
 class Helm(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        package['is_helm'] = True
         # Read the helm chart and bundle all required docker images
         chart_info = helm.get_chart_info(package['path'])
         for image in chart_info['required_images']:
@@ -313,6 +314,7 @@ class Helm(FlagBase):
                 'name': 'pks_cli',
                 'files': [{
                     'name': 'pks',
+                    # @todo this url no longer exists. is pks hosted publicly anywhere?
                     'path': 'https://storage.googleapis.com/pks-public/bin/linux/pks',
                     'chmod': '+x',
                 }],
@@ -343,25 +345,42 @@ class Helm(FlagBase):
         if not config_obj.get('requires_product_versions'): 
             config_obj['requires_product_versions'] = list()
 
-        if not 'pivotal-container-service' in [p['name'] for p in config_obj['requires_product_versions']]:
-            config_obj['requires_product_versions'].append({
-                'name': 'pivotal-container-service', 
-                'version': '>= 0.8'
-            })
-
-        pks_form_properties = [
-            {
-                'name': 'pks_cluster',
-                'label': 'Target PKS Cluster',
-                'type': 'string',
-                'configurable': True,
-            }
-        ]
-        config_obj['forms'].append({
-            'name': 'pks_configuration',
-            'label': 'PKS Configuration',
-            'properties': pks_form_properties,
-        })
+        # For now we assume that the form and property values are shared.
+        form_names = [f['name'] for f in config_obj['forms']]
+        if 'k8s_form' not in form_names:
+            config_obj['forms'] += [
+                {
+                    "label": "PKS Cluster",
+                    "description": "Cluster where instances will be deployed",
+                    "name": "k8s_form",
+                    "properties": [
+                        {
+                            "configurable": True,
+                            "type": "string",
+                            "name": "pks_username",
+                            "label": "PKS Username"
+                        },
+                        {
+                            "configurable": True,
+                            "type": "secret",
+                            "name": "pks_password",
+                            "label": "PKS Password"
+                        },
+                        {
+                            "configurable": True,
+                            "type": "string",
+                            "name": "pks_host",
+                            "label": "PKS Host Name"
+                        },
+                        {
+                            "configurable": True,
+                            "type": "string",
+                            "name": "pks_cluster",
+                            "label": "PKS Cluster Name"
+                        }
+                    ]
+                }
+            ]
 
 
 class Kibosh(FlagBase):
@@ -419,7 +438,7 @@ class Kibosh(FlagBase):
                         }, 
                         {
                             "configurable": True,
-                            "type": "text", 
+                            "type": "secret",
                             "name": "registry_pass", 
                             "optional": True, 
                             "label": "Registry Password"

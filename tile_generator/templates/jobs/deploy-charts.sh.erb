@@ -7,18 +7,17 @@ export PATH="/var/vcap/packages/pks_cli:$PATH"
 export PATH="/var/vcap/packages/helm_cli/linux-amd64:$PATH"
 export PATH="/var/vcap/packages/kubectl_cli:$PATH"
 
-export PKS_HOST=$(grep \\.pivotal-container-service\\.infrastructure\\.pivotal-container-service-.\*\\.bosh /etc/hosts | cut -d ' ' -f 1)
+export PKS_HOST=<%= Shellwords.escape(p('pks_host')) %>
 export PKS_USERNAME=<%= Shellwords.escape(p('pks_username')) %>
 export PKS_PASSWORD=<%= Shellwords.escape(p('pks_password')) %>
 export PKS_CLUSTER_NAME=<%= Shellwords.escape(p('pks_cluster')) %>
-
 export BOSH_DEPLOYMENT=<%= spec.deployment %>
 
 # Use PKS to connect kubectl to the named cluster
 #
-pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-verification # FIXME --ca-cert /path/to/cert
+pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-validation # FIXME --ca-cert /path/to/cert
 pks get-credentials "$PKS_CLUSTER_NAME"
-
+sleep 1
 # Install Tiller
 #
 helm init
@@ -54,13 +53,24 @@ done
 
 # Now install all helm charts
 #
-for chart in /var/vcap/packages/*/*/Chart.yaml; do
-  # FIXME - This only works for a single helm chart
-  HELM_NAME="${BOSH_DEPLOYMENT}"
+
+
+
+{% for package in context.packages %}
+{% if package.is_helm %}
+  HELM_NAME={{ package.name }}
   HELM_RELEASE=$(helm list "^${HELM_NAME}\$")
   if [ -z "$HELM_RELEASE" ]; then
-    helm install -n "${HELM_NAME}" $(dirname $chart)
+    HELM_NAMESPACE={{ package.namespace }}
+    echo -n "Installing $HELM_NAME to namespace $HELM_NAMESPACE."
+    if [ -n "$HELM_NAMESPACE" ]; then
+      helm install $(dirname /var/vcap/packages/$HELM_NAME/*/Chart.yaml) --namespace "${HELM_NAMESPACE}"
+    else
+      helm install $(dirname /var/vcap/packages/$HELM_NAME/*/Chart.yaml)
+    fi
   else
     echo "${HELM_NAME} is already deployed"
   fi
-done
+{% endif %}
+
+{% endfor %}

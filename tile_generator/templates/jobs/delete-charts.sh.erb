@@ -9,7 +9,7 @@ export PATH="/var/vcap/packages/pks_cli:$PATH"
 export PATH="/var/vcap/packages/helm_cli/linux-amd64:$PATH"
 export PATH="/var/vcap/packages/kubectl_cli:$PATH"
 
-export PKS_HOST=$(grep \\.pivotal-container-service\\.infrastructure\\.pivotal-container-service-.\*\\.bosh /etc/hosts | cut -d ' ' -f 1)
+export PKS_HOST=<%= Shellwords.escape(p('pks_host')) %>
 export PKS_USERNAME=<%= Shellwords.escape(p('pks_username')) %>
 export PKS_PASSWORD=<%= Shellwords.escape(p('pks_password')) %>
 export PKS_CLUSTER_NAME=<%= Shellwords.escape(p('pks_cluster')) %>
@@ -33,7 +33,7 @@ fi
 # FIXME Remove any cached docker images that were pushed by this release
 
 # FIXME - This only works for a single helm chart
-HELM_NAME="${BOSH_DEPLOYMENT}"
+HELM_NAME={{ package.name }}
 HELM_RELEASE=$(helm list "^${HELM_NAME}\$")
 if [ -z "$HELM_RELEASE" ]; then
     echo "${HELM_NAME} is not deployed"

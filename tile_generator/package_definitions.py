@@ -158,8 +158,10 @@ class PackageHelm(BasePackage):
     package_type = 'helm'
     flags = [flag.Helm]
     _schema = {
+        'name': {'type': 'string', 'required': True },
         'path': {'type': 'string', 'required': True },
-        'zip_if_needed': {'type': 'boolean', 'default': True}
+        'zip_if_needed': {'type': 'boolean', 'default': True},
+        'namespace': {'type': 'string', 'required': False}
     }
 
 
