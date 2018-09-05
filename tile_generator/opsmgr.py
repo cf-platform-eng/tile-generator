@@ -73,6 +73,9 @@ def get_credential_dir(update=False):
 		subprocess.call(['git', 'pull'], cwd=dir, stdout=devnull, stderr=devnull)
 	return dir
 
+def is_poolsmiths_env(creds):
+	return 'ops_manager' in creds
+
 def get_credentials(target=None, non_interactive=False):
 	if get_credentials.credentials is not None:
 		return get_credentials.credentials
@@ -92,6 +95,9 @@ def get_credentials(target=None, non_interactive=False):
 	try:
 		with open(credential_file) as cred_file:
 			creds = yaml.safe_load(cred_file)
+			if is_poolsmiths_env(creds):
+				creds['opsmgr'] = creds['ops_manager']
+				creds['opsmgr']['ssh_key'] = creds['ops_manager_private_key']
 			creds['opsmgr']
 			creds['opsmgr']['url']
 			creds['opsmgr']['username']
