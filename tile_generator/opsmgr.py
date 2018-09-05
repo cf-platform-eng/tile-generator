@@ -294,7 +294,11 @@ def ssh(command=None, login_to_bosh=True, quiet=False):
 		print_if('Exporting needed bosh environment variables...')
 		director_creds = get('/api/v0/deployed/director/credentials/director_credentials').json()
 		director_manifest = get('/api/v0/deployed/director/manifest').json()
-		session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
+		if 'jobs' in director_manifest: # PCF 2.2 and earlier
+			director_address = director_manifest['jobs'][0]['properties']['director']['address']
+		else: # PCF 2.3 and later
+			director_address = director_manifest['instance_groups'][0]['properties']['director']['address']
+		session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_address))
 		session.sendline('export BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
 		
 		bosh2_username = director_creds['credential']['value']['identity']
