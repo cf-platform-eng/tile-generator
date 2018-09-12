@@ -130,7 +130,7 @@ def compile_config(config_dir):
 	for package in context.get('packages', []):
 		merge_properties(package, missing.get(package['name'], {}))
 		merge_properties(package, properties['security'])
-		merge_properties(properties, { package['varname']: package })
+		merge_properties(properties, { package['name'].replace('-','_'): package })
 	merge_properties(properties, missing)
 
 	properties['org'] = properties.get('org', properties['name'] + '-org')

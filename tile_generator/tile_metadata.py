@@ -122,8 +122,8 @@ class TileMetadata(object):
                     self.tile_metadata['property_blueprints'].append(
                       {
                         "default": package.get('buildpack_order') or 99, 
-                        "type": "integer",
-                        "name": "{}_buildpack_order".format(package['varname']), 
+                        "type": "integer", 
+                        "name": package['name'] + "_buildpack_order", 
                         "configurable": True
                       }
                     )
@@ -134,8 +134,8 @@ class TileMetadata(object):
                     self.tile_metadata['property_blueprints'].append(
                       {
                         "default": package.get('enable_global_access_to_plans') or False, 
-                        "type": "boolean",
-                        "name": '{}_enable_global_access_to_plans'.format(package['varname']),
+                        "type": "boolean", 
+                        "name": package['name'] + "_enable_global_access_to_plans", 
                         "configurable": True
                       }
                     )
@@ -143,23 +143,23 @@ class TileMetadata(object):
                     #
                     # Standard external broker properties for package {{ package.name }}
                     #
-                    self.tile_metadata['property_blueprints'] += [
+                    self.tile_metadata['property_blueprints'].append(
                       { 
-                        "type": "string",
-                        "name": '{}_url'.format(package['varname']),
+                        "type": "string", 
+                        "name": package['name'] + "_url", 
                         "configurable": True
                       },
                       { 
-                        "type": "string",
-                        "name": '{}_user'.format(package['varname']),
+                        "type": "string", 
+                        "name": package['name'] + "_user", 
                         "configurable": True
                       },
                       { 
-                        "type": "secret",
-                        "name": '{}_password'.format(package['varname']), 
+                        "type": "secret", 
+                        "name": package['name'] + "_password", 
                         "configurable": True
                       }
-                    ]
+                    )
         #
         # Custom properties from the tile.yml file
         #
@@ -188,9 +188,6 @@ class TileMetadata(object):
                     "description": prop.get('description') or prop.get('label')
                 }
                 
-                if prop.get('display_type'):
-                    prop_input['display_type'] = prop.pop('display_type')
-
                 if prop.get('property_blueprints'):
                     prop_input["property_inputs"] = list()
                     for p_input in prop.get('property_blueprints', []):
@@ -268,7 +265,7 @@ class TileMetadata(object):
         for package in [p for p in self.config.get('packages', []) if p.get('is_buildpack')]:
             buildpack_form["property_inputs"].append({
                 "description": "Enter order for the " + (package.get('label') or package.get('name')) + " buildpack", 
-                "reference": ".properties.{}_buildpack_order".format(package['varname']),
+                "reference": ".properties." + package.get('name') + "_buildpack_order", 
                 "label": (package.get('label') or package.get('name')) + " Buildpack Order",
             })
 
@@ -284,23 +281,23 @@ class TileMetadata(object):
             "property_inputs": list(),
         }
         for package in [p for p in self.config.get('packages', []) if p.get('is_external_broker')]:
-            external_broker_form["property_inputs"] += [
+            external_broker_form["property_inputs"].append(
                 {
-                    "description": "Enter the External uri/endpoint (with http or https protocol) for the Service Broker",
-                    "reference": ".properties.{}_url".format(package['varname']), 
+                    "description": "Enter the External uri/endpoint (with http or https protocol) for the Service Broker", 
+                    "reference": ".properties." + package['name'] + "_url", 
                     "label": "Service Broker Application URI for " + (package.get('label') or package.get('name')),
                 }, 
                 {
-                    "description": "Enter the username for accessing the Service Broker",
-                    "reference": ".properties.{}_user".format(package['varname']), 
+                    "description": "Enter the username for accessing the Service Broker", 
+                    "reference": ".properties." + package['name'] + "_user", 
                     "label": "Service Broker Username for " + (package.get('label') or package.get('name')),
                 }, 
                 {
-                    "description": "Enter the password for accessing the Service Broker",
-                    "reference": ".properties.{}_password".format(package['varname']), 
+                    "description": "Enter the password for accessing the Service Broker", 
+                    "reference": ".properties." + package['name'] + "_password", 
                     "label": "Service Broker Password for " + (package.get('label') or package.get('name')),
                 }
-            ]
+            )
 
         if external_broker_form.get("property_inputs"):
             form_types.append(external_broker_form)
@@ -315,8 +312,8 @@ class TileMetadata(object):
 
         for package in [p for p in self.config.get('packages', []) if p.get('is_broker')]:
             service_access_form["property_inputs"].append({
-                "description": "Enable global access to plans in the marketplace",
-                "reference": ".properties.{}_enable_global_access_to_plans".format(package['varname']),
+                "description": "Enable global access to plans in the marketplace", 
+                "reference": ".properties." + package['name'] + "_enable_global_access_to_plans", 
                 "label": "Enable global access to plans of service " + (package.get('label') or package.get('name')),
             })
 

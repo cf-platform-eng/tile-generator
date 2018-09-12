@@ -78,7 +78,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		name = vcap_application.get('application_name')
-		self.assertTrue(name.startswith('tg_test_app1-'))
+		self.assertTrue(name.startswith('tg-test-app1-'))
 
 	def test_is_in_correct_space(self):
 		headers = { 'Accept': 'application/json' }

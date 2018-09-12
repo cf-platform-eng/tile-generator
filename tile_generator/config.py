@@ -173,9 +173,6 @@ class Config(dict):
 			'packages': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
 					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
-					# TODO: Temporary variable for things that require underscore names. All instances should be changed
-					# back to using `name` once we enforce using underscores in package names.
-					'varname': {'type': 'string', 'default_setter': lambda doc: doc['name'].replace('-','_')},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
 			'requires_product_versions': {'type': 'list', 'schema': {

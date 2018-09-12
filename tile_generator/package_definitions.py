@@ -24,7 +24,10 @@ def _to_yaml(manifest):
 
 
 class BasePackage(object):
-    _schema = {}
+    _schema = {
+        # NOTE: Is the '-' to '_' conversion really needed?
+        'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(_[a-z0-9]+)*$','coerce': lambda v: v.lower().replace('-','_')},
+    }
 
     @classmethod
     def schema(self):
