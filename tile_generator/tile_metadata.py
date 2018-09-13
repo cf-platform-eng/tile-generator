@@ -143,7 +143,7 @@ class TileMetadata(object):
                     #
                     # Standard external broker properties for package {{ package.name }}
                     #
-                    self.tile_metadata['property_blueprints'].append(
+                    self.tile_metadata['property_blueprints'] += [
                       { 
                         "type": "string", 
                         "name": package['name'] + "_url", 
@@ -159,7 +159,7 @@ class TileMetadata(object):
                         "name": package['name'] + "_password", 
                         "configurable": True
                       }
-                    )
+                    ]
         #
         # Custom properties from the tile.yml file
         #
@@ -281,7 +281,7 @@ class TileMetadata(object):
             "property_inputs": list(),
         }
         for package in [p for p in self.config.get('packages', []) if p.get('is_external_broker')]:
-            external_broker_form["property_inputs"].append(
+            external_broker_form["property_inputs"] += [
                 {
                     "description": "Enter the External uri/endpoint (with http or https protocol) for the Service Broker", 
                     "reference": ".properties." + package['name'] + "_url", 
@@ -297,7 +297,7 @@ class TileMetadata(object):
                     "reference": ".properties." + package['name'] + "_password", 
                     "label": "Service Broker Password for " + (package.get('label') or package.get('name')),
                 }
-            )
+            ]
 
         if external_broker_form.get("property_inputs"):
             form_types.append(external_broker_form)
