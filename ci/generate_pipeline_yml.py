@@ -3,7 +3,7 @@
 import os
 from jinja2 import Template
 
-clusters = ['1-11', '1-12', '2-0', '2-1', '2-2', 'multi-az']
+clusters = ['1-12', '2-0', '2-1', '2-2', 'multi-az']
 tiles = [d for d in os.listdir('../examples') if os.path.isdir(os.path.join('../examples', d))]
 
 with open('pipeline.yml.jinja2', 'r') as f:

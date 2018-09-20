@@ -725,13 +725,13 @@ jobs:
     - get: tile-generator-docker-image
       passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: tile-generator-repo
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: tile-generator-package
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: tile-generator-package-release
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: version
-      passed: [ remove-tile-1-11, remove-tile-1-12, remove-tile-2-0, remove-tile-2-1, remove-tile-2-2, remove-tile-multi-az ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
       trigger: true
 
 - name: create-release
