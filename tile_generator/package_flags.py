@@ -121,6 +121,7 @@ class DockerBosh(FlagBase):
         # TODO: Remove the dependency on this in templates
         config_obj['requires_docker_bosh'] = True
 
+        job_name = 'docker-bosh-' + package['name']
         release['requires_docker_bosh'] = True
         release['packages'] += [{
             'name': 'common',
@@ -132,7 +133,7 @@ class DockerBosh(FlagBase):
         }]
 
         release['jobs'] += [{
-            'name': 'docker-bosh-' + package['name'],
+            'name': job_name,
             'template': 'docker-bosh',
             'package': package
         }]
@@ -150,12 +151,27 @@ class DockerBosh(FlagBase):
 
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
+        properties.update({
+            'security': {
+                'password': '(( .' + job_name + '.app_credentials.password ))',
+                'user': '(( .' + job_name + '.app_credentials.identity ))'},
+            'tls_cacert': '(( $ops_manager.ca_certificate ))',
+            'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
+            'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
+        })
         properties[packagename].update({'name': packagename})
         package['properties'] = properties
         for container in package.get('manifest', {}).get('containers', []):
             envfile = container.get('env_file', [])
             envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr.env'.format(package['name']))
             container['env_file'] = envfile
+
+            volumes = container.get('volumes', [])
+            certs_dest_dir = container.get('certs_dest_dir', '/mnt/certs')
+            certs_src_dir = container.get('certs_src_dir', '/usr/share/local/ca-certificates')
+            volumes.append('/var/vcap/data/certs:%s/opsman-certs:ro' % certs_dest_dir)
+            volumes.append('%s:%s/host-ca-certs:ro' % (certs_src_dir, certs_dest_dir))
+            container['volumes'] = volumes
 
 
 class Decorator(FlagBase):

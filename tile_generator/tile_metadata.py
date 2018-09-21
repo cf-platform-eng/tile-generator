@@ -431,27 +431,10 @@ class TileMetadata(object):
                             'name': 'app_credentials',
                             'type': 'salted_credentials'
                         }
-                    ],
-                    'manifest': {
-                        'allow_paid_service_plans': '(( .properties.allow_paid_service_plans.value ))',
-                        'app_domains': ['(( ..cf.cloud_controller.apps_domain.value ))'],
-                        'apply_open_security_group': '(( .properties.apply_open_security_group.value ))',
-                        'cf': {
-                            'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',
-                            'admin_user': '(( ..cf.uaa.system_services_credentials.identity ))'},
-                        'domain': '(( ..cf.cloud_controller.system_domain.value ))',
-                        'org': '(( .properties.org.value ))',
-                        'security': {
-                            'password': '(( .' + job.get('name') + '.app_credentials.password ))',
-                            'user': '(( .' + job.get('name') + '.app_credentials.identity ))'},
-                        'space': '(( .properties.space.value ))',
-                        'ssl': {'skip_cert_verify': '(( ..cf.ha_proxy.skip_cert_verify.value ))'},
-                        'tls_cacert': '(( $ops_manager.ca_certificate ))',
-                        'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
-                        'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
-                    }
+                    ]
                 }
 
+                release_job['manifest'] = dict()
                 release_job['manifest'].update(job.get('manifest', {}))
                 release_job['manifest'].update(job.get('package', {}).get('manifest', {}))
                 release_job_manifest = release_job['manifest']
