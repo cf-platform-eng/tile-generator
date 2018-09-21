@@ -122,7 +122,6 @@ class DockerBosh(FlagBase):
         config_obj['requires_docker_bosh'] = True
 
         release['requires_docker_bosh'] = True
-        requires_docker_bosh = True
         release['packages'] += [{
             'name': 'common',
             'files': [{
@@ -137,18 +136,17 @@ class DockerBosh(FlagBase):
             'template': 'docker-bosh',
             'package': package
         }]
-        if requires_docker_bosh:
-            version = None
-            version_param = '?v=' + version if version else ''
-            config_obj['releases']['docker-boshrelease'] = {
-                'name': 'docker-boshrelease',
-                'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
-            }
-            config_obj['releases']['routing'] = {
-                'name': 'routing',
-                # TODO: Remove the version pinning `?v=0.179.0` once #159837970 is fixed.
-                'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release?v=0.179.0',
-            }
+        version = None
+        version_param = '?v=' + version if version else ''
+        config_obj['releases']['docker-boshrelease'] = {
+            'name': 'docker-boshrelease',
+            'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
+        }
+        config_obj['releases']['routing'] = {
+            'name': 'routing',
+            # TODO: Remove the version pinning `?v=0.179.0` once #159837970 is fixed.
+            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release?v=0.179.0',
+        }
 
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
