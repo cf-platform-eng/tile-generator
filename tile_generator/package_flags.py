@@ -520,6 +520,7 @@ class Kibosh(FlagBase):
                                   {'release': 'docker', 'name': 'docker'}],
                     'properties': {
                         'chart_path': '/var/vcap/packages/charts_for_%s/chart' % packagename,
+                        'operator_chart_path': '/var/vcap/packages/charts_for_%s/operator_chart' % packagename,
                         'store_dir': '/var/vcap/data',
                         'registry': {'username': '(( .properties.registry_user.value ))',
                             'password': '(( .properties.registry_pass.value ))',
