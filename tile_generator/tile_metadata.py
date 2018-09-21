@@ -452,6 +452,7 @@ class TileMetadata(object):
                     }
                 }
 
+                release_job['manifest'].update(job.get('manifest', {}))
                 release_job['manifest'].update(job.get('package', {}).get('manifest', {}))
                 release_job_manifest = release_job['manifest']
                 
