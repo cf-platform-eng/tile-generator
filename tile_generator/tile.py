@@ -50,11 +50,11 @@ def init_cmd(name):
 	print('Generated initial tile files; begin by customizing "{}/tile.yml"'.format(dir))
 
 @cli.command('build')
-@click.argument('version', 'patch', required=False)
+@click.argument('version', required=False)
 @click.option('--verbose', is_flag=True)
 @click.option('--sha1', is_flag=True)
-@click.option('--docker-cache', '--cache', type=str, default=None)
-def build_cmd(version, verbose,sha1, cache):
+@click.option('--cache', type=str, default=None)
+def build_cmd(version, verbose, sha1, cache):
 	cfg = Config().read()
 
 	cfg.set_version(version)
@@ -73,7 +73,7 @@ def build_cmd(version, verbose,sha1, cache):
 	cfg.save_history()
 
 @cli.command('expand')
-@click.argument('version', 'patch', required=False)
+@click.argument('version', required=False)
 def expand_cmd(version):
 	cfg = Config().read()
 	cfg.set_version(version)
