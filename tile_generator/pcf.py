@@ -73,7 +73,7 @@ def changes_cmd():
 
 @cli.command('is-available')
 @click.argument('product')
-@click.argument('version', None, required=False)
+@click.argument('version', required=False)
 def is_available_cmd(product, version):
 	products = opsmgr.get_products()
 	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) ]
@@ -83,7 +83,7 @@ def is_available_cmd(product, version):
 
 @cli.command('is-installed')
 @click.argument('product')
-@click.argument('version', None, required=False)
+@click.argument('version', required=False)
 def is_installed_cmd(product, version):
 	products = opsmgr.get_products()
 	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) and p['installed'] ]
@@ -93,7 +93,7 @@ def is_installed_cmd(product, version):
 
 @cli.command('configure')
 @click.argument('product')
-@click.argument('properties_file', None, required=False)
+@click.argument('properties_file', required=False)
 @click.option('--strict', is_flag=True)
 @click.option('--skip-validation', is_flag=True)
 @click.option('-n', '--network')
@@ -105,7 +105,7 @@ def configure_cmd(product, properties_file, strict=False, skip_validation=False,
 	opsmgr.configure(product, properties, strict, skip_validation, network)
 
 @cli.command('settings')
-@click.argument('product', None, required=False)
+@click.argument('product', required=False)
 def settings_cmd(product):
 	settings = opsmgr.get('/api/installation_settings').json()
 	if product is not None:
@@ -155,7 +155,7 @@ def install_cmd(product, version):
 
 @cli.command('uninstall')
 @click.argument('product')
-@click.argument('version', None, required=False)
+@click.argument('version', required=False)
 def uninstall_cmd(product, version):
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [ p for p in products if p['type'] == product ]
@@ -295,7 +295,7 @@ def serialize_errands(product, type, form_key):
 	return serialized
 
 @cli.command('logs')
-@click.argument('install_id', None, required=False)
+@click.argument('install_id', required=False)
 def logs_cmd(install_id=None):
 	opsmgr.logs(install_id)
 
