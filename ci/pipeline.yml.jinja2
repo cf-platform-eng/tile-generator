@@ -116,13 +116,6 @@ resources:
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
 
-- name: redis-boshrelease
-  type: github-release
-  source:
-    owner: cloudfoundry-community
-    repository: redis-boshrelease
-    access_token: {{github-release-token}}
-
 - name: tile-history
   type: s3
   source:
@@ -442,9 +435,6 @@ jobs:
   - aggregate:
     - get: tile-generator-docker-image
       passed: [ install-tile-generator ]
-    - get: redis-boshrelease
-      version:
-        tag: v13.1.2
     - get: tile-history
     - get: tile-generator-repo
       passed: [ install-tile-generator ]
@@ -461,14 +451,13 @@ jobs:
       platform: linux
       inputs:
       - name: tile-generator-repo
-      - name: redis-boshrelease
       outputs:
       - name: sample-tile-build
       run:
         path: sh
         args:
         - -c
-        - cp redis-boshrelease/redis-*.tgz tile-generator-repo/sample/resources/ && tile-generator-repo/sample/src/build.sh sample-tile-build
+        - tile-generator-repo/sample/src/build.sh sample-tile-build
     on_failure:
       aggregate:
       - put: slack-alert

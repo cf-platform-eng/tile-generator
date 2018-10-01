@@ -36,7 +36,7 @@ if [ -e "${HISTORY}" ]; then
 fi
 
 if [ -n "${DOCKER_DIR}" ]; then
-	DOCKER_DIR="--docker-cache $BASE_DIR/$DOCKER_DIR"
+	DOCKER_DIR="--cache $BASE_DIR/$DOCKER_DIR"
 fi
 
 VERSION=""
