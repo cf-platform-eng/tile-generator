@@ -18,12 +18,14 @@ def _update_compilation_vm_disk_size(manifest):
     return package_size
 
 
-def get_disk_size_for_chart(start_path):
+def get_disk_size_for_chart(*chart_paths):
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
+    for chart_path in chart_paths:
+        if chart_path != None:
+            for dirpath, _, filenames in os.walk(chart_path):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    total_size += os.path.getsize(fp)
     return 4096 + (total_size // (1024 * 1024))
 
 
@@ -499,7 +501,7 @@ class Kibosh(FlagBase):
                     'name': 'kibosh',
                     'dynamic_ip': 1,
                     'varname': 'kibosh',
-                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir'])),
+                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir'], package.get('operator_dir'))),
                     'templates': [{'release': 'kibosh', 'name': 'kibosh'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename}],
                     'properties': {
@@ -517,6 +519,7 @@ class Kibosh(FlagBase):
                             'token': '(( .properties.k8s_cluster_token.value ))',
                             'service_id': '(( .properties.service_id.value ))',
                             'helm_chart_dir': '/var/vcap/packages/charts_for_%s/chart' % packagename,
+                            'operator_dir': '/var/vcap/packages/charts_for_%s/operator_chart' % packagename,
                         }
                     },
                 }, {
@@ -524,13 +527,14 @@ class Kibosh(FlagBase):
                     'dynamic_ip': 1,
                     'post_deploy': True,
                     'lifecycle': 'errand',
-                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir']) * 3),
+                    'ephemeral_disk': package.get('ephemeral_disk', get_disk_size_for_chart(package['helm_chart_dir'], package.get('operator_dir')) * 3),
                     'varname': 'loader',
                     'templates': [{'release': 'kibosh', 'name': 'load-image'},
                                   {'release': release['name'], 'name': 'charts_for_%s' % packagename},
                                   {'release': 'docker', 'name': 'docker'}],
                     'properties': {
                         'chart_path': '/var/vcap/packages/charts_for_%s/chart' % packagename,
+                        'operator_chart_path': '/var/vcap/packages/charts_for_%s/operator_chart' % packagename,
                         'store_dir': '/var/vcap/data',
                         'registry': {'username': '(( .properties.registry_user.value ))',
                             'password': '(( .properties.registry_pass.value ))',
@@ -593,6 +597,15 @@ class Kibosh(FlagBase):
                 }
             ],
         }
+
+        if 'operator_dir' in package and os.path.isdir(package['operator_dir']):
+            charts_to_disk_pkg['files'].append({
+                'name': 'operator_chart',
+                'path': package['operator_dir'],
+                'unzip': True,
+                'chmod': '+r',
+            })
+
         release['jobs'] += [{
             'name': 'charts_for_%s' % packagename,
             'type': 'charts_for_%s' % packagename,

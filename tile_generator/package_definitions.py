@@ -171,4 +171,5 @@ class PackageKibosh(BasePackage):
     flags = [flag.Kibosh]
     _schema = {
         'helm_chart_dir': {'type': 'string', 'required': True },
+        'operator_dir': {'type': 'string', 'required': False },
     }
