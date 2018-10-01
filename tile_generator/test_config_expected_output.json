@@ -998,7 +998,7 @@
             "name": "app", 
             "volumes": [
               "/var/vcap/data/certs:/mnt/certs/opsman-certs:ro", 
-              "/usr/share/local/ca-certificates:/mnt/certs/host-ca-certs:ro"
+              "/usr/local/share/ca-certificates:/mnt/certs/host-ca-certs:ro"
             ]
           }
         ]
@@ -2439,7 +2439,7 @@
                   "name": "app", 
                   "volumes": [
                     "/var/vcap/data/certs:/mnt/certs/opsman-certs:ro", 
-                    "/usr/share/local/ca-certificates:/mnt/certs/host-ca-certs:ro"
+                    "/usr/local/share/ca-certificates:/mnt/certs/host-ca-certs:ro"
                   ]
                 }
               ]
@@ -2848,7 +2848,7 @@
                 "name": "app", 
                 "volumes": [
                   "/var/vcap/data/certs:/mnt/certs/opsman-certs:ro", 
-                  "/usr/share/local/ca-certificates:/mnt/certs/host-ca-certs:ro"
+                  "/usr/local/share/ca-certificates:/mnt/certs/host-ca-certs:ro"
                 ]
               }
             ]

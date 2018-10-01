@@ -170,7 +170,7 @@ class DockerBosh(FlagBase):
 
             volumes = container.get('volumes', [])
             certs_dest_dir = container.get('certs_dest_dir', '/mnt/certs')
-            certs_src_dir = container.get('certs_src_dir', '/usr/share/local/ca-certificates')
+            certs_src_dir = container.get('certs_src_dir', '/usr/local/share/ca-certificates')
             volumes.append('/var/vcap/data/certs:%s/opsman-certs:ro' % certs_dest_dir)
             volumes.append('%s:%s/host-ca-certs:ro' % (certs_src_dir, certs_dest_dir))
             container['volumes'] = volumes
