@@ -525,6 +525,32 @@ class TestDefaultOptions(BaseTest):
 		tile_metadata = TileMetadata(self.config).build()
 		self.assertTrue(tile_metadata['base']['serial'])
 
+	def test_errands(self):
+		self.config['packages'] = [{
+			'name': 'some_errand',
+			'type': 'bosh-release',
+			'path': 'does/it/matter.tgz',
+			'jobs': [{
+				'name': 'krsna',
+				'templates': [{'name': 'krsna', 'release': 'blah'}],
+				'lifecycle': 'errand',
+		    'post_deploy': True,
+		    'pre_delete': True,
+		    'colocated': True,
+		    'run_default': 'off',
+		    'instances': ['some_vm/first'],
+		   	'label': 'colocated errand X',
+		    'description': 'This is a test errand'
+			}]
+		}]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		expected = [{'colocated': True, 'run_default': 'off', 
+								'description': 'This is a test errand', 
+								'name': 'krsna', 'label': 'colocated errand X'}]
+		self.assertEqual(tile_metadata['post_deploy_errands'], expected)
+		self.assertEqual(tile_metadata['pre_delete_errands'], expected)
+
 
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(BaseTest):

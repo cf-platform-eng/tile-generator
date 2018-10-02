@@ -20,6 +20,7 @@ class TileMetadata(object):
         self._build_property_blueprints()
         self._build_form_types()
         self._build_job_types()
+        self._build_errands()
         self._build_runtime_config()
         return self.tile_metadata
 
@@ -672,6 +673,24 @@ class TileMetadata(object):
 
         # Return value
         self.tile_metadata['job_types'] = job_types
+
+    def _build_errands(self):
+        post_deploy_errands = list()
+        pre_delete_errands = list()
+        for release in self.config.get('releases', {}).values():
+            errand = dict()
+            for job in release.get('jobs', []):
+                # TODO: This should all really be checked in Cerberus for validation!
+                if job.get('lifecycle') == 'errand':
+                    errand['name'] = job['name']
+                    if job.get('colocated'): errand['colocated'] = job.get('colocated')
+                    if job.get('run_default'): errand['run_default'] = job.get('run_default')
+                    if job.get('colocated'): errand['label'] = job.get('label', 'colocated errand for %s' % job['name'])
+                    if job.get('description'): errand['description'] = job.get('description')
+                    if job.get('post_deploy'): post_deploy_errands.append(errand)
+                    if job.get('pre_delete'): pre_delete_errands.append(errand)
+        self.tile_metadata['post_deploy_errands'] = post_deploy_errands
+        self.tile_metadata['pre_delete_errands'] = pre_delete_errands
 
     def _build_runtime_config(self):
         # TODO: this should be making a copy not clobbering the original.

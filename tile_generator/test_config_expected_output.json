@@ -1197,7 +1197,9 @@
           "varname": "redis"
         }, 
         {
+          "colocated": true, 
           "cpu": 2, 
+          "description": "This errand does little more than print a message in order to prove colocated errands work.", 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
           "lifecycle": "errand", 
@@ -3008,7 +3010,9 @@
           "varname": "redis"
         }, 
         {
+          "colocated": true, 
           "cpu": 2, 
+          "description": "This errand does little more than print a message in order to prove colocated errands work.", 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
           "lifecycle": "errand", 
