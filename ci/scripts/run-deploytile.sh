@@ -25,7 +25,7 @@ BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
 
 PCF="pcf"
 
-NETWORK="$3"
+NETWORK="$(jq -r .service_subnet_name $POOL_DIR/metadata)"
 if [ -n "$NETWORK" ]; then
 	NETWORK="--network $NETWORK"
 fi
