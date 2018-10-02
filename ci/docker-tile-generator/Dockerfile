@@ -14,15 +14,19 @@ RUN apk add --no-cache zip &&\
     apk del build-dependencies
 
 
-COPY tile-generator-*.tar.gz .
-RUN pip install tile-generator-*.tar.gz
-
 RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.23-linux-amd64
 RUN mv bosh-cli-2.0.23-linux-amd64 /usr/local/bin/bosh
 RUN chmod 755 /usr/local/bin/bosh
+
+RUN wget -O /tmp/cf.tgz https://packages.cloudfoundry.org/stable?release=linux64-binary
+RUN tar -C /tmp -zxf /tmp/cf.tgz
+RUN mv /tmp/cf /usr/local/bin/cf
 
 RUN apk add --update git
 RUN apk add --update bash
 RUN apk add --update openssh-client
 
 RUN rm -rf /var/cache/apk/*
+
+COPY tile-generator-*.tar.gz .
+RUN pip install tile-generator-*.tar.gz
