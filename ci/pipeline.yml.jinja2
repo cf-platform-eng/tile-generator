@@ -46,6 +46,11 @@ resource_types:
     repository: pivotalcf/pivnet-resource
     tag: latest-final
 
+- name: pcf-pool
+  type: docker-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
+
 resources:
 
 - name: tile-generator-repo
@@ -157,12 +162,13 @@ resources:
     password: {{docker-hub-password}}
 
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment-{{ cluster }}
-  type: pool
+  type: pcf-pool
   source:
-    uri: git@github.com:cf-platform-eng/pipeline-resource-pool-v2
-    branch: master
-    pool: pcf{% if not cluster[0].isdigit() %}_{% endif %}{{ cluster.replace('-', '_') }}
-    {% raw %}private_key: {{github-pool-private-key}}{% endraw %}{% if not loop.last %}
+    api_token: {% raw %}{{poolsmiths_api_token}}{% endraw %}
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: us_{{cluster}}
+  tags:
+  - platform-eng-vsphere{% if not loop.last %}
 
 {% endif %}{% endfor %}
 
@@ -418,7 +424,7 @@ jobs:
       aggregate:
       - put: slack-alert
         params:
-          channel: '@mboldt' #{% raw %}{{slack-channel}}{% endraw %}
+          channel: {% raw %}{{slack-channel}}{% endraw %}
           icon_emoji: ':concourse:'
           text: 'Tile build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -575,9 +581,11 @@ jobs:
       passed: [ acceptance-tests ]
     - get: tile-generator-package-release
       passed: [ acceptance-tests ]
-  - put: pcf-environment-{{ cluster }}
-    params:
-      acquire: true
+    - put: pcf-environment-{{ cluster }}
+      params:
+        action: claim
+      tags:
+      - platform-eng-vsphere
 
 - name: deploy-tile-{{ cluster }}
   disable_manual_trigger: true
@@ -598,6 +606,8 @@ jobs:
       passed: [ claim-{{ cluster }} ]
     - get: pcf-environment-{{ cluster }}
       passed: [ claim-{{ cluster }} ]
+      tags:
+      - platform-eng-vsphere
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
@@ -608,12 +618,9 @@ jobs:
       - name: generated-tile
       run:
         path: tile-generator-repo/ci/scripts/run-deploytile.sh
-        args: [ "generated-tile", "pcf-environment-{{ cluster }}"{% if cluster != 'multi-az' %}, "ert"{%endif%} ]
+        args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
     on_failure:
       aggregate:
-      - put: pcf-environment-{{ cluster }}
-        params:
-          release: pcf-environment-{{ cluster }}
       - put: slack-alert
         params:
           {% raw %}channel: {{slack-channel}}{% endraw %}
@@ -631,6 +638,8 @@ jobs:
       passed: [ deploy-tile-{{ cluster }} ]
     - get: pcf-environment-{{ cluster }}
       passed: [ deploy-tile-{{ cluster }} ]
+      tags:
+      - platform-eng-vsphere
     - get: tile-generator-repo
       passed: [ deploy-tile-{{ cluster }} ]
     - get: version
@@ -653,9 +662,6 @@ jobs:
         args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
     on_failure:
       aggregate:
-      - put: pcf-environment-{{ cluster }}
-        params:
-          release: pcf-environment-{{ cluster }}
       - put: slack-alert
         params:
           {% raw %}channel: {{slack-channel}}{% endraw %}
@@ -673,6 +679,8 @@ jobs:
       passed: [ deployment-tests-{{ cluster }} ]
     - get: pcf-environment-{{ cluster }}
       passed: [ deployment-tests-{{ cluster }} ]
+      tags:
+      - platform-eng-vsphere
     - get: tile-generator-repo
       passed: [ deployment-tests-{{ cluster }} ]
     - get: version
@@ -693,10 +701,6 @@ jobs:
       run:
         path: tile-generator-repo/ci/scripts/run-removetile.sh
         args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
-    ensure:
-      put: pcf-environment-{{ cluster }}
-      params:
-        release: pcf-environment-{{ cluster }}
     on_failure:
       put: slack-alert
       params:
@@ -704,6 +708,12 @@ jobs:
         icon_emoji: ':concourse:'
         text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
         username: Tile Generator{% if not loop.last %}
+  - put: pcf-environment-{{ cluster }}
+    params:
+      action: unclaim
+      env_file: pcf-environment-{{ cluster }}/metadata
+    tags:
+    - platform-eng-vsphere
 
 {% endif %}{% endfor %}{% raw %}
 
