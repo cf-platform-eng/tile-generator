@@ -137,7 +137,12 @@ class DockerBosh(FlagBase):
         release['jobs'] += [{
             'name': job_name,
             'template': 'docker-bosh',
-            'package': package
+            'package': package,
+            'properties': {
+                'tls_cacert': '(( $ops_manager.ca_certificate ))',
+                'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
+                'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
+            }
         }]
         version = None
         version_param = '?v=' + version if version else ''
@@ -153,14 +158,6 @@ class DockerBosh(FlagBase):
 
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
-        properties.update({
-            'security': {
-                'password': '(( .' + job_name + '.app_credentials.password ))',
-                'user': '(( .' + job_name + '.app_credentials.identity ))'},
-            'tls_cacert': '(( $ops_manager.ca_certificate ))',
-            'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
-            'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
-        })
         properties[packagename].update({'name': packagename})
         package['properties'] = properties
         for container in package.get('manifest', {}).get('containers', []):

@@ -1008,16 +1008,9 @@
       "package-type": "docker-bosh", 
       "persistent_disk": 2048, 
       "properties": {
-        "security": {
-          "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-          "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-        }, 
         "tg_test_app4": {
           "name": "tg_test_app4"
-        }, 
-        "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-        "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-        "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))"
+        }
       }, 
       "routes": [
         {
@@ -1073,10 +1066,6 @@
             "planets": "(( .properties.planets.value ))", 
             "runtime_test_release": {
               "name": "runtime_test_release"
-            }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
             }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
@@ -1181,9 +1170,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1255,10 +1241,6 @@
             "runtime_test_release": {
               "name": "runtime_test_release"
             }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-            }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
               "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
@@ -1362,9 +1344,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1471,10 +1450,6 @@
             "runtime_test_release": {
               "name": "runtime_test_release"
             }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-            }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
               "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
@@ -1578,9 +1553,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1678,10 +1650,6 @@
             "runtime_test_release": {
               "name": "runtime_test_release"
             }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-            }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
               "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
@@ -1785,9 +1753,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1948,8 +1913,8 @@
               "name": "runtime_test_release"
             }, 
             "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
+              "password": "(( .deploy-all.app_credentials.password ))", 
+              "user": "(( .deploy-all.app_credentials.identity ))"
             }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
@@ -2058,9 +2023,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -2120,10 +2082,6 @@
             "planets": "(( .properties.planets.value ))", 
             "runtime_test_release": {
               "name": "runtime_test_release"
-            }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
             }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
@@ -2228,9 +2186,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -2289,10 +2244,6 @@
             "planets": "(( .properties.planets.value ))", 
             "runtime_test_release": {
               "name": "runtime_test_release"
-            }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
             }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
@@ -2449,16 +2400,9 @@
             "package-type": "docker-bosh", 
             "persistent_disk": 2048, 
             "properties": {
-              "security": {
-                "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-                "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-              }, 
               "tg_test_app4": {
                 "name": "tg_test_app4"
-              }, 
-              "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-              "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-              "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))"
+              }
             }, 
             "routes": [
               {
@@ -2467,7 +2411,11 @@
               }
             ]
           }, 
-          "properties": {}, 
+          "properties": {
+            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
+            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
+            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))"
+          }, 
           "template": "docker-bosh", 
           "type": "docker-bosh-tg_test_app4"
         }
@@ -2858,16 +2806,9 @@
           "package-type": "docker-bosh", 
           "persistent_disk": 2048, 
           "properties": {
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-            }, 
             "tg_test_app4": {
               "name": "tg_test_app4"
-            }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))"
+            }
           }, 
           "routes": [
             {
@@ -2936,10 +2877,6 @@
             "planets": "(( .properties.planets.value ))", 
             "runtime_test_release": {
               "name": "runtime_test_release"
-            }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
             }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
@@ -3044,9 +2981,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -3118,10 +3052,6 @@
             "runtime_test_release": {
               "name": "runtime_test_release"
             }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-            }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
               "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
@@ -3225,9 +3155,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -3323,10 +3250,6 @@
             "runtime_test_release": {
               "name": "runtime_test_release"
             }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-            }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
               "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
@@ -3430,9 +3353,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -3530,10 +3450,6 @@
             "runtime_test_release": {
               "name": "runtime_test_release"
             }, 
-            "security": {
-              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
-              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
-            }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
               "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
@@ -3637,9 +3553,6 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))", 
               "name": "tg_test_buildpack"
             }, 
-            "tls_cacert": "(( $ops_manager.ca_certificate ))", 
-            "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
-            "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))", 
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))", 
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
