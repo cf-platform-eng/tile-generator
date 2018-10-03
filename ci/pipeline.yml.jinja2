@@ -707,13 +707,13 @@ jobs:
         {% raw %}channel: {{slack-channel}}{% endraw %}
         icon_emoji: ':concourse:'
         text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
-        username: Tile Generator{% if not loop.last %}
+        username: Tile Generator
   - put: pcf-environment-{{ cluster }}
     params:
       action: unclaim
       env_file: pcf-environment-{{ cluster }}/metadata
     tags:
-    - platform-eng-vsphere
+    - platform-eng-vsphere{% if not loop.last %}
 
 {% endif %}{% endfor %}{% raw %}
 
