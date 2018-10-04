@@ -551,6 +551,29 @@ class TestDefaultOptions(BaseTest):
 		self.assertEqual(tile_metadata['post_deploy_errands'], expected)
 		self.assertEqual(tile_metadata['pre_delete_errands'], expected)
 
+	def test_multiline_yaml(self):
+		self.config['forms'] = [{'label': 'Compatibility', 
+			'properties': [{'description': 'Enable compatibility with the GCP Service Broker v3.x.\n\
+Before version 4.0, each installation generated its own plan UUIDs, after 4.0 they have been standardized.\n\
+This option installs a compatibility layer which checks if a service is using the correct plan GUID.\n\
+If the service does not use the correct GUID, the request will fail with a message about how to upgrade.', 
+				'name': 'gsb_compatibility_three_to_four',
+				'default': False,
+				'optional': False, 
+				'configurable': True,
+				'type': 'boolean',
+				'label': 'Compatibility with GCP Service Broker v3.X'
+			}], 
+			'name': 'compatibility',
+			'description': 'Legacy Compatibility Options'
+		}]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+		expected = 'Enable compatibility with the GCP Service Broker v3.x.\n\
+Before version 4.0, each installation generated its own plan UUIDs, after 4.0 they have been standardized.\n\
+This option installs a compatibility layer which checks if a service is using the correct plan GUID.\n\
+If the service does not use the correct GUID, the request will fail with a message about how to upgrade.'
+		self.assertEqual(tile_metadata['form_types'][0]['property_inputs'][0]['description'], expected)
 
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(BaseTest):
