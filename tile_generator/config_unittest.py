@@ -20,7 +20,6 @@ import os
 import unittest
 import sys
 import tempfile
-import yaml
 
 from contextlib import contextmanager
 from StringIO import StringIO
@@ -720,6 +719,16 @@ class TestKiboshType(BaseTest):
 		self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
                 loader_is_errand = [job.get('errand') for job in tile_metadata['job_types'] if job.get('name') == 'loader'][0]
                 self.assertTrue(loader_is_errand)
+
+class TestHelmType(BaseTest):
+	def test_helm_jobs(self):
+		self.config['packages'] = [{'name': 'spacebears', 'type': 'helm', 'path': 'examples/kibosh-mysql/mysql'}]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+
+		actual_jobs = [job['name'] for job in tile_metadata['job_types']]
+		expected_jobs = ['deploy-charts', 'delete-charts']
+		self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
 
 
 class TestTileIconFile(BaseTest):

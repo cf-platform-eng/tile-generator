@@ -18,7 +18,7 @@ export BOSH_DEPLOYMENT=<%= spec.deployment %>
 
 # Use PKS to connect kubectl to the named cluster
 #
-pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-verification # FIXME --ca-cert /path/to/cert
+pks login --api "$PKS_HOST" --username "$PKS_USERNAME" --password "$PKS_PASSWORD" --skip-ssl-validation # FIXME --ca-cert /path/to/cert
 pks get-credentials "$PKS_CLUSTER_NAME"
 
 # Check if tiller is there. If not, there's nothing to do
@@ -32,7 +32,8 @@ fi
 
 # FIXME Remove any cached docker images that were pushed by this release
 
-# FIXME - This only works for a single helm chart
+{% for package in context.packages if package['package-type'] == 'helm' %}
+
 HELM_NAME={{ package.name }}
 HELM_RELEASE=$(helm list "^${HELM_NAME}\$")
 if [ -z "$HELM_RELEASE" ]; then
@@ -40,3 +41,5 @@ if [ -z "$HELM_RELEASE" ]; then
 else
     helm delete "${HELM_NAME}" --purge
 fi
+
+{% endfor %}

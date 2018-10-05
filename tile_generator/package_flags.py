@@ -263,7 +263,6 @@ class Buildpack(FlagBase):
 class Helm(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
-        package['is_helm'] = True
         # Read the helm chart and bundle all required docker images
         chart_info = helm.get_chart_info(package['path'])
         for image in chart_info['required_images']:
@@ -310,12 +309,14 @@ class Helm(FlagBase):
         if { 'name': 'delete-charts' } not in config_obj.get('pre_delete_errands', []):
             config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-charts' }]
         if not 'pks_cli' in [p['name'] for p in release['packages']]:
+            if 'PKSCLILINUX' not in os.environ:
+                print('PKSCLILINUX environment variable not defined. Set to path of PKS CLI in order to make Helm packages.', file=sys.stderr)
+                sys.exit(1)
             release['packages'] += [{
                 'name': 'pks_cli',
                 'files': [{
                     'name': 'pks',
-                    # @todo this url no longer exists. is pks hosted publicly anywhere?
-                    'path': 'https://storage.googleapis.com/pks-public/bin/linux/pks',
+                    'path': os.environ['PKSCLILINUX'],
                     'chmod': '+x',
                 }],
                 'dir': 'blobs'
