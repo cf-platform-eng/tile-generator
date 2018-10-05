@@ -678,8 +678,8 @@ class TileMetadata(object):
         post_deploy_errands = list()
         pre_delete_errands = list()
         for release in self.config.get('releases', {}).values():
-            errand = dict()
             for job in release.get('jobs', []):
+                errand = dict()
                 # TODO: This should all really be checked in Cerberus for validation!
                 if job.get('lifecycle') == 'errand':
                     errand['name'] = job['name']

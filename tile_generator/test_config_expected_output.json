@@ -2247,6 +2247,10 @@
             "runtime_test_release": {
               "name": "runtime_test_release"
             }, 
+            "security": {
+              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
+              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
+            }, 
             "space": "(( .properties.space.value ))", 
             "ssl": {
               "skip_cert_verify": "(( ..cf.ha_proxy.skip_cert_verify.value ))"
@@ -2414,6 +2418,10 @@
             ]
           }, 
           "properties": {
+            "security": {
+              "password": "(( .docker-bosh-tg_test_app4.app_credentials.password ))", 
+              "user": "(( .docker-bosh-tg_test_app4.app_credentials.identity ))"
+            }, 
             "tls_cacert": "(( $ops_manager.ca_certificate ))", 
             "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))", 
             "tls_key": "(( .properties.generated_rsa_cert_credentials.private_key_pem ))"
