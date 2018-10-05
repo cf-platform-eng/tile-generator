@@ -87,7 +87,7 @@ class PackageDockerBosh(BasePackage):
             'port': {'required': True},}}},
         'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True, 'coerce': _to_yaml,
                      'keyschema': {'forbidden': ['path']}, 'schema': {
-            'container': {'type': 'list', 'schema': {'type': 'dict', 'schema': {
+            'containers': {'type': 'list', 'schema': {'type': 'dict', 'schema': {
                 'name': {'type': 'string', 'required': True, 'regex': '^[a-z][a-zA-Z0-9_]*$'},
                 'env_file': {'type': 'list', 'default': [], 'schema': {
                     'type': 'string'}}}}}}},
