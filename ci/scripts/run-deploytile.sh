@@ -25,7 +25,7 @@ BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
 
 PCF="pcf"
 
-NETWORK="$3"
+NETWORK="$(jq -r .ert_subnet $POOL_DIR/metadata)"
 if [ -n "$NETWORK" ]; then
 	NETWORK="--network $NETWORK"
 fi
@@ -41,6 +41,10 @@ PRODUCT=`echo "${TILE_FILE}" | sed "s/-[0-9].*$//"`
 VERSION=`echo "${TILE_FILE}" | sed "s/${PRODUCT}-//" | sed "s/\.pivotal\$//"`
 
 cd "${POOL_DIR}"
+
+echo "Enable diego_docker:"
+$PCF target -o system
+cf enable-feature-flag diego_docker
 
 echo "Available products:"
 $PCF products

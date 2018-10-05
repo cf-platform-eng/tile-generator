@@ -173,9 +173,6 @@ class Config(dict):
 			'packages': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
 					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
-					# TODO: Temporary variable for things that require underscore names. All instances should be changed
-					# back to using `name` once we enforce using underscores in package names.
-					'varname': {'type': 'string', 'default_setter': lambda doc: doc['name'].replace('-','_')},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
 			'requires_product_versions': {'type': 'list', 'schema': {
@@ -192,7 +189,9 @@ class Config(dict):
 								'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 								'version': {'type': 'string', 'required': True,'coerce': lambda x: str(x)},
 						}}},
-						'addons': {'required': True, 'type': 'list', 'schema': {
+						'addons': {'required': True, 'anyof': [
+							{'type': 'string', 'regex': '.*parsed_manifest.*'},
+							{'type': 'list', 'schema': {
 							'type': 'dict', 'schema': {
 								'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 								'properties': {'type': 'dict'},
@@ -201,10 +200,10 @@ class Config(dict):
 										'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 										'release': {'type': 'string', 'required': True}
 								}}}
-						}}}
+					        }}}]
 					}}
 			}}}
-		}
+		}}
 
 		# These are all keys that are used later that hammer the config obj. This should be changed.
 		keywords = ['releases', 'all_properties', 'post_deploy_errands', 'pre_delete_errands',

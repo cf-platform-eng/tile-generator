@@ -230,7 +230,7 @@ class TestConfigValidation(BaseTest):
 		self.config.validate()
 
 	def test_accepts_valid_package_name_with_number(self):
-		self.config['packages'] = [{'name': 'valid_name_2', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config['packages'] = [{'name': 'valid-name-2', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
 		self.config.validate()
 
 	def test_refuses_spaces_in_package_name(self):
@@ -291,7 +291,7 @@ class TestConfigValidation(BaseTest):
 
 	def test_accepts_docker_bosh_package_with_image(self):
 		self.config['packages'] = [{
-			'name': 'good_docker_bosh',
+			'name': 'good-docker-bosh',
 			'type': 'docker-bosh',
 			'docker_images': ['my/image'],
 			'manifest': 'containers: [name: a]'
@@ -301,7 +301,7 @@ class TestConfigValidation(BaseTest):
 	def test_refuses_docker_bosh_package_without_manifest(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
-				'name': 'bad_docker_bosh',
+				'name': 'bad-docker-bosh',
 				'type': 'docker-bosh',
 				'docker_images': ['my/image']
 			}]
@@ -310,7 +310,7 @@ class TestConfigValidation(BaseTest):
 	def test_refuses_docker_bosh_package_with_bad_manifest(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
-				'name': 'bad_docker_bosh',
+				'name': 'bad-docker-bosh',
 				'type': 'docker-bosh',
 				'docker_images': ['my/image'],
 				'manifest': '!^%'
@@ -320,7 +320,7 @@ class TestConfigValidation(BaseTest):
 	def test_validates_docker_bosh_container_names(self):
 		with self.assertRaises(SystemExit):
 			self.config['packages'] = [{
-				'name': 'good_docker_bosh',
+				'name': 'good-docker-bosh',
 				'type': 'docker-bosh',
 				'docker_images': ['cholick/foo'],
 				'manifest': '''
@@ -352,15 +352,14 @@ class TestConfigValidation(BaseTest):
 
 	def test_releases_maintain_order(self):
 		self.config['packages'] = [
-			{ 'name': 'z_name', 'type': 'bosh-release', 'manifest': {}},
-			{ 'name': 'd_name', 'type': 'bosh-release', 'manifest': {}},
-			{ 'name': 'a_name', 'type': 'bosh-release', 'manifest': {}},
-			{ 'name': 'b_name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'z-name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'd-name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'a-name', 'type': 'bosh-release', 'manifest': {}},
+			{ 'name': 'b-name', 'type': 'bosh-release', 'manifest': {}},
 		]
 		self.config.validate()
 		self.assertEquals([r['name'] for r in self.config['releases'].values()],
 			['z_name', 'd_name', 'a_name', 'b_name'])
-
 
 class TestVersionMethods(BaseTest):
 
@@ -484,29 +483,29 @@ class TestVersionMethods(BaseTest):
 
 class TestDefaultOptions(BaseTest):
 	def test_purge_service_broker_is_true_by_default(self):
-		self.config.update({'name': 'tile_generator_unittest'})
+		self.config.update({'name': 'tile-generator-unittest'})
 		self.config.validate()
 		self.assertTrue(self.config['purge_service_brokers'])
 
 	def test_purge_service_broker_is_overridden(self):
 		self.config.update({'purge_service_brokers': False,
-				 'name': 'tile_generator_unittest'})
+				 'name': 'tile-generator-unittest'})
 		self.config.validate()
 		self.assertFalse(self.config['purge_service_brokers'])
 
 	def test_normalize_jobs_default_job_properties(self):
 		self.config.update({
-			'releases': {'my_job': {
+			'releases': {'my-job': {
 				'jobs': [{
-					'name': 'my_job'
+					'name': 'my-job'
 				}]
 			}}
 		})
 		self.config.normalize_jobs()
-		self.assertEqual(self.config['releases']['my_job']['jobs'][0]['properties'], {})
+		self.assertEqual(self.config['releases']['my-job']['jobs'][0]['properties'], {})
 
 	def test_default_metadata_version(self):
-		self.config.update({'name': 'my_tile'})
+		self.config.update({'name': 'my-tile'})
 		self.config.validate()
 		self.assertEqual(self.config['metadata_version'], 1.8)
 
@@ -525,49 +524,55 @@ class TestDefaultOptions(BaseTest):
 		tile_metadata = TileMetadata(self.config).build()
 		self.assertTrue(tile_metadata['base']['serial'])
 
-class TestMetadataOutput(BaseTest):
-	def test_display_type_renders_correctly(self):
-		self.config['forms'] = [{
-			'description': 'Test for display_type',
-      'label': 'Test',
-      'name': 'some_form',
-      'properties': [{'display_type': 'text_area',
-                      'label': 'Password',
-                      'name': 'password',
-                      'type': 'secret'}]
-    }]
+	def test_errands(self):
+		self.config['packages'] = [{
+			'name': 'some_errand',
+			'type': 'bosh-release',
+			'path': 'does/it/matter.tgz',
+			'jobs': [{
+				'name': 'krsna',
+				'templates': [{'name': 'krsna', 'release': 'blah'}],
+				'lifecycle': 'errand',
+		    'post_deploy': True,
+		    'pre_delete': True,
+		    'colocated': True,
+		    'run_default': 'off',
+		    'instances': ['some_vm/first'],
+		   	'label': 'colocated errand X',
+		    'description': 'This is a test errand'
+			}]
+		}]
 		self.config.validate()
 		tile_metadata = TileMetadata(self.config).build()
-		self.assertNotIn('display_type', tile_metadata['form_types'][0].keys())
-		self.assertEquals('text_area', tile_metadata['form_types'][0]['property_inputs'][0]['display_type'])
+		expected = [{'colocated': True, 'run_default': 'off', 
+								'description': 'This is a test errand', 
+								'name': 'krsna', 'label': 'colocated errand X'}]
+		self.assertEqual(tile_metadata['post_deploy_errands'], expected)
+		self.assertEqual(tile_metadata['pre_delete_errands'], expected)
 
-	# TODO: !!! Remove once we enforce underscores only. !!!
-	def test_having_hyphens_does_not_change_behavior(self):
-		self.config['packages'] = [
-			{
-				'name': 'my-broker', 'type': 'app-broker',
-				'manifest': {
-					'path': 'resources/app.zip', 'command': 'python app.py',
-					'memory': '256M', 'buildpack': 'python_buildpack'
-				}
-			}, {
-				'name': 'test-external-broker', 'type': 'external-broker'
-			},
-			{
-				'name': 'my-buildpack', 'type': 'buildpack', 'buildpack_order': 99,
-				'manifest': {
-					'path': 'resources/app.zip', 'command': 'python app.py',
-					'memory': '256M', 'buildpack': 'python_buildpack'
-				}
-			}
-		]
+	def test_multiline_yaml(self):
+		self.config['forms'] = [{'label': 'Compatibility', 
+			'properties': [{'description': 'Enable compatibility with the GCP Service Broker v3.x.\n\
+Before version 4.0, each installation generated its own plan UUIDs, after 4.0 they have been standardized.\n\
+This option installs a compatibility layer which checks if a service is using the correct plan GUID.\n\
+If the service does not use the correct GUID, the request will fail with a message about how to upgrade.', 
+				'name': 'gsb_compatibility_three_to_four',
+				'default': False,
+				'optional': False, 
+				'configurable': True,
+				'type': 'boolean',
+				'label': 'Compatibility with GCP Service Broker v3.X'
+			}], 
+			'name': 'compatibility',
+			'description': 'Legacy Compatibility Options'
+		}]
 		self.config.validate()
 		tile_metadata = TileMetadata(self.config).build()
-		for prop in ['my_broker_enable_global_access_to_plans', 'test_external_broker_enable_global_access_to_plans',
-								 'test_external_broker_url', 'test_external_broker_user', 'test_external_broker_password',
-								 'my_buildpack_buildpack_order']:
-			self.assertIn(prop, [p['name'] for p in tile_metadata['property_blueprints']])
-
+		expected = 'Enable compatibility with the GCP Service Broker v3.x.\n\
+Before version 4.0, each installation generated its own plan UUIDs, after 4.0 they have been standardized.\n\
+This option installs a compatibility layer which checks if a service is using the correct plan GUID.\n\
+If the service does not use the correct GUID, the request will fail with a message about how to upgrade.'
+		self.assertEqual(tile_metadata['form_types'][0]['property_inputs'][0]['description'], expected)
 
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(BaseTest):
@@ -575,7 +580,7 @@ class TestVMDiskSize(BaseTest):
 		# Don't patch _update_compilation_vm_disk_size_patcher
 		self._update_compilation_vm_disk_size_patcher.stop()
 		mock_getsize.return_value = 0
-		self.config.update({'name': 'tile_generator_unittest'})
+		self.config.update({'name': 'tile-generator-unittest'})
 		self.config['packages'] = [{
 			'name': 'validname', 'type': 'app',
 			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
@@ -591,7 +596,7 @@ class TestVMDiskSize(BaseTest):
 	def test_big_default_vm_disk_size(self, mock_getsize):
 		# Don't patch _update_compilation_vm_disk_size_patcher
 		self._update_compilation_vm_disk_size_patcher.stop()
-		self.config.update({'name': 'tile_generator_unittest'})
+		self.config.update({'name': 'tile-generator-unittest'})
 		self.config['packages'] = [{
 			'name': 'validname', 'type': 'app',
 			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
@@ -621,19 +626,19 @@ class TestTileName(BaseTest):
 			self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphen(self):
-		self.config.update({'name': 'valid_name'})
+		self.config.update({'name': 'valid-name'})
 		self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphens(self):
-		self.config.update({'name': 'valid_name_too'})
+		self.config.update({'name': 'valid-name-too'})
 		self.config.validate()
 
 	def test_accepts_valid_product_name_with_number(self):
-		self.config.update({'name': 'valid_name_2'})
+		self.config.update({'name': 'valid-name-2'})
 		self.config.validate()
 
 	def test_accepts_valid_product_name_with_one_letter_prefix(self):
-		self.config.update({'name': 'p_tile'})
+		self.config.update({'name': 'p-tile'})
 		self.config.validate()
 
 	def test_refuses_spaces_in_product_name(self):
@@ -663,7 +668,6 @@ class TestTileName(BaseTest):
 		with self.assertRaises(SystemExit):
 			self.config.update({'name': 'invalid-name_'})
 			self.config.validate()
-
 
 class TestTileSimpleFields(BaseTest):
 	def test_requires_label(self):
@@ -720,6 +724,17 @@ class TestKiboshType(BaseTest):
                 loader_is_errand = [job.get('errand') for job in tile_metadata['job_types'] if job.get('name') == 'loader'][0]
                 self.assertTrue(loader_is_errand)
 
+	def test_kibosh_jobs_with_operator(self):
+		self.config['packages'] = [{'name': 'spacebears', 'type': 'kibosh', 'helm_chart_dir': 'example-chart', 'operator_dir': 'example-operator-chart'}]
+		self.config.validate()
+		tile_metadata = TileMetadata(self.config).build()
+
+		actual_jobs = [job['name'] for job in tile_metadata['job_types']]
+		expected_jobs = ['deregistrar', 'kibosh', 'loader', 'register']
+		self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
+                loader_is_errand = [job.get('errand') for job in tile_metadata['job_types'] if job.get('name') == 'loader'][0]
+                self.assertTrue(loader_is_errand)
+
 class TestHelmType(BaseTest):
 	def test_helm_jobs(self):
 		self.config['packages'] = [{'name': 'spacebears', 'type': 'helm', 'path': 'examples/kibosh-mysql/mysql'}]
@@ -729,7 +744,6 @@ class TestHelmType(BaseTest):
 		actual_jobs = [job['name'] for job in tile_metadata['job_types']]
 		expected_jobs = ['deploy-charts', 'delete-charts']
 		self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
-
 
 class TestTileIconFile(BaseTest):
 	def test_requires_icon_file(self):

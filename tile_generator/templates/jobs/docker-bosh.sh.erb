@@ -26,6 +26,9 @@ case $1 in
     echo $$ > $PIDFILE
     chown vcap:vcap $PIDFILE
 
+    mkdir -p /var/vcap/data/certs
+    echo "<%=p('tls_cacert')%>" > /var/vcap/data/certs/opsman-ca.pem
+
     for image in $PACKAGES_DIR/*.tgz; do
       /var/vcap/packages/docker/bin/docker \
         --host unix:///var/vcap/sys/run/docker/docker.sock \

@@ -33,34 +33,14 @@ runtime_configs:
 {% endfor %}
 {% endif %}
 
-{% set post_deploy_errands = [] %}
-{% for release in releases.values() %}
-{% for job in release.jobs %}
-{% if job.lifecycle and job.lifecycle == 'errand' and job.post_deploy %}
-{% do post_deploy_errands.append(job.name) %}
-{% endif %}
-{% endfor %}
-{% endfor %}
-post_deploy_errands: {% if not post_deploy_errands %}[]{% else %}
+post_deploy_errands: {% if not tile_metadata.post_deploy_errands %}[]{% else %}
 
-{% for job_name in post_deploy_errands %}
-- name: {{ job_name }}
-{% endfor %}
+{{ tile_metadata.post_deploy_errands | yaml }}
 {% endif %}
 
-{% set pre_delete_errands = [] %}
-{% for release in releases.values() %}
-{% for job in release.jobs %}
-{% if job.lifecycle and job.lifecycle == 'errand' and job.pre_delete %}
-{% do pre_delete_errands.append(job.name) %}
-{% endif %}
-{% endfor %}
-{% endfor %}
-pre_delete_errands: {% if not pre_delete_errands %}[]{% else %}
+pre_delete_errands: {% if not tile_metadata.pre_delete_errands %}[]{% else %}
 
-{% for job_name in pre_delete_errands %}
-- name: {{ job_name }}
-{% endfor %}
+{{ tile_metadata.pre_delete_errands | yaml }}
 {% endif %}
 
 update:

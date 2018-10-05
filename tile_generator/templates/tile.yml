@@ -22,7 +22,7 @@ description: Longer description of the tile's purpose
 # http://docs.pivotal.io/tiledev/tile-generator.html
 #
 packages:
-- name: my_application
+- name: my-application
   type: app
 #  label: My fabulous appplication      # Package name for use in human-readable labels in OpsManager
   manifest:
@@ -35,6 +35,7 @@ packages:
 # - name: my_pks_service
 #   type: kibosh
 #   helm_chart_dir: example-chart    # Directory which contains the helm chart to be deployed
+#   operator_dir: example-chart      # Directory which contains any operator helm charts (optional)
 
 # Include stemcell criteria if you don't want to accept the default.
 # Since this stemcell is only used to run pre and post errands, we
@@ -102,18 +103,18 @@ packages:
 # tile.yml
 #
 # runtime_configs:
-#   - name: MY_RUNTIME_CONFIG
+#   - name: MY-RUNTIME-CONFIG
 #     runtime_config:
 #       releases:
 #       - name: os-conf
 #         version: 15
 #       addons:
-#       - name: MY_ADDON_NAME
+#       - name: MY-ADDON-NAME
 #         jobs:
-#         - name: MY_RUNTIME_CONFIG_JOB
+#         - name: MY-RUNTIME-CONFIG-JOB
 #           release: os-conf
 #         properties:
-#           MY_ADDON_NAME:
+#           MY-ADDON-NAME:
 #         ...
 #
 # Bosh releases referenced by add-ons must be either already present,

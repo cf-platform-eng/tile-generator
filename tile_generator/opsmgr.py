@@ -73,6 +73,9 @@ def get_credential_dir(update=False):
 		subprocess.call(['git', 'pull'], cwd=dir, stdout=devnull, stderr=devnull)
 	return dir
 
+def is_poolsmiths_env(creds):
+	return 'ops_manager' in creds
+
 def get_credentials(target=None, non_interactive=False):
 	if get_credentials.credentials is not None:
 		return get_credentials.credentials
@@ -92,6 +95,9 @@ def get_credentials(target=None, non_interactive=False):
 	try:
 		with open(credential_file) as cred_file:
 			creds = yaml.safe_load(cred_file)
+			if is_poolsmiths_env(creds):
+				creds['opsmgr'] = creds['ops_manager']
+				creds['opsmgr']['ssh_key'] = creds['ops_manager_private_key']
 			creds['opsmgr']
 			creds['opsmgr']['url']
 			creds['opsmgr']['username']
@@ -288,7 +294,11 @@ def ssh(command=None, login_to_bosh=True, quiet=False):
 		print_if('Exporting needed bosh environment variables...')
 		director_creds = get('/api/v0/deployed/director/credentials/director_credentials').json()
 		director_manifest = get('/api/v0/deployed/director/manifest').json()
-		session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
+		if 'jobs' in director_manifest: # PCF 2.2 and earlier
+			director_address = director_manifest['jobs'][0]['properties']['director']['address']
+		else: # PCF 2.3 and later
+			director_address = director_manifest['instance_groups'][0]['properties']['director']['address']
+		session.sendline('export BOSH_ENVIRONMENT="{}"'.format(director_address))
 		session.sendline('export BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
 		
 		bosh2_username = director_creds['credential']['value']['identity']

@@ -66,6 +66,15 @@ def hello():
 def environment():
 	return json.dumps(dict(os.environ), indent=4)
 
+@app.route("/ls", methods=['POST'])
+def ls():
+	if not request.json or not 'directory' in request.json:
+		return 'Bad request: needs "directory" key in json', 500
+	directory = request.json['directory']
+	if not os.path.isdir(directory):
+		return '{} is not a directory'.format(directory), 500
+	return json.dumps(os.listdir(directory))
+
 @app.route("/proxy")
 def proxy():
 	url = request.args.get('url')

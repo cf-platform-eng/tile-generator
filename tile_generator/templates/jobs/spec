@@ -55,6 +55,8 @@ properties:
     description: 'Basic auth user'
   security.password:
     description: 'Basic auth password'
+  tls_cacert:
+    description: "Ops Manager's CA certificate"
   pks_username:
     description: 'Username for the PKS API'
   pks_password:
@@ -71,16 +73,16 @@ properties:
   {{ package.name }}.name:
     description: 'Name of package'
 {% if package.is_external_broker %}
-  {{ package.varname }}.url:
+  {{ package.name }}.url:
     description: 'URL to access service'
-  {{ package.varname }}.user:
+  {{ package.name }}.user:
      description: 'Basic auth username to access service'
-  {{ package.varname }}.password:
+  {{ package.name }}.password:
      description: 'Basic auth password to access service'
 {% elif package.is_broker %}
-  {{ package.varname }}.user:
+  {{ package.name }}.user:
      description: 'Basic auth username'
-  {{ package.varname }}.password:
+  {{ package.name }}.password:
      description: 'Basic auth password'
 {% endif %}
 {% if package.is_app %}
@@ -91,12 +93,12 @@ properties:
      default: []
 {% endif %}
 {% if package.is_broker %}
-  {{ package.varname }}.enable_global_access_to_plans:
+  {{ package.name }}.enable_global_access_to_plans:
     description: 'Access to all service plans'
     default: false
 {% endif %}
 {% if package.is_buildpack %}
-  {{ package.varname }}.buildpack_order:
+  {{ package.name }}.buildpack_order:
     description: 'Order of the Buildpack'
 {% endif %}
 {% endfor %}
