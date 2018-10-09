@@ -45,11 +45,10 @@ class TileMetadata(object):
         self.tile_metadata['base'] = base
 
     def _build_stemcell_criteria(self):
-        stemcell_criteria = dict()
+        stemcell_criteria = self.config['stemcell_criteria']
         # Note: tile.py uses self.config['stemcell_criteria']
-        stemcell_criteria['os'] = self.config['stemcell_criteria']['os']
-        stemcell_criteria['requires_cpi'] = False
-        stemcell_criteria['version'] = str(self.config.get('stemcell_criteria', {}).get('version', 3312))
+        if not stemcell_criteria.has_key('requires_cpi'): stemcell_criteria['requires_cpi'] = False
+        if not stemcell_criteria.has_key('version'): 3312
         self.tile_metadata['stemcell_criteria'] = {'stemcell_criteria': stemcell_criteria}
 
     def _build_property_blueprints(self):
