@@ -63,11 +63,11 @@ properties:
     description: 'Password for the PKS API'
 {% for property in context.all_properties %}
   {{ property.name }}:
-    description: {{ property.description or property.name }}
+    description: "{{ property.description or property.name }}"
 {% endfor %}
 {% for service_plan_form in context.service_plan_forms %}
   {{ service_plan_form.name }}:
-    description: {{ service_plan_form.name }}
+    description: '{{ service_plan_form.name }}'
 {% endfor %}
 {% for package in context.packages %}
   {{ package.name }}.name:
