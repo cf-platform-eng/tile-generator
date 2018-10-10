@@ -1222,8 +1222,8 @@ job_types:
     runtime_test_release:
       name: runtime_test_release
     security:
-      password: (( .docker-bosh-tg_test_app4.app_credentials.password ))
-      user: (( .docker-bosh-tg_test_app4.app_credentials.identity ))
+      password: (( .deploy-all.app_credentials.password ))
+      user: (( .deploy-all.app_credentials.identity ))
     space: (( .properties.space.value ))
     ssl:
       skip_cert_verify: (( ..cf.ha_proxy.skip_cert_verify.value ))

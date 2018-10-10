@@ -140,8 +140,8 @@ class DockerBosh(FlagBase):
             'package': package,
             'properties': {
             'security': {
-                'password': '(( .' + job_name + '.app_credentials.password ))',
-                'user': '(( .' + job_name + '.app_credentials.identity ))'
+                'password': '(( .deploy-all.app_credentials.password ))',
+                'user': '(( .deploy-all.app_credentials.identity ))'
             },
             'tls_cacert': '(( $ops_manager.ca_certificate ))',
             'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
