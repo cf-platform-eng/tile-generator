@@ -65,9 +65,13 @@ class PackageBoshRelease(BasePackage):
     package_type = 'bosh-release'
     flags = [flag.BoshRelease]
     _schema = {
-        'jobs': {'type': 'list', 'required': False, 'schema':{'type': 'dict', 'schema': {
-            'name': {'type': 'string', 'required': True, 'regex': '^[a-zA-Z0-9\-\_]*$'},
-            'varname': {'type': 'string', 'default_setter': lambda doc: doc['name'].lower().replace('-','_')}}}},
+        'jobs': {'type': 'list', 'required': False, 'schema':{
+            'type': 'dict', 'schema': {
+                'name': {'type': 'string', 'required': True, 'regex': '^[a-zA-Z0-9\-\_]*$'},
+                'memory': {'required': False, 'type': 'number'},
+                'varname': {'type': 'string', 'default_setter': lambda doc: doc['name'].lower().replace('-','_')}
+            }
+        }},
     }
 
     @classmethod
@@ -82,6 +86,7 @@ class PackageDockerBosh(BasePackage):
         # TODO: Remove the dependency on this in templates
         'is_docker': {'type': 'boolean', 'default': True},
         'docker_images': {'required': False},
+        'memory': {'required': False, 'type': 'number'},
         'routes': {'required': False, 'type': 'list', 'schema': {'type': 'dict', 'schema': {
             'prefix': {'required': True},
             'port': {'required': True},}}},

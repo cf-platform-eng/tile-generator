@@ -256,6 +256,15 @@ class TestConfigValidation(BaseTest):
     self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'Validname'}]}]
     self.config.validate()
 
+  def test_valid_job_memory(self):
+    self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'validname', 'memory': 512}]}]
+    self.config.validate()
+
+  def test_invalid_job_memory(self):
+    with self.assertRaises(SystemExit):
+      self.config['packages'] = [{'name': 'validname', 'type': 'bosh-release', 'jobs': [{'name': 'validname', 'memory': '512M'}]}]
+      self.config.validate()
+
   def test_accepts_valid_package_name(self):
     self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
     self.config.validate()
@@ -298,6 +307,22 @@ class TestConfigValidation(BaseTest):
 
     with self.assertRaises(SystemExit):
       self.config['packages'] = [{'name': 'invalid-name_', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+      self.config.validate()
+
+  def test_refuses_uppercase_properties_name(self):
+    with self.assertRaises(SystemExit):
+      self.config['properties'] = [{'name': 'invalidPropName'}]
+      self.config.validate()
+
+  def test_refuses_uppercase_form_properties_name(self):
+    with self.assertRaises(SystemExit):
+      self.config['forms'] = [{
+        'label': 'krsna', 
+        'properties': [{
+          'name': 'invalidFormPropName'
+        }],
+        'name': 'krsna',
+      }]
       self.config.validate()
 
   def test_requires_product_versions(self):

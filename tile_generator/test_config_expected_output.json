@@ -1817,12 +1817,10 @@
   ], 
   "properties": [
     {
-      "configurable": false, 
-      "default": "Tile Ninja", 
       "label": "Author", 
       "name": "author", 
-      "optional": false, 
-      "type": "string"
+      "type": "string", 
+      "value": "Tile Ninja"
     }
   ], 
   "purge_service_brokers": true, 

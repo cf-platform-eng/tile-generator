@@ -143,7 +143,10 @@ class Config(dict):
 			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 			'service_broker': {'type': 'boolean', 'required': False, 'default': False},
 			'properties': {'type': 'list', 'default': [], 'schema': {
-				'type': 'dict', 'default': {}}},
+				'type': 'dict', 'default': {}, 'schema': {
+							'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
+				}
+			}},
 			'label': {'type': 'string', 'required': True},
 			'description': {'type': 'string', 'required': True},
 			'icon_file': {'type': 'string', 'required': True, 'coerce': _base64_img},
@@ -166,6 +169,7 @@ class Config(dict):
 				'type': 'dict', 'default': {}, 'schema': {
 					'properties': {'type': 'list', 'default': [], 'schema': {
 						'type': 'dict', 'default': {}, 'schema': {
+							'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9_-]*([a-z0-9])$'},
 							'configurable': {'type': 'boolean', 'default': True}}}}}}},
 			'service_plan_forms': {'type': 'list', 'default': [], 'schema': {
 				'type': 'dict', 'default': {}, 'schema': {
