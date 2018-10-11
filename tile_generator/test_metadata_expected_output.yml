@@ -1675,7 +1675,6 @@ runtime_configs:
 
 post_deploy_errands: 
 - colocated: true
-  description: This errand does little more than print a message in order to prove colocated errands work.
   label: colocated errand for sanity-tests
   name: sanity-tests
 - name: deploy-all

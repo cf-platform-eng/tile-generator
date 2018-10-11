@@ -408,10 +408,10 @@ packages:
     ####################################################
     colocated: true
     # run_default: on # (Optional) You can set the run rules to on or off.
-    # instances: # (Optional) Provide an array that tells BOSH where to run the errand. 
-    #   - web_server/first
+    # colocated_instances: # (Optional) Provide an array that tells BOSH where to run the errand. 
+    # - web_server/first
     # label: colocated errand X # Define the errand name to be shown.
-    description: This errand does little more than print a message in order to prove colocated errands work.
+    # description: This errand does little more than print a message in order to prove colocated errands work.
 
 
 - name: runtime-test-release

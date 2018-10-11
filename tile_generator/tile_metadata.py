@@ -686,6 +686,7 @@ class TileMetadata(object):
                     if job.get('run_default'): errand['run_default'] = job.get('run_default')
                     if job.get('colocated'): errand['label'] = job.get('label', 'colocated errand for %s' % job['name'])
                     if job.get('description'): errand['description'] = job.get('description')
+                    if job.get('colocated_instances'): errand['instances'] = job.get('colocated_instances')
                     if job.get('post_deploy'): post_deploy_errands.append(errand)
                     if job.get('pre_delete'): pre_delete_errands.append(errand)
         self.tile_metadata['post_deploy_errands'] = post_deploy_errands
