@@ -1589,10 +1589,6 @@
               "run_default": true
             }, 
             {
-              "name": "no-op", 
-              "release": "no-op-release"
-            }, 
-            {
               "consumes": {
                 "nats": {
                   "deployment": "(( ..cf.deployment_name ))", 
@@ -3403,10 +3399,6 @@
               "post_deploy": true, 
               "release": "no-op-release", 
               "run_default": true
-            }, 
-            {
-              "name": "no-op", 
-              "release": "no-op-release"
             }, 
             {
               "consumes": {
