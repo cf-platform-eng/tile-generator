@@ -1,7 +1,7 @@
 ---
 name: no-op
 
-templates: {}
+templates: {bin/run: bin/run}
 
 packages: []
 

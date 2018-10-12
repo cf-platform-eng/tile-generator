@@ -661,8 +661,8 @@ job_types:
   single_az_only: false
   static_ip: 0
   templates:
-  - name: colocated-errand
-    release: redis
+  - name: no-op
+    release: no-op-release
   - name: no-op
     release: no-op-release
   - consumes: |
@@ -1677,8 +1677,10 @@ runtime_configs:
 
 post_deploy_errands: 
 - colocated: true
-  label: colocated errand for colocated-errand
-  name: colocated-errand
+  instances:
+  - node-yes/first
+  label: colocated errand for no-op
+  name: no-op
   run_default: true
 - name: sanity-tests
 - name: deploy-all

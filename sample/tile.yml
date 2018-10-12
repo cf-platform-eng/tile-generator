@@ -416,16 +416,16 @@ packages:
     instances: 1
     dynamic_ip: 1
     templates:
-    - name: colocated-errand
-      release: redis
+    - name: no-op
+      release: no-op-release
       ##############################################################
       # These options turn this bosh job into a colocated errands: #
       ##############################################################
       colocated: true
       post_deploy: true # Must set post_deploy or pre_delete
       run_default: on # (Optional) You can set the run rules to on or off.
-      # instances: # (Optional) Array that tells BOSH where to run the errand.
-      # - web_server/first
+      instances: # (Optional) Array that tells BOSH where to run the errand.
+      - node-yes/first
       # label: colocated errand X # Define the errand name to be shown.
       # description: This is an errand description.
       ###############################################################

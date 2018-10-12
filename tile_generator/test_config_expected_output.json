@@ -1580,9 +1580,12 @@
           "templates": [
             {
               "colocated": true, 
-              "name": "colocated-errand", 
+              "instances": [
+                "node-yes/first"
+              ], 
+              "name": "no-op", 
               "post_deploy": true, 
-              "release": "redis", 
+              "release": "no-op-release", 
               "run_default": true
             }, 
             {
@@ -3393,9 +3396,12 @@
           "templates": [
             {
               "colocated": true, 
-              "name": "colocated-errand", 
+              "instances": [
+                "node-yes/first"
+              ], 
+              "name": "no-op", 
               "post_deploy": true, 
-              "release": "redis", 
+              "release": "no-op-release", 
               "run_default": true
             }, 
             {
