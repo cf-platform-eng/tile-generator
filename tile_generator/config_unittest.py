@@ -594,16 +594,15 @@ class TestDefaultOptions(BaseTest):
       'type': 'bosh-release',
       'path': 'does/it/matter.tgz',
       'jobs': [{
-        'name': 'krsna',
-        'templates': [{'name': 'krsna', 'release': 'blah'}],
-        'lifecycle': 'errand',
-        'post_deploy': True,
-        'pre_delete': True,
-        'colocated': True,
-        'run_default': 'off',
-        'colocated_instances': ['some_vm/first'],
-        'label': 'colocated errand X',
-        'description': 'This is a test errand'
+        'name': 'krsna_job',
+        'templates': [{'name': 'krsna', 'release': 'blah',
+          'post_deploy': True,
+          'pre_delete': True,
+          'colocated': True,
+          'run_default': 'off',
+          'instances': ['some_vm/first'],
+          'label': 'colocated errand X',
+          'description': 'This is a test errand'}]
       }]
     }]
     self.config.validate()

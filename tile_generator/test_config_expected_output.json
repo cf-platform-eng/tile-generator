@@ -1197,7 +1197,6 @@
           "varname": "redis"
         }, 
         {
-          "colocated": true, 
           "cpu": 2, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
@@ -1579,6 +1578,13 @@
           }, 
           "template": "node-yes", 
           "templates": [
+            {
+              "colocated": true, 
+              "name": "colocated-errand", 
+              "post_deploy": true, 
+              "release": "redis", 
+              "run_default": true
+            }, 
             {
               "name": "no-op", 
               "release": "no-op-release"
@@ -3015,7 +3021,6 @@
           "varname": "redis"
         }, 
         {
-          "colocated": true, 
           "cpu": 2, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
@@ -3386,6 +3391,13 @@
           }, 
           "template": "node-yes", 
           "templates": [
+            {
+              "colocated": true, 
+              "name": "colocated-errand", 
+              "post_deploy": true, 
+              "release": "redis", 
+              "run_default": true
+            }, 
             {
               "name": "no-op", 
               "release": "no-op-release"

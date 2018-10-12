@@ -403,16 +403,6 @@ packages:
     properties:
       cf:
         some: property
-    ####################################################
-    # The remaining options are for colocated errands: #
-    ####################################################
-    colocated: true
-    # run_default: on # (Optional) You can set the run rules to on or off.
-    # colocated_instances: # (Optional) Provide an array that tells BOSH where to run the errand. 
-    # - web_server/first
-    # label: colocated errand X # Define the errand name to be shown.
-    # description: This errand does little more than print a message in order to prove colocated errands work.
-
 
 - name: runtime-test-release
   type: bosh-release
@@ -426,6 +416,19 @@ packages:
     instances: 1
     dynamic_ip: 1
     templates:
+    - name: colocated-errand
+      release: redis
+      ##############################################################
+      # These options turn this bosh job into a colocated errands: #
+      ##############################################################
+      colocated: true
+      post_deploy: true # Must set post_deploy or pre_delete
+      run_default: on # (Optional) You can set the run rules to on or off.
+      # instances: # (Optional) Array that tells BOSH where to run the errand.
+      # - web_server/first
+      # label: colocated errand X # Define the errand name to be shown.
+      # description: This is an errand description.
+      ###############################################################
     - name: no-op
       release: no-op-release
     - name: route_registrar
