@@ -429,8 +429,6 @@ packages:
       # label: colocated errand X # Define the errand name to be shown.
       # description: This is an errand description.
       ###############################################################
-    - name: no-op
-      release: no-op-release
     - name: route_registrar
       release: routing #relies on the fact that docker-bosh adds routing
       consumes:
