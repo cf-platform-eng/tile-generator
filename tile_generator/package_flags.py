@@ -125,14 +125,15 @@ class DockerBosh(FlagBase):
 
         job_name = 'docker-bosh-' + package['name']
         release['requires_docker_bosh'] = True
-        release['packages'] += [{
-            'name': 'common',
-            'files': [{
-                'name': 'utils.sh',
-                'path': template.path('src/common/utils.sh')
-            }],
-            'dir': 'src'
-        }]
+        if not 'common' in [p['name'] for p in release['packages']]:
+            release['packages'] += [{
+                'name': 'common',
+                'files': [{
+                    'name': 'utils.sh',
+                    'path': template.path('src/common/utils.sh')
+                }],
+                'dir': 'src'
+            }]
 
         release['jobs'] += [{
             'name': job_name,
