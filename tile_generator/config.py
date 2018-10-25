@@ -315,6 +315,7 @@ class Config(dict):
 			'org': '(( .properties.org.value ))',
 			'space': '(( .properties.space.value ))',
 			'ssl': {'skip_cert_verify': '(( ..cf.ha_proxy.skip_cert_verify.value ))'},
+			'opsman_ca': '(( $ops_manager.ca_certificate ))',
 			'cf': {
 				'admin_user': '(( ..cf.uaa.system_services_credentials.identity ))',
 				'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',

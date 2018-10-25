@@ -57,6 +57,8 @@ properties:
     description: 'Basic auth password'
   tls_cacert:
     description: "Ops Manager's CA certificate"
+  opsman_ca:
+    description: "Ops Manager's CA certificate"
   pks_username:
     description: 'Username for the PKS API'
   pks_password:

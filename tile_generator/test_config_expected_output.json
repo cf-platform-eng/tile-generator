@@ -1061,6 +1061,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -1235,6 +1236,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -1432,6 +1434,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -1638,6 +1641,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -1910,6 +1914,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -2081,6 +2086,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -2243,6 +2249,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -2483,7 +2490,7 @@
             }, 
             {
               "name": "all_open.json", 
-              "path": "/home/user/workspace/tile-generator/tile_generator/templates/src/templates/all_open.json"
+              "path": "/Users/mboldt/pivotal/tile-generator/tile_generator/templates/src/templates/all_open.json"
             }
           ], 
           "name": "cf_cli"
@@ -2834,7 +2841,7 @@
           "files": [
             {
               "name": "utils.sh", 
-              "path": "/home/user/workspace/tile-generator/tile_generator/templates/src/common/utils.sh"
+              "path": "/Users/mboldt/pivotal/tile-generator/tile_generator/templates/src/common/utils.sh"
             }
           ], 
           "name": "common"
@@ -2884,6 +2891,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -3058,6 +3066,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -3244,6 +3253,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 
@@ -3450,6 +3460,7 @@
               "identity": "(( .properties.my_creds.identity ))", 
               "password": "(( .properties.my_creds.password ))"
             }, 
+            "opsman_ca": "(( $ops_manager.ca_certificate ))", 
             "org": "(( .properties.org.value ))", 
             "password": "(( .properties.password.value ))", 
             "planets": "(( .properties.planets.value ))", 

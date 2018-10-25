@@ -531,6 +531,7 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
     planets: (( .properties.planets.value ))
@@ -703,6 +704,7 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
     planets: (( .properties.planets.value ))
@@ -874,6 +876,7 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
     planets: (( .properties.planets.value ))
@@ -1035,6 +1038,7 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
     planets: (( .properties.planets.value ))
@@ -1209,6 +1213,7 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
     planets: (( .properties.planets.value ))
@@ -1351,6 +1356,7 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
     planets: (( .properties.planets.value ))
@@ -1522,6 +1528,7 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
     planets: (( .properties.planets.value ))
