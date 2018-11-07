@@ -17,7 +17,8 @@ properties:
   label: Author
   value: Tile Ninja
 
-forms:
+#At least one form must be defined in tile.yml, otherwise there will be errors when staging the tile in Ops Manager
+forms: 
 - name: contact_form
   label: Contact Info
   description: Examples of basic property types
