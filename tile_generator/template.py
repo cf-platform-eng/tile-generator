@@ -55,10 +55,11 @@ def expand_selector(input):
 					properties += ', '.join(subproperties) + ' }\r\n'
 				else:
 					properties += p['name'] + ': (( .properties.' + input['name'] + '.' + option['name'] + '.' + p['name'] + '.value ))\r\n'
-			option['named_manifests'] = [{
+			option['named_manifests'] = option.get("named_manifests", [])
+			option['named_manifests'].append({
 				'name': 'manifest_snippet',
 				'manifest': properties
-			}]
+			})
 	return input
 
 
