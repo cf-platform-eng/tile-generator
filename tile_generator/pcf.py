@@ -122,6 +122,13 @@ def cf_info_cmd():
 	for key in sorted(cfinfo):
 		print('-', key + ':', cfinfo[key])
 
+@cli.command('om')
+def om_cmd():
+	creds = opsmgr.get_credentials()
+	print('export OM_TARGET={}'.format(creds['opsmgr']['url']))
+	print('export OM_USERNAME={}'.format(creds['opsmgr']['username']))
+	print('export OM_PASSWORD={}'.format(creds['opsmgr']['password']))
+
 @cli.command('import')
 @click.argument('tile')
 def import_cmd(tile):
