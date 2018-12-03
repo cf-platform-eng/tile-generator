@@ -63,19 +63,19 @@ def unlock_cmd():
 def products_cmd():
 	products = opsmgr.get_products()
 	for product in products:
-		print("-", product["name"], product["product_version"], "(installed)" if product["installed"] else "")
+		click.echo("- %s %s %s" % (product["name"], product["product_version"], "(installed)" if product["installed"] else ""))
 
 
 @cli.command('changes')
 def changes_cmd():
 	changes = opsmgr.get_changes()
 	if changes is None:
-		print('This command is only available for PCF 1.7 and beyond.', file=sys.stderr)
+		click.echo('This command is only available for PCF 1.7 and beyond.', err=True)
 		sys.exit(1)
 	for p in changes['product_changes']:
-		print(p['action'], p['guid'])
+		click.echo("%s %s" % (p['action'], p['guid']))
 		for e in p['errands']:
-			print('-', e['name'])
+			click.echo('- %s' % e['name'])
 
 
 @cli.command('is-available')
@@ -85,7 +85,7 @@ def is_available_cmd(product, version):
 	products = opsmgr.get_products()
 	matches = [p for p in products if p['name'] == product and (version is None or p['product_version'] == version)]
 	if len(matches) < 1:
-		print('No match found for product', product, 'version', version, file=sys.stderr)
+		click.echo('No match found for product %s version %s' % (product, version), err=True)
 		sys.exit(1)
 
 
@@ -96,7 +96,7 @@ def is_installed_cmd(product, version):
 	products = opsmgr.get_products()
 	matches = [p for p in products if p['name'] == product and (version is None or p['product_version'] == version) and p['installed']]
 	if len(matches) < 1:
-		print('Product', product, 'version', version, 'is not installed', file=sys.stderr)
+		click.echo('Product %s version %s is not installed' % (product, version), err=True)
 		sys.exit(1)
 
 
@@ -121,32 +121,32 @@ def settings_cmd(product):
 	if product is not None:
 		settings = [ p for p in settings['products'] if p['identifier'] == product ]
 		if len(settings) < 1:
-			print('No settings found for product', product, file=sys.stderr)
+			click.echo('No settings found for product %s' % product, err=True)
 			sys.exit(1)
 		settings = settings[0]
-	print(json.dumps(settings, indent=4))
+		click.echo(json.dumps(settings, indent=4))
 
 
 @cli.command('cf-info')
 def cf_info_cmd():
 	cfinfo = opsmgr.get_cfinfo()
 	for key in sorted(cfinfo):
-		print('-', key + ':', cfinfo[key])
+		click.echo('- %s: %s' % (key, cfinfo[key]))
 
 
 @cli.command('om')
 def om_cmd():
 	creds = opsmgr.get_credentials()
-	print('export OM_TARGET={}'.format(creds['opsmgr']['url']))
-	print('export OM_USERNAME={}'.format(creds['opsmgr']['username']))
-	print('export OM_PASSWORD={}'.format(creds['opsmgr']['password']))
+	click.echo('export OM_TARGET=%s' % creds['opsmgr']['url'])
+	click.echo('export OM_USERNAME=%s' % creds['opsmgr']['username'])
+	click.echo('export OM_PASSWORD=%s' % creds['opsmgr']['password'])
 
 
 @cli.command('import')
 @click.argument('tile')
 def import_cmd(tile):
 	opsmgr.upload('/api/products', tile)
-	print('-', 'Tile', tile, 'imported successfully. You can run `pcf install` to load it.')
+	click.echo('- Tile %s imported successfully. You can run `pcf install` to load it.' % tile)
 
 
 @cli.command('install')
@@ -170,7 +170,7 @@ def install_cmd(product, version):
 			errors = response.json()["errors"]
 			for error in errors:
 				if error.endswith(' is already in use.'):
-					print('-','version already installed')
+					click.echo('- version already installed')
 					return
 		opsmgr.check_response(response)
 
@@ -180,7 +180,7 @@ def install_cmd(product, version):
 @click.argument('version', required=False)
 def uninstall_cmd(product, version):
 	products = opsmgr.get('/api/installation_settings/products').json()
-	matches = [ p for p in products if p['type'] == product ]
+	matches = [p for p in products if p['type'] == product]
 	for match in matches:
 		if version and 'product_version' in match:
 			if match['product_version'] == version:
@@ -221,20 +221,20 @@ def cleanup_cmd(product):
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [p for p in products if p['type'] == product]
 	for match in matches:
-		print('- attempting to delete', match['name'], file=sys.stderr)
+		click.echo('- attempting to delete %s' % match['name'], err=True)
 		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [p for p in products if p['type'] == product]
 	if len(matches) < 1:
 		sys.exit(0)
 	if len(matches) > 1:
-		print('- more than one match remains installed', file=sys.stderr)
+		click.echo('- more than one match remains installed', err=True)
 		sys.exit(1)
 	#
 	# Attempt 2 - Uninstall deployed version
 	#
 	match = matches[0]
-	print('- product was deployed, applying changes to uninstall it', file=sys.stderr)
+	click.echo('- product was deployed, applying changes to uninstall it', err=True)
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
 	products = opsmgr.get('/api/installation_settings/products').json()
@@ -245,18 +245,18 @@ def cleanup_cmd(product):
 	# Attempt 3 - Re-deploy with errands disabled, then uninstall
 	#
 	match = matches[0]
-	print('- uninstall appears to have failed', file=sys.stderr)
-	print('- re-deploying with disabled errands', file=sys.stderr)
+	click.echo('- uninstall appears to have failed', err=True)
+	click.echo('- re-deploying with disabled errands', err=True)
 	opsmgr.disable_errands(product)
 	apply_changes_cmd()
-	print('- uninstalling with disabled errands', file=sys.stderr)
+	click.echo('- uninstalling with disabled errands', err=True)
 	opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
 	products = opsmgr.get('/api/installation_settings/products').json()
 	matches = [p for p in products if p['type'] == product]
 	if len(matches) > 0:
-		print('- failed to uninstall', file=sys.stderr)
+		click.echo('- failed to uninstall', err=True)
 		sys.exit(1)
 
 
@@ -275,7 +275,7 @@ def apply_changes_cmd(product, deploy_errands, delete_errands):
 		changes = opsmgr.get_changes(product, deploy_errand_list, delete_errand_list)
 		if changes is not None:
 			if len(changes['product_changes']) == 0:
-				print('Nothing to do', file=sys.stderr)
+				click.echo('Nothing to do', err=True)
 				return
 			for p in changes['product_changes']:
 				post_deploy = serialize_errands(p, 'post_deploy', 'post_deploy_errands')
@@ -292,7 +292,7 @@ def apply_changes_cmd(product, deploy_errands, delete_errands):
 			response = opsmgr.post('/api/v0/installations?ignore_warnings=true', body, check=False)
 		if response.status_code == 422 and "Install in progress" in response.json()["errors"]:
 			if in_progress is None:
-				print('Waiting for in-progress installation to complete', file=sys.stderr)
+				click.echo('Waiting for in-progress installation to complete', err=True)
 				in_progress = opsmgr.last_install()
 			time.sleep(10)
 			if opsmgr.install_exists(in_progress + 1):
@@ -300,12 +300,12 @@ def apply_changes_cmd(product, deploy_errands, delete_errands):
 				break
 			continue
 		elif response.status_code == 422:
-			print('-', response.status_code, response.request.url, file=sys.stderr)
+			click.echo('- %d %s' % (response.status_code, response.request.url), err=True)
 			try:
 				errors = response.json()["errors"]
-				print('- '+('\n- '.join(json.dumps(errors, indent=4).splitlines())), file=sys.stderr)
+				click.echo('- ' + ('\n- '.join(json.dumps(errors, indent=4).splitlines())), err=True)
 			except:
-				print(response.text, file=sys.stderr)
+				click.echo(response.text, err=True)
 			sys.exit(2)
 		opsmgr.check_response(response)
 		install = response.json()['install']
@@ -333,7 +333,7 @@ def logs_cmd(install_id=None):
 @click.argument('tile_repo')
 @click.argument('errand_name')
 def test_errand_cmd(tile_repo, errand_name):
-	print('test-errand is currently disabled while we work on improving it (issue #134)', file=sys.stderr)
+	click.echo('test-errand is currently disabled while we work on improving it (issue #134)', err=True)
 	sys.exit(1)
 	rendered_errand = erb.render(errand_name, tile_repo)
 	env = os.environ
@@ -377,9 +377,9 @@ def curl_cmd(path, request, data):
 	elif request == 'DELETE':
 		response = opsmgr.delete(path)
 	else:
-		print('Unsupported request type: ' + request, file=sys.stderr)
+		click.echo('Unsupported request type: %s' % request, err=True)
 		sys.exit(1)
-	print(json.dumps(response.json(), indent=2))
+	click.echo(json.dumps(response.json(), indent=2))
 
 
 @cli.command('errands')
@@ -388,7 +388,7 @@ def errands_cmd(product):
 	products = opsmgr.get('/api/v0/staged/products').json()
 	guid = [p for p in products if p['type'] == product][0]['guid']
 	errands = opsmgr.get('/api/v0/staged/products/' + guid + '/errands').json()['errands']
-	print(json.dumps(errands, indent=4))
+	click.echo(json.dumps(errands, indent=4))
 
 
 @cli.command('disable-errand')
@@ -428,7 +428,7 @@ def enable_errand_cmd(product, errand):
 @cli.command('version')
 def version_cmd():
 	version = opsmgr.get_version()
-	print('.'.join([str(x) for x in version]))
+	click.echo('.'.join([str(x) for x in version]))
 
 
 @cli.command('credentials')
@@ -443,7 +443,7 @@ def credentials_cmd():
 		'app_domain': cf['apps_domain'],
 		'sys_domain': cf['system_domain'],
 	}
-	print(yaml.safe_dump(creds, default_flow_style=False, explicit_start=True), end='')
+	click.echo(yaml.safe_dump(creds, default_flow_style=False, explicit_start=True), nl=False)
 
 
 @cli.command('bosh-env')
@@ -465,33 +465,33 @@ def bosh_env_cmd():
 @cli.command('password')
 def password():
 	creds = opsmgr.get_credentials()
-	print(creds['opsmgr']['password'])
+	click.echo(creds['opsmgr']['password'])
 
 
 @cli.command('history')
 def history_cmd():
 	history = opsmgr.get_history()
-	print(json.dumps(history, indent=4))
+	click.echo(json.dumps(history, indent=4))
 
 
 @cli.command('upload-stemcell')
 @click.argument('stemcell-file')
 def upload_stemcell_cmd(stemcell_file):
 	opsmgr.post('/api/v0/stemcells', None, files={'stemcell[file]': open(stemcell_file, 'rb')})
-	print('stemcell uploaded')
+	click.echo('stemcell uploaded')
 
 
 @cli.command('stemcells')
 def stemcells_cmd():
 	stemcells = opsmgr.get_stemcells()
-	print(json.dumps(stemcells, indent=4))
+	click.echo(json.dumps(stemcells, indent=4))
 
 
 def main():
 	try:
 		cli()
 	except Exception as e:
-		print(e, file=sys.stderr)
+		click.echo(e, err=True)
 		sys.exit(1)
 
 
