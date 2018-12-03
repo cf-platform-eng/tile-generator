@@ -54,7 +54,7 @@ class TestBoshEnvCmd(unittest.TestCase):
         self.assertIn('BOSH USERNAME=director', result.output)
         self.assertIn('BOSH PASSWORD=super-secret-password', result.output)
 
-    def test_pcf_2_3_uses_jobs(self, mock_get_version, mock_get):
+    def test_pcf_2_3_uses_instance_groups(self, mock_get_version, mock_get):
         mock_get.side_effect = [
             build_response(opsmgr_responses['/api/v0/deployed/director/credentials/director_credentials']),
             build_response(opsmgr_responses['2.3 /api/v0/deployed/director/manifest'])
