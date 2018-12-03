@@ -34,15 +34,11 @@ def build_response(body, encoding='application/json', status_code=200):
 
 
 @mock.patch('tile_generator.opsmgr.get')
-@mock.patch('tile_generator.opsmgr.get_version')
 class TestBoshEnvCmd(unittest.TestCase):
-    def test_pcf_2_2_uses_jobs(self, mock_get_version, mock_get):
+    def test_pcf_2_2_uses_jobs(self, mock_get):
         mock_get.side_effect = [
             build_response(opsmgr_responses['/api/v0/deployed/director/credentials/director_credentials']),
             build_response(opsmgr_responses['2.2 /api/v0/deployed/director/manifest'])
-        ]
-        mock_get_version.side_effect = [
-            [2, 2, 0]
         ]
 
         # Since bosh_env_cmd is wrapped by a @cli.command, we need to invoke it this way
@@ -54,13 +50,10 @@ class TestBoshEnvCmd(unittest.TestCase):
         self.assertIn('BOSH USERNAME=director', result.output)
         self.assertIn('BOSH PASSWORD=super-secret-password', result.output)
 
-    def test_pcf_2_3_uses_instance_groups(self, mock_get_version, mock_get):
+    def test_pcf_2_3_uses_instance_groups(self, mock_get):
         mock_get.side_effect = [
             build_response(opsmgr_responses['/api/v0/deployed/director/credentials/director_credentials']),
             build_response(opsmgr_responses['2.3 /api/v0/deployed/director/manifest'])
-        ]
-        mock_get_version.side_effect = [
-            [2, 3, 0]
         ]
 
         # Since bosh_env_cmd is wrapped by a @cli.command, we need to invoke it this way

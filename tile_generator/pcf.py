@@ -448,13 +448,12 @@ def credentials_cmd():
 
 @cli.command('bosh-env')
 def bosh_env_cmd():
-	version = opsmgr.get_version()
 	director_creds = opsmgr.get('/api/v0/deployed/director/credentials/director_credentials').json()
 	director_manifest = opsmgr.get('/api/v0/deployed/director/manifest').json()
-	if version[0] >= 2 and version[1] >= 3:
-		director_address = director_manifest['instance_groups'][0]['properties']['director']['address']
-	else:
-		director_address = director_manifest['jobs'][0]['properties']['director']['address']
+
+	# PCF 2.2 and earlier has 'jobs' array at top level, while
+	# PCF 2.3 and later has 'instance_groups'
+	director_address = director_manifest.get('instance_groups', director_manifest.get('jobs'))[0]['properties']['director']['address']
 
 	click.echo('BOSH_ENVIRONMENT="%s"' % director_address)
 	click.echo('BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
