@@ -29,7 +29,8 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(PATH, os.path.join('..', 'lib')))
 from . import opsmgr
 from . import erb
-from.version import version_string
+from .version import version_string
+
 
 @click.group()
 @click.version_option(version_string, '-v', '--version', message='%(prog)s version %(version)s')
@@ -417,12 +418,20 @@ def credentials_cmd():
 
 @cli.command('bosh-env')
 def bosh_env_cmd():
-	director_creds = opsmgr.get('/api/v0/deployed/director/credentials/director_credentials').json()
-	director_manifest = opsmgr.get('/api/v0/deployed/director/manifest').json()
-	print('BOSH_ENVIRONMENT="{}"'.format(director_manifest['jobs'][0]['properties']['director']['address']))
-	print('BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
-	print('BOSH USERNAME={}'.format(director_creds['credential']['value']['identity']))
-	print('BOSH PASSWORD={}'.format(director_creds['credential']['value']['password']))
+    version = opsmgr.get_version()
+    director_creds = opsmgr.get('/api/v0/deployed/director/credentials/director_credentials').json()
+    director_manifest = opsmgr.get('/api/v0/deployed/director/manifest').json()
+
+    if version[0] >= 2 and version[1] >= 3:
+        director_address = director_manifest['instance_groups'][0]['properties']['director']['address']
+    else:
+        director_address = director_manifest['jobs'][0]['properties']['director']['address']
+
+    click.echo('BOSH_ENVIRONMENT="%s"' % director_address)
+    click.echo('BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
+    click.echo('BOSH USERNAME=%s' % director_creds['credential']['value']['identity'])
+    click.echo('BOSH PASSWORD=%s' % director_creds['credential']['value']['password'])
+
 
 @cli.command('password')
 def password():
