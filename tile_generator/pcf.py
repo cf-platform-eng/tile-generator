@@ -39,6 +39,7 @@ from .version import version_string
 def cli(target, non_interactive):
 	opsmgr.get_credentials(target, non_interactive)
 
+
 @cli.command('ssh')
 @click.argument('argv', nargs=-1)
 @click.option('--skip-bosh-login', '-s', is_flag=True)
@@ -46,20 +47,24 @@ def cli(target, non_interactive):
 def ssh_cmd(argv, skip_bosh_login=False, quiet=False):
 	opsmgr.ssh(command=' '.join(argv), login_to_bosh=not(skip_bosh_login), quiet=quiet)
 
+
 @cli.command('reboot')
 def reboot_cmd():
 	opsmgr.ssh(command='sudo reboot now', login_to_bosh=False)
 	opsmgr.unlock()
 
+
 @cli.command('unlock')
 def unlock_cmd():
 	opsmgr.unlock()
+
 
 @cli.command('products')
 def products_cmd():
 	products = opsmgr.get_products()
 	for product in products:
 		print("-", product["name"], product["product_version"], "(installed)" if product["installed"] else "")
+
 
 @cli.command('changes')
 def changes_cmd():
@@ -72,25 +77,28 @@ def changes_cmd():
 		for e in p['errands']:
 			print('-', e['name'])
 
+
 @cli.command('is-available')
 @click.argument('product')
 @click.argument('version', required=False)
 def is_available_cmd(product, version):
 	products = opsmgr.get_products()
-	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) ]
+	matches = [p for p in products if p['name'] == product and (version is None or p['product_version'] == version)]
 	if len(matches) < 1:
 		print('No match found for product', product, 'version', version, file=sys.stderr)
 		sys.exit(1)
+
 
 @cli.command('is-installed')
 @click.argument('product')
 @click.argument('version', required=False)
 def is_installed_cmd(product, version):
 	products = opsmgr.get_products()
-	matches = [ p for p in products if p['name'] == product and (version is None or p['product_version'] == version) and p['installed'] ]
+	matches = [p for p in products if p['name'] == product and (version is None or p['product_version'] == version) and p['installed']]
 	if len(matches) < 1:
 		print('Product', product, 'version', version, 'is not installed', file=sys.stderr)
 		sys.exit(1)
+
 
 @cli.command('configure')
 @click.argument('product')
@@ -105,6 +113,7 @@ def configure_cmd(product, properties_file, strict=False, skip_validation=False,
 			properties = yaml.safe_load(f)
 	opsmgr.configure(product, properties, strict, skip_validation, network)
 
+
 @cli.command('settings')
 @click.argument('product', required=False)
 def settings_cmd(product):
@@ -117,11 +126,13 @@ def settings_cmd(product):
 		settings = settings[0]
 	print(json.dumps(settings, indent=4))
 
+
 @cli.command('cf-info')
 def cf_info_cmd():
 	cfinfo = opsmgr.get_cfinfo()
 	for key in sorted(cfinfo):
 		print('-', key + ':', cfinfo[key])
+
 
 @cli.command('om')
 def om_cmd():
@@ -130,18 +141,20 @@ def om_cmd():
 	print('export OM_USERNAME={}'.format(creds['opsmgr']['username']))
 	print('export OM_PASSWORD={}'.format(creds['opsmgr']['password']))
 
+
 @cli.command('import')
 @click.argument('tile')
 def import_cmd(tile):
 	opsmgr.upload('/api/products', tile)
 	print('-', 'Tile', tile, 'imported successfully. You can run `pcf install` to load it.')
 
+
 @cli.command('install')
 @click.argument('product')
 @click.argument('version')
 def install_cmd(product, version):
 	products = opsmgr.get_products()
-	matches = [ p for p in products if p['name'] == product and p['installed'] ]
+	matches = [p for p in products if p['name'] == product and p['installed']]
 	if len(matches) < 1:
 		payload = {
 			'name': product,
@@ -161,6 +174,7 @@ def install_cmd(product, version):
 					return
 		opsmgr.check_response(response)
 
+
 @cli.command('uninstall')
 @click.argument('product')
 @click.argument('version', required=False)
@@ -174,9 +188,11 @@ def uninstall_cmd(product, version):
 		else:
 			opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 
+
 @cli.command('delete-unused-products')
 def delete_unused_products_cmd():
 	opsmgr.delete('/api/products')
+
 
 @cli.command('backup')
 @click.argument('backup_file')
@@ -186,13 +202,15 @@ def backup_cmd(backup_file):
 		for chunk in response.iter_content(1024):
 			f.write(chunk)
 
+
 @cli.command('restore')
 @click.argument('backup_file')
 def restore_cmd(backup_file):
-	creds = get_credentials()
+	creds = opsmgr.get_credentials()
 	with open(backup_file, 'rb') as f:
-		payload = { 'installation[file]': f, 'password': creds['opsmgr']['password'] }
+		payload = {'installation[file]': f, 'password': creds['opsmgr']['password']}
 		opsmgr.post('/api/installation_asset_collection', f)
+
 
 @cli.command('cleanup')
 @click.argument('product')
@@ -201,12 +219,12 @@ def cleanup_cmd(product):
 	# Attempt 1 - Delete any uninstalled versions
 	#
 	products = opsmgr.get('/api/installation_settings/products').json()
-	matches = [ p for p in products if p['type'] == product ]
+	matches = [p for p in products if p['type'] == product]
 	for match in matches:
 		print('- attempting to delete', match['name'], file=sys.stderr)
 		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
 	products = opsmgr.get('/api/installation_settings/products').json()
-	matches = [ p for p in products if p['type'] == product ]
+	matches = [p for p in products if p['type'] == product]
 	if len(matches) < 1:
 		sys.exit(0)
 	if len(matches) > 1:
@@ -220,7 +238,7 @@ def cleanup_cmd(product):
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
 	products = opsmgr.get('/api/installation_settings/products').json()
-	matches = [ p for p in products if p['type'] == product ]
+	matches = [p for p in products if p['type'] == product]
 	if len(matches) < 1:
 		sys.exit(0)
 	#
@@ -236,10 +254,11 @@ def cleanup_cmd(product):
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
 	products = opsmgr.get('/api/installation_settings/products').json()
-	matches = [ p for p in products if p['type'] == product ]
+	matches = [p for p in products if p['type'] == product]
 	if len(matches) > 0:
 		print('- failed to uninstall', file=sys.stderr)
 		sys.exit(1)
+
 
 @cli.command('apply-changes')
 @click.option('--product', help='product to select errands from. Only valid in combination with -deploy-errands or --delete-errands.')
@@ -294,6 +313,7 @@ def apply_changes_cmd(product, deploy_errands, delete_errands):
 		break
 	opsmgr.logs(install_id)
 
+
 def serialize_errands(product, type, form_key):
 	matching_errands = [e for e in (product['errands']) if e.get(type, False)]
 	serialized = []
@@ -302,10 +322,12 @@ def serialize_errands(product, type, form_key):
 
 	return serialized
 
+
 @cli.command('logs')
 @click.argument('install_id', required=False)
 def logs_cmd(install_id=None):
 	opsmgr.logs(install_id)
+
 
 @cli.command('test-errand')
 @click.argument('tile_repo')
@@ -318,9 +340,10 @@ def test_errand_cmd(tile_repo, errand_name):
 	env['PACKAGE_PATH'] = os.path.join(tile_repo, 'release/blobs')
 	os.execlpe('bash', 'bash', rendered_errand, env)
 
+
 @cli.command('target')
-@click.option('--org','-o',default=None)
-@click.option('--space','-s',default=None)
+@click.option('--org', '-o', default=None)
+@click.option('--space', '-s', default=None)
 def target_cmd(org, space):
 	cf = opsmgr.get_cfinfo()
 	login = [
@@ -331,10 +354,11 @@ def target_cmd(org, space):
 		'-p', cf['admin_password'],
 	]
 	if org is not None:
-		login += [ '-o', org ]
+		login += ['-o', org]
 	if space is not None:
-		login += [ '-s', space ]
+		login += ['-s', space]
 	subprocess.call(login)
+
 
 @cli.command('curl')
 @click.argument('path')
@@ -357,6 +381,7 @@ def curl_cmd(path, request, data):
 		sys.exit(1)
 	print(json.dumps(response.json(), indent=2))
 
+
 @cli.command('errands')
 @click.argument('product')
 def errands_cmd(product):
@@ -364,6 +389,7 @@ def errands_cmd(product):
 	guid = [p for p in products if p['type'] == product][0]['guid']
 	errands = opsmgr.get('/api/v0/staged/products/' + guid + '/errands').json()['errands']
 	print(json.dumps(errands, indent=4))
+
 
 @cli.command('disable-errand')
 @click.argument('product')
@@ -379,7 +405,8 @@ def disable_errand_cmd(product, errand):
 		if e.get('pre_delete', None) is not None:
 			e['pre_delete'] = False
 	if len(errands) > 0:
-		opsmgr.put_json('/api/v0/staged/products/' + guid + '/errands', { 'errands': errands })
+		opsmgr.put_json('/api/v0/staged/products/' + guid + '/errands', {'errands': errands})
+
 
 @cli.command('enable-errand')
 @click.argument('product')
@@ -395,12 +422,14 @@ def enable_errand_cmd(product, errand):
 		if e.get('pre_delete', None) is not None:
 			e['pre_delete'] = True
 	if len(errands) > 0:
-		opsmgr.put_json('/api/v0/staged/products/' + guid + '/errands', { 'errands': errands })
+		opsmgr.put_json('/api/v0/staged/products/' + guid + '/errands', {'errands': errands})
+
 
 @cli.command('version')
 def version_cmd():
 	version = opsmgr.get_version()
-	print('.'.join([ str(x) for x in version ]))
+	print('.'.join([str(x) for x in version]))
+
 
 @cli.command('credentials')
 def credentials_cmd():
@@ -416,32 +445,34 @@ def credentials_cmd():
 	}
 	print(yaml.safe_dump(creds, default_flow_style=False, explicit_start=True), end='')
 
+
 @cli.command('bosh-env')
 def bosh_env_cmd():
-    version = opsmgr.get_version()
-    director_creds = opsmgr.get('/api/v0/deployed/director/credentials/director_credentials').json()
-    director_manifest = opsmgr.get('/api/v0/deployed/director/manifest').json()
+	version = opsmgr.get_version()
+	director_creds = opsmgr.get('/api/v0/deployed/director/credentials/director_credentials').json()
+	director_manifest = opsmgr.get('/api/v0/deployed/director/manifest').json()
+	if version[0] >= 2 and version[1] >= 3:
+		director_address = director_manifest['instance_groups'][0]['properties']['director']['address']
+	else:
+		director_address = director_manifest['jobs'][0]['properties']['director']['address']
 
-    if version[0] >= 2 and version[1] >= 3:
-        director_address = director_manifest['instance_groups'][0]['properties']['director']['address']
-    else:
-        director_address = director_manifest['jobs'][0]['properties']['director']['address']
-
-    click.echo('BOSH_ENVIRONMENT="%s"' % director_address)
-    click.echo('BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
-    click.echo('BOSH USERNAME=%s' % director_creds['credential']['value']['identity'])
-    click.echo('BOSH PASSWORD=%s' % director_creds['credential']['value']['password'])
+	click.echo('BOSH_ENVIRONMENT="%s"' % director_address)
+	click.echo('BOSH_CA_CERT="/var/tempest/workspaces/default/root_ca_certificate"')
+	click.echo('BOSH USERNAME=%s' % director_creds['credential']['value']['identity'])
+	click.echo('BOSH PASSWORD=%s' % director_creds['credential']['value']['password'])
 
 
 @cli.command('password')
 def password():
 	creds = opsmgr.get_credentials()
-        print(creds['opsmgr']['password'])
+	print(creds['opsmgr']['password'])
+
 
 @cli.command('history')
 def history_cmd():
 	history = opsmgr.get_history()
 	print(json.dumps(history, indent=4))
+
 
 @cli.command('upload-stemcell')
 @click.argument('stemcell-file')
@@ -449,10 +480,12 @@ def upload_stemcell_cmd(stemcell_file):
 	opsmgr.post('/api/v0/stemcells', None, files={'stemcell[file]': open(stemcell_file, 'rb')})
 	print('stemcell uploaded')
 
+
 @cli.command('stemcells')
 def stemcells_cmd():
 	stemcells = opsmgr.get_stemcells()
 	print(json.dumps(stemcells, indent=4))
+
 
 def main():
 	try:
@@ -460,6 +493,7 @@ def main():
 	except Exception as e:
 		print(e, file=sys.stderr)
 		sys.exit(1)
+
 
 if __name__ == '__main__':
 	main()
