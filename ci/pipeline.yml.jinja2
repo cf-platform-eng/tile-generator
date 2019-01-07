@@ -606,6 +606,7 @@ jobs:
       passed: [ claim-{{ cluster }} ]
     - get: pcf-environment-{{ cluster }}
       passed: [ claim-{{ cluster }} ]
+      trigger: true
       tags:
       - platform-eng-vsphere
   - task: run-deploy-tile
@@ -638,6 +639,7 @@ jobs:
       passed: [ deploy-tile-{{ cluster }} ]
     - get: pcf-environment-{{ cluster }}
       passed: [ deploy-tile-{{ cluster }} ]
+      trigger: true
       tags:
       - platform-eng-vsphere
     - get: tile-generator-repo
@@ -679,6 +681,7 @@ jobs:
       passed: [ deployment-tests-{{ cluster }} ]
     - get: pcf-environment-{{ cluster }}
       passed: [ deployment-tests-{{ cluster }} ]
+      trigger: true
       tags:
       - platform-eng-vsphere
     - get: tile-generator-repo
