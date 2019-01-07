@@ -3740,7 +3740,7 @@
   "sha1": false, 
   "space": "test-tile-space", 
   "stemcell_criteria": {
-    "os": "ubuntu-trusty", 
+    "os": "ubuntu-xenial", 
     "version": "1234"
   }, 
   "update": {
