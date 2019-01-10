@@ -187,6 +187,8 @@ class TileMetadata(object):
                     "label": prop['label'],
                     "description": prop.get('description') or prop.get('label')
                 }
+                if prop.get('placeholder'):
+                  prop_input["placeholder"] = prop['placeholder']
                 
                 if prop.get('property_blueprints'):
                     prop_input["property_inputs"] = list()
