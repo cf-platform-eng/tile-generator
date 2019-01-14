@@ -216,6 +216,15 @@ function wait_till_running() {
 	done
 }
 
+function get_stack() {
+	if $CF stacks 2>&1 | grep "cflinuxfs3" > /dev/null; then
+		echo >&2 "Using cflinuxfs3 stack"
+		echo "-s cflinuxfs3"
+	else
+		echo >&2 "Using default stack"
+	fi
+}
+
 function deploy_app() {
 	PKG_NAME="$1"
 	APP_NAME="$2"
@@ -226,8 +235,9 @@ function deploy_app() {
 	APP_MANIFEST="$7"
 	MANIFEST_FILE="$PACKAGE_PATH/${PKG_NAME}/manifest.yml"
 	echo "${APP_MANIFEST}" > "${MANIFEST_FILE}"
+	STACK="$(get_stack)"
 	cf push ${APP_NAME} -n ${APP_HOST} -d ${APP_DOMAIN} \
-		${DOCKER_IMAGE} -f "${MANIFEST_FILE}" \
+		${DOCKER_IMAGE} -f "${MANIFEST_FILE}" ${STACK} \
 		--no-start
 	add_env_vars ${APP_NAME}
 	if is_true "$NEEDS_CF_CREDS"; then
