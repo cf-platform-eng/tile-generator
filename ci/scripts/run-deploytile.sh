@@ -43,7 +43,7 @@ VERSION=`echo "${TILE_FILE}" | sed "s/${PRODUCT}-//" | sed "s/\.pivotal\$//"`
 cd "${POOL_DIR}"
 
 echo "Enable diego_docker:"
-$PCF target -o system
+$PCF target -o system -s system
 cf enable-feature-flag diego_docker
 
 echo "Available products:"
