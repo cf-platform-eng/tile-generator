@@ -68,7 +68,8 @@ setup(
 		'requests-toolbelt',
 		'mock>=2.0.0',
 		'pexpect>=4.2.1',
-		'helm'
+		'helm',
+		'six'
 	],
 	include_package_data = True,
 	entry_points = {
