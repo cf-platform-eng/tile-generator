@@ -1,9 +1,14 @@
 import yaml
 from . import template as template_helper
 
+if hasattr(__builtins__, 'unicode'):
+    # Inspired by: https://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter
+    class literal_unicode(unicode):
+        pass
+else:  # PY3
+    class literal_unicode(str):
+        pass
 
-# Inspired by: https://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter
-class literal_unicode(unicode): pass
 def literal_unicode_representer(dumper, data):
     return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
 yaml.SafeDumper.add_representer(literal_unicode, literal_unicode_representer)
