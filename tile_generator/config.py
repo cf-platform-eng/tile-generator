@@ -112,6 +112,27 @@ class Config(dict):
 			if k.startswith('Package'):
 				self._package_defs[v.package_type] = v
 
+	@staticmethod
+	def cf_job_manifest_properties():
+		return {
+			'domain': '(( ..cf.cloud_controller.system_domain.value ))',
+			'app_domains': ['(( ..cf.cloud_controller.apps_domain.value ))'],
+			'org': '(( .properties.org.value ))',
+			'space': '(( .properties.space.value ))',
+			'ssl': {'skip_cert_verify': '(( ..cf.ha_proxy.skip_cert_verify.value ))'},
+			'opsman_ca': '(( $ops_manager.ca_certificate ))',
+			'cf': {
+			  'admin_user': '(( ..cf.uaa.system_services_credentials.identity ))',
+			  'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',
+			},
+			'uaa': {
+			  'admin_client': '(( ..cf.uaa.admin_client_credentials.identity ))',
+			  'admin_client_secret': '(( ..cf.uaa.admin_client_credentials.password ))',
+			},
+			'apply_open_security_group': '(( .properties.apply_open_security_group.value ))',
+			'allow_paid_service_plans': '(( .properties.allow_paid_service_plans.value ))',
+		}
+
 	def read(self):
 		self.read_config()
 		self.read_history()
@@ -317,24 +338,11 @@ class Config(dict):
 		# This should not have to happen
 		from .package_flags import ExternalBroker, Broker
 
-		manifest = {
-			'domain': '(( ..cf.cloud_controller.system_domain.value ))',
-			'app_domains': ['(( ..cf.cloud_controller.apps_domain.value ))'],
-			'org': '(( .properties.org.value ))',
-			'space': '(( .properties.space.value ))',
-			'ssl': {'skip_cert_verify': '(( ..cf.ha_proxy.skip_cert_verify.value ))'},
-			'opsman_ca': '(( $ops_manager.ca_certificate ))',
-			'cf': {
-				'admin_user': '(( ..cf.uaa.system_services_credentials.identity ))',
-				'admin_password': '(( ..cf.uaa.system_services_credentials.password ))',
-			},
-			'uaa': {
-				'admin_client': '(( ..cf.uaa.admin_client_credentials.identity ))',
-				'admin_client_secret': '(( ..cf.uaa.admin_client_credentials.password ))',
-			},
-			'apply_open_security_group': '(( .properties.apply_open_security_group.value ))',
-			'allow_paid_service_plans': '(( .properties.allow_paid_service_plans.value ))',
-		}
+		manifest = {}
+
+		if job.get('type') != 'standalone':
+			merge_dict(manifest, Config.cf_job_manifest_properties())
+
 		if job.get('type') == 'deploy-all':
 			merge_dict(manifest, {
 				'security': {
@@ -342,7 +350,7 @@ class Config(dict):
 					'password': '(( .{}.app_credentials.password ))'.format(job['name']),
 				}
 			})
-		if job.get('type') == 'deploy-charts':
+		elif job.get('type') == 'deploy-charts':
 			merge_dict(manifest, {
 				'pks_username': '(( ..pivotal-container-service.properties.pks_basic_auth.identity ))',
 				'pks_password': '(( ..pivotal-container-service.properties.pks_basic_auth.password ))',

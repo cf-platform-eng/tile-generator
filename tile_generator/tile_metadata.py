@@ -52,32 +52,38 @@ class TileMetadata(object):
         self.tile_metadata['stemcell_criteria'] = {'stemcell_criteria': stemcell_criteria}
 
     def _build_property_blueprints(self):
-        self.tile_metadata['property_blueprints'] = [
-            {
-                'configurable': True,
-                'default': self.config['org'],
-                'name': 'org',
-                'type': 'string'
-            },
-            {
-                'configurable': True,
-                'default': self.config['space'],
-                'name': 'space',
-                'type': 'string'
-            },
-            {
-                'configurable': True,
-                'default': self.config['apply_open_security_group'],
-                'name': 'apply_open_security_group',
-                'type': 'boolean'
-            },
-            {
-                'configurable': True,
-                'default': self.config['allow_paid_service_plans'],
-                'name': 'allow_paid_service_plans',
-                'type': 'boolean'
-            },
-        ]
+        self.tile_metadata['property_blueprints'] = []
+
+        if not self.config.get('standalone'):
+            #
+            # CF Broker properties
+            #
+            self.tile_metadata['property_blueprints'].extend([
+                {
+                    'configurable': True,
+                    'default': self.config['org'],
+                    'name': 'org',
+                    'type': 'string'
+                },
+                {
+                    'configurable': True,
+                    'default': self.config['space'],
+                    'name': 'space',
+                    'type': 'string'
+                },
+                {
+                    'configurable': True,
+                    'default': self.config['apply_open_security_group'],
+                    'name': 'apply_open_security_group',
+                    'type': 'boolean'
+                },
+                {
+                    'configurable': True,
+                    'default': self.config['allow_paid_service_plans'],
+                    'name': 'allow_paid_service_plans',
+                    'type': 'boolean'
+                },
+            ])
 
         if self.config.get('requires_docker_bosh'):
             self.tile_metadata['property_blueprints'].append({

@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 import unittest
 from .tile_metadata import TileMetadata
 from .config import Config
+from collections import OrderedDict
 
 def find_by_field(field_name, field_value, list_of_dict):
     for d in list_of_dict:
@@ -78,6 +79,72 @@ class TestTileMetadata(unittest.TestCase):
         selector_property_inputs = metadata.tile_metadata['form_types'][0]['property_inputs'][0]['selector_property_inputs']
         inputs_with_no_configurable_fields = find_by_field('label', 'unconfigurable', selector_property_inputs)
         self.assertIsNone(inputs_with_no_configurable_fields.get('property_inputs'))
+
+    def test_standalone_tile_excludes_default_cf_blueprints(self):
+        config = Config(
+            name='validname', 
+            icon_file='/dev/null', 
+            label='some_label', 
+            description='This is required', 
+            service_plan_forms=[],
+            org='Test Org',
+            space='Test Space',
+            apply_open_security_group=False,
+            allow_paid_service_plans=False,
+            releases=OrderedDict(),
+            all_properties=[],
+            standalone=True)
+        metadata = TileMetadata(config)
+        metadata._build_property_blueprints()
+
+        expected_blueprints = []
+        self.assertEqual(metadata.tile_metadata['property_blueprints'], expected_blueprints)
+
+    def test_non_standalone_tile_includes_default_cf_blueprints(self):
+        config = Config(
+            name='validname', 
+            icon_file='/dev/null', 
+            label='some_label', 
+            description='This is required', 
+            service_plan_forms=[],
+            org='Test Org',
+            space='Test Space',
+            apply_open_security_group=False,
+            allow_paid_service_plans=False,
+            releases=OrderedDict(),
+            all_properties=[],
+            standalone=False)
+        metadata = TileMetadata(config)
+        metadata._build_property_blueprints()
+
+        expected_blueprints = [
+                {
+                    'configurable': True,
+                    'default': 'Test Org',
+                    'name': 'org',
+                    'type': 'string'
+                },
+                {
+                    'configurable': True,
+                    'default': 'Test Space',
+                    'name': 'space',
+                    'type': 'string'
+                },
+                {
+                    'configurable': True,
+                    'default': False,
+                    'name': 'apply_open_security_group',
+                    'type': 'boolean'
+                },
+                {
+                    'configurable': True,
+                    'default': False,
+                    'name': 'allow_paid_service_plans',
+                    'type': 'boolean'
+                },
+            ]
+
+        self.assertEqual(metadata.tile_metadata['property_blueprints'], expected_blueprints)
 
 if __name__ == '__main__':
     unittest.main()
