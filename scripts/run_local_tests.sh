@@ -18,6 +18,14 @@
 
 LOCAL_TEST_DIR='temp_local_test'
 SCRIPT_DIR="$( cd "$( dirname "$0" )/.." && pwd )"
+VENV="$SCRIPT_DIR/tile-generator-env"
+deactivate >/dev/null 2>&1 || echo ''
+rm -rf $VENV
+echo "Creating a new virtual environment..."
+virtualenv -q -p python2 $VENV
+source $VENV/bin/activate
+pip install -e .
+source $VENV/bin/activate
 
 command -v tile >/dev/null 2>&1 || { echo "Command 'tile' not found." >&2; exit 1; }
 
@@ -25,6 +33,8 @@ command -v tile >/dev/null 2>&1 || { echo "Command 'tile' not found." >&2; exit 
 
 rm -rf "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
 mkdir "${SCRIPT_DIR}"/"${LOCAL_TEST_DIR}"
+
+"${SCRIPT_DIR}"/sample/src/build.sh
 
 if [ "$1" = "withcache" ]; then
     echo "########################################################"
