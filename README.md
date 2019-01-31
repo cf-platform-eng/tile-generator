@@ -43,6 +43,6 @@ commands. To do this, run this command in your tile-generator
 repository directory:
 
 ```
-./install-git-hooks.sh
+./install-git-hook.sh
 pip install -e .
 ```
