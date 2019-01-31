@@ -1,6 +1,8 @@
 .venv
 .envrc
 *.pyc
+*.egg
+*.eggs
 *.egg-info/
 site/
 /.dir-locals.el
@@ -8,3 +10,6 @@ test_config_generated_output.json
 test_metadata_generated_output.yml
 .vscode/
 /ci/pipeline.yml
+tile-generator-env
+build/
+dist/
