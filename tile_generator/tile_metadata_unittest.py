@@ -112,8 +112,7 @@ class TestTileMetadata(unittest.TestCase):
             apply_open_security_group=False,
             allow_paid_service_plans=False,
             releases=OrderedDict(),
-            all_properties=[],
-            standalone=False)
+            all_properties=[])
         metadata = TileMetadata(config)
         metadata._build_property_blueprints()
 
