@@ -52,13 +52,14 @@ class TileMetadata(object):
         self.tile_metadata['stemcell_criteria'] = {'stemcell_criteria': stemcell_criteria}
 
     def _build_property_blueprints(self):
-        self.tile_metadata['property_blueprints'] = []
 
-        if not self.config.get('standalone'):
+        if self.config.get('standalone'):
+            self.tile_metadata['property_blueprints'] = []
+        else:
             #
             # CF Broker properties
             #
-            self.tile_metadata['property_blueprints'].extend([
+            self.tile_metadata['property_blueprints'] = [
                 {
                     'configurable': True,
                     'default': self.config['org'],
@@ -83,7 +84,7 @@ class TileMetadata(object):
                     'name': 'allow_paid_service_plans',
                     'type': 'boolean'
                 },
-            ])
+            ]
 
         if self.config.get('requires_docker_bosh'):
             self.tile_metadata['property_blueprints'].append({

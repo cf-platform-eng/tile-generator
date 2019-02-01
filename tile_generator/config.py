@@ -338,10 +338,10 @@ class Config(dict):
 		# This should not have to happen
 		from .package_flags import ExternalBroker, Broker
 
-		manifest = {}
-
-		if job.get('type') != 'standalone':
-			merge_dict(manifest, Config.cf_job_manifest_properties())
+		if job.get('type') == 'standalone':
+			manifest = {}
+		else:
+			manifest = Config.cf_job_manifest_properties()
 
 		if job.get('type') == 'deploy-all':
 			merge_dict(manifest, {
