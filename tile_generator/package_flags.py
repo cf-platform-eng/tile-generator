@@ -4,6 +4,7 @@ import helm
 import uuid
 import os
 import sys
+import six
 from . import template
 
 
@@ -11,7 +12,7 @@ from . import template
 # it would be harder to patch for tests
 def _update_compilation_vm_disk_size(manifest):
     package_file = manifest.get('path')
-    if not isinstance(package_file, basestring) or not os.path.exists(package_file):
+    if not isinstance(package_file, six.string_types) or not os.path.exists(package_file):
         print('Package file "{}" not found! Please check the manifest path in your tile.yml file.'.format(package_file), file=sys.stderr)
         sys.exit(1)
     package_size = os.path.getsize(package_file) // (1024 * 1024) # bytes to megabytes
@@ -207,7 +208,7 @@ class App(FlagBase):
         # TODO: Remove the dependency on this in templates
         package['is_app'] = True
 
-        for link_name, link in package.get('consumes', {}).iteritems():
+        for link_name, link in six.iteritems(package.get('consumes', {})):
             release['consumes'] = release.get('consumes', {})
             release['consumes'][link_name] = link
             release['consumes_for_deployment'] = release.get('consumes_for_deployment', {})

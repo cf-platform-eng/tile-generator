@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import errno
+import six
 import yaml
 
 from jinja2 import Template, Environment, FileSystemLoader, exceptions, contextfilter
@@ -195,7 +196,8 @@ def render(target_path, template_file, config):
 	if target_dir != '':
 		mkdir_p(target_dir)
 	with open(target_path, 'wb') as target:
-		target.write(TEMPLATE_ENVIRONMENT.get_template(template_file).render(config))
+		content = TEMPLATE_ENVIRONMENT.get_template(template_file).render(config)
+		target.write(six.b(content))
 
 def exists(template_file):
 	return os.exists(path(template_file))

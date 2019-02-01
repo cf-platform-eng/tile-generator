@@ -34,6 +34,7 @@ except ImportError:
 import zipfile
 import yaml
 import datetime
+import six
 
 from .tile_metadata import TileMetadata
 from .bosh import *
@@ -78,7 +79,7 @@ def build_tile(context):
     pivotal_file = os.path.join('product', tile_name + '-' + tile_version + '.pivotal')
     print('include tile generator version and inputs')
     with open(os.path.join('product', 'tile-generator', 'version'), 'wb') as f:
-        f.write(version_string)
+        f.write(six.b(version_string))
     shutil.copy('tile.yml', os.path.join('product', 'tile-generator', 'tile.yml'))
     with zipfile.ZipFile(pivotal_file, 'w', allowZip64=True) as f:
         for release in context.get('releases', {}).values():
