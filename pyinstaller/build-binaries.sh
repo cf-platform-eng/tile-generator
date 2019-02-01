@@ -38,7 +38,8 @@ function create_venv {
   source $VENV/bin/activate
   # Build for current project. Assumes tile-generator src is up a dir
   pip install -e $SCRIPT_DIR/../
-  pip install pyinstaller
+  #https://github.com/pypa/pip/issues/6163#issuecomment-456772043
+  pip install pyinstaller --no-use-pep517
 }
 
 if [ ! -d $VENV ]; then
