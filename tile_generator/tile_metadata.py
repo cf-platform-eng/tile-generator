@@ -43,6 +43,7 @@ class TileMetadata(object):
         base['service_broker'] = self.config['service_broker']
         base['product_version'] = str(self.config.get('version'))
         base['requires_product_versions'] = self.config.get('requires_product_versions')
+        base['standalone'] = self.config.get('standalone')
 
         for key in self.config.get('unknown_keys', []):
             base[key] = self.config[key]
@@ -57,32 +58,39 @@ class TileMetadata(object):
         self.tile_metadata['stemcell_criteria'] = {'stemcell_criteria': stemcell_criteria}
 
     def _build_property_blueprints(self):
-        self.tile_metadata['property_blueprints'] = [
-            {
-                'configurable': True,
-                'default': self.config['org'],
-                'name': 'org',
-                'type': 'string'
-            },
-            {
-                'configurable': True,
-                'default': self.config['space'],
-                'name': 'space',
-                'type': 'string'
-            },
-            {
-                'configurable': True,
-                'default': self.config['apply_open_security_group'],
-                'name': 'apply_open_security_group',
-                'type': 'boolean'
-            },
-            {
-                'configurable': True,
-                'default': self.config['allow_paid_service_plans'],
-                'name': 'allow_paid_service_plans',
-                'type': 'boolean'
-            },
-        ]
+
+        if self.config.get('standalone'):
+            self.tile_metadata['property_blueprints'] = []
+        else:
+            #
+            # CF Broker properties
+            #
+            self.tile_metadata['property_blueprints'] = [
+                {
+                    'configurable': True,
+                    'default': self.config['org'],
+                    'name': 'org',
+                    'type': 'string'
+                },
+                {
+                    'configurable': True,
+                    'default': self.config['space'],
+                    'name': 'space',
+                    'type': 'string'
+                },
+                {
+                    'configurable': True,
+                    'default': self.config['apply_open_security_group'],
+                    'name': 'apply_open_security_group',
+                    'type': 'boolean'
+                },
+                {
+                    'configurable': True,
+                    'default': self.config['allow_paid_service_plans'],
+                    'name': 'allow_paid_service_plans',
+                    'type': 'boolean'
+                },
+            ]
 
         if self.config.get('requires_docker_bosh'):
             self.tile_metadata['property_blueprints'].append({
@@ -530,7 +538,7 @@ class TileMetadata(object):
                             bosh_release_job['run_pre_delete_errand_default'] = job.get('run_pre_delete_errand_default')
 
                     bosh_release_job['templates'] = list()
-                    for template in job.get('templates'):
+                    for template in job.get('templates', []):
                         temp = {
                             'name': template.get('name'), 
                             'release': template.get('release')

@@ -26,10 +26,9 @@ from contextlib import contextmanager
 from StringIO import StringIO
 
 from . import config
-from .config import Config
+from .config import Config, merge_dict
 from .tile_metadata import TileMetadata
 from . import template
-
 
 @contextmanager
 def capture_output():
@@ -637,6 +636,151 @@ Before version 4.0, each installation generated its own plan UUIDs, after 4.0 th
 This option installs a compatibility layer which checks if a service is using the correct plan GUID.\n\
 If the service does not use the correct GUID, the request will fail with a message about how to upgrade.'
     self.assertEqual(tile_metadata['form_types'][0]['property_inputs'][0]['description'], expected)
+
+  def test_standalone_job_type(self):
+    self.config.update({
+      'packages': [{
+        'name': 'some_errand',
+        'type': 'bosh-release',
+        'path': 'does/it/matter.tgz',
+        'jobs': [{
+          'name': 'my-job',
+          'type': 'standalone'
+        }]
+      }]
+    })
+    self.config.validate()
+    self.config.normalize_jobs()
+    expected = {
+      'some_errand': {
+        'name': 'some_errand'
+      }
+    }
+
+    self.assertEqual(self.config['releases']['some_errand']['jobs'][0]['manifest'], expected)
+
+  def test_deploy_all_job_type_with_external_broker(self):
+    self.config.update({
+      'packages': [{
+        'name': 'some_errand',
+        'type': 'external-broker',
+        'path': 'does/it/matter.tgz',
+        'jobs': [{
+          'name': 'my-job',
+          'type': 'deploy-all'
+        }]
+      }]
+    })
+
+    expected = {
+      'security': {
+        'user': '(( .deploy-all.app_credentials.identity ))',
+        'password': '(( .deploy-all.app_credentials.password ))',
+      },
+      'some_errand': {
+        'name': 'some_errand',
+        'url': '(( .properties.some_errand_url.value ))',
+        'enable_global_access_to_plans': '(( .properties.some_errand_enable_global_access_to_plans.value ))',
+        'user': '(( .properties.some_errand_user.value ))',
+        'password': '(( .properties.some_errand_password.value ))',
+      }
+    }
+    merge_dict(expected, Config.cf_job_manifest_properties())
+
+    self.config.validate()
+    self.config.normalize_jobs()
+
+    self.assertEqual(self.config['releases']['validname']['jobs'][0]['manifest'], expected)
+
+  def test_deploy_all_job_type_with_broker(self):
+    self.config.update({
+      'packages': [{
+        'name': 'some_errand',
+        'type': 'app-broker',
+        'path': 'does/it/matter.tgz',
+        'jobs': [{
+          'name': 'my-job',
+          'type': 'deploy-all'
+        }],
+        'manifest': {
+          'buildpack': 'app_buildpack', 
+          'path': 'foo'
+        }
+      }]
+    })
+
+    self.config.validate()
+    self.config.normalize_jobs()
+
+    expected = {
+      'security': {
+        'user': '(( .deploy-all.app_credentials.identity ))',
+        'password': '(( .deploy-all.app_credentials.password ))',
+      },
+      'some_errand': {
+        'name': 'some_errand',
+        'enable_global_access_to_plans': '(( .properties.some_errand_enable_global_access_to_plans.value ))',
+        'user': '(( .deploy-all.app_credentials.identity ))',
+        'password': '(( .deploy-all.app_credentials.password ))',
+        'app_manifest': {
+          'path': 'foo',
+          'buildpack': 'app_buildpack'
+        },
+        'auto_services': []
+      }
+    }
+    merge_dict(expected, Config.cf_job_manifest_properties())
+
+    self.assertEqual(self.config['releases']['validname']['jobs'][0]['manifest'], expected)
+
+  def test_deploy_charts_job_type(self):
+    self.config.update({
+      'packages': [{
+        'name': 'some_errand',
+        'type': 'bosh-release',
+        'path': 'does/it/matter.tgz',
+        'jobs': [{
+          'name': 'my-job',
+          'type': 'deploy-charts'
+        }]
+      }]
+    })
+    self.config.validate()
+    self.config.normalize_jobs()
+    
+    expected = {
+      'some_errand': {
+        'name': 'some_errand'
+      },
+      'pks_username': '(( ..pivotal-container-service.properties.pks_basic_auth.identity ))',
+      'pks_password': '(( ..pivotal-container-service.properties.pks_basic_auth.password ))',
+    }
+    merge_dict(expected, Config.cf_job_manifest_properties())
+
+    self.assertEqual(self.config['releases']['some_errand']['jobs'][0]['manifest'], expected)
+
+  def test_no_type_job(self):
+    self.config.update({
+      'packages': [{
+        'name': 'some_errand',
+        'type': 'bosh-release',
+        'path': 'does/it/matter.tgz',
+        'jobs': [{
+          'name': 'my-job',
+        }]
+      }]
+    })
+    self.config.validate()
+    self.config.normalize_jobs()
+    
+    expected = {
+      'some_errand': {
+        'name': 'some_errand'
+      },
+    }
+    merge_dict(expected, Config.cf_job_manifest_properties())
+
+    self.assertEqual(self.config['releases']['some_errand']['jobs'][0]['manifest'], expected)
 
 @mock.patch('os.path.getsize')
 class TestVMDiskSize(BaseTest):
