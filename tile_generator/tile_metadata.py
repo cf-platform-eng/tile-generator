@@ -532,7 +532,7 @@ class TileMetadata(object):
                             bosh_release_job['run_pre_delete_errand_default'] = job.get('run_pre_delete_errand_default')
 
                     bosh_release_job['templates'] = list()
-                    for template in job.get('templates'):
+                    for template in job.get('templates', []):
                         temp = {
                             'name': template.get('name'), 
                             'release': template.get('release')
