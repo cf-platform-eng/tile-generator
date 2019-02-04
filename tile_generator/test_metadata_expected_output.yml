@@ -12,6 +12,7 @@ requires_product_versions:
   version: '>= 1.9'
 serial: true
 service_broker: false
+standalone: false
 
 
 releases:
@@ -591,6 +592,8 @@ job_types:
       name: tg_test_app5
     tg_test_app6:
       name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
@@ -764,6 +767,8 @@ job_types:
       name: tg_test_app5
     tg_test_app6:
       name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
@@ -841,6 +846,150 @@ job_types:
         from: nats
     name: route_registrar
     release: routing
+- dynamic_ip: 1
+  instance_definition:
+    configurable: true
+    default: 1
+    name: instances
+    type: integer
+  manifest: |
+    app_instances: (( .properties.app_instances.value ))
+    author: (( .properties.author.value ))
+    auto_service_name: (( .properties.auto_service_name.value ))
+    canary_watch_timeout: (( .properties.canary_watch_timeout.value ))
+    city: (( .properties.city.value ))
+    country: (( .properties.country.value ))
+    custom_dynamic_service_plan_1: (( .properties.custom_dynamic_service_plan_1.value ))
+    custom_dynamic_service_plan_2: (( .properties.custom_dynamic_service_plan_2.value ))
+    customer_name: (( .properties.customer_name.value ))
+    example_collection: (( .properties.example_collection.value ))
+    example_selector:
+      selected_option: (( .properties.example_selector.selected_option.parsed_manifest(manifest_snippet) ))
+      value: (( .properties.example_selector.value ))
+    is_feature_enabled:
+      selected_option: (( .properties.is_feature_enabled.selected_option.parsed_manifest(manifest_snippet) ))
+      value: (( .properties.is_feature_enabled.value ))
+    my_creds:
+      identity: (( .properties.my_creds.identity ))
+      password: (( .properties.my_creds.password ))
+    password: (( .properties.password.value ))
+    planets: (( .properties.planets.value ))
+    runtime_test_release:
+      name: runtime_test_release
+    street_address: (( .properties.street_address.value ))
+    tg_test_app1:
+      app_manifest:
+        buildpack: python_buildpack
+        command: python app.py
+        instances: (( .properties.app_instances.value ))
+        memory: 256M
+        path: app.zip
+      auto_services: []
+      name: tg_test_app1
+    tg_test_app1_auto_zip:
+      app_manifest:
+        buildpack: python_buildpack
+        command: python app.py
+        memory: 256M
+        path: app
+      auto_services: []
+      name: tg_test_app1_auto_zip
+    tg_test_app2:
+      app_manifest:
+        buildpack: python_buildpack
+        command: python app.py
+        host: tg-test-app2-hostname
+        memory: 256M
+        path: app.zip
+      auto_services:
+      - name: tg-test-broker1-service
+        plan: first-plan
+      - name: (( .properties.auto_service_name.value ))
+      name: tg_test_app2
+    tg_test_app3:
+      app_manifest:
+        memory: 256M
+      auto_services:
+      - name: tg-test-broker1-service
+        plan: second-plan
+        service_instance: tg-test-svc
+      name: tg_test_app3
+    tg_test_app4:
+      name: tg_test_app4
+    tg_test_app5:
+      name: tg_test_app5
+    tg_test_app6:
+      name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
+    tg_test_binary_app:
+      app_manifest:
+        buildpack: binary_buildpack
+        command: ./binary-app.py
+        memory: 256M
+        path: binary-app.py
+      auto_services: []
+      name: tg_test_binary_app
+    tg_test_broker1:
+      app_manifest:
+        buildpack: python_buildpack
+        command: python app.py
+        memory: 256M
+        path: app.zip
+      auto_services: []
+      enable_global_access_to_plans: (( .properties.tg_test_broker1_enable_global_access_to_plans.value ))
+      name: tg_test_broker1
+    tg_test_broker2:
+      app_manifest:
+        buildpack: python_buildpack
+        command: python app.py
+        memory: 256M
+        path: app.zip
+      auto_services: []
+      enable_global_access_to_plans: (( .properties.tg_test_broker2_enable_global_access_to_plans.value ))
+      name: tg_test_broker2
+    tg_test_buildpack:
+      buildpack_order: (( .properties.tg_test_buildpack_buildpack_order.value ))
+      name: tg_test_buildpack
+    update_watch_timeout: (( .properties.update_watch_timeout.value ))
+    username: (( .properties.username.value ))
+    zip_code: (( .properties.zip_code.value ))
+  max_in_flight: 1
+  name: no-op
+  property_blueprints:
+  - default:
+      identity: vcap
+    name: vm_credentials
+    type: salted_credentials
+  resource_definitions:
+  - configurable: true
+    constraints:
+      min: 0
+    default: 512
+    name: ram
+    type: integer
+  - configurable: true
+    constraints:
+      min: 0
+    default: 4096
+    name: ephemeral_disk
+    type: integer
+  - configurable: true
+    constraints:
+      min: 0
+    default: 0
+    name: persistent_disk
+    type: integer
+  - configurable: true
+    constraints:
+      min: 1
+    default: 1
+    name: cpu
+    type: integer
+  resource_label: no-op
+  single_az_only: false
+  static_ip: 0
+  templates: []
 - default_internet_connected: false
   dynamic_ip: 1
   instance_definition:
@@ -929,6 +1078,8 @@ job_types:
       name: tg_test_app5
     tg_test_app6:
       name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
@@ -1091,6 +1242,8 @@ job_types:
       name: tg_test_app5
     tg_test_app6:
       name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
@@ -1247,6 +1400,8 @@ job_types:
       name: tg_test_app5
     tg_test_app6:
       name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
     tg_test_binary_app:
       name: tg_test_binary_app
     tg_test_broker1:
@@ -1412,6 +1567,8 @@ job_types:
       name: tg_test_app5
     tg_test_app6:
       name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
@@ -1581,6 +1738,8 @@ job_types:
       name: tg_test_app5
     tg_test_app6:
       name: tg_test_app6
+    tg_test_app7:
+      name: tg_test_app7
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack

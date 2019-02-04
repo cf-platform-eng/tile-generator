@@ -184,6 +184,7 @@ class Config(dict):
 			'space': {'type': 'string', 'default_setter': lambda doc: doc['name'] + '-space'},
 			'apply_open_security_group': {'type': 'boolean', 'default': False},
 			'allow_paid_service_plans': {'type': 'boolean', 'default': False},
+			'standalone': {'type': 'boolean', 'default': False},
 			'compilation_vm_disk_size': {'type': 'number', 'default': 10240},
 			'purge_service_brokers': {'type': 'boolean', 'default': True},
 			'forms': {'type': 'list', 'default': [], 'schema': {

@@ -38,6 +38,7 @@ class TileMetadata(object):
         base['service_broker'] = self.config['service_broker']
         base['product_version'] = str(self.config.get('version'))
         base['requires_product_versions'] = self.config.get('requires_product_versions')
+        base['standalone'] = self.config.get('standalone')
 
         for key in self.config.get('unknown_keys', []):
             base[key] = self.config[key]
