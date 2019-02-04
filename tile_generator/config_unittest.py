@@ -26,8 +26,7 @@ from contextlib import contextmanager
 from StringIO import StringIO
 
 from . import config
-from .config import Config
-from .config import merge_dict
+from .config import Config, merge_dict
 from .tile_metadata import TileMetadata
 from . import template
 
