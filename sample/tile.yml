@@ -10,7 +10,7 @@ icon_file: resources/icon.png
 # docker_bosh_version: '28'           # Optional, default: latest release
 # apply_open_security_group: true     # Apply open security group, default: false
 allow_paid_service_plans: true        # Allow paid service plans, default: false
-stanalone: false                      # Suppress default CF properties in property_blueprints metadata, default: false
+standalone: false                     # Suppress default CF properties in property_blueprints metadata, default: false
 
 properties:
 - name: author
