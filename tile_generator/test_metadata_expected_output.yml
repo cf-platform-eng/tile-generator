@@ -989,7 +989,9 @@ job_types:
   resource_label: no-op
   single_az_only: false
   static_ip: 0
-  templates: []
+  templates:
+  - name: no-op
+    release: standalone-release
 - default_internet_connected: false
   dynamic_ip: 1
   instance_definition:

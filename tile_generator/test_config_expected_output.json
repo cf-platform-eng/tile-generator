@@ -1967,6 +1967,12 @@
           "name": "no-op", 
           "properties": {}, 
           "template": "standalone", 
+          "templates": [
+            {
+              "name": "no-op", 
+              "release": "standalone-release"
+            }
+          ], 
           "type": "standalone", 
           "varname": "no_op"
         }
@@ -3963,6 +3969,12 @@
           "name": "no-op", 
           "properties": {}, 
           "template": "standalone", 
+          "templates": [
+            {
+              "name": "no-op", 
+              "release": "standalone-release"
+            }
+          ], 
           "type": "standalone", 
           "varname": "no_op"
         }

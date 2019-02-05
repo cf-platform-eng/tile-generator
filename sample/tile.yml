@@ -472,6 +472,9 @@ packages:
     instances: 1
     dynamic_ip: 1
     type: standalone # Don't include default CF properties in generated job manifest
+    templates:
+    - name: no-op
+      release: standalone-release
 
 runtime_configs:
 - name: example-runtime-config
