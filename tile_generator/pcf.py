@@ -124,7 +124,7 @@ def settings_cmd(product):
 			click.echo('No settings found for product %s' % product, err=True)
 			sys.exit(1)
 		settings = settings[0]
-		click.echo(json.dumps(settings, indent=4))
+	click.echo(json.dumps(settings, indent=4))
 
 
 @cli.command('cf-info')
