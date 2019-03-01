@@ -154,7 +154,7 @@ class DockerBosh(FlagBase):
         version_param = '?v=' + version if version else ''
         config_obj['releases']['docker-boshrelease'] = {
             'name': 'docker-boshrelease',
-            'path': 'https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease' + version_param,
+            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/docker-boshrelease' + version_param,
         }
         config_obj['releases']['routing'] = {
             'name': 'routing',

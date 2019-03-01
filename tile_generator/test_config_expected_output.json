@@ -2009,7 +2009,7 @@
   "releases": {
     "docker-boshrelease": {
       "name": "docker-boshrelease", 
-      "path": "https://bosh.io/d/github.com/cf-platform-eng/docker-boshrelease"
+      "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/docker-boshrelease"
     }, 
     "routing": {
       "name": "routing", 
@@ -2673,7 +2673,7 @@
             }, 
             {
               "name": "all_open.json", 
-              "path": "/Users/mboldt/pivotal/tile-generator/tile_generator/templates/src/templates/all_open.json"
+              "path": "/home/user/Work/tile-generator/tile_generator/templates/src/templates/all_open.json"
             }
           ], 
           "name": "cf_cli"
@@ -3024,7 +3024,7 @@
           "files": [
             {
               "name": "utils.sh", 
-              "path": "/Users/mboldt/pivotal/tile-generator/tile_generator/templates/src/common/utils.sh"
+              "path": "/home/user/Work/tile-generator/tile_generator/templates/src/common/utils.sh"
             }
           ], 
           "name": "common"
