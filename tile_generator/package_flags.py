@@ -141,13 +141,9 @@ class DockerBosh(FlagBase):
             'template': 'docker-bosh',
             'package': package,
             'properties': {
-            'security': {
-                'password': '(( .deploy-all.app_credentials.password ))',
-                'user': '(( .deploy-all.app_credentials.identity ))'
-            },
-            'tls_cacert': '(( $ops_manager.ca_certificate ))',
-            'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
-            'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
+                'tls_cacert': '(( $ops_manager.ca_certificate ))',
+                'tls_cert': '(( .properties.generated_rsa_cert_credentials.cert_pem ))',
+                'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
             }
         }]
         version = None
