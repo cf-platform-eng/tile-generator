@@ -14,8 +14,8 @@ RUN apk add --no-cache zip &&\
     apk del build-dependencies
 
 
-RUN wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-5.4.0-linux-amd64
-RUN mv bosh-cli-5.4.0-linux-amd64 /usr/local/bin/bosh
+RUN wget https://github.com/cloudfoundry/bosh-cli/releases/download/v5.5.0/bosh-cli-5.5.0-linux-amd64
+RUN mv bosh-cli-5.5.0-linux-amd64 /usr/local/bin/bosh
 RUN chmod 755 /usr/local/bin/bosh
 
 RUN wget -O /tmp/cf.tgz https://packages.cloudfoundry.org/stable?release=linux64-binary
