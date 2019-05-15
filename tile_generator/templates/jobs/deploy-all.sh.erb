@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export PATH="/var/vcap/packages/cf_cli:$PATH"
 export CF=`which cf`
 
 function cf() {
@@ -69,12 +68,6 @@ function write_opsman_cert {
 	echo "<%=p('opsman_ca')%>" > /var/vcap/data/certs/opsman-ca.pem
 }
 
-function prepare_cf_cli {
-	export PATH="/var/vcap/packages/cf_cli/bin:$PATH"
-	export CF_HOME=`pwd`/home/cf
-	mkdir -p $CF_HOME
-}
-
 function authenticate() {
 	$CF --version
 	if is_true "$CF_SKIP_SSL"; then
@@ -129,7 +122,14 @@ function apply_open_security_group() {
 		return
 	fi
 	if ! $CF security-group all_open >/dev/null 2>/dev/null; then
-		cf create-security-group all_open ${PACKAGE_PATH}/cf_cli/all_open.json
+		echo echo '[
+  {
+    "destination": "0.0.0.0-255.255.255.255",
+    "protocol": "all"
+  }
+]' > /tmp/all_open.json
+
+		cf create-security-group all_open /tmp/all_open.json
 	fi
 	cf bind-security-group all_open "$CF_ORG" "$CF_SPACE"
 }
@@ -390,7 +390,6 @@ function is_newer() {
 
 import_opsmgr_variables
 write_opsman_cert
-prepare_cf_cli
 setup_package_path
 authenticate
 setup_target_org

@@ -43,25 +43,25 @@ class VerifyBoshRelease(unittest.TestCase):
 	def test_all_jobs_have_manifest(self):
 		self.assertEqual(len(glob.glob('release/jobs/*/job.MF')), len(glob.glob('release/jobs/*')))
 
-	def test_cf_errand_manifest_has_cf_cli_package(self):
-		for manifest in glob.glob('release/jobs/*/job.MF'):
-			if not manifest.startswith('release/jobs/docker-bosh-'):
-				self.assertTrue('cf_cli' in read_yaml(manifest).get('packages', []), manifest)
+	# def test_cf_errand_manifest_has_cf_cli_package(self):
+	# 	for manifest in glob.glob('release/jobs/*/job.MF'):
+	# 		if not manifest.startswith('release/jobs/docker-bosh-'):
+	# 			self.assertTrue('cf_cli' in read_yaml(manifest).get('packages', []), manifest)
 
-	def test_bosh_job_spec_has_no_cf_cli_package(self):
-		for manifest in glob.glob('release/jobs/*/job.MF'):
-			if manifest.startswith('release/jobs/docker-bosh-'):
-				self.assertFalse('cf_cli' in read_yaml(manifest).get('packages', []), manifest)
+	# def test_bosh_job_spec_has_no_cf_cli_package(self):
+	# 	for manifest in glob.glob('release/jobs/*/job.MF'):
+	# 		if manifest.startswith('release/jobs/docker-bosh-'):
+	# 			self.assertFalse('cf_cli' in read_yaml(manifest).get('packages', []), manifest)
 
 	def test_all_jobs_have_template(self):
 		# 2 templates for each job: one to run the job, and one with the opsmgr env vars.
 		self.assertEqual(len(glob.glob('release/jobs/*/templates/*.erb')), 2 * len(glob.glob('release/jobs/*')))
 
-	def test_has_complete_cf_cli_package(self):
-		self.assertEqual(len(glob.glob('release/packages/cf_cli')), 1)
-		self.assertEqual(len(glob.glob('release/packages/cf_cli/cf_cli/cf-linux-amd64.tgz')), 1)
-		self.assertEqual(len(glob.glob('release/packages/cf_cli/packaging')), 1)
-		self.assertTrue('cf-linux-amd64.tgz' in read_file('release/packages/cf_cli/packaging'))
+	# def test_has_complete_cf_cli_package(self):
+	# 	self.assertEqual(len(glob.glob('release/packages/cf_cli')), 1)
+	# 	self.assertEqual(len(glob.glob('release/packages/cf_cli/cf_cli/cf-linux-amd64.tgz')), 1)
+	# 	self.assertEqual(len(glob.glob('release/packages/cf_cli/packaging')), 1)
+	# 	self.assertTrue('cf-linux-amd64.tgz' in read_file('release/packages/cf_cli/packaging'))
 
 	def test_has_complete_common_package(self):
 		self.assertEqual(len(glob.glob('release/packages/common')), 1)

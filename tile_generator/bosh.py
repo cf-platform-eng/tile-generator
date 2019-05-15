@@ -83,10 +83,22 @@ class BoshRelease:
 		return self.build_tarball()
 
 	def download_tarball(self):
+		def semver_x_greater_or_equal_to_y(x, y):
+			# split the semver into major minor patch
+			x = [int(d) for d in x.split('.')]
+			y = [int(d) for d in y.split('.')]
+
+			return x >= y
+
 		mkdir_p(self.release_dir)
 		tarball = os.path.join(self.release_dir, self.name + '.tgz')
 		download(self.path, tarball, self.context.get('cache'))
 		manifest = self.get_manifest(tarball)
+		if manifest['name'] == 'cf-cli':
+			# Enforce at least version 1.15 as prior versions have a CVE
+			# https://docs.google.com/document/d/177QPJHKXMld1AD-GNHeildVfTGCWrGP-GSSlDmJY9eI/edit?ts=5ccd96fa
+			if not semver_x_greater_or_equal_to_y(manifest['version'], '1.15.0'):
+				raise RuntimeError('The cf-cli bosh release should be version 1.15.0 or higher. Detected %s' % manifest['version'])
 		self.tarball = os.path.join(self.release_dir, manifest['name'] + '-' + manifest['version'] + '.tgz')
 		os.rename(tarball, self.tarball)
 		return self.tarball

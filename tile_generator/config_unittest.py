@@ -107,8 +107,6 @@ class TestUltimateForm(BaseTest):
         for f in package.get('files', []):
           if 'tile_generator/templates/src/common/utils.sh' in f.get('path'):
             f['path'] = 'tile_generator/templates/src/common/utils.sh'
-          if 'tile_generator/templates/src/templates/all_open.json' in f.get('path'):
-            f['path'] = 'tile_generator/templates/src/templates/all_open.json'
 
   # Remove keys with dynamic values
   def remove_ignored_keys(self, obj):

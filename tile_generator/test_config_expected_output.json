@@ -2007,6 +2007,10 @@
   ], 
   "purge_service_brokers": true, 
   "releases": {
+    "cf-cli-release": {
+      "name": "cf-cli-release", 
+      "path": "https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v="
+    }, 
     "docker-boshrelease": {
       "name": "docker-boshrelease", 
       "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/docker-boshrelease"
@@ -2218,11 +2222,6 @@
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
           "name": "deploy-all", 
-          "packages": [
-            {
-              "name": "cf_cli"
-            }
-          ], 
           "post_deploy": true, 
           "properties": {}, 
           "template": "deploy-all", 
@@ -2385,11 +2384,6 @@
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
           "name": "delete-all", 
-          "packages": [
-            {
-              "name": "cf_cli"
-            }
-          ], 
           "pre_delete": true, 
           "properties": {}, 
           "template": "delete-all", 
@@ -2662,21 +2656,6 @@
               "name": "tg_test_app1"
             }
           }
-        }, 
-        {
-          "dir": "blobs", 
-          "files": [
-            {
-              "name": "cf-linux-amd64.tgz", 
-              "path": "http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel", 
-              "untar": true
-            }, 
-            {
-              "name": "all_open.json", 
-              "path": "/home/user/Work/tile-generator/tile_generator/templates/src/templates/all_open.json"
-            }
-          ], 
-          "name": "cf_cli"
         }, 
         {
           "app_manifest": {

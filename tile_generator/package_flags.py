@@ -82,7 +82,6 @@ class Cf(FlagBase):
                 'type': 'deploy-all',
                 'lifecycle': 'errand',
                 'post_deploy': True,
-                'packages': [{'name': 'cf_cli'}],
             }]
         if 'delete-all' not in [job['name'] for job in release['jobs']]:
             release['jobs'] += [{
@@ -90,25 +89,16 @@ class Cf(FlagBase):
                 'type': 'delete-all',
                 'lifecycle': 'errand',
                 'pre_delete': True,
-                'packages': [{'name': 'cf_cli'}],
             }]
         if { 'name': 'deploy-all' } not in config_obj.get('post_deploy_errands', []):
             config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
         if { 'name': 'delete-all' } not in config_obj.get('pre_delete_errands', []):
             config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-all' }]
-        if not 'cf_cli' in [p['name'] for p in release['packages']]:
-            release['packages'] += [{
-                'name': 'cf_cli',
-                'files': [{
-                    'name': 'cf-linux-amd64.tgz',
-                    'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel',
-                    'untar': True,
-                },{
-                    'name': 'all_open.json',
-                    'path': template.path('src/templates/all_open.json')
-                }],
-                'dir': 'blobs'
-            }]
+        if not 'cf-cli-release' in config_obj['releases'].keys():
+            config_obj['releases']['cf-cli-release'] = {
+              'name': 'cf-cli-release',
+              'path': 'https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=',
+            }
         if not config_obj.get('requires_product_versions'): 
             config_obj['requires_product_versions'] = list()
 

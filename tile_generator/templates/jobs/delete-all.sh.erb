@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export PATH="/var/vcap/packages/cf_cli:$PATH"
 export CF=`which cf`
 
 function cf() {
@@ -36,12 +35,6 @@ function import_opsmgr_variables() {
 function write_opsman_cert {
 	mkdir -p /var/vcap/data/certs
 	echo "<%=p('opsman_ca')%>" > /var/vcap/data/certs/opsman-ca.pem
-}
-
-function prepare_cf_cli {
-	export PATH="/var/vcap/packages/cf_cli/bin:$PATH"
-	export CF_HOME=`pwd`/home/cf
-	mkdir -p $CF_HOME
 }
 
 function authenticate() {
@@ -100,7 +93,6 @@ function delete_service_broker() {
 
 import_opsmgr_variables
 write_opsman_cert
-prepare_cf_cli
 authenticate
 if target_org; then
 	if target_space; then
