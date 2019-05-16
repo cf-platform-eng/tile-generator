@@ -665,6 +665,11 @@ class TileMetadata(object):
                         ], 
                         "manifest": literal_unicode(template_helper.render_yaml(job.get('manifest')))
                     }
+                    if job['name'] == 'deploy-all' or job['name'] == 'delete-all':
+                        job_type['templates'].append({
+                            "release": 'cf-cli',
+                            "name": 'cf-cli-6-linux',
+                        })
                     if job.get('run_post_deploy_errand_default'):
                         job_type['run_post_deploy_errand_default'] = job.get('run_post_deploy_errand_default')
                     if job.get('run_pre_delete_errand_default'):

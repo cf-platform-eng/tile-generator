@@ -1652,6 +1652,8 @@ job_types:
         from: redis
     name: deploy-all
     release: test-tile
+  - name: cf-cli-6-linux
+    release: cf-cli
 - dynamic_ip: 1
   errand: true
   instance_definition:
@@ -1819,6 +1821,8 @@ job_types:
         from: redis
     name: delete-all
     release: test-tile
+  - name: cf-cli-6-linux
+    release: cf-cli
 
 
 runtime_configs:
