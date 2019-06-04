@@ -701,8 +701,16 @@ class TileMetadata(object):
                 errand = dict()
                 if job.get('lifecycle') == 'errand':
                     errand['name'] = job['name']
-                    if job.get('post_deploy'): post_deploy_errands.append(errand)
-                    if job.get('pre_delete'): pre_delete_errands.append(errand)
+                    if job.get('post_deploy'):
+                        if job.get('type') == 'deploy-all': # deploy-all should run first.
+                            post_deploy_errands.insert(0, errand)
+                        else:
+                            post_deploy_errands.append(errand)
+                    if job.get('pre_delete'): # delete-all should run last.
+                        if job.get('type') == 'delete-all':
+                            pre_delete_errands.append(errand)
+                        else:
+                            pre_delete_errands.insert(0, errand)
                 for template in job.get('templates', {}):
                     errand = {'colocated': True}
                     # TODO: This should all really be checked in Cerberus for validation!
