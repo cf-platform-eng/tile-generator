@@ -591,19 +591,10 @@ class TileMetadata(object):
                     if job.get('default_internet_connected') != None:
                         bosh_release_job['default_internet_connected'] = job.get('default_internet_connected')
 
-                    instance_def = {
-                    'configurable': True,
-                    'default': job.get('instances', 1),
-                    'name': 'instances',
-                    'type': 'integer'
-                    }
-                    if job.get('singleton') or job.get('lifecycle') == 'errand':
-                        instance_def['configurable'] = False
-                        instance_def['default'] = 1
                     if self.config['metadata_version'] < 1.7:
-                        bosh_release_job['instance_definitions'] = [instance_def]
+                        bosh_release_job['instance_definitions'] = [job.get('instance_definition')]
                     else:
-                        bosh_release_job['instance_definition'] = instance_def
+                        bosh_release_job['instance_definition'] = job.get('instance_definition')
 
                     job_types.append(bosh_release_job)
 

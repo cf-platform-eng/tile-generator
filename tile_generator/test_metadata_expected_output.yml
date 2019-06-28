@@ -996,6 +996,8 @@ job_types:
   dynamic_ip: 1
   instance_definition:
     configurable: true
+    constraints:
+      min: 2
     default: 2
     name: instances
     type: integer

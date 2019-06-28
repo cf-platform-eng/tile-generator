@@ -327,6 +327,19 @@ class Config(dict):
 			return latest_major
 		return None # TODO - Look for latest on bosh.io for given os
 
+	def _build_instance_definition(self, job):
+		instance_def = {
+			'configurable': True,
+            'default': job.get('instances', 1),
+            'name': 'instances',
+			'type': 'integer'
+		}
+		if job.get('singleton') or job.get('lifecycle') == 'errand':
+			instance_def['configurable'] = False
+			instance_def['default'] = 1
+		merge_dict(instance_def, job.get('instance_definition', {}))
+		return instance_def
+
 	def normalize_jobs(self):
 		for release in self.get('releases', {}).values():
 			for job in release.get('jobs', []):
@@ -334,6 +347,7 @@ class Config(dict):
 				job['template'] = job.get('template', job['type'])
 				job['properties'] = job.get('properties', {})
 				job['manifest'] = self.build_job_manifest(job)
+				job['instance_definition'] = self._build_instance_definition(job)
 
 	def build_job_manifest(self, job):
 		# TODO: This whole thing needs to be changed to new world order

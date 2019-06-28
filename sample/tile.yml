@@ -390,6 +390,9 @@ packages:
     max_in_flight: 1
     properties:
       password: red!s
+    instance_definition:
+      constraints:
+        min: 2
   - name: sanity-tests
     templates:
     - name: sanity-tests

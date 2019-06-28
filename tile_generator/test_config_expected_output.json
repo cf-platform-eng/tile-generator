@@ -1027,6 +1027,15 @@
           "default_internet_connected": false, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
+          "instance_definition": {
+            "configurable": true, 
+            "constraints": {
+              "min": 2
+            }, 
+            "default": 2, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 2, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -1204,6 +1213,12 @@
           "cpu": 2, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
+          "instance_definition": {
+            "configurable": false, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "lifecycle": "errand", 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -1406,6 +1421,12 @@
       "jobs": [
         {
           "dynamic_ip": 1, 
+          "instance_definition": {
+            "configurable": true, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 1, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -1616,6 +1637,12 @@
         }, 
         {
           "dynamic_ip": 1, 
+          "instance_definition": {
+            "configurable": true, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 1, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -1829,6 +1856,12 @@
       "jobs": [
         {
           "dynamic_ip": 1, 
+          "instance_definition": {
+            "configurable": true, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 1, 
           "manifest": {
             "app_instances": "(( .properties.app_instances.value ))", 
@@ -2058,6 +2091,12 @@
       "is_cf": true, 
       "jobs": [
         {
+          "instance_definition": {
+            "configurable": false, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "lifecycle": "errand", 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -2228,6 +2267,12 @@
           "type": "deploy-all"
         }, 
         {
+          "instance_definition": {
+            "configurable": false, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "lifecycle": "errand", 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -2390,6 +2435,12 @@
           "type": "delete-all"
         }, 
         {
+          "instance_definition": {
+            "configurable": true, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
             "app_domains": [
@@ -3003,7 +3054,7 @@
           "files": [
             {
               "name": "utils.sh", 
-              "path": "/home/user/Work/tile-generator/tile_generator/templates/src/common/utils.sh"
+              "path": "/Users/mboldt/pivotal/tile-generator/tile_generator/templates/src/common/utils.sh"
             }
           ], 
           "name": "common"
@@ -3019,6 +3070,15 @@
           "default_internet_connected": false, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
+          "instance_definition": {
+            "configurable": true, 
+            "constraints": {
+              "min": 2
+            }, 
+            "default": 2, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 2, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -3196,6 +3256,12 @@
           "cpu": 2, 
           "dynamic_ip": 1, 
           "ephemeral_disk": 4096, 
+          "instance_definition": {
+            "configurable": false, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "lifecycle": "errand", 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -3387,6 +3453,12 @@
       "jobs": [
         {
           "dynamic_ip": 1, 
+          "instance_definition": {
+            "configurable": true, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 1, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -3597,6 +3669,12 @@
         }, 
         {
           "dynamic_ip": 1, 
+          "instance_definition": {
+            "configurable": true, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 1, 
           "manifest": {
             "allow_paid_service_plans": "(( .properties.allow_paid_service_plans.value ))", 
@@ -3810,6 +3888,12 @@
       "jobs": [
         {
           "dynamic_ip": 1, 
+          "instance_definition": {
+            "configurable": true, 
+            "default": 1, 
+            "name": "instances", 
+            "type": "integer"
+          }, 
           "instances": 1, 
           "manifest": {
             "app_instances": "(( .properties.app_instances.value ))", 
