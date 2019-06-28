@@ -399,7 +399,12 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	# Use the Elastic Runtime stemcell (unless the --strict option was used)
 	#
 	if not strict:
-		stemcell = cf[0]['stemcell']
+		if 'stemcell' in cf[0]:
+			stemcell = cf[0]['stemcell']
+		elif 'stemcells' in cf[0]:
+			stemcell = cf[0]['stemcells'][0]
+		else:
+			raise Exception("Cannot find cf stemcell to use")
 		print('- Using stemcell', stemcell['name'], 'version', stemcell['version'])
 		product_settings['stemcell'] = stemcell
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
