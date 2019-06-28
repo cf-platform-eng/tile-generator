@@ -168,7 +168,7 @@ resources:
     hostname: environments.toolsmiths.cf-app.com
     pool_name: us_{{cluster}}
   tags:
-  - platform-eng-vsphere{% if not loop.last %}
+  - toolsmiths-shared-vsphere{% if not loop.last %}
 
 {% endif %}{% endfor %}
 
@@ -585,7 +585,7 @@ jobs:
       params:
         action: claim
       tags:
-      - platform-eng-vsphere
+      - toolsmiths-shared-vsphere
 
 - name: deploy-tile-{{ cluster }}
   disable_manual_trigger: true
@@ -608,7 +608,7 @@ jobs:
       passed: [ claim-{{ cluster }} ]
       trigger: true
       tags:
-      - platform-eng-vsphere
+      - toolsmiths-shared-vsphere
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
@@ -641,7 +641,7 @@ jobs:
       passed: [ deploy-tile-{{ cluster }} ]
       trigger: true
       tags:
-      - platform-eng-vsphere
+      - toolsmiths-shared-vsphere
     - get: tile-generator-repo
       passed: [ deploy-tile-{{ cluster }} ]
     - get: version
@@ -683,7 +683,7 @@ jobs:
       passed: [ deployment-tests-{{ cluster }} ]
       trigger: true
       tags:
-      - platform-eng-vsphere
+      - toolsmiths-shared-vsphere
     - get: tile-generator-repo
       passed: [ deployment-tests-{{ cluster }} ]
     - get: version
@@ -716,7 +716,7 @@ jobs:
       action: unclaim
       env_file: pcf-environment-{{ cluster }}/metadata
     tags:
-    - platform-eng-vsphere{% if not loop.last %}
+    - toolsmiths-shared-vsphere{% if not loop.last %}
 
 {% endif %}{% endfor %}{% raw %}
 

@@ -9,12 +9,12 @@ you to have intimate knowledge of all the tools involved.
 - Documentation: [Pivotal Documentation](http://docs.pivotal.io/tiledev/tile-generator.html)
 - PCF Tile Developers Guide: [Pivotal Documentation](http://docs.pivotal.io/tiledev/index.html)
 - Roadmap: [Github Issues](https://github.com/cf-platform-eng/tile-generator/issues)
-- CI Pipeline: [Concourse](https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator)
+- CI Pipeline: [Concourse](https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator)
 
 ## Continuous Integration
 
 The master branch of this repository is being monitored by
-[this Concourse pipeline](https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator).
+[this Concourse pipeline](https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator).
 The pipeline verifies that:
 
 - The tile generator passes all unit tests in `tile_generator/*_unittest.py`
