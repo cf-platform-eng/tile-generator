@@ -212,7 +212,7 @@ class VerifyRuntimeConfig(unittest.TestCase):
 		self.metadata = read_yaml(files[0])
 
 	def test_runtime_config_is_present(self):
-		expected = yaml.load(
+		expected = yaml.safe_load(
 '''
 - name: example-runtime-config
   runtime_config: |
