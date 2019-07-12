@@ -19,7 +19,6 @@
 from __future__ import absolute_import, division, print_function
 from setuptools import setup
 import os
-import sys
 from tile_generator.version import version_string
 
 here = os.path.abspath(os.path.dirname(__file__))

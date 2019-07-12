@@ -43,6 +43,20 @@ class VerifyBoshRelease(unittest.TestCase):
 	def test_all_jobs_have_manifest(self):
 		self.assertEqual(len(glob.glob('release/jobs/*/job.MF')), len(glob.glob('release/jobs/*')))
 
+	def test_form_properties_exist_in_deploy_all(self):
+		deploy_all = read_file('release/jobs/deploy-all/templates/deploy-all.sh.erb')
+		self.assertIn('export AUTHOR=', deploy_all)
+		self.assertIn('export NATS_HOST=', deploy_all)
+		self.assertIn('export NATS_HOSTS=', deploy_all)
+		self.assertIn('export NATS_PROPERTIES=', deploy_all)
+
+	def test_form_properties_exist_in_delete_all(self):
+		delete_all = read_file('release/jobs/delete-all/templates/delete-all.sh.erb')
+		self.assertIn('export AUTHOR=', delete_all)
+		self.assertIn('export NATS_HOST=', delete_all)
+		self.assertIn('export NATS_HOSTS=', delete_all)
+		self.assertIn('export NATS_PROPERTIES=', delete_all)
+
 	# def test_cf_errand_manifest_has_cf_cli_package(self):
 	# 	for manifest in glob.glob('release/jobs/*/job.MF'):
 	# 		if not manifest.startswith('release/jobs/docker-bosh-'):

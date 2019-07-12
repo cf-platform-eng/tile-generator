@@ -46,3 +46,16 @@ repository directory:
 ./install-git-hook.sh
 pip install -e .
 ```
+
+To avoid downloading dependencies on every `tile build`:
+1. `cd sample`
+2. `mkdir cache`
+3. `tile build --cache cache`
+
+Run indiv
+
+Before executing `./scripts/run_local_tests.sh` install virtualenv with `pip install virtualenv`
+
+Then to execute all test using the cache from the project root use: 
+`./scripts/run_local_tests.sh withcache`
+
