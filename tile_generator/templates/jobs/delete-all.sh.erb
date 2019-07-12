@@ -31,6 +31,26 @@ function import_opsmgr_variables() {
 	export CF_SPACE={{ 'properties.space' | shell_string }}
 	export CF_TARGET=$SCHEME://api.${DOMAIN}
 	export CF_SKIP_SSL={{ 'properties.ssl.skip_cert_verify' | shell_string }}
+
+	{% for property in context.all_properties %}
+	{{ property | env_variable | indent }}``
+	{% endfor %}
+	<% empty_dict = {} %>
+	<% empty_list = [] %>
+	{% for release in context.releases.values() if release.consumes %}
+	{% for link in release.consumes %}
+	<% if_link('{{ link }}') do |link| %>
+	<% hosts = link.instances.map { |instance| instance.address } %>
+	export {{ link | shell_variable_name }}_HOST="<%= link.instances.empty? ?  "" : link.instances[0].address %>"
+	export {{ link | shell_variable_name }}_HOSTS=<%= Shellwords.escape(hosts.to_json) %>
+	export {{ link | shell_variable_name }}_PROPERTIES=<%= Shellwords.escape(link.properties.to_json) %>
+	<% end.else do %>
+	export {{ link | shell_variable_name }}_HOST=<%= Shellwords.escape(empty_list.to_json) %>
+	export {{ link | shell_variable_name }}_HOSTS=<%= Shellwords.escape(empty_list.to_json) %>
+	export {{ link | shell_variable_name }}_PROPERTIES=<%= Shellwords.escape(empty_dict.to_json) %>
+	<% end %>
+	{% endfor %}
+	{% endfor %}
 }
 
 function write_opsman_cert {

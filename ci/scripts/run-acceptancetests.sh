@@ -18,6 +18,10 @@
 
 TILE_DIR=$1
 
+# Cleanup previous run
+rm -rf ${TILE_DIR}/product
+rm -rf ${TILE_DIR}/release
+
 MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
 REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
@@ -46,6 +50,7 @@ do
 	TGZ_DIR=`echo "${TGZ_FILE}" | sed "s/\.tgz\$//"`
 	mkdir -p "${TGZ_DIR}"
 	( cd "${TGZ_DIR}"; gunzip -c "../../../${TGZ_FILE}" | tar xf - )
+	# Remove tar file so we don't get double counts in tests
 	rm "${TGZ_FILE}"
 done
 
