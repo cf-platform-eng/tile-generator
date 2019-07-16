@@ -169,12 +169,3 @@ class PackageHelm(BasePackage):
         'path': {'type': 'string', 'required': True },
         'zip_if_needed': {'type': 'boolean', 'default': True}
     }
-
-
-class PackageKibosh(BasePackage):
-    package_type = 'kibosh'
-    flags = [flag.Kibosh]
-    _schema = {
-        'helm_chart_dir': {'type': 'string', 'required': True },
-        'operator_dir': {'type': 'string', 'required': False },
-    }

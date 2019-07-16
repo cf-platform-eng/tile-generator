@@ -918,29 +918,6 @@ class TestTileSimpleFields(BaseTest):
     self.assertIn('service_broker', tile_metadata['base'])
     self.assertTrue(tile_metadata['base']['service_broker'])
 
-class TestKiboshType(BaseTest):
-  def test_kibosh_jobs(self):
-    self.config['packages'] = [{'name': 'spacebears', 'type': 'kibosh', 'helm_chart_dir': 'example-chart'}]
-    self.config.validate()
-    tile_metadata = TileMetadata(self.config).build()
-
-    actual_jobs = [job['name'] for job in tile_metadata['job_types']]
-    expected_jobs = ['deregistrar', 'kibosh', 'loader', 'register']
-    self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
-    loader_is_errand = [job.get('errand') for job in tile_metadata['job_types'] if job.get('name') == 'loader'][0]
-    self.assertTrue(loader_is_errand)
-
-  def test_kibosh_jobs_with_operator(self):
-    self.config['packages'] = [{'name': 'spacebears', 'type': 'kibosh', 'helm_chart_dir': 'example-chart', 'operator_dir': 'example-operator-chart'}]
-    self.config.validate()
-    tile_metadata = TileMetadata(self.config).build()
-
-    actual_jobs = [job['name'] for job in tile_metadata['job_types']]
-    expected_jobs = ['deregistrar', 'kibosh', 'loader', 'register']
-    self.assertEqual(sorted(actual_jobs), sorted(expected_jobs))
-    loader_is_errand = [job.get('errand') for job in tile_metadata['job_types'] if job.get('name') == 'loader'][0]
-    self.assertTrue(loader_is_errand)
-
 
 class TestTileIconFile(BaseTest):
   def test_requires_icon_file(self):

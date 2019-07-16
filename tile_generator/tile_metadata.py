@@ -603,8 +603,6 @@ class TileMetadata(object):
             #
             if not release.get('package-type') == 'bosh-release':
                 for job in [j for j in release.get('jobs', []) if not j.get('template') == 'docker-bosh']:
-                    if release.get('package-type') == 'kibosh' and job.get('name').startswith('charts_for_'):
-                        continue
                     job_type = {
                         'name': job.get('name'),
                         'resource_label': job.get('name'),
