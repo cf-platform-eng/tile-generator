@@ -175,6 +175,7 @@ class Config(dict):
 			'metadata_version': {'type': 'number', 'default': 1.8},
 			'stemcell_criteria': {'type': 'dict', 'default': self.default_stemcell(), 'schema': {
 				'os': {'type': 'string'}, 'version': {'type': 'string'}}},
+			'release_overides': {'type': 'dict'},
 			'update': {'type': 'dict', 'schema': {
 				'canaries': {'type': 'number', 'default': 1},
 				'canary_watch_time': {'type': 'string', 'default': '10000-100000'},
@@ -285,6 +286,10 @@ class Config(dict):
 			self._validate_package(package)
 			self._apply_package_flags(self, package)
 			self._nomalize_package_file_lists(package)
+
+		# This is a hack to allow releases to be overwritten.
+		for release_name, release in self.get('release_overides', {}).iteritems():
+			self['releases'][release_name] = release
 
 		# TODO: This should be handled differently
 		for form in self.get('forms', []):
