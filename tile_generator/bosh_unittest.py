@@ -19,7 +19,7 @@ import tarfile
 import tempfile
 import yaml
 from contextlib import contextmanager
-from io import StringIO
+from io import StringIO, BytesIO
 
 import unittest
 from . import bosh
@@ -41,8 +41,8 @@ class TestBoshCheck(unittest.TestCase):
 	@mock.patch('subprocess.check_output')
 	@mock.patch('sys.exit')
 	def test_passes_when_on_path(self, mock_sys_exit, mock_output, mock_find_executable):
-		mock_find_executable.return_value = 'Some'
-		mock_output.return_value = 'version 2.'
+		mock_find_executable.return_value = b'Some'
+		mock_output.return_value = b'version 2.'
 
 		bosh.ensure_bosh()
 
@@ -64,10 +64,10 @@ class TestManifest(unittest.TestCase):
 		with tempfile.NamedTemporaryFile() as tf:
 			tar = tarfile.open(tf.name, mode='w')
 			manifest_text = 'manifest'
-			manifest_yaml = yaml.safe_dump(manifest_text)
+			manifest_yaml = yaml.safe_dump(manifest_text, encoding='utf-8')
 			info = tarfile.TarInfo('release.MF')
 			info.size = len(manifest_yaml)
-			tar.addfile(tarinfo=info, fileobj=StringIO(unicode(manifest_yaml)))
+			tar.addfile(tarinfo=info, fileobj=BytesIO(manifest_yaml))
 			tar.close()
 			br = bosh.BoshRelease({'name': 'my-release'}, None)
 			actual = br.get_manifest(tf.name)
@@ -77,10 +77,10 @@ class TestManifest(unittest.TestCase):
 		with tempfile.NamedTemporaryFile() as tf:
 			tar = tarfile.open(tf.name, mode='w')
 			manifest_text = 'manifest'
-			manifest_yaml = yaml.safe_dump(manifest_text)
+			manifest_yaml = yaml.safe_dump(manifest_text, encoding='utf-8')
 			info = tarfile.TarInfo('./release.MF')
 			info.size = len(manifest_yaml)
-			tar.addfile(tarinfo=info, fileobj=StringIO(unicode(manifest_yaml)))
+			tar.addfile(tarinfo=info, fileobj=BytesIO(manifest_yaml))
 			tar.close()
 			br = bosh.BoshRelease({'name': 'my-release'}, None)
 			actual = br.get_manifest(tf.name)

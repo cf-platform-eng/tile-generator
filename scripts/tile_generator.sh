@@ -38,7 +38,7 @@ function create_venv {
   deactivate >/dev/null 2>&1 || echo ''
   rm -rf $VENV
   echo "Creating a new virtual environment..."
-  virtualenv -q -p python2 $VENV
+  virtualenv -q -p python3 $VENV
   source $VENV/bin/activate
   pip install tile-generator
   source $VENV/bin/activate

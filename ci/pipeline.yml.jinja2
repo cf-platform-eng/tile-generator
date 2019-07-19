@@ -4,7 +4,6 @@ groups:
 
 - name: ci
   jobs:
-  - build-base-image
   - unit-tests
   - bump-prerelease
   - package-tile-generator
@@ -56,7 +55,7 @@ resources:
 - name: tile-generator-repo
   type: git
   source:
-    ignore_paths: [ "ci/docker-tile-generator", "ci/docker-tile-pipeline" ]
+    ignore_paths: [ "ci/docker-tile-generator" ]
     branch: {{github-branch}}
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
@@ -82,13 +81,6 @@ resources:
     name: tile-generator
     username: {{pypi-user}}
     password: {{pypi-password}}
-
-- name: base-pipeline-dockerfile-repo
-  type: git
-  source:
-    paths: [ "ci/docker-tile-pipeline" ]
-    branch: {{github-branch}}
-    uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-dockerfile-repo
   type: git
@@ -128,14 +120,6 @@ resources:
     regexp: tile\-history-(?P<version>.*)\.yml
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
-
-- name: base-pipeline-docker-image
-  type: docker-image
-  source:
-    repository: cfplatformeng/tile-generator-pipeline
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
 
 - name: tile-generator-docker-image
   type: docker-image
@@ -198,49 +182,41 @@ resources:
 
 jobs:
 
-- name: build-base-image
-  plan:
-  - get: base-pipeline-dockerfile-repo
-    trigger: true
-  - put: base-pipeline-docker-image
-    params:
-      build: base-pipeline-dockerfile-repo/ci/docker-tile-pipeline
-
 - name: unit-tests
   plan:
-  - aggregate:
-    - get: base-pipeline-docker-image
-      passed: [ build-base-image ]
-      trigger: true
-    - get: tile-generator-repo
-      trigger: true
+  - get: tile-generator-repo
+    trigger: true
   - task: run-unit-tests
-    image: base-pipeline-docker-image
     config:
+      image_resource:
+        type: docker-image
+        source:
+          repository: python
+          tag: 3-slim
       platform: linux
       inputs:
       - name: tile-generator-repo
       run:
-        path: tile-generator-repo/ci/scripts/run-unittests.sh
-        args: [ "tile-generator-repo/tile_generator" ]
+        path: bash
+        args:
+        - -exc
+        - |
+          command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
+          tile-generator-repo/ci/scripts/run-unittests.sh
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: 'Unit tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Unit tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: bump-prerelease
   plan:
-  - aggregate:
-    - get: base-pipeline-docker-image
-      passed: [ unit-tests ]
-      trigger: true
-    - get: tile-generator-repo
-      passed: [ unit-tests ]
-      trigger: true
+  - get: tile-generator-repo
+    passed: [ unit-tests ]
+    trigger: true
   - put: version
     params:
       pre: dev
@@ -248,9 +224,7 @@ jobs:
 - name: package-tile-generator
   disable_manual_trigger: true
   plan:
-  - aggregate:
-    - get: base-pipeline-docker-image
-      passed: [ bump-prerelease ]
+  - in_parallel:
     - get: tile-generator-repo
       passed: [ bump-prerelease ]
     - get: version
@@ -261,8 +235,12 @@ jobs:
       params:
         bump: final
   - task: build-package
-    image: base-pipeline-docker-image
     config:
+      image_resource:
+        type: docker-image
+        source:
+          repository: python
+          tag: 3-slim
       platform: linux
       inputs:
       - name: tile-generator-repo
@@ -278,6 +256,8 @@ jobs:
         args:
         - -exc 
         - |
+          command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
+          command -v objcopy >/dev/null 2>&1 && command -v git >/dev/null 2>&1 || apt update && apt install --yes binutils git
           cd tile-generator-repo
           echo "$mac_ssh_key" > mac_ssh_key
           chmod 600 mac_ssh_key
@@ -321,14 +301,14 @@ jobs:
           cp dist-"$VERSION"/* ../tile-generator-dist/
           tar -cvzf ../tile-generator-dist-release/bundle-"$VERSION".tar.gz dist-"$FINAL_VERSION"/*
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: 'Tile Generator package build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Tile Generator package build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
-  - aggregate:
+  - in_parallel:
       - put: tile-generator-package
         params:
           file: tile-generator-dist/tile-generator-*.tar.gz
@@ -346,9 +326,7 @@ jobs:
 - name: install-tile-generator
   disable_manual_trigger: true
   plan:
-  - aggregate:
-    - get: base-pipeline-docker-image
-      passed: [ package-tile-generator ]
+  - in_parallel:
     - get: tile-generator-package
       passed: [ package-tile-generator ]
     - get: tile-generator-package-release
@@ -360,8 +338,12 @@ jobs:
       trigger: true
     - get: tile-generator-dockerfile-repo
   - task: prepare-docker-build
-    image: base-pipeline-docker-image
     config:
+      image_resource:
+        type: docker-image
+        source:
+          repository: python
+          tag: 3-slim
       platform: linux
       inputs:
       - name: tile-generator-dockerfile-repo
@@ -374,12 +356,12 @@ jobs:
         - -c
         - cp tile-generator-package/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: 'Tile Generator docker build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Tile Generator docker build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - put: tile-generator-docker-image
     params:
@@ -387,58 +369,10 @@ jobs:
       tag: version/version
       tag_prefix: v
 
-{% endraw %}{% for tile in tiles %}
-- name: build-{{tile}}
-  # disable_manual_trigger: true
-  plan:
-  - aggregate:
-    - get: tile-generator-docker-image
-      passed: [ install-tile-generator ]
-    - get: tile-generator-repo
-      passed: [ install-tile-generator ]
-    - get: version
-      passed: [ install-tile-generator ]
-      trigger: true
-  - task: build-tile
-    image: tile-generator-docker-image
-    config:
-      platform: linux
-      inputs:
-      - name: tile-generator-repo
-      - name: version
-      outputs:
-      - name: tile
-      params:
-        GITHUB_API_TOKEN: {% raw %}{{github-api-token}}{% endraw %}
-      run:
-        path: sh
-        args:
-        - -exc
-        - |
-          export VERSION="$(cat version/version)"
-          cd tile-generator-repo/examples/{{tile}}
-          ./build.sh "$VERSION"
-          cp product/*.pivotal ../../../tile/
-          ../make-pivnet-manifest > ../../../tile/pivnet-metadata.yml
-    on_failure:
-      aggregate:
-      - put: slack-alert
-        params:
-          channel: {% raw %}{{slack-channel}}{% endraw %}
-          icon_emoji: ':concourse:'
-          text: 'Tile build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
-          username: Tile Generator
-  - put: pivnet-{{tile}}
-    params:
-      file_glob: tile/*.pivotal
-      metadata_file: tile/pivnet-metadata.yml
-      s3_filepath_prefix: product-files/z-test-{{tile}}
-{% endfor %}{% raw %}
-
 - name: build-tile
   disable_manual_trigger: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ install-tile-generator ]
     - get: tile-history
@@ -460,17 +394,19 @@ jobs:
       outputs:
       - name: sample-tile-build
       run:
-        path: sh
+        path: bash
         args:
-        - -c
-        - tile-generator-repo/sample/src/build.sh sample-tile-build
+        - -exc
+        - |
+          command -v zip >/dev/null 2>&1 || apt update && apt install --yes zip
+          tile-generator-repo/sample/src/build.sh sample-tile-build
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: 'Sample app build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Sample app build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - put: app-docker-image
     params:
@@ -490,12 +426,12 @@ jobs:
         path: sh
         args: [ "-c", 'cp app-docker-image/image docker-cache/guidowb-sample-cf-app.tgz']
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: 'Sample app docker build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Sample app docker build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - task: build-sample-tile
     image: tile-generator-docker-image
@@ -515,12 +451,12 @@ jobs:
         path: tile-generator-repo/ci/scripts/tile-build.sh
         args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache", "version" ]
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: 'Tile build failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Tile build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - put: tile-history
     params:
@@ -532,7 +468,7 @@ jobs:
 - name: acceptance-tests
   disable_manual_trigger: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ build-tile ]
     - get: generated-tile
@@ -554,20 +490,25 @@ jobs:
       - name: tile-generator-repo
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-acceptancetests.sh
-        args: [ "generated-tile" ]
+        path: bash
+        args:
+        - -exc
+        - |
+          command -v unzip >/dev/null 2>&1 || apt update && apt install unzip
+          command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
+          tile-generator-repo/ci/scripts/run-acceptancetests.sh `pwd`/generated-tile
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           channel: {{slack-channel}}
           icon_emoji: ':concourse:'
-          text: 'Acceptance tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Acceptance tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 {% endraw %}{% for cluster in clusters %}- name: claim-{{ cluster }}
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ acceptance-tests ]
     - get: generated-tile
@@ -590,7 +531,7 @@ jobs:
 - name: deploy-tile-{{ cluster }}
   disable_manual_trigger: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ claim-{{ cluster }} ]
     - get: generated-tile
@@ -618,21 +559,25 @@ jobs:
       - name: pcf-environment-{{ cluster }}
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-deploytile.sh
-        args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
+        path: bash
+        args:
+        - -exc
+        - |
+          command -v jq >/dev/null 2>&1 || apt update && apt install --yes jq
+          tile-generator-repo/ci/scripts/run-deploytile.sh generated-tile pcf-environment-{{ cluster }}
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           {% raw %}channel: {{slack-channel}}{% endraw %}
           icon_emoji: ':concourse:'
-          text: 'Deploy tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Deploy tile failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: deployment-tests-{{ cluster }}
   disable_manual_trigger: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ deploy-tile-{{ cluster }} ]
     - get: generated-tile
@@ -660,21 +605,25 @@ jobs:
       - name: pcf-environment-{{ cluster }}
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-deploymenttests.sh
-        args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
+        path: bash
+        args:
+        - -exc
+        - |
+          command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
+          tile-generator-repo/ci/scripts/run-deploymenttests.sh generated-tile pcf-environment-{{ cluster }}
     on_failure:
-      aggregate:
+      in_parallel:
       - put: slack-alert
         params:
           {% raw %}channel: {{slack-channel}}{% endraw %}
           icon_emoji: ':concourse:'
-          text: 'Deployment tests failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+          text: 'Deployment tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
 - name: remove-tile-{{ cluster }}
   disable_manual_trigger: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ deployment-tests-{{ cluster }} ]
     - get: generated-tile
@@ -709,7 +658,7 @@ jobs:
       params:
         {% raw %}channel: {{slack-channel}}{% endraw %}
         icon_emoji: ':concourse:'
-        text: 'Remove tile failed, check <https://concourse.cfplatformeng.com/teams/main/pipelines/tile-generator|here> for details'
+        text: 'Remove tile failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
         username: Tile Generator
   - put: pcf-environment-{{ cluster }}
     params:
@@ -723,7 +672,7 @@ jobs:
 - name: most-recent
   disable_manual_trigger: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: tile-generator-repo
@@ -738,7 +687,7 @@ jobs:
 
 - name: create-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: tile-generator-docker-image
       passed: [ most-recent ]
       params:
@@ -765,7 +714,7 @@ jobs:
         - -exc
         - |
           tar -xvf tile-generator-package-release/bundle-*.tar.gz -C release-files/
-  - aggregate:
+  - in_parallel:
     - put: tile-generator-github-release
       params:
         name: version/version

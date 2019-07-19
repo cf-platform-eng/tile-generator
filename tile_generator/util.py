@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 import errno
 import os
 import os.path
@@ -30,7 +30,7 @@ try:
 	from urllib.request import urlretrieve
 except ImportError:
 	# Python 2
-	from urllib import urlretrieve
+	from urllib.request import urlretrieve
 
 def mkdir_p(dir, clobber=False):
 	if clobber and os.path.isdir(dir):
@@ -93,7 +93,7 @@ def download(url, filename, cache=None):
 			docker_cli = Client.from_env()
 			docker_cli.pull(docker_image)
 			image = docker_cli.get_image(docker_image)
-			image_tar = open(filename,'w')
+			image_tar = open(filename,'wb')
 			image_tar.write(image.data)
 			image_tar.close()
 		except KeyError as e:

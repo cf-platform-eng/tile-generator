@@ -108,7 +108,7 @@ properties:
 {% if job_type == 'deploy-all' or job_type == 'delete-all' %}
 consumes:
 {% for release in context.releases.values() if release.consumes %}
-{% for link_name, link in release.consumes.iteritems() %}
+{% for link_name, link in release.consumes.items() %}
   - name: {{ link_name }}
     type: {{ link.type or link_name }}
 {% if link.optional is defined and link.optional %}

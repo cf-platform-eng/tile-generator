@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 import os
 import sys
 import errno
@@ -30,7 +30,7 @@ try:
     from urllib.request import urlretrieve
 except ImportError:
     # Python 2
-    from urllib import urlretrieve
+    from urllib.request import urlretrieve
 import zipfile
 import yaml
 import datetime
@@ -77,7 +77,7 @@ def build_tile(context):
     print('tile generate package')
     pivotal_file = os.path.join('product', tile_name + '-' + tile_version + '.pivotal')
     print('include tile generator version and inputs')
-    with open(os.path.join('product', 'tile-generator', 'version'), 'wb') as f:
+    with open(os.path.join('product', 'tile-generator', 'version'), 'w') as f:
         f.write(version_string)
     shutil.copy('tile.yml', os.path.join('product', 'tile-generator', 'tile.yml'))
     with zipfile.ZipFile(pivotal_file, 'w', allowZip64=True) as f:

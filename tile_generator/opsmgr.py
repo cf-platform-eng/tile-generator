@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 
 import fcntl
 import glob
@@ -38,7 +38,7 @@ try:
 	from urllib.parse import urlparse
 except ImportError:
 	# Python 2
-	from urlparse import urlparse
+	from urllib.parse import urlparse
 
 import requests
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)

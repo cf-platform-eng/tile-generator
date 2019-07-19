@@ -16,9 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
-from setuptools import setup
+
 import os
+from setuptools import setup
 from tile_generator.version import version_string
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -32,7 +32,11 @@ def read_readme():
 			return f.read()
 
 def get_version():
-	return version_string
+  return version_string
+
+
+with open('requirements.txt') as f:
+  requirements = f.read().splitlines()
 
 setup(
 	name = "tile-generator",
@@ -57,17 +61,7 @@ setup(
 		'generator'
 	],
 	packages = [ 'tile_generator' ],
-	install_requires = [
-		'Cerberus>=1.1',
-		'click>=6.2',
-		'Jinja2>=2.8',
-		'PyYAML>=3.1',
-		'docker-py>=1.6.0',
-		'requests>2.11',
-		'requests-toolbelt',
-		'mock>=2.0.0',
-		'pexpect>=4.2.1'
-	],
+	install_requires=requirements,
 	include_package_data = True,
 	entry_points = {
 		'console_scripts': [

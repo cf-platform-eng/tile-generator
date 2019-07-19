@@ -1,10 +1,6 @@
-FROM alpine
+FROM python:3-slim
 
-RUN apk add --no-cache zip &&\
-    apk add --no-cache python && \
-    apk add --no-cache --virtual=build-dependencies wget ca-certificates && \
-    wget "https://bootstrap.pypa.io/get-pip.py" -O /dev/stdout | python && \
-    apk del build-dependencies
+RUN apt-get update && apt-get install --yes zip
 
 ADD app/app.py .
 ADD app/requirements.txt .

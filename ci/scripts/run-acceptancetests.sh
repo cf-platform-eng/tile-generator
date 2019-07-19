@@ -27,6 +27,8 @@ REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
 TEST_DIR="$( cd "${REPO_DIR}/ci/acceptance-tests" && pwd )"
 
+. "${REPO_DIR}/ci/scripts/setup-venv.sh"
+
 cd ${TILE_DIR}
 
 TILE_FILE=`ls *.pivotal`

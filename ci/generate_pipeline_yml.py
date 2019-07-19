@@ -13,4 +13,4 @@ with open('pipeline.yml.jinja2', 'r') as f:
 with open('pipeline.yml', 'w') as f:
   f.write(t.render(clusters=clusters, tiles=tiles))
 
-print "Successfully generated pipeline.yml"
+print("Successfully generated pipeline.yml")

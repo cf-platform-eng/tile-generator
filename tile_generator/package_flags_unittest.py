@@ -21,7 +21,7 @@ import tempfile
 import shutil
 
 from contextlib import contextmanager
-from StringIO import StringIO
+from io import StringIO
 
 from .package_flags import get_disk_size_for_chart
 

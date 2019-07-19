@@ -37,7 +37,7 @@ class VerifyRuntimeConfig(unittest.TestCase):
         response = requests.get(url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertRegexpMatches(response.text, r'.*Runtime Test Release: Success.*')
+        self.assertRegex(response.text, r'.*Runtime Test Release: Success.*')
 
     def test_no(self):
         if re.match(r'1\.+', self.schema_version):

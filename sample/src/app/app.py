@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # tile-generator
 #
@@ -105,13 +105,13 @@ def broker_unbind_instance(instance_id, binding_id):
 
 @app.errorhandler(500)
 def internal_error(error):
-	print error
+	print(error)
 	return "Internal server error", 500
 
 if __name__ == "__main__":
 	try:
 		app.run(host='0.0.0.0', port=int(os.getenv('PORT', '8080')))
-		print >>sys.stderr, " * Exited normally"
+		print(" * Exited normally", file=sys.stderr)
 	except:
-		print >>sys.stderr, " * Exited with exception"
+		print(" * Exited with exception", file=sys.stderr)
 		traceback.print_exc()

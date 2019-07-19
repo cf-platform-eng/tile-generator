@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 import os
 import sys
 import errno
@@ -32,7 +32,7 @@ try:
 	from urllib.request import urlretrieve
 except ImportError:
 	# Python 2
-	from urllib import urlretrieve
+	from urllib.request import urlretrieve
 import zipfile
 import yaml
 import re
@@ -245,7 +245,7 @@ def ensure_bosh():
 
 	if bosh_exec:
 		output = subprocess.check_output(["bosh", "--version"], stderr=subprocess.STDOUT, cwd=".")
-		if output.startswith("version 1."):
+		if output.startswith(b"version 1."):
 			print("You are running an older version of bosh. Please upgrade to the latest version. See https://bosh.io/docs/cli-v2.html for installation instructions")
 			sys.exit(1)
 
@@ -267,8 +267,8 @@ def run_bosh(working_dir, *argv, **kw):
 	try:
 		output = subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=working_dir)
 		if capture is not None:
-			for l in output.split('\n'):
-				if l.startswith(capture):
+			for l in output.split(b'\n'):
+				if l.startswith(bytes(capture, 'utf-8')):
 					output = l.split(':', 1)[-1].strip()
 					break
 		return output

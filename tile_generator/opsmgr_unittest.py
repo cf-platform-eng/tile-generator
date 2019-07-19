@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 import unittest
 import mock
 import json
@@ -80,13 +80,13 @@ class TestCheckResponse(unittest.TestCase):
 
 	def test_exceptions_contains_json(self):
 		try:
-			opsmgr.check_response(build_response(json.dumps("body"), status_code=500), True)
+			opsmgr.check_response(build_response(bytes(json.dumps("body"), encoding='utf-8'), status_code=500), True)
 		except Exception as e:
 			self.assertIn('body', str(e))
 
 	def test_exceptions_contains_non_json_body(self):
 		try:
-			opsmgr.check_response(build_response("body", encoding='text/plain', status_code=500), True)
+			opsmgr.check_response(build_response(b"body", encoding='text/plain', status_code=500), True)
 		except Exception as e:
 			self.assertIn('body', str(e))
 

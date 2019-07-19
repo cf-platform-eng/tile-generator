@@ -71,8 +71,8 @@ class VerifyApp2(unittest.TestCase):
 		vcap_services = json.loads(env.get('VCAP_SERVICES'))
 		broker1_service = vcap_services.get('tg-test-broker1-service', None)
 		self.assertTrue(broker1_service is not None)
-		self.assertEquals(len(broker1_service), 1)
-		self.assertEquals(broker1_service[0].get('plan'), 'first-plan')
+		self.assertEqual(len(broker1_service), 1)
+		self.assertEqual(broker1_service[0].get('plan'), 'first-plan')
 	
 	def test_has_versioned_name(self):
 		headers = { 'Accept': 'application/json' }
@@ -90,7 +90,7 @@ class VerifyApp2(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		space= vcap_application.get('space_name')
-		self.assertEquals(space, 'test-tile-space')
+		self.assertEqual(space, 'test-tile-space')
 
 	def test_receives_expected_admin_credentials(self):
 		headers = { 'Accept': 'application/json' }
@@ -100,8 +100,8 @@ class VerifyApp2(unittest.TestCase):
 		user = env.get('CF_ADMIN_USER')
 		username = env.get('CF_ADMIN_USERNAME')
 		password = env.get('CF_ADMIN_PASSWORD')
-		self.assertEquals(user, username)
-		self.assertEquals(user, 'system_services')
+		self.assertEqual(user, username)
+		self.assertEqual(user, 'system_services')
 		self.assertFalse(password is None)
 
 if __name__ == '__main__':

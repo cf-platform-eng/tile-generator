@@ -162,37 +162,37 @@ class VerifyJobs(unittest.TestCase):
 		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
 		self.assertTrue(os.path.exists(deploy_all_sh_file))
 		deploy_all_sh = read_file(deploy_all_sh_file)
-		self.assertIn('NATS_HOST=', deploy_all_sh)
-		self.assertIn('NATS_HOSTS=', deploy_all_sh)
-		self.assertIn('cf set-env $1 NATS_HOST ', deploy_all_sh)
-		self.assertIn('cf set-env $1 NATS_HOSTS ', deploy_all_sh)
+		self.assertIn(b'NATS_HOST=', deploy_all_sh)
+		self.assertIn(b'NATS_HOSTS=', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 NATS_HOST ', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 NATS_HOSTS ', deploy_all_sh)
 
 	def test_in_deployment_link_in_deploy_all_job(self):
 		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
 		self.assertTrue(os.path.exists(deploy_all_sh_file))
 		deploy_all_sh = read_file(deploy_all_sh_file)
-		self.assertIn('REDIS_HOST=', deploy_all_sh)
-		self.assertIn('REDIS_HOSTS=', deploy_all_sh)
-		self.assertIn('cf set-env $1 REDIS_HOST ', deploy_all_sh)
-		self.assertIn('cf set-env $1 REDIS_HOSTS ', deploy_all_sh)
+		self.assertIn(b'REDIS_HOST=', deploy_all_sh)
+		self.assertIn(b'REDIS_HOSTS=', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 REDIS_HOST ', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 REDIS_HOSTS ', deploy_all_sh)
 
 	def test_docker_bosh_link_in_deploy_all_job(self):
 		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
 		self.assertTrue(os.path.exists(deploy_all_sh_file))
 		deploy_all_sh = read_file(deploy_all_sh_file)
-		self.assertIn('DOCKER_TCP_HOST=', deploy_all_sh)
-		self.assertIn('DOCKER_TCP_HOSTS=', deploy_all_sh)
-		self.assertIn('cf set-env $1 DOCKER_TCP_HOST ', deploy_all_sh)
-		self.assertIn('cf set-env $1 DOCKER_TCP_HOSTS ', deploy_all_sh)
+		self.assertIn(b'DOCKER_TCP_HOST=', deploy_all_sh)
+		self.assertIn(b'DOCKER_TCP_HOSTS=', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 DOCKER_TCP_HOST ', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 DOCKER_TCP_HOSTS ', deploy_all_sh)
 
 	def test_link_properties_in_deploy_all_job(self):
 		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
 		self.assertTrue(os.path.exists(deploy_all_sh_file))
 		deploy_all_sh = read_file(deploy_all_sh_file)
-		self.assertIn('NATS_PROPERTIES=', deploy_all_sh)
-		self.assertIn('REDIS_PROPERTIES=', deploy_all_sh)
-		self.assertIn('cf set-env $1 NATS_PROPERTIES ', deploy_all_sh)
-		self.assertIn('cf set-env $1 REDIS_PROPERTIES ', deploy_all_sh)
+		self.assertIn(b'NATS_PROPERTIES=', deploy_all_sh)
+		self.assertIn(b'REDIS_PROPERTIES=', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 NATS_PROPERTIES ', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 REDIS_PROPERTIES ', deploy_all_sh)
 
 	def test_consumes_links_in_deploy_all_spec(self):
 		deploy_all_spec_file = 'release/jobs/deploy-all/job.MF'
@@ -233,7 +233,7 @@ class VerifyRuntimeConfig(unittest.TestCase):
         version: 0.1.5
 '''
 		)
-		self.assertEquals(self.metadata.get('runtime_configs'), expected)
+		self.assertEqual(self.metadata.get('runtime_configs'), expected)
 
 
 def find_by_name(lst, name):

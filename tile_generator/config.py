@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function#, unicode_literals
+#, unicode_literals
 import base64
 import copy
 import cerberus
@@ -64,7 +64,7 @@ HISTORY_FILE = "tile-history.yml"
 
 # Inspired by https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
 def merge_dict(dct, merge_dct):
-	for k, v in merge_dct.iteritems():
+	for k, v in merge_dct.items():
 		if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):
 			merge_dict(dct[k], merge_dct[k])
 		else:
@@ -72,12 +72,12 @@ def merge_dict(dct, merge_dct):
 
 # Pulling out from Config._validate to global for easy testing
 def _base64_img(image):
-			try:
-				with open(image, 'rb') as f:
-					return base64.b64encode(f.read())
-			except Exception as e:
-				print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
-				sys.exit(1)
+	try:
+		with open(image, 'rb') as f:
+			return base64.b64encode(f.read()).decode()
+	except Exception as e:
+		print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
+		sys.exit(1)
 
 # This is temporary until next major release
 def show_warning(thing):
@@ -287,7 +287,7 @@ class Config(dict):
 			self._nomalize_package_file_lists(package)
 
 		# This is a hack to allow releases to be overwritten.
-		for release_name, release in self.get('release_overides', {}).iteritems():
+		for release_name, release in self.get('release_overides', {}).items():
 			self['releases'][release_name] = release
 
 		# TODO: This should be handled differently
@@ -489,7 +489,7 @@ def read_yaml(file):
 	return yaml.safe_load(file)
 
 def write_yaml(file, data):
-	file.write(yaml.safe_dump(data, default_flow_style=False, explicit_start=True))
+	file.write(yaml.safe_dump(data, default_flow_style=False, explicit_start=True, encoding='utf-8'))
 
 def is_semver(version):
 	valid = re.compile('[0-9]+\\.[0-9]+\\.[0-9]+([\\-+][0-9a-zA-Z]+(\\.[0-9a-zA-Z]+)*)*$')

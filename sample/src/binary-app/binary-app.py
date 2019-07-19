@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # tile-generator
 #
@@ -37,7 +37,7 @@ def application(environ, start_response):
 # It will receive the request, pass it to the application
 # and send the application's response to the client
 port = int(os.getenv('PORT', '8080'))
-print 'Run on port', port
+print('Run on port', port)
 httpd = make_server(
    '0.0.0.0', # The host name.
    port, # A port number where to wait for the request.

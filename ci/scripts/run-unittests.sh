@@ -16,11 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-UNITTEST_DIR=$1
+REPO_DIR="$( cd "$( dirname "$0" )/../.." && pwd )"
 
-MY_DIR="$( cd "$( dirname "$0" )" && pwd )"
-REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
+. "${REPO_DIR}/ci/scripts/setup-venv.sh"
 
 cd ${REPO_DIR}
-
 python -m unittest discover -v -p '*_unittest.py'

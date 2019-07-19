@@ -24,6 +24,8 @@ REPO_DIR="$( cd "${MY_DIR}/../.." && pwd )"
 BASE_DIR="$( cd "${REPO_DIR}/.." && pwd )"
 TEST_DIR="$( cd "${REPO_DIR}/ci/deployment-tests" && pwd )"
 
+. "${REPO_DIR}/ci/scripts/setup-venv.sh"
+
 cd ${POOL_DIR}
 
 python -m unittest discover -v -s ${TEST_DIR} -p '*_deploymenttest.py'

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 import unittest
 import mock
 import requests
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     unittest.main()
 
 opsmgr_responses = {}
-opsmgr_responses['/api/v0/deployed/director/credentials/director_credentials'] = """{
+opsmgr_responses['/api/v0/deployed/director/credentials/director_credentials'] = b"""{
   "credential": {
     "type": "simple_credentials",
     "value": {
@@ -79,9 +79,9 @@ opsmgr_responses['/api/v0/deployed/director/credentials/director_credentials'] =
     }
   }
 }"""
-opsmgr_responses['2.2 /api/v0/deployed/director/manifest'] = """{
+opsmgr_responses['2.2 /api/v0/deployed/director/manifest'] = b"""{
   "jobs": [ { "properties": { "director": { "address": "10.0.0.5" } } } ]
 }"""
-opsmgr_responses['2.3 /api/v0/deployed/director/manifest'] = """{
+opsmgr_responses['2.3 /api/v0/deployed/director/manifest'] = b"""{
   "instance_groups": [ { "properties": { "director": { "address": "10.0.0.6" } } } ]
 }"""

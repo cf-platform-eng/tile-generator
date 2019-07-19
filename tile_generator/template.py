@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 import os
 import re
 import sys
@@ -67,7 +67,7 @@ def expand_selector(input):
 def render_yaml(input):
 	# Inspired by https://stackoverflow.com/questions/50519454/python-yaml-dump-using-block-style-without-quotes
 	def multiline_representer(dumper, data):
-		return dumper.represent_scalar(u"tag:yaml.org,2002:str", data, style="|" if "\n" in data else None)
+		return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|" if "\n" in data else None)
 	yaml.SafeDumper.add_representer(str, multiline_representer)
 	return yaml.safe_dump(input, default_flow_style=False, width=float("inf"))
 
@@ -195,7 +195,7 @@ def render(target_path, template_file, config):
 	if target_dir != '':
 		mkdir_p(target_dir)
 	with open(target_path, 'wb') as target:
-		target.write(TEMPLATE_ENVIRONMENT.get_template(template_file).render(config))
+		target.write(bytes(TEMPLATE_ENVIRONMENT.get_template(template_file).render(config), 'utf-8'))
 
 def exists(template_file):
 	return os.exists(path(template_file))

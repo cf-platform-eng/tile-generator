@@ -3,9 +3,9 @@ from . import template as template_helper
 
 
 # Inspired by: https://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter
-class literal_unicode(unicode): pass
+class literal_unicode(str): pass
 def literal_unicode_representer(dumper, data):
-    return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
 yaml.SafeDumper.add_representer(literal_unicode, literal_unicode_representer)
 
 
@@ -48,8 +48,8 @@ class TileMetadata(object):
     def _build_stemcell_criteria(self):
         stemcell_criteria = self.config['stemcell_criteria']
         # Note: tile.py uses self.config['stemcell_criteria']
-        if not stemcell_criteria.has_key('requires_cpi'): stemcell_criteria['requires_cpi'] = False
-        if not stemcell_criteria.has_key('version'): 3312
+        if 'requires_cpi' not in stemcell_criteria: stemcell_criteria['requires_cpi'] = False
+        if 'version' not in stemcell_criteria: 3312
         self.tile_metadata['stemcell_criteria'] = {'stemcell_criteria': stemcell_criteria}
 
     def _build_property_blueprints(self):
@@ -701,7 +701,7 @@ class TileMetadata(object):
                     if template.get('colocated'):
                         errand['name'] = template['name']
                         errand['label'] = template.get('label', 'colocated errand for %s' % template['name'])
-                        if template.has_key('run_default'): errand['run_default'] = template.get('run_default')
+                        if 'run_default' in template: errand['run_default'] = template.get('run_default')
                         if template.get('description'): errand['description'] = template.get('description')
                         if template.get('instances'): errand['instances'] = template.get('instances')
                         if not template.get('post_deploy') and not template.get('pre_delete'):

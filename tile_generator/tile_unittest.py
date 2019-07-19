@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
+
 import unittest
 from click.testing import CliRunner
 import os
@@ -53,7 +53,7 @@ class TestTileInit(unittest.TestCase):
 	# 		print(u'foo\xb1bar')
 
 	def test_print_utf8_works(self):
-		print(u'foo\xb1bar'.encode('utf-8'))
+		print('foo\xb1bar'.encode('utf-8'))
 		self.assertTrue(True)
 
 if __name__ == '__main__':

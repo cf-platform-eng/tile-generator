@@ -59,7 +59,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		example_collection = json.loads(env.get('EXAMPLE_COLLECTION'))
 		self.assertTrue(isinstance(example_collection, list))
-		self.assertEquals(len(example_collection), 2)
+		self.assertEqual(len(example_collection), 2)
 
 	def test_receives_expected_selector(self):
 		headers = { 'Accept': 'application/json' }
@@ -68,7 +68,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		example_selector = json.loads(env.get('EXAMPLE_SELECTOR'))
 		self.assertTrue(isinstance(example_selector, dict))
-		self.assertEquals(example_selector['value'], 'Filet Mignon')
+		self.assertEqual(example_selector['value'], 'Filet Mignon')
 	#	self.assertEquals(example_selector['selected_option']['rarity_dropdown'], 'medium')
 
 	def test_has_versioned_name(self):
@@ -87,7 +87,7 @@ class VerifyApp1(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		space= vcap_application.get('space_name')
-		self.assertEquals(space, 'test-tile-space')
+		self.assertEqual(space, 'test-tile-space')
 
 if __name__ == '__main__':
 	unittest.main()

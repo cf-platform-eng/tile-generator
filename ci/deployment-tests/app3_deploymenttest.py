@@ -53,8 +53,8 @@ class VerifyApp3(unittest.TestCase):
 		vcap_services = json.loads(env.get('VCAP_SERVICES'))
 		broker1_service = vcap_services.get('tg-test-broker1-service', None)
 		self.assertTrue(broker1_service is not None)
-		self.assertEquals(len(broker1_service), 1)
-		self.assertEquals(broker1_service[0].get('plan'), 'second-plan')
+		self.assertEqual(len(broker1_service), 1)
+		self.assertEqual(broker1_service[0].get('plan'), 'second-plan')
 	
 	def test_has_versioned_name(self):
 		headers = { 'Accept': 'application/json' }
@@ -72,7 +72,7 @@ class VerifyApp3(unittest.TestCase):
 		env = response.json()
 		vcap_application = json.loads(env.get('VCAP_APPLICATION'))
 		space= vcap_application.get('space_name')
-		self.assertEquals(space, 'test-tile-space')
+		self.assertEqual(space, 'test-tile-space')
 
 	def test_does_not_receive_admin_credentials(self):
 		headers = { 'Accept': 'application/json' }

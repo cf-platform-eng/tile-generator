@@ -21,7 +21,7 @@ chmod +r $DATA_DIR/*
   --chuid vcap:vcap \
   --chdir $DATA_DIR \
   --start \
-  --exec /usr/bin/python2 \
-  -- -m SimpleHTTPServer $PORT \
+  --exec /usr/bin/python3 \
+  -- -m http.server $PORT \
    >> "$LOG_DIR/hello.out.log" \
   2>> "$LOG_DIR/hello.err.log"

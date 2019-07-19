@@ -34,7 +34,7 @@ function create_venv {
   deactivate >/dev/null 2>&1 || echo ''
   rm -rf $VENV
   echo "Creating a new virtual environment..."
-  virtualenv -q -p python2 $VENV
+  virtualenv -q -p python3 $VENV
   source $VENV/bin/activate
   # Build for current project. Assumes tile-generator src is up a dir
   pip install -e $SCRIPT_DIR/../

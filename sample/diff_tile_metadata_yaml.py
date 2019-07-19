@@ -6,7 +6,7 @@ import yaml
 
 
 if len(sys.argv) != 3:
-    print 'Usage: %s FILE_A FILE_B\nSort tile metadata yaml files and compare FILE_A to FILE_B.' % sys.argv[0].split('/')[-1]
+    print(('Usage: %s FILE_A FILE_B\nSort tile metadata yaml files and compare FILE_A to FILE_B.' % sys.argv[0].split('/')[-1]))
     sys.exit(1)
 
 with open(sys.argv[1], 'r') as f:
@@ -29,5 +29,5 @@ for conf in [aa, bb]:
     for x in conf['job_types']: x['manifest'] = sorted(x['manifest'].items()) if type(x['manifest']) is dict else sorted(yaml.load(x['manifest']).items())
 
 from pprint import pprint
-for x in list(dictdiffer.diff(aa,bb)): pprint(x); print ''
+for x in list(dictdiffer.diff(aa,bb)): pprint(x); print('')
 

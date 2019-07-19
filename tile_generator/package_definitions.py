@@ -7,7 +7,7 @@ from . import package_flags as flag
 
 # Inspired by https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
 def merge_dict(dct, merge_dct):
-    for k, v in merge_dct.iteritems():
+    for k, v in merge_dct.items():
         if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):
             merge_dict(dct[k], merge_dct[k])
         else:

@@ -23,7 +23,7 @@ import tempfile
 import yaml
 
 from contextlib import contextmanager
-from StringIO import StringIO
+from io import StringIO
 
 from . import config
 from .config import Config, merge_dict
@@ -46,7 +46,7 @@ class BaseTest(unittest.TestCase):
     self.latest_stemcell_patcher = mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234')
     self.latest_stemcell = self.latest_stemcell_patcher.start()
 
-    self._update_compilation_vm_disk_size_patcher = mock.patch('tile_generator.config.package_definitions.flag._update_compilation_vm_disk_size', return_value='1234')
+    self._update_compilation_vm_disk_size_patcher = mock.patch('tile_generator.config.package_definitions.flag._update_compilation_vm_disk_size', return_value=1234)
     self._update_compilation_vm_disk_size = self._update_compilation_vm_disk_size_patcher.start()
 
     self.icon_file = tempfile.NamedTemporaryFile()
@@ -97,7 +97,7 @@ class TestUltimateForm(BaseTest):
     expected = json.dumps(expected_output, indent=2).split('\n')
     generated = json.dumps(generated_output, indent=2).split('\n')
 
-    self.assertEquals(len(expected), len(generated))
+    self.assertEqual(len(expected), len(generated))
     for line in expected:
       self.assertIn(line, generated)
 
@@ -113,7 +113,7 @@ class TestUltimateForm(BaseTest):
     ignored_keys = ['history', 'compilation_vm_disk_size', 'version']
 
     if type(obj) is dict:
-      for k,v in obj.items():
+      for k,v in list(obj.items()):
         if k in ignored_keys:
           obj.pop(k)
         self.remove_ignored_keys(v)
@@ -126,18 +126,18 @@ class TestUltimateForm(BaseTest):
       self.assertTrue(type(given) is dict, (path, 
         'Expected to be a dict, but got %s' % type(given)))
       for key in expected.keys():
-        self.assertTrue(given.has_key(key), 'The key %s is missing' % (path % key))
+        self.assertTrue(key in given, 'The key %s is missing' % (path % key))
         self.deep_comparer(expected[key], given[key], path % key + '[%s]')
 
     elif type(expected) is list:
       total_length = len(expected)
       self.assertTrue(type(given) is list, (path, 
         'Expected to be a list, but got %s' % type(given)))
-      self.assertEquals(total_length, len(given), (path, 
+      self.assertEqual(total_length, len(given), (path, 
         'Expected to have length %s, but got %s' % (total_length, len(given))))
       for index in range(total_length):
         if type(expected[index]) is dict:
-          if expected[index].has_key('name'):
+          if 'name' in expected[index]:
               given_next = [e for e in given if e.get('name') == expected[index]['name']]
               if not given_next:
                 given_next = {}
@@ -165,7 +165,7 @@ class TestUltimateForm(BaseTest):
       if type(expected) is str and not type(loaded_expected) is str:
         self.deep_comparer(loaded_expected, loaded_given, path)
 
-      self.assertEquals(expected, given, (path, 
+      self.assertEqual(expected, given, (path, 
         'Expected to have the value:\n%s\nHowever, instead got:\n%s' % (expected, given)))
 
   # mock_read_history, mock_base64_img are not used in this method
@@ -206,7 +206,7 @@ class TestConfigValidation(BaseTest):
     self.latest_stemcell_patcher.start()
 
     # Ensure we are using the real latest_stemcell
-    self.assertNotEquals(self.config['stemcell_criteria']['version'], '1234')
+    self.assertNotEqual(self.config['stemcell_criteria']['version'], '1234')
 
   def test_requires_package_names(self):
     with self.assertRaises(SystemExit):
@@ -419,7 +419,7 @@ containers:
       { 'name': 'b-name', 'type': 'bosh-release', 'manifest': {}},
     ]
     self.config.validate()
-    self.assertEquals([r['name'] for r in self.config['releases'].values()],
+    self.assertEqual([r['name'] for r in self.config['releases'].values()],
       ['z_name', 'd_name', 'a_name', 'b_name'])
 
 class TestVersionMethods(BaseTest):
@@ -450,56 +450,56 @@ class TestVersionMethods(BaseTest):
     self.config.set_version(None)
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
-    self.assertEquals(self.config['version'], '0.0.1')
-    self.assertEquals(tile_metadata['base']['product_version'], '0.0.1')
+    self.assertEqual(self.config['version'], '0.0.1')
+    self.assertEqual(tile_metadata['base']['product_version'], '0.0.1')
 
   def test_default_version_update(self):
     self.config['history'] = {'version':'1.2.3'}
     self.config.set_version(None)
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
-    self.assertEquals(self.config['version'], '1.2.4')
-    self.assertEquals(tile_metadata['base']['product_version'], '1.2.4')
+    self.assertEqual(self.config['version'], '1.2.4')
+    self.assertEqual(tile_metadata['base']['product_version'], '1.2.4')
 
   def test_patch_version_update(self):
     self.config['history'] = {'version':'1.2.3'}
     self.config.set_version('patch')
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
-    self.assertEquals(self.config['version'], '1.2.4')
-    self.assertEquals(tile_metadata['base']['product_version'], '1.2.4')
+    self.assertEqual(self.config['version'], '1.2.4')
+    self.assertEqual(tile_metadata['base']['product_version'], '1.2.4')
 
   def test_minor_version_update(self):
     self.config['history'] = {'version':'1.2.3'}
     self.config.set_version('minor')
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
-    self.assertEquals(self.config['version'], '1.3.0')
-    self.assertEquals(tile_metadata['base']['product_version'], '1.3.0')
+    self.assertEqual(self.config['version'], '1.3.0')
+    self.assertEqual(tile_metadata['base']['product_version'], '1.3.0')
 
   def test_major_version_update(self):
     self.config['history'] = {'version':'1.2.3'}
     self.config.set_version('major')
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
-    self.assertEquals(self.config['version'], '2.0.0')
-    self.assertEquals(tile_metadata['base']['product_version'], '2.0.0')
+    self.assertEqual(self.config['version'], '2.0.0')
+    self.assertEqual(tile_metadata['base']['product_version'], '2.0.0')
 
   def test_explicit_version_update(self):
     self.config['history'] = {'version':'1.2.3'}
     self.config.set_version('5.0.1')
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
-    self.assertEquals(self.config['version'], '5.0.1')
-    self.assertEquals(tile_metadata['base']['product_version'], '5.0.1')
+    self.assertEqual(self.config['version'], '5.0.1')
+    self.assertEqual(tile_metadata['base']['product_version'], '5.0.1')
 
   def test_annotated_version_update(self):
     self.config['history'] = {'version':'1.2.3-alpha.1'}
     self.config.set_version('1.2.4')
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
-    self.assertEquals(self.config['version'], '1.2.4')
-    self.assertEquals(tile_metadata['base']['product_version'], '1.2.4')
+    self.assertEqual(self.config['version'], '1.2.4')
+    self.assertEqual(tile_metadata['base']['product_version'], '1.2.4')
 
   def test_illegal_old_version_update(self):
     with self.assertRaises(SystemExit):
@@ -523,23 +523,23 @@ class TestVersionMethods(BaseTest):
   def test_saves_initial_version(self):
     history = {}
     Config(history=history).set_version('0.0.1')
-    self.assertEquals(history.get('version'), '0.0.1')
-    self.assertEquals(len(history.get('history', [])), 0)
+    self.assertEqual(history.get('version'), '0.0.1')
+    self.assertEqual(len(history.get('history', [])), 0)
 
   def test_saves_initial_history(self):
     history = { 'version': '0.0.1' }
     Config(history=history).set_version('0.0.2')
-    self.assertEquals(history.get('version'), '0.0.2')
-    self.assertEquals(len(history.get('history')), 1)
-    self.assertEquals(history.get('history')[0], '0.0.1')
+    self.assertEqual(history.get('version'), '0.0.2')
+    self.assertEqual(len(history.get('history')), 1)
+    self.assertEqual(history.get('history')[0], '0.0.1')
 
   def test_saves_additional_history(self):
     history = { 'version': '0.0.2', 'history': [ '0.0.1' ] }
     Config(history=history).set_version('0.0.3')
-    self.assertEquals(history.get('version'), '0.0.3')
-    self.assertEquals(len(history.get('history')), 2)
-    self.assertEquals(history.get('history')[0], '0.0.1')
-    self.assertEquals(history.get('history')[1], '0.0.2')
+    self.assertEqual(history.get('version'), '0.0.3')
+    self.assertEqual(len(history.get('history')), 2)
+    self.assertEqual(history.get('history')[0], '0.0.1')
+    self.assertEqual(history.get('history')[1], '0.0.2')
 
 
 class TestDefaultOptions(BaseTest):
@@ -942,7 +942,7 @@ class TestTileIconFile(BaseTest):
     self.assertIn('icon_file', err.getvalue())
 
   def test_sets_icon_image(self):
-    self.icon_file.write('foo')
+    self.icon_file.write(b'foo')
     self.icon_file.flush()
     self.config.validate()
     tile_metadata = TileMetadata(self.config).build()
@@ -953,7 +953,7 @@ class TestTileIconFile(BaseTest):
 class TestPreStartFile(BaseTest):
   def test_loads_pre_start_file(self):
     self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}, 'pre_start_file': self.pre_start_file.name }]
-    self.pre_start_file.write('some prestart code')
+    self.pre_start_file.write(b'some prestart code')
     self.pre_start_file.flush()
     self.config.validate()
     self.assertEqual(self.config['packages'][0]['pre_start'], 'some prestart code')
