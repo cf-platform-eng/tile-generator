@@ -24,7 +24,6 @@ import os.path
 import sys
 import yaml
 import re
-import six
 import requests
 from collections import OrderedDict
 from . import package_definitions
@@ -65,7 +64,7 @@ HISTORY_FILE = "tile-history.yml"
 
 # Inspired by https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
 def merge_dict(dct, merge_dct):
-	for k, v in six.iteritems(merge_dct):
+	for k, v in merge_dct.iteritems():
 		if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):
 			merge_dict(dct[k], merge_dct[k])
 		else:
@@ -171,7 +170,7 @@ class Config(dict):
 			}},
 			'label': {'type': 'string', 'required': True},
 			'description': {'type': 'string', 'required': True},
-			'icon_file': {'type': 'binary', 'required': True, 'coerce': _base64_img},
+			'icon_file': {'type': 'string', 'required': True, 'coerce': _base64_img},
 			'metadata_version': {'type': 'number', 'default': 1.8},
 			'stemcell_criteria': {'type': 'dict', 'default': self.default_stemcell(), 'schema': {
 				'os': {'type': 'string'}, 'version': {'type': 'string'}}},
@@ -402,7 +401,7 @@ class Config(dict):
 		return manifest
 
 	def save_history(self):
-		with open(HISTORY_FILE, 'w') as history_file:
+		with open(HISTORY_FILE, 'wb') as history_file:
 			write_yaml(history_file, self['history'])
 
 	def set_verbose(self, verbose=True):

@@ -1,14 +1,9 @@
 import yaml
 from . import template as template_helper
 
-if hasattr(__builtins__, 'unicode'):
-    # Inspired by: https://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter
-    class literal_unicode(unicode):
-        pass
-else:  # PY3
-    class literal_unicode(str):
-        pass
 
+# Inspired by: https://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter
+class literal_unicode(unicode): pass
 def literal_unicode_representer(dumper, data):
     return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
 yaml.SafeDumper.add_representer(literal_unicode, literal_unicode_representer)
@@ -53,8 +48,8 @@ class TileMetadata(object):
     def _build_stemcell_criteria(self):
         stemcell_criteria = self.config['stemcell_criteria']
         # Note: tile.py uses self.config['stemcell_criteria']
-        stemcell_criteria.setdefault('requires_cpi', False)
-        stemcell_criteria.setdefault('version', 3312)
+        if not stemcell_criteria.has_key('requires_cpi'): stemcell_criteria['requires_cpi'] = False
+        if not stemcell_criteria.has_key('version'): 3312
         self.tile_metadata['stemcell_criteria'] = {'stemcell_criteria': stemcell_criteria}
 
     def _build_property_blueprints(self):

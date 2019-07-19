@@ -245,7 +245,7 @@ def ensure_bosh():
 
 	if bosh_exec:
 		output = subprocess.check_output(["bosh", "--version"], stderr=subprocess.STDOUT, cwd=".")
-		if output.startswith(b"version 1."):
+		if output.startswith("version 1."):
 			print("You are running an older version of bosh. Please upgrade to the latest version. See https://bosh.io/docs/cli-v2.html for installation instructions")
 			sys.exit(1)
 
@@ -266,9 +266,6 @@ def run_bosh(working_dir, *argv, **kw):
 	capture = kw.get('capture', None)
 	try:
 		output = subprocess.check_output(command, stderr=subprocess.STDOUT, cwd=working_dir)
-		if not isinstance(output, str):
-			# check_output always returns bytes. in python3 we want str (=unicode)
-			output = output.decode()
 		if capture is not None:
 			for l in output.split('\n'):
 				if l.startswith(capture):
