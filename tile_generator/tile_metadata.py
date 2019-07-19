@@ -191,7 +191,7 @@ class TileMetadata(object):
             custom_form["property_inputs"] = list()
             for prop in form.get('properties', []):
                 prop_input = {
-                    "reference": ".properties." + prop['name'], 
+                    "reference": "." + prop.get('job', "properties") + "." + prop['name'],
                     "label": prop['label'],
                     "description": prop.get('description') or prop.get('label')
                 }
@@ -384,6 +384,27 @@ class TileMetadata(object):
 
             job_types.append(compilation_job)
 
+        prop_blueprints = [{'default': {'identity': 'vcap'},
+                            'name': 'vm_credentials',
+                            'type': 'salted_credentials'}]
+
+        # Grab all job specific property blueprints
+        job_specific_prop_blueprints = [prop for prop in self.config['all_properties'] if 'job' in prop]
+        # Remove them from all_properties
+        self.config['all_properties'] = [prop for prop in self.config['all_properties'] if 'job' not in prop]
+        for prop in job_specific_prop_blueprints:
+            for k in prop.keys():
+                # Remove any keys not specified here https://docs.pivotal.io/tiledev/2-2/property-reference.html#common-attributes
+                # but keep `job` key because it is needed for matching
+                if k not in ['job', 'name', 'type', 'optional', 'configurable', 'freeze_on_deploy']: prop.pop(k) 
+
+        def match_job_specific_prop_blueprints(job_name, prop_blueprints):
+            for prop in job_specific_prop_blueprints:
+                if prop['job'] == job_name:
+                    tmp_prop = dict(prop)
+                    tmp_prop.pop('job')
+                    prop_blueprints.append(tmp_prop)
+
 
         #
         # {{ job.template }} job for {{ job.package.name }}
@@ -432,17 +453,10 @@ class TileMetadata(object):
                             'name': 'route_registrar',
                             'release': 'routing'}
                     ],
-                    'property_blueprints': [
-                        {
-                            'default': {'identity': 'vcap'},
-                            'name': 'vm_credentials',
-                            'type': 'salted_credentials'},
-                        {
-                            'name': 'app_credentials',
-                            'type': 'salted_credentials'
-                        }
-                    ]
+                    'property_blueprints': prop_blueprints + [{'name': 'app_credentials',
+                                                               'type': 'salted_credentials'}]
                 }
+                match_job_specific_prop_blueprints(release_job['name'], release_job['property_blueprints'])
 
                 release_job['manifest'] = dict()
                 release_job['manifest'].update(job.get('manifest', {}))
@@ -497,10 +511,10 @@ class TileMetadata(object):
                 release_job['manifest'] = literal_unicode(template_helper.render_yaml(release_job_manifest))
 
                 instance_def = {
-                'configurable': True,
-                'default': job.get('instances', 1),
-                'name': 'instances',
-                'type': 'integer'
+                    'configurable': True,
+                    'default': job.get('instances', 1),
+                    'name': 'instances',
+                    'type': 'integer'
                 }
                 if self.config['metadata_version'] < 1.7:
                     release_job['instance_definitions'] = [instance_def]
@@ -518,13 +532,11 @@ class TileMetadata(object):
                         'max_in_flight': job.get('max_in_flight', 1),
                         'single_az_only': job.get('single_az_only', True if job.get('lifecycle') == 'errand' else False),
                         'static_ip': job.get('static_ip', 0),
-                        'property_blueprints': [{
-                            'default': {'identity': 'vcap'},
-                            'name': 'vm_credentials',
-                            'type': 'salted_credentials'
-                        }],
+                        'property_blueprints': prop_blueprints,
                         'manifest': literal_unicode(template_helper.render_yaml(job.get('manifest'))),
                     }
+                    match_job_specific_prop_blueprints(bosh_release_job['name'], bosh_release_job['property_blueprints'])
+
                     if job.get('lifecycle') == 'errand':
                         bosh_release_job['errand'] = True
                         if job.get('run_post_deploy_errand_default'):
@@ -637,18 +649,12 @@ class TileMetadata(object):
                         "dynamic_ip": 1,
                         "max_in_flight": 1, 
                         "single_az_only": True,
-                        "property_blueprints": [{
-                            "default": {"identity": "vcap"}, 
-                            "type": "salted_credentials", 
-                            "name": "vm_credentials"
-                          }, 
-                          {
-                            "type": "salted_credentials", 
-                            "name": "app_credentials"
-                          }
-                        ], 
+                        "property_blueprints": prop_blueprints + [{"type": "salted_credentials", 
+                                                                   "name": "app_credentials"}], 
                         "manifest": literal_unicode(template_helper.render_yaml(job.get('manifest')))
                     }
+                    match_job_specific_prop_blueprints(job_type['name'], job_type['property_blueprints'])
+
                     if job['name'] == 'deploy-all' or job['name'] == 'delete-all':
                         job_type['templates'].append({
                             "release": 'cf-cli',

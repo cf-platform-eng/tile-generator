@@ -69,6 +69,7 @@ def render_yaml(input):
 	def multiline_representer(dumper, data):
 		return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|" if "\n" in data else None)
 	yaml.SafeDumper.add_representer(str, multiline_representer)
+	yaml.SafeDumper.ignore_aliases = lambda *args : True
 	return yaml.safe_dump(input, default_flow_style=False, width=float("inf"))
 
 def render_yaml_literal(input):
