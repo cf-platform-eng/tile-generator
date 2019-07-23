@@ -1,4 +1,5 @@
 import yaml
+import copy
 from . import template as template_helper
 
 
@@ -172,8 +173,9 @@ class TileMetadata(object):
         # Custom properties from the tile.yml file
         #
         for prop in self.config['all_properties']:
-            prop = template_helper.expand_selector(prop)
-            self.tile_metadata['property_blueprints'] += [prop]
+            if 'job' not in prop:
+                prop = template_helper.expand_selector(prop)
+                self.tile_metadata['property_blueprints'] += [prop]
 
     def _build_form_types(self):
         form_types = list()
@@ -390,8 +392,6 @@ class TileMetadata(object):
 
         # Grab all job specific property blueprints
         job_specific_prop_blueprints = [prop for prop in self.config['all_properties'] if 'job' in prop]
-        # Remove them from all_properties
-        self.config['all_properties'] = [prop for prop in self.config['all_properties'] if 'job' not in prop]
         for prop in job_specific_prop_blueprints:
             for k in prop.keys():
                 # Remove any keys not specified here https://docs.pivotal.io/tiledev/2-2/property-reference.html#common-attributes
@@ -532,7 +532,7 @@ class TileMetadata(object):
                         'max_in_flight': job.get('max_in_flight', 1),
                         'single_az_only': job.get('single_az_only', True if job.get('lifecycle') == 'errand' else False),
                         'static_ip': job.get('static_ip', 0),
-                        'property_blueprints': prop_blueprints,
+                        'property_blueprints': copy.copy(prop_blueprints),
                         'manifest': literal_unicode(template_helper.render_yaml(job.get('manifest'))),
                     }
                     match_job_specific_prop_blueprints(bosh_release_job['name'], bosh_release_job['property_blueprints'])

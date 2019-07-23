@@ -376,7 +376,8 @@ class Config(dict):
 				'pks_password': '(( ..pivotal-container-service.properties.pks_basic_auth.password ))',
 			})
 		merge_dict(manifest, job['properties'])
-		for property in self.get('all_properties', []):
+		all_properties = self.get('all_properties', [])
+		for property in [p for p in all_properties if 'job' not in p]:
 			merge_dict(manifest, template.render_property(property))
 		for service_plan_form in self.get('service_plan_forms', []):
 			manifest[service_plan_form['name']] = '(( .properties.{}.value ))'.format(service_plan_form['name'])
