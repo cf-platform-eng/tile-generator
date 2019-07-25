@@ -564,6 +564,8 @@ jobs:
         - -exc
         - |
           command -v jq >/dev/null 2>&1 || apt update && apt install --yes jq
+          # Our env use weak ssl ciphers :( so downgrade the minimum version
+          sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
           tile-generator-repo/ci/scripts/run-deploytile.sh generated-tile pcf-environment-{{ cluster }}
     on_failure:
       in_parallel:
@@ -610,6 +612,8 @@ jobs:
         - -exc
         - |
           command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
+          # Our env use weak ssl ciphers :( so downgrade the minimum version
+          sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
           tile-generator-repo/ci/scripts/run-deploymenttests.sh generated-tile pcf-environment-{{ cluster }}
     on_failure:
       in_parallel:
@@ -651,8 +655,13 @@ jobs:
       - name: pcf-environment-{{ cluster }}
       - name: generated-tile
       run:
-        path: tile-generator-repo/ci/scripts/run-removetile.sh
-        args: [ "generated-tile", "pcf-environment-{{ cluster }}" ]
+        path: bash
+        args:
+        - -exc
+        - |
+          # Our env use weak ssl ciphers :( so downgrade the minimum version
+          sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
+          tile-generator-repo/ci/scripts/run-removetile.sh generated-tile pcf-environment-{{ cluster }}
     on_failure:
       put: slack-alert
       params:
