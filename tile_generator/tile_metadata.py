@@ -475,8 +475,9 @@ class TileMetadata(object):
                 release_job_manifest['route_registrar'] = routes
 
                 for prop in self.config.get('all_properties'):
-                    prop = template_helper.render_property(prop)
-                    release_job_manifest.update(prop)
+                    if 'job' not in prop:
+                        prop = template_helper.render_property(prop)
+                        release_job_manifest.update(prop)
 
                 for service_plan_form in self.config.get('service_plan_forms', []):
                     form_name = service_plan_form.get('name')
