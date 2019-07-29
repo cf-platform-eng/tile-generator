@@ -179,9 +179,9 @@ function add_env_vars() {
 }
 
 function add_cf_credentials() {
-	cf set-env $1 CF_ADMIN_USER "$ADMIN_USER"
-	cf set-env $1 CF_ADMIN_USERNAME "$ADMIN_USER"
-	cf set-env $1 CF_ADMIN_PASSWORD "$ADMIN_PASSWORD"
+	echo "Setting $1 CF_ADMIN_USER environment variable" ; cf set-env $1 CF_ADMIN_USER "$ADMIN_USER" &> /dev/null
+	echo "Setting $1 CF_ADMIN_USERNAME environment variable" ; cf set-env $1 CF_ADMIN_USERNAME "$ADMIN_USER" &> /dev/null
+	echo "Setting $1 CF_ADMIN_PASSWORD environment variable" ; cf set-env $1 CF_ADMIN_PASSWORD "$ADMIN_PASSWORD" &> /dev/null
 }
 
 function delete_older_versions() {
