@@ -347,14 +347,14 @@ jobs:
       platform: linux
       inputs:
       - name: tile-generator-dockerfile-repo
-      - name: tile-generator-package
+      - name: tile-generator-package-release
       outputs:
       - name: docker-build-dir
       run:
         path: sh
         args:
         - -c
-        - cp tile-generator-package/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+        - cp tile-generator-package-release/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
     on_failure:
       in_parallel:
       - put: slack-alert
