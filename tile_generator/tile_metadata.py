@@ -393,7 +393,8 @@ class TileMetadata(object):
         # Grab all job specific property blueprints
         job_specific_prop_blueprints = [prop for prop in self.config['all_properties'] if 'job' in prop]
         for prop in job_specific_prop_blueprints:
-            for k in prop.keys():
+            keys = list(prop.keys())
+            for k in keys:
                 # Remove any keys not specified here https://docs.pivotal.io/tiledev/2-2/property-reference.html#common-attributes
                 # but keep `job` key because it is needed for matching
                 if k not in ['job', 'name', 'type', 'optional', 'configurable', 'freeze_on_deploy']: prop.pop(k) 
