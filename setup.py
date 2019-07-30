@@ -21,15 +21,11 @@ import os
 from setuptools import setup
 from tile_generator.version import version_string
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-def read_readme():
-	try:
-		import pypandoc
-		return pypandoc.convert('README.md', 'rst')
-	except ImportError:
-		with open(os.path.join(here, 'README.md')) as f:
-			return f.read()
+# read the contents of your README file
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 def get_version():
   return version_string
@@ -42,7 +38,8 @@ setup(
 	name = "tile-generator",
 	version = get_version(),
 	description = 'Tools supporting development of Pivotal Cloud Foundry services and add-ons.',
-	long_description = read_readme(),
+	long_description=long_description,
+  long_description_content_type='text/markdown',
 	url = 'https://github.com/cf-platform-eng/tile-generator',
 	author = 'Pivotal Cloud Foundry Platform Engineering',
 	license = 'Apache 2.0',
