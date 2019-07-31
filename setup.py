@@ -48,7 +48,7 @@ setup(
 		'Environment :: Console',
 		'Intended Audience :: Developers',
 		'License :: OSI Approved :: Apache Software License',
-		'Programming Language :: Python :: 2 :: Only',
+		'Programming Language :: Python :: 3 :: Only',
 		'Topic :: Software Development',
 		'Topic :: Software Development :: Code Generators',
 	],
