@@ -274,7 +274,7 @@ jobs:
               else
                 ./pyinstaller/build-binaries.sh
               fi
-              if [ $1 == 'skip_sdist' ]; then
+              if [ $1 != 'skip_sdist' ]; then
                 python setup.py sdist
                 # Setuptools normalizes versions and does not support semver.
                 # See https://github.com/pypa/setuptools/issues/308
