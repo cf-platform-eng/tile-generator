@@ -257,7 +257,10 @@ jobs:
         - -exc 
         - |
           command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
-          command -v objcopy >/dev/null 2>&1 && command -v git >/dev/null 2>&1 || apt update && apt install --yes binutils git
+          apt update
+          command -v objcopy >/dev/null 2>&1 && command -v git >/dev/null 2>&1 || apt install --yes binutils git
+          apt install patchelf
+
           cd tile-generator-repo
           echo "$mac_ssh_key" > mac_ssh_key
           chmod 600 mac_ssh_key
@@ -266,8 +269,12 @@ jobs:
             rm -rf dist*
             for VER in "$VERSION" "$FINAL_VERSION"; do
               echo "version_string = '$VER'" > tile_generator/version.py
-              ./pyinstaller/build-binaries.sh
-              if [ -z "$SKIP_SDIST" ]; then
+              if [ $1 == 'staticx' ]; then
+                ./pyinstaller/build-binaries.sh --staticx
+              else
+                ./pyinstaller/build-binaries.sh
+              fi
+              if [ $1 == 'skip_sdist' ]; then
                 python setup.py sdist
                 # Setuptools normalizes versions and does not support semver.
                 # See https://github.com/pypa/setuptools/issues/308
@@ -280,13 +287,12 @@ jobs:
           function build-remote(){
             HEAD="$HEAD"
             ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t administrator@207.254.45.60 "$(typeset -f build)
-              SKIP_SDIST='true'
               VERSION="$VERSION"
               FINAL_VERSION="$FINAL_VERSION"
               cd tile-generator
               git fetch origin
               git reset --hard "$HEAD"
-              build
+              build skip_sdist
               rm -rf dist/
             "
             scp -oStrictHostKeyChecking=no -i mac_ssh_key -r administrator@207.254.45.60:tile-generator/dist* .
@@ -294,7 +300,7 @@ jobs:
 
           VERSION=`cat ../version/version`
           FINAL_VERSION=`cat ../final-version/version`
-          build
+          build staticx
           HEAD=`git log --pretty=format:'%h' -n 1`
           build-remote
 

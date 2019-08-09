@@ -52,8 +52,8 @@ function create_binaries {
 
 function statix_all {
   create_binaries
-  staticx $SCRIPT_DIR/dist/tile* $SCRIPT_DIR/dist/tile*
-  staticx $SCRIPT_DIR/dist/pcf* $SCRIPT_DIR/dist/pcf*
+  staticx `ls $SCRIPT_DIR/dist/tile*` `ls $SCRIPT_DIR/dist/tile*`
+  staticx `ls $SCRIPT_DIR/dist/pcf*` `ls $SCRIPT_DIR/dist/pcf*`
 }
 
 if [ ! -d $VENV ]; then
