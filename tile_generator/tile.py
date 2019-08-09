@@ -80,7 +80,6 @@ def expand_cmd(version):
 	config.write_yaml(sys.stdout, dict(cfg))
 
 def main():
-  print('this is called with main')
   try:
     cli(prog_name='tile')
   except Exception as e:
