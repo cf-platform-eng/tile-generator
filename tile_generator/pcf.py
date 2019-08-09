@@ -488,7 +488,7 @@ def stemcells_cmd():
 
 def main():
 	try:
-		cli()
+		cli(prog_name='pcf')
 	except Exception as e:
 		click.echo(e, err=True)
 		sys.exit(1)

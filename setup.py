@@ -62,7 +62,7 @@ setup(
 	include_package_data = True,
 	entry_points = {
 		'console_scripts': [
-			'tile = tile_generator.tile:cli',
+			'tile = tile_generator.tile:main',
 			'pcf = tile_generator.pcf:main',
 		]
 	}

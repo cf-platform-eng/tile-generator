@@ -26,7 +26,8 @@ function show_help {
 
 Options:
   --help  Show this message and exit.
-  --clear Clear out the virtual environment and start from scratch. 
+  --recreate-venv Recreate the virtual environment and start from scratch.
+  --statix Use staticx to ship a fully static package.
 "
 }
 
@@ -40,6 +41,19 @@ function create_venv {
   pip install -e $SCRIPT_DIR/../
   #https://github.com/pypa/pip/issues/6163#issuecomment-456772043
   pip install pyinstaller --no-use-pep517
+  pip install staticx
+}
+
+function create_binaries {
+  source $VENV/bin/activate
+  pyinstaller -y $SCRIPT_DIR/pcf.spec
+  pyinstaller -y $SCRIPT_DIR/tile.spec
+}
+
+function statix_all {
+  create_binaries
+  staticx $SCRIPT_DIR/dist/tile* $SCRIPT_DIR/dist/tile*
+  staticx $SCRIPT_DIR/dist/pcf* $SCRIPT_DIR/dist/pcf*
 }
 
 if [ ! -d $VENV ]; then
@@ -48,16 +62,15 @@ fi
 
 if [ ! -n "$1" ]; then
   # No options passed. Do the build.
-  source $VENV/bin/activate
-  pyinstaller -y $SCRIPT_DIR/pcf.spec
-  pyinstaller -y $SCRIPT_DIR/tile.spec
+  create_binaries
 fi
 
 while [ -n "$1" ]; do
   case "$1" in
     -h) show_help ;;
     --help) show_help ;;
-    --clear) create_venv ;;
+    --recreate-venv) create_venv ;;
+    --staticx) statix_all ;;
     *) echo "Option not recognized '$1'"; show_help ;;
   esac
   shift

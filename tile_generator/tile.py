@@ -79,5 +79,14 @@ def expand_cmd(version):
 	cfg.set_version(version)
 	config.write_yaml(sys.stdout, dict(cfg))
 
-if __name__ == "__main__":
-	cli()
+def main():
+  print('this is called with main')
+  try:
+    cli(prog_name='tile')
+  except Exception as e:
+    click.echo(e, err=True)
+    sys.exit(1)
+
+
+if __name__ == '__main__':
+  main()
