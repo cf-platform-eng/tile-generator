@@ -574,13 +574,13 @@ jobs:
           sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
           # Upload stemcell based off of metadata
           cd generated-tile/
-          unzip test-tile-14.0.2-dev.4.pivotal
+          unzip -o test-tile-*.pivotal
           STEMCELL_OS=`cat metadata/test-tile.yml  | grep stemcell_criteria -A 3 | grep os | tr -d ' ' | cut -d ':' -f 2`
           STEMCELL_VERSION=`cat metadata/test-tile.yml  | grep stemcell_criteria -A 3 | grep version | tr -d " '" | cut -d ':' -f 2`
           pushd ../pcf-environment-*
           STEMCELL_AVAILABLE=`pcf stemcells`
           popd
-          if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]];; then
+          if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]]; then
             echo "A stemcell for $STEMCELL_OS version $STEMCELL_VERSION already is in $STEMCELL_AVAILABLE skipping...";
           else
             wget https://bosh.io/stemcells/bosh-google-kvm-$STEMCELL_OS-go_agent -O bosh.io_stemcells
