@@ -690,6 +690,6 @@ def get_stemcells():
 	response = get('/api/v0/diagnostic_report', check=False)
 	if response.status_code == requests.codes.ok:
 		diag = response.json()
-		stemcells = diag['stemcells']
+		stemcells = diag['available_stemcells']
 		return stemcells
 	return []

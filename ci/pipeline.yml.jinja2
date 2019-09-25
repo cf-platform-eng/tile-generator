@@ -572,6 +572,25 @@ jobs:
           command -v jq >/dev/null 2>&1 || apt update && apt install --yes jq
           # Our env use weak ssl ciphers :( so downgrade the minimum version
           sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
+          # Upload stemcell based off of metadata
+          cd generated-tile/
+          unzip test-tile-14.0.2-dev.4.pivotal
+          STEMCELL_OS=`cat metadata/test-tile.yml  | grep stemcell_criteria -A 3 | grep os | tr -d ' ' | cut -d ':' -f 2`
+          STEMCELL_VERSION=`cat metadata/test-tile.yml  | grep stemcell_criteria -A 3 | grep version | tr -d " '" | cut -d ':' -f 2`
+          pushd ../pcf-environment-*
+          STEMCELL_AVAILABLE=`pcf stemcells`
+          popd
+          if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]];; then
+            echo "A stemcell for $STEMCELL_OS version $STEMCELL_VERSION already is in $STEMCELL_AVAILABLE skipping...";
+          else
+            wget https://bosh.io/stemcells/bosh-google-kvm-$STEMCELL_OS-go_agent -O bosh.io_stemcells
+            STEMCELL_URL=`cat bosh.io_stemcells | grep light | grep $STEMCELL_VERSION | cut -d '"' -f 2 | head -n 1`
+            wget $STEMCELL_URL
+            pushd ../pcf-environment-*
+            pcf upload-stemcell ../generated-tile/light-bosh-stemcell-*
+            popd
+          fi
+          cd ..
           tile-generator-repo/ci/scripts/run-deploytile.sh generated-tile pcf-environment-{{ cluster }}
     on_failure:
       in_parallel:
