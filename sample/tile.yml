@@ -63,12 +63,15 @@ forms:
     - name: album
       type: string
       label: Album
+      configurable: true
     - name: artist
       type: string
       label: Artist
+      configurable: true
     - name: explicit
       type: boolean
       label: Explicit
+      configurable: true
     default:
     - album: Christmas Carols
       artist: Ops Manatee
