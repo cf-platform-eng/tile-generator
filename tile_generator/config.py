@@ -82,7 +82,7 @@ def _base64_img(image):
 # This is temporary until next major release
 def show_warning(thing):
 	print()
-	print('DeprecationWarning: %s expected, got %s !!!' % (thing.replace('-', '_'), thing))
+	print('Warning: Consider changing %s to %s. Having "-" in the names can lead to subtle bugs in the tile when converting names to bash variables that expect underscores.' % (thing, thing.replace('-', '_')))
 	print()
 
 
