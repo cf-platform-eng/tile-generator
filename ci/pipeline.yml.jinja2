@@ -269,12 +269,9 @@ jobs:
             rm -rf dist*
             for VER in "$VERSION" "$FINAL_VERSION"; do
               echo "version_string = '$VER'" > tile_generator/version.py
-              if [ $1 == 'staticx' ]; then
-                ./pyinstaller/build-binaries.sh --staticx
-              else
-                ./pyinstaller/build-binaries.sh
-              fi
-              if [ $1 != 'skip_sdist' ]; then
+              ./pyinstaller/build-binaries.sh
+              if [ -z "$SKIP_SDIST" ]; then
+                echo "Building SDist"
                 python setup.py sdist
                 # Setuptools normalizes versions and does not support semver.
                 # See https://github.com/pypa/setuptools/issues/308
@@ -285,6 +282,7 @@ jobs:
           }
 
           function build-remote(){
+            SKIP_SDIST='true'
             HEAD="$HEAD"
             ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t administrator@207.254.45.60 "$(typeset -f build)
               VERSION="$VERSION"
@@ -292,7 +290,7 @@ jobs:
               cd tile-generator
               git fetch origin
               git reset --hard "$HEAD"
-              build skip_sdist
+              build
               rm -rf dist/
             "
             scp -oStrictHostKeyChecking=no -i mac_ssh_key -r administrator@207.254.45.60:tile-generator/dist* .
@@ -300,7 +298,7 @@ jobs:
 
           VERSION=`cat ../version/version`
           FINAL_VERSION=`cat ../final-version/version`
-          build staticx
+          build
           HEAD=`git log --pretty=format:'%h' -n 1`
           build-remote
 
