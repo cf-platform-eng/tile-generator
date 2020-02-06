@@ -1,7 +1,7 @@
 FROM python:3-slim
 
 RUN apt-get update && \
-    apt-get install --yes wget zip && \
+    apt-get install --yes git wget zip && \
     rm -rf /var/lib/apt/lists/*
 
 RUN wget -q -O- https://api.github.com/repos/cloudfoundry/bosh-cli/releases/latest | grep 'browser_download_url.*linux-amd64' | cut -d '"' -f 4 | xargs wget -q
