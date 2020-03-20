@@ -342,6 +342,12 @@ packages:
   buildpack_order: 99                 # 99 (or higher) means go to the end of the list
   path: resources/buildpack.zip
 
+# Test for https://github.com/cf-platform-eng/tile-generator/issues/323
+- name: tg-test-buildpack-suffix
+  type: buildpack
+  buildpack_order: 99
+  path: resources/buildpack.zip
+
 - name: tg-test-app3
   type: docker-app
   image: guidowb/sample-cf-app        # Start command must be specified in the Dockerfile (CMD)
