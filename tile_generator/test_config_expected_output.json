@@ -937,6 +937,26 @@
       }
     },
     {
+      "buildpack_order": 99,
+      "files": [
+        {
+          "name": "buildpack.zip",
+          "path": "resources/buildpack.zip"
+        }
+      ],
+      "is_buildpack": true,
+      "is_cf": true,
+      "name": "tg_test_buildpack_suffix",
+      "package-type": "buildpack",
+      "path": "buildpack.zip",
+      "properties": {
+        "tg_test_buildpack_suffix": {
+          "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+          "name": "tg_test_buildpack_suffix"
+        }
+      }
+    },
+    {
       "app_manifest": {
         "memory": "256M"
       },
@@ -1189,6 +1209,10 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
             },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
+            },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1372,6 +1396,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
@@ -1592,6 +1620,10 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
             },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
+            },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1808,6 +1840,10 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
             },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
+            },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -1998,6 +2034,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
             "username": "(( .properties.username.value ))",
@@ -2258,6 +2298,10 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
             },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
+            },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -2425,6 +2469,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
@@ -2596,6 +2644,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "tls_cacert": "(( $ops_manager.ca_certificate ))",
             "tls_cert": "(( .properties.generated_rsa_cert_credentials.cert_pem ))",
@@ -2967,6 +3019,26 @@
           }
         },
         {
+          "buildpack_order": 99,
+          "files": [
+            {
+              "name": "buildpack.zip",
+              "path": "resources/buildpack.zip"
+            }
+          ],
+          "is_buildpack": true,
+          "is_cf": true,
+          "name": "tg_test_buildpack_suffix",
+          "package-type": "buildpack",
+          "path": "buildpack.zip",
+          "properties": {
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
+            }
+          }
+        },
+        {
           "app_manifest": {
             "memory": "256M"
           },
@@ -3060,7 +3132,7 @@
           "files": [
             {
               "name": "utils.sh",
-              "path": "/home/user/Work/tile-generator/tile_generator/templates/src/common/utils.sh"
+              "path": "/Users/mboldt/pivotal/tile-generator/tile_generator/templates/src/common/utils.sh"
             }
           ],
           "name": "common"
@@ -3231,6 +3303,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
@@ -3415,6 +3491,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
@@ -3623,6 +3703,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
@@ -3840,6 +3924,10 @@
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
             },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
+            },
             "uaa": {
               "admin_client": "(( ..cf.uaa.admin_client_credentials.identity ))",
               "admin_client_secret": "(( ..cf.uaa.admin_client_credentials.password ))"
@@ -4030,6 +4118,10 @@
             "tg_test_buildpack": {
               "buildpack_order": "(( .properties.tg_test_buildpack_buildpack_order.value ))",
               "name": "tg_test_buildpack"
+            },
+            "tg_test_buildpack_suffix": {
+              "buildpack_order": "(( .properties.tg_test_buildpack_suffix_buildpack_order.value ))",
+              "name": "tg_test_buildpack_suffix"
             },
             "update_watch_timeout": "(( .properties.update_watch_timeout.value ))",
             "username": "(( .properties.username.value ))",
