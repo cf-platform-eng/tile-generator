@@ -150,9 +150,7 @@ resources:
   source:
     api_token: {% raw %}{{poolsmiths_api_token}}{% endraw %}
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_{{cluster}}
-  tags:
-  - toolsmiths-shared-vsphere{% if not loop.last %}
+    pool_name: us_{{cluster}}{% if not loop.last %}
 
 {% endif %}{% endfor %}
 
@@ -529,8 +527,6 @@ jobs:
     - put: pcf-environment-{{ cluster }}
       params:
         action: claim
-      tags:
-      - toolsmiths-shared-vsphere
 
 - name: deploy-tile-{{ cluster }}
   disable_manual_trigger: true
@@ -552,8 +548,6 @@ jobs:
     - get: pcf-environment-{{ cluster }}
       passed: [ claim-{{ cluster }} ]
       trigger: true
-      tags:
-      - toolsmiths-shared-vsphere
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
@@ -610,8 +604,6 @@ jobs:
     - get: pcf-environment-{{ cluster }}
       passed: [ deploy-tile-{{ cluster }} ]
       trigger: true
-      tags:
-      - toolsmiths-shared-vsphere
     - get: tile-generator-repo
       passed: [ deploy-tile-{{ cluster }} ]
     - get: version
@@ -658,8 +650,6 @@ jobs:
     - get: pcf-environment-{{ cluster }}
       passed: [ deployment-tests-{{ cluster }} ]
       trigger: true
-      tags:
-      - toolsmiths-shared-vsphere
     - get: tile-generator-repo
       passed: [ deployment-tests-{{ cluster }} ]
     - get: version
@@ -695,9 +685,7 @@ jobs:
   - put: pcf-environment-{{ cluster }}
     params:
       action: unclaim
-      env_file: pcf-environment-{{ cluster }}/metadata
-    tags:
-    - toolsmiths-shared-vsphere{% if not loop.last %}
+      env_file: pcf-environment-{{ cluster }}/metadata{% if not loop.last %}
 
 {% endif %}{% endfor %}{% raw %}
 
