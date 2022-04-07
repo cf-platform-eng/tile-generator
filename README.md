@@ -9,7 +9,7 @@ you to have intimate knowledge of all the tools involved.
 - Documentation: [Pivotal Documentation](http://docs.pivotal.io/tiledev/tile-generator.html)
 - PCF Tile Developers Guide: [Pivotal Documentation](http://docs.pivotal.io/tiledev/index.html)
 - Roadmap: [Github Issues](https://github.com/cf-platform-eng/tile-generator/issues)
-- CI Pipeline: [Concourse](https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator)
+- CI Pipeline: [Concourse](https://hush-house.pivotal.io/teams/pe/pipelines/tile-generator)
 
 ## Continuous Integration
 
