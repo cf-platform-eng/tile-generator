@@ -156,8 +156,8 @@ class TestUltimateForm(BaseTest):
 
     else:
       try:
-        loaded_expected = yaml.load(expected)
-        loaded_given = yaml.load(given)
+        loaded_expected = yaml.load(expected, yaml.Loader)
+        loaded_given = yaml.load(given, yaml.Loader)
       except:
         loaded_expected = expected
         loaded_given = given
@@ -184,10 +184,10 @@ class TestUltimateForm(BaseTest):
     template.render(test_path + '/test_metadata_generated_output.yml', 'tile/metadata.yml', cfg)
 
     with open(test_path + '/test_metadata_generated_output.yml', 'r') as f:
-      generated_output = yaml.load(f)
+      generated_output = yaml.load(f, yaml.Loader)
 
     with open(test_path + '/test_metadata_expected_output.yml', 'r') as f:
-      expected_output = yaml.load(f)
+      expected_output = yaml.load(f, yaml.Loader)
 
     self.deep_comparer(expected_output, generated_output, '[%s]')
 
