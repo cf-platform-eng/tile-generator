@@ -3,7 +3,7 @@
 import os
 from jinja2 import Template
 
-clusters = ['2_7_lts', '2_9', '2_10', '2_11_lts2']
+clusters = ['2_7_lts', '2_11_lts2', '2_12', '2_13']
 # Commenting out this as we only have one example and it breaks
 tiles = [] # [d for d in os.listdir('../examples') if os.path.isdir(os.path.join('../examples', d))]
 
