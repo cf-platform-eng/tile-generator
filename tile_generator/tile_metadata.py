@@ -554,7 +554,7 @@ class TileMetadata(object):
                         }
                         if template.get('consumes'):
                             if type(template.get('consumes')) is not dict:
-                                template['consumes'] = yaml.load(template['consumes'])
+                                template['consumes'] = yaml.load(template['consumes'], yaml.Loader)
                             temp['consumes'] = literal_unicode(yaml.dump(template.get('consumes'), default_flow_style=False))
                         if template.get('provides'):
                             temp['provides'] = literal_unicode(yaml.dump(template.get('provides'), default_flow_style=False))

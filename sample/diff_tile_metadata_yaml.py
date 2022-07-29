@@ -14,8 +14,8 @@ with open(sys.argv[1], 'r') as f:
 with open(sys.argv[2], 'r') as f:
     b = f.read()
 
-aa = yaml.load(a)
-bb = yaml.load(b)
+aa = yaml.load(a, yaml.Loader)
+bb = yaml.load(b, yaml.Loader)
 
 for conf in [aa, bb]:
     for release in conf['releases']:
@@ -26,7 +26,7 @@ for conf in [aa, bb]:
     conf.pop('provides_product_versions')
     conf['property_blueprints'] = sorted(conf['property_blueprints'], key=lambda k: k['name'])
     conf['job_types'] = sorted(conf['job_types'], key=lambda k: k['name'])
-    for x in conf['job_types']: x['manifest'] = sorted(x['manifest'].items()) if type(x['manifest']) is dict else sorted(yaml.load(x['manifest']).items())
+    for x in conf['job_types']: x['manifest'] = sorted(x['manifest'].items()) if type(x['manifest']) is dict else sorted(yaml.load(x['manifest'], yaml.Loader).items())
 
 from pprint import pprint
 for x in list(dictdiffer.diff(aa,bb)): pprint(x); print('')
