@@ -31,24 +31,24 @@ resource_types:
 - name: slack-notification
   type: docker-image
   source:
-    repository: cfcommunity/slack-notification-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
     tag: latest
 
 - name: pypi
   type: docker-image
   source:
-    repository: cfplatformeng/concourse-pypi-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfplatformeng/concourse-pypi-resource
 
 - name: pivnet
   type: docker-image
   source:
-    repository: pivotalcf/pivnet-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pivotalcf/pivnet-resource
     tag: latest-final
 
 - name: pcf-pool
   type: docker-image
   source:
-    repository: cftoolsmiths/toolsmiths-envs-resource
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
 
 resources:
 
@@ -56,7 +56,7 @@ resources:
   type: git
   source:
     ignore_paths: [ "ci/docker-tile-generator" ]
-    branch: {{github-branch}}
+    branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-github-prerelease
@@ -64,7 +64,7 @@ resources:
   source:
     user: cf-platform-eng
     repository: tile-generator
-    access_token: {{github-release-token}}
+    access_token: ((github.access_token))
     release: false
     pre_release: true
 
@@ -73,82 +73,79 @@ resources:
   source:
     user: cf-platform-eng
     repository: tile-generator
-    access_token: {{github-release-token}}
+    access_token: ((github.access_token))
 
 - name: tile-generator-pypi-release
   type: pypi
   source:
     name: tile-generator
-    username: {{pypi-user}}
-    password: {{pypi-password}}
+    username: ((pypi.username))
+    password: ((pypi.password))
 
 - name: tile-generator-dockerfile-repo
   type: git
   source:
     paths: [ "ci/docker-tile-generator" ]
-    branch: {{github-branch}}
+    branch: master
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-package
   type: s3
   source:
-    bucket: {{s3-bucket}}
+    bucket: ((s3_tile_generator.bucket))
     regexp: tile-generator-(?P<version>.*).tar.gz
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
+    access_key_id: ((s3_tile_generator.access_key))
+    secret_access_key: ((s3_tile_generator.secret_access_key))
 
 - name: tile-generator-package-release
   type: s3
   source:
-    bucket: {{s3-bucket}}
+    bucket: ((s3_tile_generator.bucket))
     regexp: release/bundle-(?P<version>.*).tar.gz
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
+    access_key_id: ((s3_tile_generator.access_key))
+    secret_access_key: ((s3_tile_generator.secret_access_key))
 
 - name: generated-tile
   type: s3
   source:
-    bucket: {{s3-bucket}}
+    bucket: ((s3_tile_generator.bucket))
     regexp: test-tile-(?P<version>.*)\.pivotal
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
+    access_key_id: ((s3_tile_generator.access_key))
+    secret_access_key: ((s3_tile_generator.secret_access_key))
 
 - name: tile-history
   type: s3
   source:
-    bucket: {{s3-bucket}}
+    bucket: ((s3_tile_generator.bucket))
     regexp: tile\-history-(?P<version>.*)\.yml
-    access_key_id: {{s3-access-key}}
-    secret_access_key: {{s3-secret}}
+    access_key_id: ((s3_tile_generator.access_key))
+    secret_access_key: ((s3_tile_generator.secret_access_key))
 
 - name: tile-generator-docker-image
   type: docker-image
   source:
-    repository: cfplatformeng/tile-generator-prerelease
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    repository: projects.registry.vmware.com/tanzu_isv_engineering/tile-generator-prerelease
+    username: ((harbor-public.username))
+    password: ((harbor-public.token))
 
 - name: tile-generator-docker-image-release
   type: docker-image
   source:
-    repository: cfplatformeng/tile-generator
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    repository: projects.registry.vmware.com/tanzu_isv_engineering/tile-generator
+    username: ((harbor-public.username))
+    password: ((harbor-public.token))
 
 - name: app-docker-image
   type: docker-image
   source:
-    repository: cfplatformeng/tile-generator-sample-app
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
+    repository: harbor-repo.vmware.com/tanzu_isv_engineering/tile-generator-sample-app
+    username: ((harbor.username))
+    password: ((harbor.token))
 
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment-{{ cluster }}
   type: pcf-pool
   source:
-    api_token: {% raw %}{{poolsmiths_api_token}}{% endraw %}
+    api_token: {% raw %}((toolsmiths_api_token)){% endraw %}
     hostname: environments.toolsmiths.cf-app.com
     pool_name: us_{{cluster}}{% if not loop.last %}
 
@@ -167,7 +164,7 @@ resources:
 - name: slack-alert
   type: slack-notification
   source:
-    url: {{slack-hook}}
+    url: ((slack_tile_generator.hook_url))
 
 - name: version
   type: semver
@@ -176,7 +173,7 @@ resources:
     uri: git@github.com:cf-platform-eng/tile-generator
     branch: version
     file: version
-    private_key: {{github-semver-private-key}}
+    private_key: ((github.private_key))
 
 jobs:
 
@@ -189,7 +186,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: python
+          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
           tag: 3-slim
       platform: linux
       inputs:
@@ -205,7 +202,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          channel: {{slack-channel}}
+          channel: ((slack_tile_generator.channel))
           icon_emoji: ':concourse:'
           text: 'Unit tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -237,7 +234,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: python
+          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
           tag: 3-slim-stretch
       platform: linux
       inputs:
@@ -248,7 +245,8 @@ jobs:
       - name: tile-generator-dist
       - name: tile-generator-dist-release
       params: 
-        mac_ssh_key: ((mac_ssh_key))
+        mac_ip: ((macstadium.ip))
+        mac_ssh_key: ((macstadium.ssh_key))
       run:
         path: bash
         args:
@@ -282,7 +280,7 @@ jobs:
           function build-remote(){
             SKIP_SDIST='true'
             HEAD="$HEAD"
-            ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t administrator@207.254.45.60 "$(typeset -f build)
+            ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t "administrator@${mac_ip}" "$(typeset -f build)
               VERSION="$VERSION"
               FINAL_VERSION="$FINAL_VERSION"
               cd tile-generator
@@ -291,7 +289,7 @@ jobs:
               build
               rm -rf dist/
             "
-            scp -oStrictHostKeyChecking=no -i mac_ssh_key -r administrator@207.254.45.60:tile-generator/dist* .
+            scp -oStrictHostKeyChecking=no -i mac_ssh_key -r "administrator@${mac_ip}":tile-generator/dist* .
           }
 
           VERSION=`cat ../version/version`
@@ -306,7 +304,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          channel: {{slack-channel}}
+          channel: ((slack_tile_generator.channel))
           icon_emoji: ':concourse:'
           text: 'Tile Generator package build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -344,7 +342,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: python
+          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
           tag: 3-slim
       platform: linux
       inputs:
@@ -361,7 +359,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          channel: {{slack-channel}}
+          channel: ((slack_tile_generator.channel))
           icon_emoji: ':concourse:'
           text: 'Tile Generator docker build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -406,7 +404,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          channel: {{slack-channel}}
+          channel: ((slack_tile_generator.channel))
           icon_emoji: ':concourse:'
           text: 'Sample app build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -431,7 +429,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          channel: {{slack-channel}}
+          channel: ((slack_tile_generator.channel))
           icon_emoji: ':concourse:'
           text: 'Sample app docker build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -448,7 +446,7 @@ jobs:
       outputs:
       - name: generated-tile
       params:
-        GITHUB_API_TOKEN: {{github-api-token}}
+        GITHUB_API_TOKEN: ((github.access_token))
       run:
         path: tile-generator-repo/ci/scripts/tile-build.sh
         args: [ "sample-tile-build", "tile-history", "generated-tile", "docker-cache", "version" ]
@@ -456,7 +454,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          channel: {{slack-channel}}
+          channel: ((slack_tile_generator.channel))
           icon_emoji: ':concourse:'
           text: 'Tile build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -503,7 +501,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          channel: {{slack-channel}}
+          channel: ((slack_tile_generator.channel))
           icon_emoji: ':concourse:'
           text: 'Acceptance tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -588,7 +586,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          {% raw %}channel: {{slack-channel}}{% endraw %}
+          {% raw %}channel: ((slack_tile_generator.channel)){% endraw %}
           icon_emoji: ':concourse:'
           text: 'Deploy tile failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -634,7 +632,7 @@ jobs:
       in_parallel:
       - put: slack-alert
         params:
-          {% raw %}channel: {{slack-channel}}{% endraw %}
+          {% raw %}channel: ((slack_tile_generator.channel)){% endraw %}
           icon_emoji: ':concourse:'
           text: 'Deployment tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
@@ -678,7 +676,7 @@ jobs:
     on_failure:
       put: slack-alert
       params:
-        {% raw %}channel: {{slack-channel}}{% endraw %}
+        {% raw %}channel: ((slack_tile_generator.channel)){% endraw %}
         icon_emoji: ':concourse:'
         text: 'Remove tile failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
         username: Tile Generator
