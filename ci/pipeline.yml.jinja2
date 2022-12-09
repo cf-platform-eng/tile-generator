@@ -138,7 +138,7 @@ resources:
 - name: app-docker-image
   type: docker-image
   source:
-    repository: harbor-repo.vmware.com/tanzu_isv_engineering/tile-generator-sample-app
+    repository: harbor-repo.vmware.com/partner_engineering/tile-generator-sample-app
     username: ((harbor.username))
     password: ((harbor.token))
 
@@ -257,6 +257,7 @@ jobs:
           command -v objcopy >/dev/null 2>&1 && command -v git >/dev/null 2>&1 || apt install --yes binutils git
           apt install patchelf
 
+          # MacStadium is a Mac as a Service provider that we used to build the Mac binary for tile generator
           cd tile-generator-repo
           echo "$mac_ssh_key" > mac_ssh_key
           chmod 600 mac_ssh_key
