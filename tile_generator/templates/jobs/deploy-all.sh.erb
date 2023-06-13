@@ -43,7 +43,9 @@ function import_opsmgr_variables() {
 	{% endfor %}
 
 	{% for property in context.all_properties %}
+	{% if not property.skip_export %}
 	{{ property | env_variable | indent }}
+	{% endif %}
 	{% endfor %}
 	<% empty_dict = {} %>
 	<% empty_list = [] %>
