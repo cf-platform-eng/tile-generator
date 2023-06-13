@@ -235,7 +235,7 @@ jobs:
         type: docker-image
         source:
           repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
-          tag: 3-slim-stretch
+          tag: 3.11.4-slim
       platform: linux
       inputs:
       - name: tile-generator-repo
@@ -253,6 +253,7 @@ jobs:
         - -exc 
         - |
           command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
+          echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list
           apt update
           command -v objcopy >/dev/null 2>&1 && command -v git >/dev/null 2>&1 || apt install --yes binutils git
           apt install patchelf
