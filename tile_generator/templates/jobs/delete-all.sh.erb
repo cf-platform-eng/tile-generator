@@ -33,7 +33,9 @@ function import_opsmgr_variables() {
 	export CF_SKIP_SSL={{ 'properties.ssl.skip_cert_verify' | shell_string }}
 
 	{% for property in context.all_properties %}
+	{% if not property.skip_export %}
 	{{ property | env_variable | indent }}``
+	{% endif %}	
 	{% endfor %}
 	<% empty_dict = {} %>
 	<% empty_list = [] %>
