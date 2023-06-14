@@ -647,7 +647,7 @@
   "packages": [
     {
       "app_manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "instances": "(( .properties.app_instances.value ))",
         "memory": "256M",
@@ -662,7 +662,7 @@
       "is_app": true,
       "is_cf": true,
       "manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "instances": "(( .properties.app_instances.value ))",
         "memory": "256M",
@@ -673,7 +673,7 @@
       "properties": {
         "tg_test_app1": {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "instances": "(( .properties.app_instances.value ))",
             "memory": "256M",
@@ -686,7 +686,7 @@
     },
     {
       "app_manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "memory": "256M",
         "path": "app"
@@ -700,7 +700,7 @@
       "is_app": true,
       "is_cf": true,
       "manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "memory": "256M",
         "path": "app"
@@ -710,7 +710,7 @@
       "properties": {
         "tg_test_app1_auto_zip": {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app"
@@ -758,7 +758,7 @@
     },
     {
       "app_manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "memory": "256M",
         "path": "app.zip"
@@ -774,7 +774,7 @@
       "is_broker": true,
       "is_cf": true,
       "manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "memory": "256M",
         "path": "app.zip"
@@ -784,7 +784,7 @@
       "properties": {
         "tg_test_broker1": {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app.zip"
@@ -797,7 +797,7 @@
     },
     {
       "app_manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "host": "tg-test-app2-hostname",
         "memory": "256M",
@@ -834,7 +834,7 @@
       "is_app": true,
       "is_cf": true,
       "manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "host": "tg-test-app2-hostname",
         "memory": "256M",
@@ -846,7 +846,7 @@
       "properties": {
         "tg_test_app2": {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "host": "tg-test-app2-hostname",
             "memory": "256M",
@@ -867,7 +867,7 @@
     },
     {
       "app_manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "memory": "256M",
         "path": "app.zip"
@@ -895,7 +895,7 @@
       "is_broker": true,
       "is_cf": true,
       "manifest": {
-        "buildpack": "python_buildpack",
+        "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
         "command": "python app.py",
         "memory": "256M",
         "path": "app.zip"
@@ -905,7 +905,7 @@
       "properties": {
         "tg_test_broker2": {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app.zip"
@@ -1110,7 +1110,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -1121,7 +1121,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -1131,7 +1131,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -1185,7 +1185,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1196,7 +1196,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1298,7 +1298,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -1309,7 +1309,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -1319,7 +1319,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -1373,7 +1373,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1384,7 +1384,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1521,7 +1521,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -1532,7 +1532,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -1542,7 +1542,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -1596,7 +1596,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1607,7 +1607,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1741,7 +1741,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -1752,7 +1752,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -1762,7 +1762,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -1816,7 +1816,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1827,7 +1827,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -1936,7 +1936,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -1947,7 +1947,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -1957,7 +1957,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -2011,7 +2011,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2022,7 +2022,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2195,7 +2195,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -2206,7 +2206,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -2216,7 +2216,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -2270,7 +2270,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2283,7 +2283,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2371,7 +2371,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -2382,7 +2382,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -2392,7 +2392,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -2446,7 +2446,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2457,7 +2457,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2546,7 +2546,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -2557,7 +2557,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -2567,7 +2567,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -2621,7 +2621,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2632,7 +2632,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2729,7 +2729,7 @@
       "packages": [
         {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "instances": "(( .properties.app_instances.value ))",
             "memory": "256M",
@@ -2744,7 +2744,7 @@
           "is_app": true,
           "is_cf": true,
           "manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "instances": "(( .properties.app_instances.value ))",
             "memory": "256M",
@@ -2755,7 +2755,7 @@
           "properties": {
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -2768,7 +2768,7 @@
         },
         {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app"
@@ -2782,7 +2782,7 @@
           "is_app": true,
           "is_cf": true,
           "manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app"
@@ -2792,7 +2792,7 @@
           "properties": {
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -2840,7 +2840,7 @@
         },
         {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app.zip"
@@ -2856,7 +2856,7 @@
           "is_broker": true,
           "is_cf": true,
           "manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app.zip"
@@ -2866,7 +2866,7 @@
           "properties": {
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -2879,7 +2879,7 @@
         },
         {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "host": "tg-test-app2-hostname",
             "memory": "256M",
@@ -2916,7 +2916,7 @@
           "is_app": true,
           "is_cf": true,
           "manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "host": "tg-test-app2-hostname",
             "memory": "256M",
@@ -2928,7 +2928,7 @@
           "properties": {
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -2949,7 +2949,7 @@
         },
         {
           "app_manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app.zip"
@@ -2977,7 +2977,7 @@
           "is_broker": true,
           "is_cf": true,
           "manifest": {
-            "buildpack": "python_buildpack",
+            "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
             "command": "python app.py",
             "memory": "256M",
             "path": "app.zip"
@@ -2987,7 +2987,7 @@
           "properties": {
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3205,7 +3205,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -3216,7 +3216,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -3226,7 +3226,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -3280,7 +3280,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3291,7 +3291,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3393,7 +3393,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -3404,7 +3404,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -3414,7 +3414,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -3468,7 +3468,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3479,7 +3479,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3605,7 +3605,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -3616,7 +3616,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -3626,7 +3626,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -3680,7 +3680,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3691,7 +3691,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3825,7 +3825,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -3836,7 +3836,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -3846,7 +3846,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -3900,7 +3900,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -3911,7 +3911,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -4020,7 +4020,7 @@
             "street_address": "(( .properties.street_address.value ))",
             "tg_test_app1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "instances": "(( .properties.app_instances.value ))",
                 "memory": "256M",
@@ -4031,7 +4031,7 @@
             },
             "tg_test_app1_auto_zip": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app"
@@ -4041,7 +4041,7 @@
             },
             "tg_test_app2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "host": "tg-test-app2-hostname",
                 "memory": "256M",
@@ -4095,7 +4095,7 @@
             },
             "tg_test_broker1": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
@@ -4106,7 +4106,7 @@
             },
             "tg_test_broker2": {
               "app_manifest": {
-                "buildpack": "python_buildpack",
+                "buildpack": "https://github.com/cloudfoundry/python-buildpack.git#v1.8.0",
                 "command": "python app.py",
                 "memory": "256M",
                 "path": "app.zip"
