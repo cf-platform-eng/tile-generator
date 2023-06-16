@@ -244,9 +244,6 @@ jobs:
       outputs:
       - name: tile-generator-dist
       - name: tile-generator-dist-release
-      params: 
-        mac_ip: ((macstadium.ip))
-        mac_ssh_key: ((macstadium.ssh_key))
       run:
         path: bash
         args:
@@ -257,10 +254,7 @@ jobs:
           command -v objcopy >/dev/null 2>&1 && command -v git >/dev/null 2>&1 || apt install --yes binutils git
           apt install patchelf
 
-          # MacStadium is a Mac as a Service provider that we used to build the Mac binary for tile generator
           cd tile-generator-repo
-          echo "$mac_ssh_key" > mac_ssh_key
-          chmod 600 mac_ssh_key
 
           function build(){
             rm -rf dist*
@@ -278,26 +272,10 @@ jobs:
             done
           }
 
-          function build-remote(){
-            SKIP_SDIST='true'
-            HEAD="$HEAD"
-            ssh -oStrictHostKeyChecking=no -i mac_ssh_key -t "administrator@${mac_ip}" "$(typeset -f build)
-              VERSION="$VERSION"
-              FINAL_VERSION="$FINAL_VERSION"
-              cd tile-generator
-              git fetch origin
-              git reset --hard "$HEAD"
-              build
-              rm -rf dist/
-            "
-            scp -oStrictHostKeyChecking=no -i mac_ssh_key -r "administrator@${mac_ip}":tile-generator/dist* .
-          }
-
           VERSION=`cat ../version/version`
           FINAL_VERSION=`cat ../final-version/version`
           build
           HEAD=`git log --pretty=format:'%h' -n 1`
-          build-remote
 
           cp dist-"$VERSION"/* ../tile-generator-dist/
           tar -cvzf ../tile-generator-dist-release/bundle-"$VERSION".tar.gz dist-"$FINAL_VERSION"/*
