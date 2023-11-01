@@ -9,12 +9,12 @@ you to have intimate knowledge of all the tools involved.
 - Documentation: [Pivotal Documentation](http://docs.pivotal.io/tiledev/tile-generator.html)
 - PCF Tile Developers Guide: [Pivotal Documentation](http://docs.pivotal.io/tiledev/index.html)
 - Roadmap: [Github Issues](https://github.com/cf-platform-eng/tile-generator/issues)
-- CI Pipeline: [Concourse](https://hush-house.pivotal.io/teams/pe/pipelines/tile-generator)
+- CI Pipeline: [Runway](https://runway-ci.eng.vmware.com/teams/ppe-isv/pipelines/tile-generator)
 
 ## Continuous Integration
 
 The master branch of this repository is being monitored by
-[this Concourse pipeline](https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator).
+[this Runway pipeline](https://runway-ci.eng.vmware.com/teams/ppe-isv/pipelines/tile-generator).
 The pipeline verifies that:
 
 - The tile generator passes all unit tests in `tile_generator/*_unittest.py`
@@ -22,6 +22,14 @@ The pipeline verifies that:
 - The generated tile passes all acceptance tests in `ci/acceptance-tests`
 - The generated tile successfully deploys to a current version of PCF
 - The deployed tile passes all deployment tests in `ci/deployment-tests`
+
+To target the pipeline run the following command
+
+```
+fly login -t <desired_target_name> -c https://runway-ci.eng.vmware.com -n ppe-isv
+```
+
+You need to be a member of the ppe-isv team for the above command to work.
 
 ## Contributing to the Tile Generator
 
