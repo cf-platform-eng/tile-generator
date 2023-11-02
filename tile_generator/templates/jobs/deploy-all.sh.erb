@@ -220,9 +220,9 @@ function wait_till_running() {
 }
 
 function get_stack() {
-	if $CF stacks 2>&1 | grep "cflinuxfs3" > /dev/null; then
-		echo >&2 "Using cflinuxfs3 stack"
-		echo "-s cflinuxfs3"
+	if $CF stacks 2>&1 | grep "cflinuxfs4" > /dev/null; then
+		echo >&2 "Using cflinuxfs4 stack"
+		echo "-s cflinuxfs4"
 	else
 		echo >&2 "Using default stack"
 	fi
