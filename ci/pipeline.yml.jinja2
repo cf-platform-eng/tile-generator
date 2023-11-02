@@ -94,6 +94,7 @@ resources:
   source:
     bucket: ((s3_tile_generator.bucket))
     regexp: tile-generator-(?P<version>.*).tar.gz
+    aws_role_arn: ((s3_tile_generator.assume_role_arn))
     access_key_id: ((s3_tile_generator.access_key))
     secret_access_key: ((s3_tile_generator.secret_access_key))
 
@@ -102,6 +103,7 @@ resources:
   source:
     bucket: ((s3_tile_generator.bucket))
     regexp: release/bundle-(?P<version>.*).tar.gz
+    aws_role_arn: ((s3_tile_generator.assume_role_arn))
     access_key_id: ((s3_tile_generator.access_key))
     secret_access_key: ((s3_tile_generator.secret_access_key))
 
@@ -110,6 +112,7 @@ resources:
   source:
     bucket: ((s3_tile_generator.bucket))
     regexp: test-tile-(?P<version>.*)\.pivotal
+    aws_role_arn: ((s3_tile_generator.assume_role_arn))
     access_key_id: ((s3_tile_generator.access_key))
     secret_access_key: ((s3_tile_generator.secret_access_key))
 
@@ -119,6 +122,7 @@ resources:
     bucket: ((s3_tile_generator.bucket))
     regexp: tile\-history-(?P<version>.*)\.yml
     access_key_id: ((s3_tile_generator.access_key))
+    aws_role_arn: ((s3_tile_generator.assume_role_arn))
     secret_access_key: ((s3_tile_generator.secret_access_key))
 
 - name: tile-generator-docker-image
