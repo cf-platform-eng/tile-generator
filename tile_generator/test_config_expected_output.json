@@ -723,23 +723,21 @@
     {
       "app_manifest": {
         "buildpack": "binary_buildpack",
-        "command": "./binary-app.py",
         "memory": "256M",
-        "path": "binary-app.py"
+        "path": "binary-app"
       },
       "files": [
         {
-          "name": "binary-app.py",
-          "path": "src/binary-app/binary-app.py"
+          "name": "binary-app",
+          "path": "src/binary-app"
         }
       ],
       "is_app": true,
       "is_cf": true,
       "manifest": {
         "buildpack": "binary_buildpack",
-        "command": "./binary-app.py",
         "memory": "256M",
-        "path": "binary-app.py"
+        "path": "binary-app"
       },
       "name": "tg_test_binary_app",
       "package-type": "app",
@@ -747,9 +745,8 @@
         "tg_test_binary_app": {
           "app_manifest": {
             "buildpack": "binary_buildpack",
-            "command": "./binary-app.py",
             "memory": "256M",
-            "path": "binary-app.py"
+            "path": "binary-app"
           },
           "auto_services": [],
           "name": "tg_test_binary_app"
@@ -1176,9 +1173,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -1364,9 +1360,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -1587,9 +1582,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -1807,9 +1801,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -2002,9 +1995,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -2261,9 +2253,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -2437,9 +2428,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -2612,9 +2602,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -2805,23 +2794,21 @@
         {
           "app_manifest": {
             "buildpack": "binary_buildpack",
-            "command": "./binary-app.py",
             "memory": "256M",
-            "path": "binary-app.py"
+            "path": "binary-app"
           },
           "files": [
             {
-              "name": "binary-app.py",
-              "path": "src/binary-app/binary-app.py"
+              "name": "binary-app",
+              "path": "src/binary-app"
             }
           ],
           "is_app": true,
           "is_cf": true,
           "manifest": {
             "buildpack": "binary_buildpack",
-            "command": "./binary-app.py",
             "memory": "256M",
-            "path": "binary-app.py"
+            "path": "binary-app"
           },
           "name": "tg_test_binary_app",
           "package-type": "app",
@@ -2829,9 +2816,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -3271,9 +3257,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -3459,9 +3444,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -3671,9 +3655,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -3891,9 +3874,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"
@@ -4086,9 +4068,8 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack",
-                "command": "./binary-app.py",
                 "memory": "256M",
-                "path": "binary-app.py"
+                "path": "binary-app"
               },
               "auto_services": [],
               "name": "tg_test_binary_app"

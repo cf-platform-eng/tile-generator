@@ -765,9 +765,8 @@ job_types:
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
-        command: ./binary-app.py
         memory: 256M
-        path: binary-app.py
+        path: binary-app
       auto_services: []
       name: tg_test_binary_app
     tg_test_broker1:
@@ -941,9 +940,8 @@ job_types:
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
-        command: ./binary-app.py
         memory: 256M
-        path: binary-app.py
+        path: binary-app
       auto_services: []
       name: tg_test_binary_app
     tg_test_broker1:
@@ -1115,9 +1113,8 @@ job_types:
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
-        command: ./binary-app.py
         memory: 256M
-        path: binary-app.py
+        path: binary-app
       auto_services: []
       name: tg_test_binary_app
     tg_test_broker1:
@@ -1282,9 +1279,8 @@ job_types:
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
-        command: ./binary-app.py
         memory: 256M
-        path: binary-app.py
+        path: binary-app
       auto_services: []
       name: tg_test_binary_app
     tg_test_broker1:
@@ -1455,9 +1451,8 @@ job_types:
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
-        command: ./binary-app.py
         memory: 256M
-        path: binary-app.py
+        path: binary-app
       auto_services: []
       name: tg_test_binary_app
     tg_test_broker1:
@@ -1633,9 +1628,8 @@ job_types:
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
-        command: ./binary-app.py
         memory: 256M
-        path: binary-app.py
+        path: binary-app
       auto_services: []
       name: tg_test_binary_app
     tg_test_broker1:
@@ -1789,9 +1783,8 @@ job_types:
     tg_test_binary_app:
       app_manifest:
         buildpack: binary_buildpack
-        command: ./binary-app.py
         memory: 256M
-        path: binary-app.py
+        path: binary-app
       auto_services: []
       name: tg_test_binary_app
     tg_test_broker1:
