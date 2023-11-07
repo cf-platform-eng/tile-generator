@@ -23,6 +23,12 @@ The pipeline verifies that:
 - The generated tile successfully deploys to a current version of PCF
 - The deployed tile passes all deployment tests in `ci/deployment-tests`
 
+##Updating pipeline.yml
+- After updating the pipeline template file - pipeline.yml.jinja2, please run the below script to generate the pipeline file from inside the ci directory
+```
+python3 generate_pipeline_yml.py
+```  
+
 To target the pipeline run the following command
 
 ```
