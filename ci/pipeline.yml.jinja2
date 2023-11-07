@@ -13,10 +13,10 @@ groups:
 {% endfor %}{% raw %}
   - build-tile
   - acceptance-tests
-  {% endraw %}{% for cluster in clusters %}- claim-{{ cluster }}
-  - deploy-tile-{{ cluster }}
-  - deployment-tests-{{ cluster }}
-  - remove-tile-{{ cluster }}{% if not loop.last %}
+  {% endraw %}{% for cluster in clusters %}- claim{{ cluster }}
+  - deploy-tile{{ cluster }}
+  - deployment-tests{{ cluster }}
+  - remove-tile{{ cluster }}{% if not loop.last %}
   {% endif %}{% endfor %}{% raw %}
 
 - name: release
@@ -45,10 +45,11 @@ resource_types:
     repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pivotalcf/pivnet-resource
     tag: latest-final
 
-- name: pcf-pool
-  type: docker-image
+- name: shepherd
+  type: registry-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
+    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+    tag: v1
 
 resources:
 
@@ -146,12 +147,17 @@ resources:
     username: ((harbor.username))
     password: ((harbor.token))
 
-{% endraw %}{% for cluster in clusters %}- name: pcf-environment-{{ cluster }}
-  type: pcf-pool
+{% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
+  type: shepherd
   source:
-    api_token: {% raw %}((toolsmiths_api_token)){% endraw %}
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_{{cluster}}{% if not loop.last %}
+    url: https://v2.shepherd.run
+    service-account-key: ((shepherd.svc-tile-generator))
+    lease:
+      namespace: tas-partner-tiles
+      pool:
+        namespace: official
+        name: tas{{ cluster }}{% if not loop.last %}
+    compatibility-mode: environments-app
 
 {% endif %}{% endfor %}
 
@@ -489,7 +495,7 @@ jobs:
           text: 'Acceptance tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-{% endraw %}{% for cluster in clusters %}- name: claim-{{ cluster }}
+{% endraw %}{% for cluster in clusters %}- name: claim{{ cluster }}
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
@@ -505,29 +511,32 @@ jobs:
       passed: [ acceptance-tests ]
     - get: tile-generator-package-release
       passed: [ acceptance-tests ]
-    - put: pcf-environment-{{ cluster }}
+    - put: pcf-environment{{ cluster }}
       params:
-        action: claim
+        action: create
+        duration: 6h
+        resource: pcf-environment{{ cluster }}
+      timeout: 2h
 
-- name: deploy-tile-{{ cluster }}
+- name: deploy-tile{{ cluster }}
   disable_manual_trigger: true
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
-      passed: [ claim-{{ cluster }} ]
+      passed: [ claim{{ cluster }} ]
     - get: generated-tile
-      passed: [ claim-{{ cluster }} ]
+      passed: [ claim{{ cluster }} ]
     - get: tile-generator-repo
-      passed: [ claim-{{ cluster }} ]
+      passed: [ claim{{ cluster }} ]
     - get: version
-      passed: [ claim-{{ cluster }} ]
+      passed: [ claim{{ cluster }} ]
       trigger: true
     - get: tile-generator-package
-      passed: [ claim-{{ cluster }} ]
+      passed: [ claim{{ cluster }} ]
     - get: tile-generator-package-release
-      passed: [ claim-{{ cluster }} ]
-    - get: pcf-environment-{{ cluster }}
-      passed: [ claim-{{ cluster }} ]
+      passed: [ claim{{ cluster }} ]
+    - get: pcf-environment{{ cluster }}
+      passed: [ claim{{ cluster }} ]
       trigger: true
   - task: run-deploy-tile
     image: tile-generator-docker-image
@@ -535,7 +544,7 @@ jobs:
       platform: linux
       inputs:
       - name: tile-generator-repo
-      - name: pcf-environment-{{ cluster }}
+      - name: pcf-environment{{ cluster }}
       - name: generated-tile
       run:
         path: bash
@@ -550,7 +559,7 @@ jobs:
           unzip -o test-tile-*.pivotal
           STEMCELL_OS=`cat metadata/test-tile.yml  | grep stemcell_criteria -A 3 | grep os | tr -d ' ' | cut -d ':' -f 2`
           STEMCELL_VERSION=`cat metadata/test-tile.yml  | grep stemcell_criteria -A 3 | grep version | tr -d " '" | cut -d ':' -f 2`
-          pushd ../pcf-environment-*
+          pushd ../pcf-environment*
           STEMCELL_AVAILABLE=`pcf stemcells`
           popd
           if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]]; then
@@ -559,12 +568,12 @@ jobs:
             wget https://bosh.io/stemcells/bosh-google-kvm-$STEMCELL_OS-go_agent -O bosh.io_stemcells
             STEMCELL_URL=`cat bosh.io_stemcells | grep light | grep $STEMCELL_VERSION | cut -d '"' -f 2 | head -n 1`
             wget $STEMCELL_URL
-            pushd ../pcf-environment-*
+            pushd ../pcf-environment*
             pcf upload-stemcell ../generated-tile/light-bosh-stemcell-*
             popd
           fi
           cd ..
-          tile-generator-repo/ci/scripts/run-deploytile.sh generated-tile pcf-environment-{{ cluster }}
+          tile-generator-repo/ci/scripts/run-deploytile.sh generated-tile pcf-environment{{ cluster }}
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -574,33 +583,33 @@ jobs:
           text: 'Deploy tile failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: deployment-tests-{{ cluster }}
+- name: deployment-tests{{ cluster }}
   disable_manual_trigger: true
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
-      passed: [ deploy-tile-{{ cluster }} ]
+      passed: [ deploy-tile{{ cluster }} ]
     - get: generated-tile
-      passed: [ deploy-tile-{{ cluster }} ]
-    - get: pcf-environment-{{ cluster }}
-      passed: [ deploy-tile-{{ cluster }} ]
+      passed: [ deploy-tile{{ cluster }} ]
+    - get: pcf-environment{{ cluster }}
+      passed: [ deploy-tile{{ cluster }} ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ deploy-tile-{{ cluster }} ]
+      passed: [ deploy-tile{{ cluster }} ]
     - get: version
-      passed: [ deploy-tile-{{ cluster }} ]
+      passed: [ deploy-tile{{ cluster }} ]
       trigger: true
     - get: tile-generator-package
-      passed: [ deploy-tile-{{ cluster }} ]
+      passed: [ deploy-tile{{ cluster }} ]
     - get: tile-generator-package-release
-      passed: [ deploy-tile-{{ cluster }} ]
+      passed: [ deploy-tile{{ cluster }} ]
   - task: run-deployment-tests
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
       - name: tile-generator-repo
-      - name: pcf-environment-{{ cluster }}
+      - name: pcf-environment{{ cluster }}
       - name: generated-tile
       run:
         path: bash
@@ -610,7 +619,7 @@ jobs:
           command -v virtualenv >/dev/null 2>&1 || pip install virtualenv
           # Our env use weak ssl ciphers :( so downgrade the minimum version
           sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
-          tile-generator-repo/ci/scripts/run-deploymenttests.sh generated-tile pcf-environment-{{ cluster }}
+          tile-generator-repo/ci/scripts/run-deploymenttests.sh generated-tile pcf-environment{{ cluster }}
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -620,33 +629,33 @@ jobs:
           text: 'Deployment tests failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
 
-- name: remove-tile-{{ cluster }}
+- name: remove-tile{{ cluster }}
   disable_manual_trigger: true
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
-      passed: [ deployment-tests-{{ cluster }} ]
+      passed: [ deployment-tests{{ cluster }} ]
     - get: generated-tile
-      passed: [ deployment-tests-{{ cluster }} ]
-    - get: pcf-environment-{{ cluster }}
-      passed: [ deployment-tests-{{ cluster }} ]
+      passed: [ deployment-tests{{ cluster }} ]
+    - get: pcf-environment{{ cluster }}
+      passed: [ deployment-tests{{ cluster }} ]
       trigger: true
     - get: tile-generator-repo
-      passed: [ deployment-tests-{{ cluster }} ]
+      passed: [ deployment-tests{{ cluster }} ]
     - get: version
-      passed: [ deployment-tests-{{ cluster }} ]
+      passed: [ deployment-tests{{ cluster }} ]
       trigger: true
     - get: tile-generator-package
-      passed: [ deployment-tests-{{ cluster }} ]
+      passed: [ deployment-tests{{ cluster }} ]
     - get: tile-generator-package-release
-      passed: [ deployment-tests-{{ cluster }} ]
+      passed: [ deployment-tests{{ cluster }} ]
   - task: remove-tile
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
       - name: tile-generator-repo
-      - name: pcf-environment-{{ cluster }}
+      - name: pcf-environment{{ cluster }}
       - name: generated-tile
       run:
         path: bash
@@ -655,7 +664,7 @@ jobs:
         - |
           # Our env use weak ssl ciphers :( so downgrade the minimum version
           sed -i 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/g' /etc/ssl/openssl.cnf
-          tile-generator-repo/ci/scripts/run-removetile.sh generated-tile pcf-environment-{{ cluster }}
+          tile-generator-repo/ci/scripts/run-removetile.sh generated-tile pcf-environment{{ cluster }}
     on_failure:
       put: slack-alert
       params:
@@ -663,10 +672,11 @@ jobs:
         icon_emoji: ':concourse:'
         text: 'Remove tile failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
         username: Tile Generator
-  - put: pcf-environment-{{ cluster }}
+  - put: pcf-environment{{ cluster }}
     params:
-      action: unclaim
-      env_file: pcf-environment-{{ cluster }}/metadata{% if not loop.last %}
+      inputs: []
+      action: release
+      resource: pcf-environment{{ cluster }}{% if not loop.last %}
 
 {% endif %}{% endfor %}{% raw %}
 
@@ -675,15 +685,15 @@ jobs:
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
-      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: tile-generator-repo
-      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: tile-generator-package
-      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: tile-generator-package-release
-      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
     - get: version
-      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile-{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
+      passed: [ {% endraw %}{% for cluster in clusters %}remove-tile{{ cluster }}{% if not loop.last %}, {% endif %}{% endfor %}{% raw %} ]
       trigger: true
 
 - name: create-release
