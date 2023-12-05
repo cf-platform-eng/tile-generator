@@ -27,6 +27,10 @@ groups:
   - create-release
 
 resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
 
 - name: slack-notification
   type: docker-image
@@ -91,40 +95,32 @@ resources:
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-package
-  type: s3
+  type: gcs-resource
   source:
-    bucket: ((s3_tile_generator.bucket))
+    bucket: ((gcp_tile_generator.bucket))
     regexp: tile-generator-(?P<version>.*).tar.gz
-    aws_role_arn: ((s3_tile_generator.assume_role_arn))
-    access_key_id: ((s3_tile_generator.access_key))
-    secret_access_key: ((s3_tile_generator.secret_access_key))
+    json_key: ((private_pool_service_account_keys.pool_1))
 
 - name: tile-generator-package-release
-  type: s3
+  type: gcs-resource
   source:
-    bucket: ((s3_tile_generator.bucket))
+    bucket: ((gcp_tile_generator.bucket))
     regexp: release/bundle-(?P<version>.*).tar.gz
-    aws_role_arn: ((s3_tile_generator.assume_role_arn))
-    access_key_id: ((s3_tile_generator.access_key))
-    secret_access_key: ((s3_tile_generator.secret_access_key))
+    json_key: ((private_pool_service_account_keys.pool_1))
 
 - name: generated-tile
-  type: s3
+  type: gcs-resource
   source:
-    bucket: ((s3_tile_generator.bucket))
+    bucket: ((gcp_tile_generator.bucket))
     regexp: test-tile-(?P<version>.*)\.pivotal
-    aws_role_arn: ((s3_tile_generator.assume_role_arn))
-    access_key_id: ((s3_tile_generator.access_key))
-    secret_access_key: ((s3_tile_generator.secret_access_key))
+    json_key: ((private_pool_service_account_keys.pool_1))
 
 - name: tile-history
-  type: s3
+  type: gcs-resource
   source:
-    bucket: ((s3_tile_generator.bucket))
+    bucket: ((gcp_tile_generator.bucket))
     regexp: tile\-history-(?P<version>.*)\.yml
-    access_key_id: ((s3_tile_generator.access_key))
-    aws_role_arn: ((s3_tile_generator.assume_role_arn))
-    secret_access_key: ((s3_tile_generator.secret_access_key))
+    json_key: ((private_pool_service_account_keys.pool_1))
 
 - name: tile-generator-docker-image
   type: docker-image
