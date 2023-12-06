@@ -99,28 +99,28 @@ resources:
   source:
     bucket: ((gcp_tile_generator.bucket))
     regexp: tile-generator-(?P<version>.*).tar.gz
-    json_key: ((private_pool_service_account_keys.pool_1))
+    json_key: ((gcp_tile_generator.service_account_key))
 
 - name: tile-generator-package-release
   type: gcs-resource
   source:
     bucket: ((gcp_tile_generator.bucket))
     regexp: release/bundle-(?P<version>.*).tar.gz
-    json_key: ((private_pool_service_account_keys.pool_1))
+    json_key: ((gcp_tile_generator.service_account_key))
 
 - name: generated-tile
   type: gcs-resource
   source:
     bucket: ((gcp_tile_generator.bucket))
     regexp: test-tile-(?P<version>.*)\.pivotal
-    json_key: ((private_pool_service_account_keys.pool_1))
+    json_key: ((gcp_tile_generator.service_account_key))
 
 - name: tile-history
   type: gcs-resource
   source:
     bucket: ((gcp_tile_generator.bucket))
     regexp: tile\-history-(?P<version>.*)\.yml
-    json_key: ((private_pool_service_account_keys.pool_1))
+    json_key: ((gcp_tile_generator.service_account_key))
 
 - name: tile-generator-docker-image
   type: docker-image
