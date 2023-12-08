@@ -13,6 +13,8 @@ you to have intimate knowledge of all the tools involved.
 
 ## Continuous Integration
 
+GCP project used in CI - **isv-tile-partners**
+
 The master branch of this repository is being monitored by
 [this Runway pipeline](https://runway-ci.eng.vmware.com/teams/ppe-isv/pipelines/tile-generator).
 The pipeline verifies that:
