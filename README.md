@@ -75,3 +75,7 @@ Before executing `./scripts/run_local_tests.sh` install virtualenv with `pip ins
 Then to execute all test using the cache from the project root use: 
 `./scripts/run_local_tests.sh withcache`
 
+### Note: Mac Binaries are no longer supported
+
+Tile generator cli no longer releases new Mac binaries. Check the [commit](https://github.com/cf-platform-eng/tile-generator/commit/1e8db6fb25f1c0e499965df0a113818188548d5b) that removed support for Mac support. MacStadium account has been cancelled and we currently don't have a way to test tile generator cli Mac binaries.
+
