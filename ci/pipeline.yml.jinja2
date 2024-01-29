@@ -53,7 +53,7 @@ resource_types:
   type: registry-image
   source:
     repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
-    tag: v1
+    tag: latest
 
 resources:
 
@@ -146,10 +146,10 @@ resources:
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
   type: shepherd
   source:
-    url: https://v2.shepherd.run
-    service-account-key: ((shepherd.svc-tile-generator))
+    url: ((production_shepherd_api_endpoint))
+    service-account-key: ((production_shepherd_service_key))
     lease:
-      namespace: tas-partner-tiles
+      namespace: ((production_shepherd_namespace))
       pool:
         namespace: official
         name: tas{{ cluster }}{% if not loop.last %}
@@ -510,9 +510,9 @@ jobs:
     - put: pcf-environment{{ cluster }}
       params:
         action: create
-        duration: 6h
+        duration: 4h
         resource: pcf-environment{{ cluster }}
-      timeout: 2h
+      timeout: 5h
 
 - name: deploy-tile{{ cluster }}
   disable_manual_trigger: true
