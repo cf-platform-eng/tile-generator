@@ -1,4 +1,4 @@
-FROM harbor-repo.vmware.com/dockerhub-proxy-cache/library/python:3-slim
+FROM mirror.gcr.io/python:3-slim
 
 RUN apt-get update && apt-get install --yes zip
 

@@ -28,25 +28,25 @@ groups:
 
 resource_types:
 - name: gcs-resource
-  type: docker-image
+  type: registry-image
   source:
-    repository: frodenas/gcs-resource
+    repository: mirror.gcr.io/frodenas/gcs-resource
 
 - name: slack-notification
-  type: docker-image
+  type: registry-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfcommunity/slack-notification-resource
+    repository: mirror.gcr.io/cfcommunity/slack-notification-resource
     tag: latest
 
 - name: pypi
-  type: docker-image
+  type: registry-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/cfplatformeng/concourse-pypi-resource
+    repository: mirror.gcr.io/cfplatformeng/concourse-pypi-resource
 
 - name: pivnet
-  type: docker-image
+  type: registry-image
   source:
-    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pivotalcf/pivnet-resource
+    repository: mirror.gcr.io/pivotalcf/pivnet-resource
     tag: latest-final
 
 - name: shepherd
@@ -125,23 +125,23 @@ resources:
 - name: tile-generator-docker-image
   type: docker-image
   source:
-    repository: projects.registry.vmware.com/tanzu_isv_engineering/tile-generator-prerelease
-    username: ((harbor-public.username))
-    password: ((harbor-public.token))
+    repository: us-west1-docker.pkg.dev/isv-tile-partners/tanzu-isv-engineering/tile-generator-prerelease
+    username: _json_key
+    password: ((gcp_artifact_registry.service_account_key))
 
 - name: tile-generator-docker-image-release
   type: docker-image
   source:
-    repository: projects.registry.vmware.com/tanzu_isv_engineering/tile-generator
-    username: ((harbor-public.username))
-    password: ((harbor-public.token))
+    repository: us-west1-docker.pkg.dev/isv-tile-partners/tanzu-isv-engineering/tile-generator
+    username: _json_key
+    password: ((gcp_artifact_registry.service_account_key))
 
 - name: app-docker-image
   type: docker-image
   source:
-    repository: harbor-repo.vmware.com/partner_engineering/tile-generator-sample-app
-    username: ((harbor.username))
-    password: ((harbor.token))
+    repository: us-west1-docker.pkg.dev/isv-tile-partners/partner-engineering/tile-generator-sample-app
+    username: _json_key
+    password: ((gcp_artifact_registry.service_account_key))
 
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
   type: shepherd
@@ -190,9 +190,9 @@ jobs:
   - task: run-unit-tests
     config:
       image_resource:
-        type: docker-image
+        type: registry-image
         source:
-          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
+          repository: mirror.gcr.io/python
           tag: 3.11-slim
       platform: linux
       inputs:
@@ -238,9 +238,9 @@ jobs:
   - task: build-package
     config:
       image_resource:
-        type: docker-image
+        type: registry-image
         source:
-          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
+          repository: mirror.gcr.io/python
           tag: 3.11.4-slim-buster
       platform: linux
       inputs:
@@ -325,9 +325,9 @@ jobs:
   - task: prepare-docker-build
     config:
       image_resource:
-        type: docker-image
+        type: registry-image
         source:
-          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/python
+          repository: mirror.gcr.io/python
           tag: 3-slim
       platform: linux
       inputs:
