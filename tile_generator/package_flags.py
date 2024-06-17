@@ -94,7 +94,7 @@ class Cf(FlagBase):
         if not 'cf-cli-release' in config_obj['releases'].keys():
             config_obj['releases']['cf-cli-release'] = {
               'name': 'cf-cli-release',
-              'path': 'https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=',
+              'path': 'https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=1.63.0',
             }
         if not config_obj.get('requires_product_versions'): 
             config_obj['requires_product_versions'] = list()
