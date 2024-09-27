@@ -18,7 +18,7 @@ standalone: false
 releases:
 
 stemcell_criteria:
-  os: ubuntu-xenial
+  os: ubuntu-jammy
   requires_cpi: false
   version: '1234'
 

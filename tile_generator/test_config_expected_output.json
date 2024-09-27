@@ -4240,7 +4240,7 @@
   "space": "test-tile-space",
   "standalone": false,
   "stemcell_criteria": {
-    "os": "ubuntu-xenial",
+    "os": "ubuntu-jammy",
     "version": "1234"
   },
   "update": {
