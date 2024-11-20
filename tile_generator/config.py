@@ -308,12 +308,20 @@ class Config(dict):
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})
-		stemcell_criteria['os'] = stemcell_criteria.get('os', 'ubuntu-xenial')
+		stemcell_criteria['os'] = stemcell_criteria.get('os', 'ubuntu-jammy')
 		stemcell_criteria['version'] = stemcell_criteria.get('version', self.latest_stemcell(stemcell_criteria['os']))
 		return stemcell_criteria
 
 	def latest_stemcell(self, os):
-		if os == 'ubuntu-xenial':
+		if os == 'ubuntu-jammy':
+			headers = { 'Accept': 'application/json' }
+			response = requests.get('https://network.pivotal.io/api/v2/products/stemcells-ubuntu-jammy/releases', headers=headers)
+			response.raise_for_status()
+			releases = response.json()['releases']
+			versions = [r['version'] for r in releases]
+			latest_major = sorted(versions, key=float)[-1].split('.')[0]
+			return latest_major
+		elif os == 'ubuntu-xenial':
 			headers = { 'Accept': 'application/json' }
 			response = requests.get('https://network.pivotal.io/api/v2/products/stemcells-ubuntu-xenial/releases', headers=headers)
 			response.raise_for_status()
