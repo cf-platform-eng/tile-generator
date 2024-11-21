@@ -10,6 +10,7 @@ RUN chmod 755 /usr/local/bin/bosh
 
 RUN wget -q -O /tmp/cf.tgz https://packages.cloudfoundry.org/stable?release=linux64-binary
 RUN tar -C /tmp -zxf /tmp/cf.tgz
+RUN mv /tmp/cf8 /usr/local/bin/cf8
 RUN mv /tmp/cf /usr/local/bin/cf
 
 COPY bundle*.tar.gz .
