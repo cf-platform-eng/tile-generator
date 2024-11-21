@@ -401,10 +401,10 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	if not strict:
 		if 'stemcell' in cf[0]:
 			stemcell = cf[0]['stemcell']
-		elif 'stemcells' in cf[0]:
-			stemcell = cf[0]['stemcells'][0]
 		elif 'stemcell_ids' in cf[0]:
-            stemcell = cf[0]['stemcell_ids'][0]
+			stemcell = cf[0]['stemcell_ids'][0]
+		elif 'stemcells' in cf[0]:
+            stemcell = cf[0]['stemcells'][0]
 		else:
 			raise Exception("Cannot find cf stemcell to use")
 		print('- Using stemcell id', stemcell)
