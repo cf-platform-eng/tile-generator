@@ -408,7 +408,7 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 		else:
 			raise Exception("Cannot find cf stemcell to use")
 		print('- Using stemcell id', stemcell)
-		product_settings['stemcell_ids'] = stemcell
+		product_settings['stemcell_ids'][0] = stemcell
 		post_yaml('/api/installation_settings', 'installation[file]', settings)
 	#
 	# Use the first availability zone (skip this for Azure, which doesn't use them)
