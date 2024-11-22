@@ -68,6 +68,11 @@ To avoid downloading dependencies on every `tile build`:
 2. `mkdir cache`
 3. `tile build --cache cache`
 
+To verify if there are any lint issues:
+```
+python -m tabnanny tile_generator/opsmgr.py
+```
+
 Run indiv
 
 Before executing `./scripts/run_local_tests.sh` install virtualenv with `pip install virtualenv`
