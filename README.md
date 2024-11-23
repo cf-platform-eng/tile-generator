@@ -70,7 +70,7 @@ To avoid downloading dependencies on every `tile build`:
 
 To verify if there are any lint issues:
 ```
-python -m tabnanny tile_generator/opsmgr.py
+python -m tabnanny filename.py
 ```
 
 Run indiv
