@@ -52,3 +52,11 @@ update:
 provides_product_versions:
 - name: {{ tile_metadata.base.name }}
   version: '{{ tile_metadata.base.product_version }}'
+
+{% if tile_metadata.git_sha %}
+git_sha: {{ tile_metadata.git_sha }}
+{% endif %}
+{% if tile_metadata.git_remotes %}
+git_remotes:
+{{ tile_metadata.git_remotes | yaml }}
+{% endif %}
