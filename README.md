@@ -13,8 +13,6 @@ you to have intimate knowledge of all the tools involved.
 
 ## Continuous Integration
 
-GCP project used in CI - **isv-tile-partners**
-
 The master branch of this repository is being monitored by
 [this TPE Concourse pipeline](https://tpe-concourse-rock.acc.broadcom.net/teams/ppe-isv/pipelines/tile-generator/).
 The pipeline verifies that:
