@@ -65,15 +65,15 @@ resource_types:
     tag: latest
 
 resources:
-  - name: oci-build-task
-    type: registry-image
-    check_every: 4h
-    icon: oci
-    source:
-      repository: ((artifactory.registry_mirror))/concourse/oci-build-task
-      tag: 0.11.1
-      username: ((artifactory.production_username))
-      password: ((artifactory.production_password))
+- name: oci-build-task
+  type: registry-image
+  check_every: 4h
+  icon: oci
+  source:
+    repository: ((artifactory.registry_mirror))/concourse/oci-build-task
+    tag: 0.11.1
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
 
 - name: tile-generator-repo
   type: git
