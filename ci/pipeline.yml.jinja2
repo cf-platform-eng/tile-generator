@@ -356,13 +356,17 @@ jobs:
       inputs:
       - name: tile-generator-dockerfile-repo
       - name: tile-generator-package-release
+      - name: version
       outputs:
       - name: docker-build-dir
+      - name: image-version-tag
       run:
         path: sh
         args:
         - -c
         - cp tile-generator-package-release/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+        - mkdir -p prefixed-version
+        - echo "v$(cat version/version)" > image-version-tag/version
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -375,7 +379,7 @@ jobs:
   - get: python3-image
     params:
       format: oci
-  - file: version/version
+  - file: image-version-tag/version
     load_var: image_version
   - task: build-oci
     privileged: true
@@ -400,7 +404,7 @@ jobs:
     attempts: 3
     params:
       image: docker-image-out/image.tar
-      version: v((.:image_version))
+      version: ((.:image_version))
 
 - name: build-tile
   disable_manual_trigger: true
@@ -799,12 +803,32 @@ jobs:
         tag_prefix: v
         globs:
         - release-files/dist*/*
-    - file: version/version
+    - task: prepare-docker-build
+      config:
+        image_resource:
+          type: registry-image
+          source:
+            repository: ((artifactory.registry_mirror))
+            tag: 3-slim
+            username: ((artifactory.production_username))
+            password: ((artifactory.production_password))
+        platform: linux
+        inputs:
+        - name: version
+        outputs:
+        - name: image-version-tag
+        run:
+          path: sh
+          args:
+          - -c
+          - mkdir -p prefixed-version
+          - echo "v$(cat version/version)" > image-version-tag/version
+    - file: image-version-tag/version
       load_var: image_version
     - put: tile-generator-docker-image-release
       params:
         image: tile-generator-docker-image/image.tar
-        version: v((.:image_version))
+        version: ((.:image_version))
         bump_aliases: true
     - put: tile-generator-pypi-release
       params:
