@@ -348,7 +348,7 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: ((artifactory.registry_mirror))
+          repository: ((artifactory.registry_mirror))/python
           tag: 3-slim
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
