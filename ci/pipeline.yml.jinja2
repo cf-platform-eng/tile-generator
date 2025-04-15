@@ -445,7 +445,7 @@ jobs:
           icon_emoji: ':concourse:'
           text: 'Sample app build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
-  - get: python3
+  - get: python3-image
     params:
       format: oci
   - get: oci-build-task
