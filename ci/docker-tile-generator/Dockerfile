@@ -1,4 +1,6 @@
-FROM mirror.gcr.io/python:3-slim
+ARG python3=mirror.gcr.io/python:3-slim
+
+FROM ${python3}
 
 RUN apt-get update && \
     apt-get install --yes git wget zip && \
