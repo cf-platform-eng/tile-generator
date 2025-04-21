@@ -27,15 +27,17 @@ groups:
   - create-release
 
 resource_types:
-- name: gcs-resource
+- name: artifactory-path-version-resource
   type: registry-image
+  check_every: 4h
   source:
-    repository: ((artifactory.registry_mirror))/frodenas/gcs-resource
-    username: ((artifactory.production_username))
-    password: ((artifactory.production_password))
-    tag: latest
+      repository: ((artifactory.production_registry))/artifactory-path-version-resource
+      tag: 0.0.11
+      username: ((artifactory.production_username))
+      password: ((artifactory.production_password))
 - name: slack-notification
   type: registry-image
+  check_every: 4h
   source:
     repository: ((artifactory.registry_mirror))/cfcommunity/slack-notification-resource
     username: ((artifactory.production_username))
@@ -44,6 +46,7 @@ resource_types:
 
 - name: pypi
   type: registry-image
+  check_every: 4h
   source:
     repository: ((artifactory.registry_mirror))/cfplatformeng/concourse-pypi-resource
     username: ((artifactory.production_username))
@@ -52,6 +55,7 @@ resource_types:
 
 - name: pivnet
   type: registry-image
+  check_every: 4h
   source:
     repository: ((artifactory.registry_mirror))/pivotalcf/pivnet-resource
     username: ((artifactory.production_username))
@@ -60,6 +64,7 @@ resource_types:
 
 - name: shepherd
   type: registry-image
+  check_every: 4h
   source:
     repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
     tag: latest
@@ -113,32 +118,52 @@ resources:
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-package
-  type: gcs-resource
+  type: artifactory-path-version-resource
   source:
-    bucket: ((gcp_tile_generator.bucket))
-    regexp: tile-generator-(?P<version>.*).tar.gz
-    json_key: ((gcp_tile_generator.service_account_key))
+    url: ((artifactory.staging_url))/artifactory/
+    user: ((artifactory.staging_username))
+    password: ((artifactory.staging_password))
+    repository: ((artifactory.staging_repo))
+    path: tile-generator
+    path_pattern: tile-generator-(?P<version>.*).tar.gz
+    version_subexpression_name: version
+    version_constraint: '*'
 
 - name: tile-generator-package-release
-  type: gcs-resource
+  type: artifactory-path-version-resource
   source:
-    bucket: ((gcp_tile_generator.bucket))
-    regexp: release/bundle-(?P<version>.*).tar.gz
-    json_key: ((gcp_tile_generator.service_account_key))
+    url: ((artifactory.staging_url))/artifactory/
+    user: ((artifactory.staging_username))
+    password: ((artifactory.staging_password))
+    repository: ((artifactory.staging_repo))
+    path: tile-generator/release
+    path_pattern: bundle-(?P<version>.*).tar.gz
+    version_subexpression_name: version
+    version_constraint: '*'
 
 - name: generated-tile
-  type: gcs-resource
+  type: artifactory-path-version-resource
   source:
-    bucket: ((gcp_tile_generator.bucket))
-    regexp: test-tile-(?P<version>.*)\.pivotal
-    json_key: ((gcp_tile_generator.service_account_key))
+    url: ((artifactory.staging_url))/artifactory/
+    user: ((artifactory.staging_username))
+    password: ((artifactory.staging_password))
+    repository: ((artifactory.staging_repo))
+    path: tile-generator
+    path_pattern: test-tile-(?P<version>.*)\.pivotal
+    version_subexpression_name: version
+    version_constraint: '*'
 
 - name: tile-history
-  type: gcs-resource
+  type: artifactory-path-version-resource
   source:
-    bucket: ((gcp_tile_generator.bucket))
-    regexp: tile\-history-(?P<version>.*)\.yml
-    json_key: ((gcp_tile_generator.service_account_key))
+    url: ((artifactory.staging_url))/artifactory/
+    user: ((artifactory.staging_username))
+    password: ((artifactory.staging_password))
+    repository: ((artifactory.staging_repo))
+    path: tile-generator
+    path-pattern: tile\-history-(?P<version>.*)\.yml
+    version_subexpression_name: version
+    version_constraint: '*'
 
 - name: tile-generator-docker-image
   type: docker-image
@@ -325,12 +350,17 @@ jobs:
           username: Tile Generator
   - in_parallel:
       - put: tile-generator-package
+        inputs: detect
         params:
-          file: tile-generator-dist/tile-generator-*.tar.gz
+          strip_path_prefix: tile-generator-dist
+          file_pattern: tile-generator-dist/tile-generator-*.tar.gz
       - put: tile-generator-package-release
+        inputs: detect
         params:
-          file: tile-generator-dist-release/bundle-*.tar.gz
+          strip_path_prefix: tile-generator-dist-release
+          file_pattern: tile-generator-dist-release/bundle-*.tar.gz
       - put: tile-generator-github-prerelease
+        inputs: detect
         params:
           name: version/version
           tag: version/version
@@ -527,11 +557,15 @@ jobs:
           text: 'Tile build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - put: tile-history
+    inputs: detect
     params:
-      file: generated-tile/tile-history-*.yml
+      strip_path_prefix: generated-tile
+      file_pattern: generated-tile/tile-history-*.yml
   - put: generated-tile
+    inputs: detect
     params:
-      file: generated-tile/*.pivotal
+      strip_path_prefix: generated-tile
+      file_pattern: generated-tile/*.pivotal
 
 - name: acceptance-tests
   disable_manual_trigger: true
@@ -806,6 +840,7 @@ jobs:
           tar -xvf tile-generator-package-release/bundle-*.tar.gz -C release-files/
   - in_parallel:
     - put: tile-generator-github-release
+      inputs: detect
       params:
         name: version/version
         tag: version/version
@@ -835,11 +870,13 @@ jobs:
     - file: image-version-tag/version
       load_var: image_version
     - put: tile-generator-docker-image-release
+      inputs: detect
       params:
         image: tile-generator-docker-image/image.tar
         version: ((.:image_version))
         bump_aliases: true
     - put: tile-generator-pypi-release
+      inputs: detect
       params:
         glob: release-files/dist*/tile-generator-*.tar.gz
     - put: version
