@@ -30,24 +30,32 @@ resource_types:
 - name: gcs-resource
   type: registry-image
   source:
-    repository: mirror.gcr.io/frodenas/gcs-resource
-
+    repository: ((artifactory.registry_mirror))/frodenas/gcs-resource
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
+    tag: latest
 - name: slack-notification
   type: registry-image
   source:
-    repository: mirror.gcr.io/cfcommunity/slack-notification-resource
+    repository: ((artifactory.registry_mirror))/cfcommunity/slack-notification-resource
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
     tag: latest
 
 - name: pypi
   type: registry-image
   source:
-    repository: mirror.gcr.io/cfplatformeng/concourse-pypi-resource
+    repository: ((artifactory.registry_mirror))/cfplatformeng/concourse-pypi-resource
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
     tag: latest
 
 - name: pivnet
   type: registry-image
   source:
-    repository: mirror.gcr.io/pivotalcf/pivnet-resource
+    repository: ((artifactory.registry_mirror))/pivotalcf/pivnet-resource
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
     tag: latest-final
 
 - name: shepherd
@@ -57,6 +65,15 @@ resource_types:
     tag: latest
 
 resources:
+- name: oci-build-task
+  type: registry-image
+  check_every: 4h
+  icon: oci
+  source:
+    repository: ((artifactory.registry_mirror))/concourse/oci-build-task
+    tag: 0.11.1
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
 
 - name: tile-generator-repo
   type: git
@@ -126,23 +143,31 @@ resources:
 - name: tile-generator-docker-image
   type: docker-image
   source:
-    repository: us-west1-docker.pkg.dev/isv-tile-partners/tanzu-isv-engineering/tile-generator-prerelease
-    username: _json_key
-    password: ((gcp_artifact_registry.service_account_key))
+    repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator-prerelease
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
 
 - name: tile-generator-docker-image-release
   type: docker-image
   source:
-    repository: us-west1-docker.pkg.dev/isv-tile-partners/tanzu-isv-engineering/tile-generator
-    username: _json_key
-    password: ((gcp_artifact_registry.service_account_key))
+    repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
 
 - name: app-docker-image
-  type: docker-image
+  type: registry-image
   source:
-    repository: us-west1-docker.pkg.dev/isv-tile-partners/partner-engineering/tile-generator-sample-app
-    username: _json_key
-    password: ((gcp_artifact_registry.service_account_key))
+    repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/partner-engineering/tile-generator-sample-app
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
+
+- name: python3-image
+  type: registry-image
+  source:
+    tag: 3.11-slim
+    repository: ((artifactory.registry_mirror))/python
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
 
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
   type: shepherd
@@ -193,8 +218,10 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: mirror.gcr.io/python
+          repository: ((artifactory.registry_mirror))/python
           tag: 3.11-slim
+          username: ((artifactory.production_username))
+          password: ((artifactory.production_password))
       platform: linux
       inputs:
       - name: tile-generator-repo
@@ -241,8 +268,10 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: mirror.gcr.io/python
+          repository: ((artifactory.registry_mirror))/python
           tag: 3.11.4-slim-buster
+          username: ((artifactory.production_username))
+          password: ((artifactory.production_password))
       platform: linux
       inputs:
       - name: tile-generator-repo
@@ -328,19 +357,25 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: mirror.gcr.io/python
+          repository: ((artifactory.registry_mirror))/python
           tag: 3-slim
+          username: ((artifactory.production_username))
+          password: ((artifactory.production_password))
       platform: linux
       inputs:
       - name: tile-generator-dockerfile-repo
       - name: tile-generator-package-release
+      - name: version
       outputs:
       - name: docker-build-dir
+      - name: image-version-tag
       run:
         path: sh
         args:
         - -c
         - cp tile-generator-package-release/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+        - mkdir -p prefixed-version
+        - echo "v$(cat version/version)" > image-version-tag/version
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -349,11 +384,36 @@ jobs:
           icon_emoji: ':concourse:'
           text: 'Tile Generator docker build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
-  - put: tile-generator-docker-image
+  - get: oci-build-task
+  - get: python3-image
     params:
-      build: docker-build-dir
-      tag: version/version
-      tag_prefix: v
+      format: oci
+  - file: image-version-tag/version
+    load_var: image_version
+  - task: build-oci
+    privileged: true
+    image: oci-build-task
+    config:
+      platform: linux
+      inputs:
+        - name: docker-build-dir
+        - name: python3-image
+      outputs:
+        - name: image
+      params:
+        CONTEXT: docker-build-dir
+        DOCKERFILE: docker-build-dir/Dockerfile
+        IMAGE_ARG_python3: python3-image/image.tar
+      run:
+        path: build
+    output_mapping:
+      image: docker-image-out
+  - put: tile-generator-docker-image
+    inputs: detect
+    attempts: 3
+    params:
+      image: docker-image-out/image.tar
+      version: ((.:image_version))
 
 - name: build-tile
   disable_manual_trigger: true
@@ -394,12 +454,34 @@ jobs:
           icon_emoji: ':concourse:'
           text: 'Sample app build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
+  - get: python3-image
+    params:
+      format: oci
+  - get: oci-build-task
+  - task: build-oci
+    privileged: true
+    image: oci-build-task
+    config:
+      platform: linux
+      inputs:
+        - name: sample-tile-build
+        - name: python3-image
+      outputs:
+        - name: image
+      params:
+        CONTEXT: sample-tile-build/src
+        DOCKERFILE: sample-tile-build/src/Dockerfile
+        IMAGE_ARG_python3: python3-image/image.tar
+      run:
+        path: build
+    output_mapping:
+      image: docker-image-out
   - put: app-docker-image
     params:
-      build: sample-tile-build/src
+      image: docker-image-out/image.tar
   - get: app-docker-image
     params:
-      save: true
+      format: oci
   - task: populate-docker-cache
     image: tile-generator-docker-image
     config:
@@ -410,7 +492,7 @@ jobs:
       - name: docker-cache
       run:
         path: sh
-        args: [ "-c", 'cp app-docker-image/image docker-cache/guidowb-sample-cf-app.tgz']
+        args: [ "-c", 'cp app-docker-image/image.tar docker-cache/guidowb-sample-cf-app.tgz']
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -699,7 +781,7 @@ jobs:
     - get: tile-generator-docker-image
       passed: [ most-recent ]
       params:
-        save: true
+        format: oci
     - get: tile-generator-package-release
       passed: [ most-recent ]
     - get: version
@@ -730,12 +812,33 @@ jobs:
         tag_prefix: v
         globs:
         - release-files/dist*/*
+    - task: prepare-docker-build
+      config:
+        image_resource:
+          type: registry-image
+          source:
+            repository: ((artifactory.registry_mirror))
+            tag: 3-slim
+            username: ((artifactory.production_username))
+            password: ((artifactory.production_password))
+        platform: linux
+        inputs:
+        - name: version
+        outputs:
+        - name: image-version-tag
+        run:
+          path: sh
+          args:
+          - -c
+          - mkdir -p prefixed-version
+          - echo "v$(cat version/version)" > image-version-tag/version
+    - file: image-version-tag/version
+      load_var: image_version
     - put: tile-generator-docker-image-release
       params:
-        load: tile-generator-docker-image
-        tag: version/version
-        tag_prefix: v
-        tag_as_latest: true
+        image: tile-generator-docker-image/image.tar
+        version: ((.:image_version))
+        bump_aliases: true
     - put: tile-generator-pypi-release
       params:
         glob: release-files/dist*/tile-generator-*.tar.gz
