@@ -4237,6 +4237,13 @@
     }
   ],
   "sha1": false,
+  "git_remotes": [
+    {
+      "name":  "origin",
+      "urls": ["git@example.com:org/repo.git"]
+    }
+  ],
+  "git_sha": "some-sha",
   "space": "test-tile-space",
   "standalone": false,
   "stemcell_criteria": {

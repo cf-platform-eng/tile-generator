@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import git
 import mock
 import json
 import os
@@ -29,6 +29,16 @@ from . import config
 from .config import Config, merge_dict
 from .tile_metadata import TileMetadata
 from . import template
+from types import SimpleNamespace
+
+
+class MockRepo:
+    argument = []
+
+    def __init__(self, x):
+        self.argument.append(x)
+        self.remotes = [SimpleNamespace(urls=["git@example.com:org/repo.git"], name="origin")]
+        self.head = SimpleNamespace(commit=SimpleNamespace(hexsha="some-sha"))
 
 @contextmanager
 def capture_output():
@@ -61,20 +71,29 @@ class BaseTest(unittest.TestCase):
     self.pre_start_file.close()
 
 
-@mock.patch('tile_generator.config.Config.read_history')
+def side_effects(*args, **kwargs):
+  side_effects.captured_args = args
+  side_effects.captured_kwargs = kwargs
+
+@mock.patch('git.Repo', MockRepo)
+@mock.patch('tile_generator.config._find_git_root')
 @mock.patch('tile_generator.config._base64_img')
+@mock.patch('tile_generator.config.Config.read_history')
 class TestUltimateForm(BaseTest):
-  def test_diff_final_config_obj(self, mock_read_history, mock_base64_img):
+  def test_diff_final_config_obj(self, mock_read_history, mock_base64_img, mock__find_git_root):
     test_path = os.path.dirname(__file__)
     cfg_file_path = os.path.join(test_path, '../sample/tile.yml')
+    mock__find_git_root.return_value = "/fake/git/root"
 
     with mock.patch('tile_generator.config.CONFIG_FILE', cfg_file_path):
       cfg = self.config.read()
     cfg.set_version(None)
+    cfg.set_git_remotes(True)
     cfg.set_verbose(False)
     cfg.set_sha1(False)
     cfg.set_cache(None)
-    
+    cfg.set_git_sha(True)
+
     with open(test_path + '/test_config_generated_output.json', 'w') as f:
       generated_json = json.dumps(cfg, sort_keys=True, indent=2)
       f.write(generated_json)
@@ -82,7 +101,7 @@ class TestUltimateForm(BaseTest):
 
     with open(test_path + '/test_config_expected_output.json', 'r') as f:
       expected_output = json.load(f)
-    
+
     # Change the paths to files to be consistent
     self.fix_path(generated_output)
     self.fix_path(expected_output)
@@ -97,9 +116,13 @@ class TestUltimateForm(BaseTest):
     expected = json.dumps(expected_output, indent=2).split('\n')
     generated = json.dumps(generated_output, indent=2).split('\n')
 
+    self.assertGreater(len(MockRepo.argument), 0)
+    self.assertEqual(MockRepo.argument[-1], '/fake/git/root')
+
     self.assertEqual(len(expected), len(generated))
     for line in expected:
       self.assertIn(line, generated)
+
 
   def fix_path(self, obj):
     for release in obj['releases'].values():
@@ -169,7 +192,7 @@ class TestUltimateForm(BaseTest):
         'Expected to have the value:\n%s\nHowever, instead got:\n%s' % (expected, given)))
 
   # mock_read_history, mock_base64_img are not used in this method
-  def test_metadata_diff(self, mock_read_history, mock_base64_img):
+  def test_metadata_diff(self, mock_read_history, mock_base64_img, mock__find_git_root):
     test_path = os.path.dirname(__file__)
     cfg_file_path = os.path.join(test_path, '../sample/tile.yml')
 
