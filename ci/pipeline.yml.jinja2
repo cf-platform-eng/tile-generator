@@ -127,7 +127,7 @@ resources:
     path: tile-generator
     path_pattern: tile-generator-(?P<version>.*).tar.gz
     version_subexpression_name: version
-    version_constraint: '*'
+    version_constraint: '>=0.0.0-dev.0'
 
 - name: tile-generator-package-release
   type: artifactory-path-version-resource
@@ -139,7 +139,7 @@ resources:
     path: tile-generator/release
     path_pattern: bundle-(?P<version>.*).tar.gz
     version_subexpression_name: version
-    version_constraint: '*'
+    version_constraint: '>=0.0.0-dev.0'
 
 - name: generated-tile
   type: artifactory-path-version-resource
@@ -151,7 +151,7 @@ resources:
     path: tile-generator
     path_pattern: test-tile-(?P<version>.*)\.pivotal
     version_subexpression_name: version
-    version_constraint: '*'
+    version_constraint: '>=0.0.0-dev.0'
 
 - name: tile-history
   type: artifactory-path-version-resource
@@ -163,7 +163,7 @@ resources:
     path: tile-generator
     path-pattern: tile\-history-(?P<version>.*)\.yml
     version_subexpression_name: version
-    version_constraint: '*'
+    version_constraint: '>=0.0.0-dev.0'
 
 - name: tile-generator-docker-image
   type: docker-image
