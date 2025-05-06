@@ -166,14 +166,14 @@ resources:
     version_constraint: '>=0.0.0-dev.0'
 
 - name: tile-generator-docker-image
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator-prerelease
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
 
 - name: tile-generator-docker-image-release
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator
     username: ((artifactory.production_username))
@@ -185,6 +185,7 @@ resources:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/partner-engineering/tile-generator-sample-app
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
+    tag: latest
 
 - name: python3-image
   type: registry-image
@@ -403,9 +404,10 @@ jobs:
         path: sh
         args:
         - -c
-        - cp tile-generator-package-release/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
-        - mkdir -p image-version-tag
-        - echo "v$(cat version/version)" > image-version-tag/version
+        - |
+          cp tile-generator-package-release/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+          mkdir -p image-version-tag
+          echo "v$(cat version/version)" > image-version-tag/version
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -865,8 +867,9 @@ jobs:
           path: sh
           args:
           - -c
-          - mkdir -p image-version-tag
-          - echo "v$(cat version/version)" > image-version-tag/version
+          - |
+            mkdir -p image-version-tag
+            echo "v$(cat version/version)" > image-version-tag/version
     - file: image-version-tag/version
       load_var: image_version
     - put: tile-generator-docker-image-release
