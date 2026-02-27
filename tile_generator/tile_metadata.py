@@ -660,7 +660,7 @@ class TileMetadata(object):
                     if job['name'] == 'deploy-all' or job['name'] == 'delete-all':
                         job_type['templates'].append({
                             "release": 'cf-cli',
-                            "name": 'cf-cli-6-linux',
+                            "name": 'cf-cli-8-linux',
                         })
                     if job.get('run_post_deploy_errand_default'):
                         job_type['run_post_deploy_errand_default'] = job.get('run_post_deploy_errand_default')

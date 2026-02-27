@@ -845,7 +845,7 @@ job_types:
         from: redis
     name: deploy-all
     release: test-tile
-  - name: cf-cli-6-linux
+  - name: cf-cli-8-linux
     release: cf-cli
 - dynamic_ip: 1
   errand: true
@@ -1016,7 +1016,7 @@ job_types:
         from: redis
     name: delete-all
     release: test-tile
-  - name: cf-cli-6-linux
+  - name: cf-cli-8-linux
     release: cf-cli
 - default_internet_connected: false
   dynamic_ip: 1
