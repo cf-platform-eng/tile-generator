@@ -241,7 +241,8 @@ function deploy_app() {
 	STACK="$(get_stack)"
 	cf push ${APP_NAME} --hostname ${APP_HOST} -d ${APP_DOMAIN} \
 		${DOCKER_IMAGE} -f "${MANIFEST_FILE}" ${STACK} \
-		--no-start
+		--no-start --no-route
+	cf map-route ${APP_NAME} ${APP_DOMAIN} --hostname ${APP_HOST}
 	add_env_vars ${APP_NAME}
 	if is_true "$NEEDS_CF_CREDS"; then
 		add_cf_credentials ${APP_NAME}
