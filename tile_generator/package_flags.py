@@ -145,8 +145,7 @@ class DockerBosh(FlagBase):
         }
         config_obj['releases']['routing'] = {
             'name': 'routing',
-            # TODO: Remove the version pinning `?v=0.179.0` once #159837970 is fixed.
-            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release?v=0.179.0',
+            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release',
         }
 
         packagename = package['name']

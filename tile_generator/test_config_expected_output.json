@@ -2088,7 +2088,7 @@
     },
     "routing": {
       "name": "routing",
-      "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release?v=0.179.0"
+      "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release"
     },
     "runtime_test_release": {
       "is_bosh_release": true,
