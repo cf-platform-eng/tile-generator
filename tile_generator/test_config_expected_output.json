@@ -2080,7 +2080,7 @@
   "releases": {
     "cf-cli-release": {
       "name": "cf-cli-release",
-      "path": "https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=1.63.0"
+      "path": "https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=2.6.0"
     },
     "docker-boshrelease": {
       "name": "docker-boshrelease",
@@ -2088,7 +2088,7 @@
     },
     "routing": {
       "name": "routing",
-      "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release?v=0.179.0"
+      "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release"
     },
     "runtime_test_release": {
       "is_bosh_release": true,

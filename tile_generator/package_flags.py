@@ -94,7 +94,7 @@ class Cf(FlagBase):
         if not 'cf-cli-release' in config_obj['releases'].keys():
             config_obj['releases']['cf-cli-release'] = {
               'name': 'cf-cli-release',
-              'path': 'https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=1.63.0',
+              'path': 'https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=2.6.0',
             }
         if not config_obj.get('requires_product_versions'): 
             config_obj['requires_product_versions'] = list()
@@ -145,8 +145,7 @@ class DockerBosh(FlagBase):
         }
         config_obj['releases']['routing'] = {
             'name': 'routing',
-            # TODO: Remove the version pinning `?v=0.179.0` once #159837970 is fixed.
-            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release?v=0.179.0',
+            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release',
         }
 
         packagename = package['name']
