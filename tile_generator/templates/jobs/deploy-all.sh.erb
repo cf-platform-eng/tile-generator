@@ -239,8 +239,7 @@ function deploy_app() {
 	MANIFEST_FILE="$PACKAGE_PATH/${PKG_NAME}/manifest.yml"
 	echo "${APP_MANIFEST}" > "${MANIFEST_FILE}"
 	STACK="$(get_stack)"
-	cf push ${APP_NAME} --hostname ${APP_HOST} -d ${APP_DOMAIN} \
-		${DOCKER_IMAGE} -f "${MANIFEST_FILE}" ${STACK} \
+	cf push ${APP_NAME} ${DOCKER_IMAGE} -f "${MANIFEST_FILE}" ${STACK} \
 		--no-start --no-route
 	cf map-route ${APP_NAME} ${APP_DOMAIN} --hostname ${APP_HOST}
 	add_env_vars ${APP_NAME}
