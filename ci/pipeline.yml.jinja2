@@ -277,7 +277,7 @@ jobs:
       pre: dev
 
 - name: package-tile-generator
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-repo
