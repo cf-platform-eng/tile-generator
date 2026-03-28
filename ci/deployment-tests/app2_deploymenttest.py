@@ -52,8 +52,8 @@ class VerifyApp2(unittest.TestCase):
 		env = response.json()
 		self.assertTrue(env.get('REDIS_HOST') is not None)
 		self.assertTrue(env.get('REDIS_HOSTS') is not None)
-		self.assertTrue(env.get('NATS_HOST') is not None)
-		self.assertTrue(env.get('NATS_HOSTS') is not None)
+		self.assertTrue(env.get('NATS_TLS_HOST') is not None)
+		self.assertTrue(env.get('NATS_TLS_HOSTS') is not None)
 
 	def test_receives_link_properties(self):
 		headers = { 'Accept': 'application/json' }
@@ -61,7 +61,7 @@ class VerifyApp2(unittest.TestCase):
 		response.raise_for_status()
 		env = response.json()
 		self.assertIsNotNone(json.loads(env.get('REDIS_PROPERTIES')))
-		self.assertIsNotNone(json.loads(env.get('NATS_PROPERTIES')))
+		self.assertIsNotNone(json.loads(env.get('NATS_TLS_PROPERTIES')))
 
 	def test_receives_expected_services(self):
 		headers = { 'Accept': 'application/json' }
