@@ -166,14 +166,14 @@ resources:
     version_constraint: '>=0.0.0-dev.0'
 
 - name: tile-generator-docker-image
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator-prerelease
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
 
 - name: tile-generator-docker-image-release
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator
     username: ((artifactory.production_username))
@@ -244,7 +244,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3.11-slim
+          tag: 3.11-slim-bookworm
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -294,7 +294,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3.11.4-slim-buster
+          tag: 3.11-slim-bookworm
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -518,12 +518,12 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: app-docker-image
+      - name: docker-image-out
       outputs:
       - name: docker-cache
       run:
         path: sh
-        args: [ "-c", 'cp app-docker-image/image.tar docker-cache/guidowb-sample-cf-app.tgz']
+        args: [ "-c", 'cp docker-image-out/image.tar docker-cache/guidowb-sample-cf-app.tgz']
     on_failure:
       in_parallel:
       - put: slack-alert
