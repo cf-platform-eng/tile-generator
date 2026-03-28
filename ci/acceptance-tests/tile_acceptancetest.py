@@ -121,10 +121,10 @@ class VerifyProperties(unittest.TestCase):
 		deploy_all_template = find_by_name(deploy_all_job['templates'], 'deploy-all')
 		self.assertIn('consumes', deploy_all_template)
 		consumes = yaml.safe_load(deploy_all_template['consumes'])
-		self.assertIn('nats', consumes)
-		self.assertIn('from', consumes['nats'])
-		self.assertEqual(consumes['nats'].get('deployment'), '(( ..cf.deployment_name ))')
-		self.assertEqual(consumes['nats'].get('from'), 'nats')
+		self.assertIn('nats-tls', consumes)
+		self.assertIn('from', consumes['nats-tls'])
+		self.assertEqual(consumes['nats-tls'].get('deployment'), '(( ..cf.deployment_name ))')
+		self.assertEqual(consumes['nats-tls'].get('from'), 'nats-tls')
 
 class VerifyConstraints(unittest.TestCase):
 

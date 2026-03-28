@@ -664,8 +664,8 @@ job_types:
   - name: docker-bosh-tg_test_app4
     release: test-tile
   - consumes: |
-      nats:
-        from: nats
+      nats-tls:
+        from: nats-tls
         deployment: (( ..cf.deployment_name ))
     name: route_registrar
     release: routing
@@ -838,9 +838,9 @@ job_types:
   - consumes: |
       docker-tcp:
         from: docker
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
       redis:
         from: redis
     name: deploy-all
@@ -1009,9 +1009,9 @@ job_types:
   - consumes: |
       docker-tcp:
         from: docker
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
       redis:
         from: redis
     name: delete-all
@@ -1524,9 +1524,9 @@ job_types:
   - name: no-op
     release: no-op-release
   - consumes: |
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
     name: route_registrar
     release: routing
 - dynamic_ip: 1
@@ -1699,9 +1699,9 @@ job_types:
   static_ip: 0
   templates:
   - consumes: |
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
     name: route_registrar
     release: routing
 - dynamic_ip: 1

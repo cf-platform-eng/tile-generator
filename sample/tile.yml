@@ -301,8 +301,8 @@ packages:
   consumes:
     redis:
       from: redis
-    nats:
-      from: nats
+    nats-tls:
+      from: nats-tls
       deployment: (( ..cf.deployment_name ))
     docker-tcp:
       from: docker
@@ -324,8 +324,8 @@ packages:
   consumes:
     redis:
       from: redis
-    nats:
-      from: nats
+    nats-tls:
+      from: nats-tls
       deployment: (( ..cf.deployment_name ))
   manifest:
     path: resources/app.zip
@@ -445,8 +445,8 @@ packages:
     - name: route_registrar
       release: routing #relies on the fact that docker-bosh adds routing
       consumes:
-        nats:
-          from: nats
+        nats-tls:
+          from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
       route_registrar:
@@ -463,8 +463,8 @@ packages:
     - name: route_registrar
       release: routing
       consumes:
-        nats:
-          from: nats
+        nats-tls:
+          from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
       route_registrar:

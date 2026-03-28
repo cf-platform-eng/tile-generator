@@ -813,9 +813,9 @@
         "docker-tcp": {
           "from": "docker"
         },
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -870,9 +870,9 @@
         "path": "app.zip"
       },
       "consumes": {
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -1655,9 +1655,9 @@
             },
             {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",
@@ -1864,9 +1864,9 @@
           "templates": [
             {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",
@@ -2106,9 +2106,9 @@
         "docker-tcp": {
           "from": "docker"
         },
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -2118,9 +2118,9 @@
         "docker-tcp": {
           "from": "docker"
         },
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -2884,9 +2884,9 @@
             "docker-tcp": {
               "from": "docker"
             },
-            "nats": {
+            "nats-tls": {
               "deployment": "(( ..cf.deployment_name ))",
-              "from": "nats"
+              "from": "nats-tls"
             },
             "redis": {
               "from": "redis"
@@ -2941,9 +2941,9 @@
             "path": "app.zip"
           },
           "consumes": {
-            "nats": {
+            "nats-tls": {
               "deployment": "(( ..cf.deployment_name ))",
-              "from": "nats"
+              "from": "nats-tls"
             },
             "redis": {
               "from": "redis"
@@ -3728,9 +3728,9 @@
             },
             {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",
@@ -3937,9 +3937,9 @@
           "templates": [
             {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",

@@ -447,8 +447,8 @@ class TileMetadata(object):
                         {'name': job.get('type'), 'release': release.get('name')},
                         {'consumes': 
                             literal_unicode(
-                                'nats:\n'
-                                '  from: nats\n'
+                                'nats-tls:\n'
+                                '  from: nats-tls\n'
                                 '  deployment: (( ..cf.deployment_name ))\n'
                             ),
                             'name': 'route_registrar',
