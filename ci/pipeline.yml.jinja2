@@ -194,6 +194,14 @@ resources:
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
 
+- name: python3-image-buster
+  type: registry-image
+  source:
+    tag: 3.11-slim
+    repository: ((artifactory.registry_mirror))/python
+    username: ((artifactory.production_username))
+    password: ((artifactory.production_password))
+
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
   type: shepherd
   source:
@@ -370,7 +378,7 @@ jobs:
           - tile-generator-dist/*
 
 - name: install-tile-generator
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-package
@@ -389,7 +397,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3-slim
+          tag: 3.11-slim
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -416,7 +424,7 @@ jobs:
           text: 'Tile Generator docker build failed, check <https://hush-house.pivotal.io/teams/PE/pipelines/tile-generator|here> for details'
           username: Tile Generator
   - get: oci-build-task
-  - get: python3-image
+  - get: python3-image-buster
     params:
       format: oci
   - file: image-version-tag/version
@@ -510,9 +518,6 @@ jobs:
   - put: app-docker-image
     params:
       image: docker-image-out/image.tar
-  - get: app-docker-image
-    params:
-      format: oci
   - task: populate-docker-cache
     image: tile-generator-docker-image
     config:
