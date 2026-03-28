@@ -324,6 +324,7 @@ jobs:
               ./pyinstaller/build-binaries.sh
               if [ -z "$SKIP_SDIST" ]; then
                 echo "Building SDist"
+                pip install 'setuptools<69.3'
                 python setup.py sdist
                 # Setuptools normalizes versions and does not support semver.
                 # See https://github.com/pypa/setuptools/issues/308
