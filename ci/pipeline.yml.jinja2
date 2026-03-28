@@ -84,7 +84,7 @@ resources:
   type: git
   source:
     ignore_paths: [ "ci/docker-tile-generator" ]
-    branch: master
+    branch: fix/ci
     uri: http://github.com/cf-platform-eng/tile-generator.git
 
 - name: tile-generator-github-prerelease
@@ -676,7 +676,7 @@ jobs:
           pushd ../pcf-environment*
           STEMCELL_AVAILABLE=`pcf stemcells`
           popd
-          if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]]; then
+          if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]] || [[ $STEMCELL_AVAILABLE == *"$STEMCELL_OS"*-"$STEMCELL_VERSION"* ]]; then
             echo "A stemcell for $STEMCELL_OS version $STEMCELL_VERSION already is in $STEMCELL_AVAILABLE skipping...";
           else
             wget https://bosh.io/stemcells/bosh-google-kvm-$STEMCELL_OS-go_agent -O bosh.io_stemcells
