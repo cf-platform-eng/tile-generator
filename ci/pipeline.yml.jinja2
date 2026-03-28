@@ -65,8 +65,8 @@ resource_types:
 - name: shepherd
   type: registry-image
   check_every: 4h
-  source:
-    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+  source: 
+    repository: tpe-build-harbor.tanzu.broadcom.net/shepherd/concourse-resource 
     tag: latest
 
 resources:
@@ -197,10 +197,10 @@ resources:
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
   type: shepherd
   source:
-    url: ((production_shepherd_api_endpoint))
-    service-account-key: ((production_shepherd_service_key))
+    url: ((production_lvn_shepherd.api_endpoint))
+    service-account-key: ((production_lvn_shepherd.service_key))
     lease:
-      namespace: ((production_shepherd_namespace))
+      namespace: ((production_lvn_shepherd.namespace))
       pool:
         namespace: official
         name: tas{{ cluster }}{% if not loop.last %}
