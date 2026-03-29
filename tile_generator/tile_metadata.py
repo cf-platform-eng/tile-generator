@@ -95,6 +95,13 @@ class TileMetadata(object):
                 'optional': False,
                 'type': 'rsa_cert_credentials'
             })
+            self.tile_metadata['property_blueprints'].append({
+                'configurable': False,
+                'default': {'domains': ['nats.service.cf.internal']},
+                'name': 'nats_client_cert',
+                'optional': False,
+                'type': 'rsa_cert_credentials'
+            })
 
         for service_plan_form in self.config['service_plan_forms']:
             #
@@ -475,7 +482,14 @@ class TileMetadata(object):
                         'uris': ['%s.(( ..cf.cloud_controller.system_domain.value ))' % route_name]
                     })
                 release_job_manifest['route_registrar'] = routes
-                release_job_manifest['nats'] = {'tls': {'enabled': True}}
+                release_job_manifest['nats'] = {
+                    'fail_if_using_nats_without_tls': True,
+                    'tls': {
+                        'client_cert': '(( .properties.nats_client_cert.cert_pem ))',
+                        'client_key': '(( .properties.nats_client_cert.private_key_pem ))',
+                        'enabled': True,
+                    },
+                }
 
                 for prop in self.config.get('all_properties'):
                     if 'job' not in prop:

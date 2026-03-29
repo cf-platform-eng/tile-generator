@@ -1491,7 +1491,10 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },
@@ -1634,7 +1637,10 @@
           "name": "node-yes",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },
@@ -1724,7 +1730,10 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },
@@ -1867,7 +1876,10 @@
           "name": "node-no",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },
@@ -3596,7 +3608,10 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },
@@ -3739,7 +3754,10 @@
           "name": "node-yes",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },
@@ -3829,7 +3847,10 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },
@@ -3972,7 +3993,10 @@
           "name": "node-no",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": true,
               "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
                 "enabled": true
               }
             },

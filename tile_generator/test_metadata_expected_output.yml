@@ -44,6 +44,13 @@ property_blueprints:
   name: generated_rsa_cert_credentials
   optional: false
   type: rsa_cert_credentials
+- configurable: false
+  default:
+    domains:
+    - nats.service.cf.internal
+  name: nats_client_cert
+  optional: false
+  type: rsa_cert_credentials
 - configurable: true
   name: custom_dynamic_service_plan_1
   optional: true
@@ -557,7 +564,10 @@ job_types:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
     nats:
+      fail_if_using_nats_without_tls: true
       tls:
+        client_cert: (( .properties.nats_client_cert.cert_pem ))
+        client_key: (( .properties.nats_client_cert.private_key_pem ))
         enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
@@ -1392,7 +1402,10 @@ job_types:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
     nats:
+      fail_if_using_nats_without_tls: true
       tls:
+        client_cert: (( .properties.nats_client_cert.cert_pem ))
+        client_key: (( .properties.nats_client_cert.private_key_pem ))
         enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
@@ -1574,7 +1587,10 @@ job_types:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
     nats:
+      fail_if_using_nats_without_tls: true
       tls:
+        client_cert: (( .properties.nats_client_cert.cert_pem ))
+        client_key: (( .properties.nats_client_cert.private_key_pem ))
         enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
