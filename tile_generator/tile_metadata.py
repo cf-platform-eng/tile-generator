@@ -442,9 +442,9 @@ class TileMetadata(object):
                     'single_az_only': False,
                     'static_ip': 1,
                     'templates': [
-                        {'name': 'containers', 'release': 'docker'},
                         {'name': 'docker', 'release': 'docker'},
                         {'name': job.get('type'), 'release': release.get('name')},
+                        {'name': 'containers', 'release': 'docker'},
                         {'consumes': 
                             literal_unicode(
                                 'nats-tls:\n'

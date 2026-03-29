@@ -660,12 +660,12 @@ job_types:
   single_az_only: false
   static_ip: 1
   templates:
-  - name: containers
-    release: docker
   - name: docker
     release: docker
   - name: docker-bosh-tg_test_app4
     release: test-tile
+  - name: containers
+    release: docker
   - consumes: |
       nats-tls:
         from: nats-tls
