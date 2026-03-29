@@ -522,7 +522,7 @@ jobs:
       - name: docker-cache
       run:
         path: sh
-        args: [ "-c", 'cp docker-image-out/image.tar docker-cache/guidowb-sample-cf-app.tgz']
+        args: [ "-c", 'cp docker-image-out/image.tar docker-cache/mirror.gcr.io-guidowb-sample-cf-app.tgz']
     on_failure:
       in_parallel:
       - put: slack-alert
