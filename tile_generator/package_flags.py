@@ -145,7 +145,7 @@ class DockerBosh(FlagBase):
         }
         config_obj['releases']['routing'] = {
             'name': 'routing',
-            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release',
+            'path': 'https://bosh.io/d/github.com/cloudfoundry/routing-release',
         }
 
         packagename = package['name']
