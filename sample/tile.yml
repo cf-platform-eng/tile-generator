@@ -449,6 +449,9 @@ packages:
           from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
+      nats:
+        tls:
+          enabled: true
       route_registrar:
         routes:
         - name: runtime_conf_yes
@@ -467,6 +470,9 @@ packages:
           from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
+      nats:
+        tls:
+          enabled: true
       route_registrar:
         routes:
         - name: runtime_conf_no

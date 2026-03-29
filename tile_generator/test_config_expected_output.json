@@ -1490,6 +1490,11 @@
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
             },
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
+            },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
             "password": "(( .properties.password.value ))",
@@ -1628,6 +1633,11 @@
           },
           "name": "node-yes",
           "properties": {
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {
@@ -1708,6 +1718,11 @@
             "my_creds": {
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
+            },
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
@@ -1847,6 +1862,11 @@
           },
           "name": "node-no",
           "properties": {
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {
@@ -3563,6 +3583,11 @@
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
             },
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
+            },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
             "password": "(( .properties.password.value ))",
@@ -3701,6 +3726,11 @@
           },
           "name": "node-yes",
           "properties": {
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {
@@ -3781,6 +3811,11 @@
             "my_creds": {
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
+            },
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
@@ -3920,6 +3955,11 @@
           },
           "name": "node-no",
           "properties": {
+            "nats": {
+              "tls": {
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {

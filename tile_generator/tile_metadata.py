@@ -474,6 +474,7 @@ class TileMetadata(object):
                         'uris': ['%s.(( ..cf.cloud_controller.system_domain.value ))' % route_name]
                     })
                 release_job_manifest['route_registrar'] = routes
+                release_job_manifest['nats'] = {'tls': {'enabled': True}}
 
                 for prop in self.config.get('all_properties'):
                     if 'job' not in prop:

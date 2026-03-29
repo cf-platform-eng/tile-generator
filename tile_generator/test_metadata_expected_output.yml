@@ -556,6 +556,9 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    nats:
+      tls:
+        enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -1386,6 +1389,9 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    nats:
+      tls:
+        enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -1563,6 +1569,9 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    nats:
+      tls:
+        enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
