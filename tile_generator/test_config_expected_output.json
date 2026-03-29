@@ -1666,6 +1666,10 @@
               "run_default": true
             },
             {
+              "name": "bpm",
+              "release": "bpm"
+            },
+            {
               "consumes": {
                 "nats": {
                   "deployment": "(( ..cf.deployment_name ))",
@@ -1891,6 +1895,10 @@
           "template": "node-no",
           "templates": [
             {
+              "name": "bpm",
+              "release": "bpm"
+            },
+            {
               "consumes": {
                 "nats": {
                   "deployment": "(( ..cf.deployment_name ))",
@@ -2110,6 +2118,10 @@
   ],
   "purge_service_brokers": true,
   "releases": {
+    "bpm": {
+      "name": "bpm",
+      "path": "https://bosh.io/d/github.com/cloudfoundry/bpm-release"
+    },
     "cf-cli-release": {
       "name": "cf-cli-release",
       "path": "https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=2.6.0"
@@ -3771,6 +3783,10 @@
               "run_default": true
             },
             {
+              "name": "bpm",
+              "release": "bpm"
+            },
+            {
               "consumes": {
                 "nats": {
                   "deployment": "(( ..cf.deployment_name ))",
@@ -3995,6 +4011,10 @@
           },
           "template": "node-no",
           "templates": [
+            {
+              "name": "bpm",
+              "release": "bpm"
+            },
             {
               "consumes": {
                 "nats": {
@@ -4233,7 +4253,7 @@
         "releases": [
           {
             "name": "runtime-test-release",
-            "version": "0.1.5"
+            "version": "0.2.0"
           }
         ]
       }

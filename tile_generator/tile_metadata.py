@@ -445,7 +445,8 @@ class TileMetadata(object):
                         {'name': 'docker', 'release': 'docker'},
                         {'name': job.get('type'), 'release': release.get('name')},
                         {'name': 'containers', 'release': 'docker'},
-                        {'consumes': 
+                        {'name': 'bpm', 'release': 'bpm'},
+                        {'consumes':
                             literal_unicode(
                                 'nats:\n'
                                 '  from: nats\n'

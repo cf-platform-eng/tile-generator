@@ -442,6 +442,8 @@ packages:
       # label: colocated errand X # Define the errand name to be shown.
       # description: This is an errand description.
       ###############################################################
+    - name: bpm
+      release: bpm
     - name: route_registrar
       release: routing #relies on the fact that docker-bosh adds routing
       consumes:
@@ -467,6 +469,8 @@ packages:
     instances: 1
     dynamic_ip: 1
     templates:
+    - name: bpm
+      release: bpm
     - name: route_registrar
       release: routing
       consumes:

@@ -147,6 +147,10 @@ class DockerBosh(FlagBase):
             'name': 'routing',
             'path': 'https://bosh.io/d/github.com/cloudfoundry/routing-release',
         }
+        config_obj['releases']['bpm'] = {
+            'name': 'bpm',
+            'path': 'https://bosh.io/d/github.com/cloudfoundry/bpm-release',
+        }
 
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})

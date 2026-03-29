@@ -667,6 +667,8 @@ job_types:
     release: test-tile
   - name: containers
     release: docker
+  - name: bpm
+    release: bpm
   - consumes: |
       nats:
         from: nats
@@ -1534,6 +1536,8 @@ job_types:
   templates:
   - name: no-op
     release: no-op-release
+  - name: bpm
+    release: bpm
   - consumes: |
       nats:
         deployment: (( ..cf.deployment_name ))
@@ -1716,6 +1720,8 @@ job_types:
   single_az_only: false
   static_ip: 0
   templates:
+  - name: bpm
+    release: bpm
   - consumes: |
       nats:
         deployment: (( ..cf.deployment_name ))
