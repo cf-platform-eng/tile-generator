@@ -445,13 +445,17 @@ packages:
     - name: route_registrar
       release: routing #relies on the fact that docker-bosh adds routing
       consumes:
+        nats:
+          from: nats
+          deployment: (( ..cf.deployment_name ))
         nats-tls:
           from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
       nats:
+        fail_if_using_nats_without_tls: false
         tls:
-          enabled: true
+          enabled: false
       route_registrar:
         routes:
         - name: runtime_conf_yes
@@ -466,13 +470,17 @@ packages:
     - name: route_registrar
       release: routing
       consumes:
+        nats:
+          from: nats
+          deployment: (( ..cf.deployment_name ))
         nats-tls:
           from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
       nats:
+        fail_if_using_nats_without_tls: false
         tls:
-          enabled: true
+          enabled: false
       route_registrar:
         routes:
         - name: runtime_conf_no

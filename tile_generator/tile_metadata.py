@@ -447,6 +447,9 @@ class TileMetadata(object):
                         {'name': 'containers', 'release': 'docker'},
                         {'consumes': 
                             literal_unicode(
+                                'nats:\n'
+                                '  from: nats\n'
+                                '  deployment: (( ..cf.deployment_name ))\n'
                                 'nats-tls:\n'
                                 '  from: nats-tls\n'
                                 '  deployment: (( ..cf.deployment_name ))\n'
@@ -474,7 +477,10 @@ class TileMetadata(object):
                         'uris': ['%s.(( ..cf.cloud_controller.system_domain.value ))' % route_name]
                     })
                 release_job_manifest['route_registrar'] = routes
-                release_job_manifest['nats'] = {'tls': {'enabled': True}}
+                release_job_manifest['nats'] = {
+                    'fail_if_using_nats_without_tls': False,
+                    'tls': {'enabled': False},
+                }
 
                 for prop in self.config.get('all_properties'):
                     if 'job' not in prop:

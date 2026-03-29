@@ -1491,8 +1491,9 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
@@ -1634,8 +1635,9 @@
           "name": "node-yes",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "route_registrar": {
@@ -1665,6 +1667,10 @@
             },
             {
               "consumes": {
+                "nats": {
+                  "deployment": "(( ..cf.deployment_name ))",
+                  "from": "nats"
+                },
                 "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
                   "from": "nats-tls"
@@ -1720,8 +1726,9 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
@@ -1863,8 +1870,9 @@
           "name": "node-no",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "route_registrar": {
@@ -1884,6 +1892,10 @@
           "templates": [
             {
               "consumes": {
+                "nats": {
+                  "deployment": "(( ..cf.deployment_name ))",
+                  "from": "nats"
+                },
                 "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
                   "from": "nats-tls"
@@ -3584,8 +3596,9 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
@@ -3727,8 +3740,9 @@
           "name": "node-yes",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "route_registrar": {
@@ -3758,6 +3772,10 @@
             },
             {
               "consumes": {
+                "nats": {
+                  "deployment": "(( ..cf.deployment_name ))",
+                  "from": "nats"
+                },
                 "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
                   "from": "nats-tls"
@@ -3813,8 +3831,9 @@
               "password": "(( .properties.my_creds.password ))"
             },
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
@@ -3956,8 +3975,9 @@
           "name": "node-no",
           "properties": {
             "nats": {
+              "fail_if_using_nats_without_tls": false,
               "tls": {
-                "enabled": true
+                "enabled": false
               }
             },
             "route_registrar": {
@@ -3977,6 +3997,10 @@
           "templates": [
             {
               "consumes": {
+                "nats": {
+                  "deployment": "(( ..cf.deployment_name ))",
+                  "from": "nats"
+                },
                 "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
                   "from": "nats-tls"

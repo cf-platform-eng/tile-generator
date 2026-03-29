@@ -557,8 +557,9 @@ job_types:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
     nats:
+      fail_if_using_nats_without_tls: false
       tls:
-        enabled: true
+        enabled: false
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -667,6 +668,9 @@ job_types:
   - name: containers
     release: docker
   - consumes: |
+      nats:
+        from: nats
+        deployment: (( ..cf.deployment_name ))
       nats-tls:
         from: nats-tls
         deployment: (( ..cf.deployment_name ))
@@ -1390,8 +1394,9 @@ job_types:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
     nats:
+      fail_if_using_nats_without_tls: false
       tls:
-        enabled: true
+        enabled: false
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -1530,6 +1535,9 @@ job_types:
   - name: no-op
     release: no-op-release
   - consumes: |
+      nats:
+        deployment: (( ..cf.deployment_name ))
+        from: nats
       nats-tls:
         deployment: (( ..cf.deployment_name ))
         from: nats-tls
@@ -1570,8 +1578,9 @@ job_types:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
     nats:
+      fail_if_using_nats_without_tls: false
       tls:
-        enabled: true
+        enabled: false
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -1708,6 +1717,9 @@ job_types:
   static_ip: 0
   templates:
   - consumes: |
+      nats:
+        deployment: (( ..cf.deployment_name ))
+        from: nats
       nats-tls:
         deployment: (( ..cf.deployment_name ))
         from: nats-tls
