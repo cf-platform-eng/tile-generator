@@ -312,7 +312,7 @@ packages:
     host: tg-test-app2-hostname       # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
     buildpack: https://github.com/cloudfoundry/python-buildpack.git#v1.8.0
-  health_check: none                  # Turn off health monitoring, default: true
+  health_check: process                  # Turn off health monitoring, default: true
   auto_services:                      # Auto-provision and bind services
   - name: tg-test-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
     plan: first-plan                  # Optionally specify a plan (default is the first plan offered by the service)
