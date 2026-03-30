@@ -65,8 +65,8 @@ resource_types:
 - name: shepherd
   type: registry-image
   check_every: 4h
-  source:
-    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+  source: 
+    repository: tpe-build-harbor.tanzu.broadcom.net/shepherd/concourse-resource 
     tag: latest
 
 resources:
@@ -166,14 +166,14 @@ resources:
     version_constraint: '>=0.0.0-dev.0'
 
 - name: tile-generator-docker-image
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator-prerelease
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
 
 - name: tile-generator-docker-image-release
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator
     username: ((artifactory.production_username))
@@ -185,6 +185,7 @@ resources:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/partner-engineering/tile-generator-sample-app
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
+    tag: latest
 
 - name: python3-image
   type: registry-image
@@ -197,10 +198,10 @@ resources:
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
   type: shepherd
   source:
-    url: ((production_shepherd_api_endpoint))
-    service-account-key: ((production_shepherd_service_key))
+    url: ((production_lvn_shepherd.api_endpoint))
+    service-account-key: ((production_lvn_shepherd.service_key))
     lease:
-      namespace: ((production_shepherd_namespace))
+      namespace: ((production_lvn_shepherd.namespace))
       pool:
         namespace: official
         name: tas{{ cluster }}{% if not loop.last %}
@@ -244,7 +245,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3.11-slim
+          tag: 3.11-slim-bookworm
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -294,7 +295,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3.11.4-slim-buster
+          tag: 3.11-slim-bookworm
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -324,6 +325,7 @@ jobs:
               ./pyinstaller/build-binaries.sh
               if [ -z "$SKIP_SDIST" ]; then
                 echo "Building SDist"
+                pip install 'setuptools<69.3'
                 python setup.py sdist
                 # Setuptools normalizes versions and does not support semver.
                 # See https://github.com/pypa/setuptools/issues/308
@@ -388,7 +390,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3-slim
+          tag: 3.11-slim
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux

@@ -38,9 +38,10 @@ function create_venv {
   virtualenv -q -p python3 $VENV
   source $VENV/bin/activate
   # Build for current project. Assumes tile-generator src is up a dir
+  pip install 'setuptools<69.3'
   pip install -e $SCRIPT_DIR/../
   #https://github.com/pypa/pip/issues/6163#issuecomment-456772043
-  pip install pyinstaller --no-use-pep517
+  pip install pyinstaller==6.13.0
   pip install staticx
 }
 
