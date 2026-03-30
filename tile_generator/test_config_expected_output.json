@@ -813,9 +813,9 @@
         "docker-tcp": {
           "from": "docker"
         },
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -870,9 +870,9 @@
         "path": "app.zip"
       },
       "consumes": {
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -1490,6 +1490,14 @@
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
             },
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
+            },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
             "password": "(( .properties.password.value ))",
@@ -1628,6 +1636,14 @@
           },
           "name": "node-yes",
           "properties": {
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {
@@ -1654,10 +1670,14 @@
               "run_default": true
             },
             {
+              "name": "bpm",
+              "release": "bpm"
+            },
+            {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",
@@ -1708,6 +1728,14 @@
             "my_creds": {
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
+            },
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
@@ -1847,6 +1875,14 @@
           },
           "name": "node-no",
           "properties": {
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {
@@ -1863,10 +1899,14 @@
           "template": "node-no",
           "templates": [
             {
+              "name": "bpm",
+              "release": "bpm"
+            },
+            {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",
@@ -2078,6 +2118,10 @@
   ],
   "purge_service_brokers": true,
   "releases": {
+    "bpm": {
+      "name": "bpm",
+      "path": "https://bosh.io/d/github.com/cloudfoundry/bpm-release"
+    },
     "cf-cli-release": {
       "name": "cf-cli-release",
       "path": "https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=2.6.0"
@@ -2088,7 +2132,7 @@
     },
     "routing": {
       "name": "routing",
-      "path": "https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release"
+      "path": "https://bosh.io/d/github.com/cloudfoundry/routing-release"
     },
     "runtime_test_release": {
       "is_bosh_release": true,
@@ -2106,9 +2150,9 @@
         "docker-tcp": {
           "from": "docker"
         },
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -2118,9 +2162,9 @@
         "docker-tcp": {
           "from": "docker"
         },
-        "nats": {
+        "nats-tls": {
           "deployment": "(( ..cf.deployment_name ))",
-          "from": "nats"
+          "from": "nats-tls"
         },
         "redis": {
           "from": "redis"
@@ -2884,9 +2928,9 @@
             "docker-tcp": {
               "from": "docker"
             },
-            "nats": {
+            "nats-tls": {
               "deployment": "(( ..cf.deployment_name ))",
-              "from": "nats"
+              "from": "nats-tls"
             },
             "redis": {
               "from": "redis"
@@ -2941,9 +2985,9 @@
             "path": "app.zip"
           },
           "consumes": {
-            "nats": {
+            "nats-tls": {
               "deployment": "(( ..cf.deployment_name ))",
-              "from": "nats"
+              "from": "nats-tls"
             },
             "redis": {
               "from": "redis"
@@ -3563,6 +3607,14 @@
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
             },
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
+            },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
             "password": "(( .properties.password.value ))",
@@ -3701,6 +3753,14 @@
           },
           "name": "node-yes",
           "properties": {
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {
@@ -3727,10 +3787,14 @@
               "run_default": true
             },
             {
+              "name": "bpm",
+              "release": "bpm"
+            },
+            {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",
@@ -3781,6 +3845,14 @@
             "my_creds": {
               "identity": "(( .properties.my_creds.identity ))",
               "password": "(( .properties.my_creds.password ))"
+            },
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
             },
             "opsman_ca": "(( $ops_manager.ca_certificate ))",
             "org": "(( .properties.org.value ))",
@@ -3920,6 +3992,14 @@
           },
           "name": "node-no",
           "properties": {
+            "nats": {
+              "fail_if_using_nats_without_tls": true,
+              "tls": {
+                "client_cert": "(( .properties.nats_client_cert.cert_pem ))",
+                "client_key": "(( .properties.nats_client_cert.private_key_pem ))",
+                "enabled": true
+              }
+            },
             "route_registrar": {
               "routes": [
                 {
@@ -3936,10 +4016,14 @@
           "template": "node-no",
           "templates": [
             {
+              "name": "bpm",
+              "release": "bpm"
+            },
+            {
               "consumes": {
-                "nats": {
+                "nats-tls": {
                   "deployment": "(( ..cf.deployment_name ))",
-                  "from": "nats"
+                  "from": "nats-tls"
                 }
               },
               "name": "route_registrar",
@@ -4169,7 +4253,7 @@
         "releases": [
           {
             "name": "runtime-test-release",
-            "version": "0.1.5"
+            "version": "0.2.0"
           }
         ]
       }

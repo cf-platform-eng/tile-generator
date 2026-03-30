@@ -44,6 +44,13 @@ property_blueprints:
   name: generated_rsa_cert_credentials
   optional: false
   type: rsa_cert_credentials
+- configurable: false
+  default:
+    domains:
+    - nats.service.cf.internal
+  name: nats_client_cert
+  optional: false
+  type: rsa_cert_credentials
 - configurable: true
   name: custom_dynamic_service_plan_1
   optional: true
@@ -556,6 +563,12 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    nats:
+      fail_if_using_nats_without_tls: true
+      tls:
+        client_cert: (( .properties.nats_client_cert.cert_pem ))
+        client_key: (( .properties.nats_client_cert.private_key_pem ))
+        enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -657,15 +670,17 @@ job_types:
   single_az_only: false
   static_ip: 1
   templates:
-  - name: containers
-    release: docker
   - name: docker
     release: docker
   - name: docker-bosh-tg_test_app4
     release: test-tile
+  - name: containers
+    release: docker
+  - name: bpm
+    release: bpm
   - consumes: |
-      nats:
-        from: nats
+      nats-tls:
+        from: nats-tls
         deployment: (( ..cf.deployment_name ))
     name: route_registrar
     release: routing
@@ -838,9 +853,9 @@ job_types:
   - consumes: |
       docker-tcp:
         from: docker
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
       redis:
         from: redis
     name: deploy-all
@@ -1009,9 +1024,9 @@ job_types:
   - consumes: |
       docker-tcp:
         from: docker
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
       redis:
         from: redis
     name: delete-all
@@ -1386,6 +1401,12 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    nats:
+      fail_if_using_nats_without_tls: true
+      tls:
+        client_cert: (( .properties.nats_client_cert.cert_pem ))
+        client_key: (( .properties.nats_client_cert.private_key_pem ))
+        enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -1523,10 +1544,12 @@ job_types:
   templates:
   - name: no-op
     release: no-op-release
+  - name: bpm
+    release: bpm
   - consumes: |
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
     name: route_registrar
     release: routing
 - dynamic_ip: 1
@@ -1563,6 +1586,12 @@ job_types:
     my_creds:
       identity: (( .properties.my_creds.identity ))
       password: (( .properties.my_creds.password ))
+    nats:
+      fail_if_using_nats_without_tls: true
+      tls:
+        client_cert: (( .properties.nats_client_cert.cert_pem ))
+        client_key: (( .properties.nats_client_cert.private_key_pem ))
+        enabled: true
     opsman_ca: (( $ops_manager.ca_certificate ))
     org: (( .properties.org.value ))
     password: (( .properties.password.value ))
@@ -1698,10 +1727,12 @@ job_types:
   single_az_only: false
   static_ip: 0
   templates:
+  - name: bpm
+    release: bpm
   - consumes: |
-      nats:
+      nats-tls:
         deployment: (( ..cf.deployment_name ))
-        from: nats
+        from: nats-tls
     name: route_registrar
     release: routing
 - dynamic_ip: 1

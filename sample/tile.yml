@@ -301,8 +301,8 @@ packages:
   consumes:
     redis:
       from: redis
-    nats:
-      from: nats
+    nats-tls:
+      from: nats-tls
       deployment: (( ..cf.deployment_name ))
     docker-tcp:
       from: docker
@@ -324,8 +324,8 @@ packages:
   consumes:
     redis:
       from: redis
-    nats:
-      from: nats
+    nats-tls:
+      from: nats-tls
       deployment: (( ..cf.deployment_name ))
   manifest:
     path: resources/app.zip
@@ -442,13 +442,21 @@ packages:
       # label: colocated errand X # Define the errand name to be shown.
       # description: This is an errand description.
       ###############################################################
+    - name: bpm
+      release: bpm
     - name: route_registrar
       release: routing #relies on the fact that docker-bosh adds routing
       consumes:
-        nats:
-          from: nats
+        nats-tls:
+          from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
+      nats:
+        fail_if_using_nats_without_tls: true
+        tls:
+          enabled: true
+          client_cert: "(( .properties.nats_client_cert.cert_pem ))"
+          client_key: "(( .properties.nats_client_cert.private_key_pem ))"
       route_registrar:
         routes:
         - name: runtime_conf_yes
@@ -460,13 +468,21 @@ packages:
     instances: 1
     dynamic_ip: 1
     templates:
+    - name: bpm
+      release: bpm
     - name: route_registrar
       release: routing
       consumes:
-        nats:
-          from: nats
+        nats-tls:
+          from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
+      nats:
+        fail_if_using_nats_without_tls: true
+        tls:
+          enabled: true
+          client_cert: "(( .properties.nats_client_cert.cert_pem ))"
+          client_key: "(( .properties.nats_client_cert.private_key_pem ))"
       route_registrar:
         routes:
         - name: runtime_conf_no

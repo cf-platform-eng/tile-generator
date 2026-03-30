@@ -121,10 +121,10 @@ class VerifyProperties(unittest.TestCase):
 		deploy_all_template = find_by_name(deploy_all_job['templates'], 'deploy-all')
 		self.assertIn('consumes', deploy_all_template)
 		consumes = yaml.safe_load(deploy_all_template['consumes'])
-		self.assertIn('nats', consumes)
-		self.assertIn('from', consumes['nats'])
-		self.assertEqual(consumes['nats'].get('deployment'), '(( ..cf.deployment_name ))')
-		self.assertEqual(consumes['nats'].get('from'), 'nats')
+		self.assertIn('nats-tls', consumes)
+		self.assertIn('from', consumes['nats-tls'])
+		self.assertEqual(consumes['nats-tls'].get('deployment'), '(( ..cf.deployment_name ))')
+		self.assertEqual(consumes['nats-tls'].get('from'), 'nats-tls')
 
 class VerifyConstraints(unittest.TestCase):
 
@@ -162,10 +162,10 @@ class VerifyJobs(unittest.TestCase):
 		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
 		self.assertTrue(os.path.exists(deploy_all_sh_file))
 		deploy_all_sh = read_file(deploy_all_sh_file)
-		self.assertIn(b'NATS_HOST=', deploy_all_sh)
-		self.assertIn(b'NATS_HOSTS=', deploy_all_sh)
-		self.assertIn(b'cf set-env $1 NATS_HOST ', deploy_all_sh)
-		self.assertIn(b'cf set-env $1 NATS_HOSTS ', deploy_all_sh)
+		self.assertIn(b'NATS_TLS_HOST=', deploy_all_sh)
+		self.assertIn(b'NATS_TLS_HOSTS=', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 NATS_TLS_HOST ', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 NATS_TLS_HOSTS ', deploy_all_sh)
 
 	def test_in_deployment_link_in_deploy_all_job(self):
 		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
@@ -189,9 +189,9 @@ class VerifyJobs(unittest.TestCase):
 		deploy_all_sh_file = 'release/jobs/deploy-all/templates/deploy-all.sh.erb'
 		self.assertTrue(os.path.exists(deploy_all_sh_file))
 		deploy_all_sh = read_file(deploy_all_sh_file)
-		self.assertIn(b'NATS_PROPERTIES=', deploy_all_sh)
+		self.assertIn(b'NATS_TLS_PROPERTIES=', deploy_all_sh)
 		self.assertIn(b'REDIS_PROPERTIES=', deploy_all_sh)
-		self.assertIn(b'cf set-env $1 NATS_PROPERTIES ', deploy_all_sh)
+		self.assertIn(b'cf set-env $1 NATS_TLS_PROPERTIES ', deploy_all_sh)
 		self.assertIn(b'cf set-env $1 REDIS_PROPERTIES ', deploy_all_sh)
 
 	def test_consumes_links_in_deploy_all_spec(self):
@@ -200,7 +200,7 @@ class VerifyJobs(unittest.TestCase):
 		spec = read_yaml(deploy_all_spec_file)
 		self.assertIn('consumes', spec)
 		self.assertIsNotNone(find_by_name(spec['consumes'], 'redis'))
-		self.assertIsNotNone(find_by_name(spec['consumes'], 'nats'))
+		self.assertIsNotNone(find_by_name(spec['consumes'], 'nats-tls'))
 		self.assertIsNotNone(find_by_name(spec['consumes'], 'docker-tcp'))
 
 class VerifyRuntimeConfig(unittest.TestCase):

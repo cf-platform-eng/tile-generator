@@ -95,6 +95,13 @@ class TileMetadata(object):
                 'optional': False,
                 'type': 'rsa_cert_credentials'
             })
+            self.tile_metadata['property_blueprints'].append({
+                'configurable': False,
+                'default': {'domains': ['nats.service.cf.internal']},
+                'name': 'nats_client_cert',
+                'optional': False,
+                'type': 'rsa_cert_credentials'
+            })
 
         for service_plan_form in self.config['service_plan_forms']:
             #
@@ -442,13 +449,14 @@ class TileMetadata(object):
                     'single_az_only': False,
                     'static_ip': 1,
                     'templates': [
-                        {'name': 'containers', 'release': 'docker'},
                         {'name': 'docker', 'release': 'docker'},
                         {'name': job.get('type'), 'release': release.get('name')},
-                        {'consumes': 
+                        {'name': 'containers', 'release': 'docker'},
+                        {'name': 'bpm', 'release': 'bpm'},
+                        {'consumes':
                             literal_unicode(
-                                'nats:\n'
-                                '  from: nats\n'
+                                'nats-tls:\n'
+                                '  from: nats-tls\n'
                                 '  deployment: (( ..cf.deployment_name ))\n'
                             ),
                             'name': 'route_registrar',
@@ -474,6 +482,14 @@ class TileMetadata(object):
                         'uris': ['%s.(( ..cf.cloud_controller.system_domain.value ))' % route_name]
                     })
                 release_job_manifest['route_registrar'] = routes
+                release_job_manifest['nats'] = {
+                    'fail_if_using_nats_without_tls': True,
+                    'tls': {
+                        'client_cert': '(( .properties.nats_client_cert.cert_pem ))',
+                        'client_key': '(( .properties.nats_client_cert.private_key_pem ))',
+                        'enabled': True,
+                    },
+                }
 
                 for prop in self.config.get('all_properties'):
                     if 'job' not in prop:
