@@ -237,8 +237,11 @@ function deploy_app() {
 	HEALTH_CHECK="$6"
 	APP_MANIFEST="$7"
 	MANIFEST_FILE="$PACKAGE_PATH/${PKG_NAME}/manifest.yml"
-	echo "${APP_MANIFEST}" > "${MANIFEST_FILE}"
-	STACK="$(get_stack)"
+	echo "{\"applications\":[${APP_MANIFEST}]}" > "${MANIFEST_FILE}"
+	STACK=""
+	if [ -z "$DOCKER_IMAGE" ]; then
+		STACK="$(get_stack)"
+	fi
 	cf push ${APP_NAME} ${DOCKER_IMAGE} -f "${MANIFEST_FILE}" ${STACK} \
 		--no-start --no-route
 	cf map-route ${APP_NAME} ${APP_DOMAIN} --hostname ${APP_HOST}
