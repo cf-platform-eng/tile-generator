@@ -414,10 +414,6 @@ add_target_org_to_admin
 {{ package.deploy | render }}
 {% else %}
 
-{% if package.is_docker_app %}
-if $CF feature-flag diego_docker 2>&1 | grep -q "enabled"; then
-{% endif %}
-
 {% if package.is_app %}
 export PKG_NAME={{ package.name }}
 export APP_NAME={{ package.name | hyphens }}-{{ context.version }}
@@ -462,13 +458,6 @@ export BUILDPACK_ORDER={{ ( 'properties.' + package.name + '.buildpack_order' ) 
 export BUILDPACK_FILE=$PACKAGE_PATH/{{ package.name }}/{{ package.path }}
 push_buildpack "$BUILDPACK_NAME" "$BUILDPACK_ORDER" "$BUILDPACK_FILE"
 {% endif %}
-
-{% if package.is_docker_app %}
-else
-echo "WARNING: Skipping docker app {{ package.name }} because Diego Docker feature flag is not enabled"
-fi
-{% endif %}
-
 
 {% endif %}
 
