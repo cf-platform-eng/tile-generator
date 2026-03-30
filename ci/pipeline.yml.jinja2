@@ -277,7 +277,7 @@ jobs:
       pre: dev
 
 - name: package-tile-generator
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-repo
@@ -371,7 +371,7 @@ jobs:
           - tile-generator-dist/*
 
 - name: install-tile-generator
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-package
@@ -449,7 +449,7 @@ jobs:
       version: ((.:image_version))
 
 - name: build-tile
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
@@ -632,7 +632,7 @@ jobs:
       timeout: 5h
 
 - name: deploy-tile{{ cluster }}
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
