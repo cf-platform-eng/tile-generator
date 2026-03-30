@@ -2120,7 +2120,7 @@
   "releases": {
     "bpm": {
       "name": "bpm",
-      "path": "https://bosh.io/d/github.com/cloudfoundry/bpm-release"
+      "path": "https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.4.26"
     },
     "cf-cli-release": {
       "name": "cf-cli-release",
