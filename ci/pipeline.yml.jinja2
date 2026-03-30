@@ -663,7 +663,9 @@ jobs:
         args:
         - -exc
         - |
-          apt update -y && apt install curl -y
+          apt update -y && apt install curl -y && apt install jq -y
+          pushd ./pcf-environment*
+
           curl -k -o om -L https://github.com/pivotal-cf/om/releases/download/7.20.1/om-linux-amd64-7.20.1
           chmod +x ./om
   
