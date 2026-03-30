@@ -543,7 +543,7 @@ job_types:
       - 8443:8443
       env_file:
       - /var/vcap/jobs/docker-bosh-tg_test_app4/bin/opsmgr.env
-      image: guidowb/sample-cf-app
+      image: mirror.gcr.io/guidowb/sample-cf-app
       name: app
       volumes:
       - /var/vcap/data/certs:/mnt/certs/opsman-certs:ro

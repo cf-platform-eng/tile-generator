@@ -512,20 +512,17 @@ jobs:
   - put: app-docker-image
     params:
       image: docker-image-out/image.tar
-  - get: app-docker-image
-    params:
-      format: oci
   - task: populate-docker-cache
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
-      - name: app-docker-image
+      - name: docker-image-out
       outputs:
       - name: docker-cache
       run:
         path: sh
-        args: [ "-c", 'cp app-docker-image/image.tar docker-cache/guidowb-sample-cf-app.tgz']
+        args: [ "-c", 'cp docker-image-out/image.tar docker-cache/mirror.gcr.io-guidowb-sample-cf-app.tgz']
     on_failure:
       in_parallel:
       - put: slack-alert

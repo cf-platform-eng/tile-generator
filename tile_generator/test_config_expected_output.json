@@ -965,7 +965,7 @@
         }
       ],
       "files": [],
-      "image": "guidowb/sample-cf-app",
+      "image": "mirror.gcr.io/guidowb/sample-cf-app",
       "is_app": true,
       "is_cf": true,
       "is_docker": true,
@@ -994,13 +994,13 @@
     {
       "cpu": 2,
       "docker_images": [
-        "guidowb/sample-cf-app"
+        "mirror.gcr.io/guidowb/sample-cf-app"
       ],
       "ephemeral_disk": 4096,
       "files": [
         {
-          "name": "guidowb-sample-cf-app.tgz",
-          "path": "docker:guidowb/sample-cf-app"
+          "name": "mirror.gcr.io-guidowb-sample-cf-app.tgz",
+          "path": "docker:mirror.gcr.io/guidowb/sample-cf-app"
         }
       ],
       "instances": 1,
@@ -1017,7 +1017,7 @@
             "env_file": [
               "/var/vcap/jobs/docker-bosh-tg_test_app4/bin/opsmgr.env"
             ],
-            "image": "guidowb/sample-cf-app",
+            "image": "mirror.gcr.io/guidowb/sample-cf-app",
             "name": "app",
             "volumes": [
               "/var/vcap/data/certs:/mnt/certs/opsman-certs:ro",
@@ -2697,13 +2697,13 @@
           "package": {
             "cpu": 2,
             "docker_images": [
-              "guidowb/sample-cf-app"
+              "mirror.gcr.io/guidowb/sample-cf-app"
             ],
             "ephemeral_disk": 4096,
             "files": [
               {
-                "name": "guidowb-sample-cf-app.tgz",
-                "path": "docker:guidowb/sample-cf-app"
+                "name": "mirror.gcr.io-guidowb-sample-cf-app.tgz",
+                "path": "docker:mirror.gcr.io/guidowb/sample-cf-app"
               }
             ],
             "instances": 1,
@@ -2720,7 +2720,7 @@
                   "env_file": [
                     "/var/vcap/jobs/docker-bosh-tg_test_app4/bin/opsmgr.env"
                   ],
-                  "image": "guidowb/sample-cf-app",
+                  "image": "mirror.gcr.io/guidowb/sample-cf-app",
                   "name": "app",
                   "volumes": [
                     "/var/vcap/data/certs:/mnt/certs/opsman-certs:ro",
@@ -3080,7 +3080,7 @@
             }
           ],
           "files": [],
-          "image": "guidowb/sample-cf-app",
+          "image": "mirror.gcr.io/guidowb/sample-cf-app",
           "is_app": true,
           "is_cf": true,
           "is_docker": true,
@@ -3109,13 +3109,13 @@
         {
           "cpu": 2,
           "docker_images": [
-            "guidowb/sample-cf-app"
+            "mirror.gcr.io/guidowb/sample-cf-app"
           ],
           "ephemeral_disk": 4096,
           "files": [
             {
-              "name": "guidowb-sample-cf-app.tgz",
-              "path": "docker:guidowb/sample-cf-app"
+              "name": "mirror.gcr.io-guidowb-sample-cf-app.tgz",
+              "path": "docker:mirror.gcr.io/guidowb/sample-cf-app"
             }
           ],
           "instances": 1,
@@ -3132,7 +3132,7 @@
                 "env_file": [
                   "/var/vcap/jobs/docker-bosh-tg_test_app4/bin/opsmgr.env"
                 ],
-                "image": "guidowb/sample-cf-app",
+                "image": "mirror.gcr.io/guidowb/sample-cf-app",
                 "name": "app",
                 "volumes": [
                   "/var/vcap/data/certs:/mnt/certs/opsman-certs:ro",
