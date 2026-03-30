@@ -651,6 +651,35 @@ jobs:
     - get: pcf-environment{{ cluster }}
       passed: [ claim{{ cluster }} ]
       trigger: true
+  {% if '10_3' in cluster %}
+  - task: allow-root-user-in-docker-process
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: pcf-environment{{ cluster }}
+      run:
+        path: bash
+        args:
+        - -exc
+        - |
+          apt update -y && apt install curl -y
+          curl -k -o om -L https://github.com/pivotal-cf/om/releases/download/7.20.1/om-linux-amd64-7.20.1
+          chmod +x ./om
+  
+          pcf om > om_credentials
+          source ./om_credentials
+          
+          CF_GUID=$(pcf curl \
+            /api/v0/staged/products \
+            | jq -r '.[] | select(.type == "cf") | .guid')
+            
+          ./om -k \
+            curl \
+            -x PUT \
+            -p "/api/v0/staged/products/${CF_GUID}/properties" \
+            -d '{"properties":{".properties.cloud_controller_allow_docker_root_user":{"value":true}}}'
+  {% endif %}
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
