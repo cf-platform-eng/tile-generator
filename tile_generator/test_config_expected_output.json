@@ -827,7 +827,7 @@
           "path": "resources/app.zip"
         }
       ],
-      "health_check": "none",
+      "health_check": "process",
       "is_app": true,
       "is_cf": true,
       "manifest": {
@@ -2942,7 +2942,7 @@
               "path": "resources/app.zip"
             }
           ],
-          "health_check": "none",
+          "health_check": "process",
           "is_app": true,
           "is_cf": true,
           "manifest": {
