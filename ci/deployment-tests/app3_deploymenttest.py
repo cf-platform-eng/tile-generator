@@ -27,6 +27,10 @@ class VerifyApp3(unittest.TestCase):
 		self.cfinfo = opsmgr.get_cfinfo()
 		self.hostname = 'tg-test-app3.' + self.cfinfo['apps_domain']
 		self.url = 'http://' + self.hostname
+		try:
+			requests.get(self.url + '/hello', timeout=5)
+		except (requests.ConnectionError, requests.Timeout):
+			self.skipTest('App3 is not running. diego_docker feature flag is likely not enabled')
 
 	def test_responds_to_hello(self):
 		headers = { 'Accept': 'application/json' }
