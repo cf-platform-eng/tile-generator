@@ -301,8 +301,8 @@ packages:
   consumes:
     redis:
       from: redis
-    nats:
-      from: nats
+    nats-tls:
+      from: nats-tls
       deployment: (( ..cf.deployment_name ))
     docker-tcp:
       from: docker
@@ -312,7 +312,7 @@ packages:
     host: tg-test-app2-hostname       # Override hostname, default: app name
     memory: 256M                      # Override memory, default: 1G
     buildpack: https://github.com/cloudfoundry/python-buildpack.git#v1.8.0
-  health_check: none                  # Turn off health monitoring, default: true
+  health_check: process
   auto_services:                      # Auto-provision and bind services
   - name: tg-test-broker1-service     # If using a broker in the same tile, the broker must preceed the app in this file
     plan: first-plan                  # Optionally specify a plan (default is the first plan offered by the service)
@@ -324,8 +324,8 @@ packages:
   consumes:
     redis:
       from: redis
-    nats:
-      from: nats
+    nats-tls:
+      from: nats-tls
       deployment: (( ..cf.deployment_name ))
   manifest:
     path: resources/app.zip
@@ -349,7 +349,7 @@ packages:
 
 - name: tg-test-app3
   type: docker-app
-  image: guidowb/sample-cf-app        # Start command must be specified in the Dockerfile (CMD)
+  image: mirror.gcr.io/guidowb/sample-cf-app        # Start command must be specified in the Dockerfile (CMD)
   manifest:
     memory: 256M                      # Override memory, default: 1G
   auto_services:                      # Auto-provision and bind services
@@ -360,7 +360,7 @@ packages:
 - name: tg-test-app4
   type: docker-bosh
   docker_images:
-  - guidowb/sample-cf-app
+  - mirror.gcr.io/guidowb/sample-cf-app
   cpu: 2
   memory: 512
   ephemeral_disk: 4096
@@ -372,7 +372,7 @@ packages:
   manifest: |
     containers:
     - name: app
-      image: "guidowb/sample-cf-app" # should match the docker image name
+      image: "mirror.gcr.io/guidowb/sample-cf-app" # should match the docker image name
       bind_ports:
       - '80:80'
       - '443:443'
@@ -442,13 +442,21 @@ packages:
       # label: colocated errand X # Define the errand name to be shown.
       # description: This is an errand description.
       ###############################################################
+    - name: bpm
+      release: bpm
     - name: route_registrar
       release: routing #relies on the fact that docker-bosh adds routing
       consumes:
-        nats:
-          from: nats
+        nats-tls:
+          from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
+      nats:
+        fail_if_using_nats_without_tls: true
+        tls:
+          enabled: true
+          client_cert: "(( .properties.nats_client_cert.cert_pem ))"
+          client_key: "(( .properties.nats_client_cert.private_key_pem ))"
       route_registrar:
         routes:
         - name: runtime_conf_yes
@@ -460,13 +468,21 @@ packages:
     instances: 1
     dynamic_ip: 1
     templates:
+    - name: bpm
+      release: bpm
     - name: route_registrar
       release: routing
       consumes:
-        nats:
-          from: nats
+        nats-tls:
+          from: nats-tls
           deployment: (( ..cf.deployment_name ))
     properties:
+      nats:
+        fail_if_using_nats_without_tls: true
+        tls:
+          enabled: true
+          client_cert: "(( .properties.nats_client_cert.cert_pem ))"
+          client_key: "(( .properties.nats_client_cert.private_key_pem ))"
       route_registrar:
         routes:
         - name: runtime_conf_no

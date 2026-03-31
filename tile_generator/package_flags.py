@@ -137,15 +137,19 @@ class DockerBosh(FlagBase):
             'tls_key': '(( .properties.generated_rsa_cert_credentials.private_key_pem ))',
             }
         }]
-        version = None
+        version = '1.4.26'
         version_param = '?v=' + version if version else ''
         config_obj['releases']['docker-boshrelease'] = {
             'name': 'docker-boshrelease',
-            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/docker-boshrelease' + version_param,
+            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/docker-boshrelease',
         }
         config_obj['releases']['routing'] = {
             'name': 'routing',
-            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/cf-routing-release',
+            'path': 'https://bosh.io/d/github.com/cloudfoundry/routing-release',
+        }
+        config_obj['releases']['bpm'] = {
+            'name': 'bpm',
+            'path': 'https://bosh.io/d/github.com/cloudfoundry/bpm-release' + version_param,
         }
 
         packagename = package['name']

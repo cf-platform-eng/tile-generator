@@ -1,4 +1,4 @@
-ARG python3=mirror.gcr.io/python:3-slim
+ARG python3=mirror.gcr.io/python:3.11-slim-bookworm
 
 FROM ${python3}
 

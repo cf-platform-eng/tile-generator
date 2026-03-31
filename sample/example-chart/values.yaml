@@ -1,6 +1,6 @@
 ---
 # image source is https://github.com/cf-platform-eng/pcf-examples/tree/master/src/docker
-image: cfplatformeng/spacebears
+image: mirror.gcr.io/cfplatformeng/spacebears
 imageTag: latest
 
 spacebears:

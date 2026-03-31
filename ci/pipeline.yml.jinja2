@@ -65,8 +65,8 @@ resource_types:
 - name: shepherd
   type: registry-image
   check_every: 4h
-  source:
-    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+  source: 
+    repository: tpe-build-harbor.tanzu.broadcom.net/shepherd/concourse-resource 
     tag: latest
 
 resources:
@@ -166,14 +166,14 @@ resources:
     version_constraint: '>=0.0.0-dev.0'
 
 - name: tile-generator-docker-image
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator-prerelease
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
 
 - name: tile-generator-docker-image-release
-  type: docker-image
+  type: registry-image
   source:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/tanzu-isv-engineering/tile-generator
     username: ((artifactory.production_username))
@@ -185,11 +185,12 @@ resources:
     repository: tas-ecosystem-docker-prod-local.usw1.packages.broadcom.com/partner-engineering/tile-generator-sample-app
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
+    tag: latest
 
 - name: python3-image
   type: registry-image
   source:
-    tag: 3.11-slim
+    tag: 3.11-slim-bookworm
     repository: ((artifactory.registry_mirror))/python
     username: ((artifactory.production_username))
     password: ((artifactory.production_password))
@@ -197,10 +198,10 @@ resources:
 {% endraw %}{% for cluster in clusters %}- name: pcf-environment{{ cluster }}
   type: shepherd
   source:
-    url: ((production_shepherd_api_endpoint))
-    service-account-key: ((production_shepherd_service_key))
+    url: ((production_lvn_shepherd.api_endpoint))
+    service-account-key: ((production_lvn_shepherd.service_key))
     lease:
-      namespace: ((production_shepherd_namespace))
+      namespace: ((production_lvn_shepherd.namespace))
       pool:
         namespace: official
         name: tas{{ cluster }}{% if not loop.last %}
@@ -244,7 +245,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3.11-slim
+          tag: 3.11-slim-bookworm
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -276,7 +277,7 @@ jobs:
       pre: dev
 
 - name: package-tile-generator
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-repo
@@ -294,7 +295,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3.11.4-slim-buster
+          tag: 3.11-slim-bookworm
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -324,6 +325,7 @@ jobs:
               ./pyinstaller/build-binaries.sh
               if [ -z "$SKIP_SDIST" ]; then
                 echo "Building SDist"
+                pip install 'setuptools<69.3'
                 python setup.py sdist
                 # Setuptools normalizes versions and does not support semver.
                 # See https://github.com/pypa/setuptools/issues/308
@@ -369,7 +371,7 @@ jobs:
           - tile-generator-dist/*
 
 - name: install-tile-generator
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-package
@@ -388,7 +390,7 @@ jobs:
         type: registry-image
         source:
           repository: ((artifactory.registry_mirror))/python
-          tag: 3-slim
+          tag: 3.11-slim
           username: ((artifactory.production_username))
           password: ((artifactory.production_password))
       platform: linux
@@ -403,9 +405,10 @@ jobs:
         path: sh
         args:
         - -c
-        - cp tile-generator-package-release/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
-        - mkdir -p image-version-tag
-        - echo "v$(cat version/version)" > image-version-tag/version
+        - |
+          cp tile-generator-package-release/* docker-build-dir/ && cp tile-generator-dockerfile-repo/ci/docker-tile-generator/* docker-build-dir/
+          mkdir -p image-version-tag
+          echo "v$(cat version/version)" > image-version-tag/version
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -446,7 +449,7 @@ jobs:
       version: ((.:image_version))
 
 - name: build-tile
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
@@ -509,20 +512,17 @@ jobs:
   - put: app-docker-image
     params:
       image: docker-image-out/image.tar
-  - get: app-docker-image
-    params:
-      format: oci
   - task: populate-docker-cache
     image: tile-generator-docker-image
     config:
       platform: linux
       inputs:
-      - name: app-docker-image
+      - name: docker-image-out
       outputs:
       - name: docker-cache
       run:
         path: sh
-        args: [ "-c", 'cp app-docker-image/image.tar docker-cache/guidowb-sample-cf-app.tgz']
+        args: [ "-c", 'cp docker-image-out/image.tar docker-cache/mirror.gcr.io-guidowb-sample-cf-app.tgz']
     on_failure:
       in_parallel:
       - put: slack-alert
@@ -632,7 +632,7 @@ jobs:
       timeout: 5h
 
 - name: deploy-tile{{ cluster }}
-  disable_manual_trigger: true
+  disable_manual_trigger: false
   plan:
   - in_parallel:
     - get: tile-generator-docker-image
@@ -651,6 +651,37 @@ jobs:
     - get: pcf-environment{{ cluster }}
       passed: [ claim{{ cluster }} ]
       trigger: true
+  {% if '10_3' in cluster %}
+  - task: allow-root-user-in-docker-process
+    image: tile-generator-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: pcf-environment{{ cluster }}
+      run:
+        path: bash
+        args:
+        - -exc
+        - |
+          apt update -y && apt install curl -y && apt install jq -y
+          pushd ./pcf-environment*
+
+          curl -k -o om -L https://github.com/pivotal-cf/om/releases/download/7.20.1/om-linux-amd64-7.20.1
+          chmod +x ./om
+  
+          pcf om > om_credentials
+          source ./om_credentials
+          
+          CF_GUID=$(pcf curl \
+            /api/v0/staged/products \
+            | jq -r '.[] | select(.type == "cf") | .guid')
+            
+          ./om -k \
+            curl \
+            -x PUT \
+            -p "/api/v0/staged/products/${CF_GUID}/properties" \
+            -d '{"properties":{".properties.cloud_controller_allow_docker_root_user":{"value":true}}}'
+  {% endif %}
   - task: run-deploy-tile
     image: tile-generator-docker-image
     config:
@@ -675,7 +706,7 @@ jobs:
           pushd ../pcf-environment*
           STEMCELL_AVAILABLE=`pcf stemcells`
           popd
-          if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]]; then
+          if [[ $STEMCELL_AVAILABLE == *"stemcell-$STEMCELL_VERSION"*"$STEMCELL_OS"* ]] || [[ $STEMCELL_AVAILABLE == *"$STEMCELL_OS"*-"$STEMCELL_VERSION"* ]]; then
             echo "A stemcell for $STEMCELL_OS version $STEMCELL_VERSION already is in $STEMCELL_AVAILABLE skipping...";
           else
             wget https://bosh.io/stemcells/bosh-google-kvm-$STEMCELL_OS-go_agent -O bosh.io_stemcells
@@ -865,8 +896,9 @@ jobs:
           path: sh
           args:
           - -c
-          - mkdir -p image-version-tag
-          - echo "v$(cat version/version)" > image-version-tag/version
+          - |
+            mkdir -p image-version-tag
+            echo "v$(cat version/version)" > image-version-tag/version
     - file: image-version-tag/version
       load_var: image_version
     - put: tile-generator-docker-image-release
