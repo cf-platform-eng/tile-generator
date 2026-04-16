@@ -2124,7 +2124,7 @@
     },
     "cf-cli-release": {
       "name": "cf-cli-release",
-      "path": "https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=2.7.0"
+      "path": "https://bosh.io/d/github.com/bosh-packages/cf-cli-release?v=2.8.0"
     },
     "docker-boshrelease": {
       "name": "docker-boshrelease",
