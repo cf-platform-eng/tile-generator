@@ -240,6 +240,9 @@ jobs:
   - get: tile-generator-repo
     trigger: true
   - task: run-unit-tests
+    params:
+      # Use Broadcom internal VCFD Artifactory for security compliance
+      PIP_INDEX_URL: "https://packages.vcfd.broadcom.net/artifactory/api/pypi/pypi-virtual/simple"
     config:
       image_resource:
         type: registry-image
@@ -290,6 +293,9 @@ jobs:
       params:
         bump: final
   - task: build-package
+    params:
+      # Use Broadcom internal VCFD Artifactory for security compliance
+      PIP_INDEX_URL: "https://packages.vcfd.broadcom.net/artifactory/api/pypi/pypi-virtual/simple"
     config:
       image_resource:
         type: registry-image
@@ -585,6 +591,9 @@ jobs:
     - get: tile-generator-package-release
       passed: [ build-tile ]
   - task: run-acceptance-tests
+    params:
+      # Use Broadcom internal VCFD Artifactory for security compliance
+      PIP_INDEX_URL: "https://packages.vcfd.broadcom.net/artifactory/api/pypi/pypi-virtual/simple"
     image: tile-generator-docker-image
     config:
       platform: linux
@@ -748,6 +757,9 @@ jobs:
     - get: tile-generator-package-release
       passed: [ deploy-tile{{ cluster }} ]
   - task: run-deployment-tests
+    params:
+      # Use Broadcom internal VCFD Artifactory for security compliance
+      PIP_INDEX_URL: "https://packages.vcfd.broadcom.net/artifactory/api/pypi/pypi-virtual/simple"
     image: tile-generator-docker-image
     config:
       platform: linux

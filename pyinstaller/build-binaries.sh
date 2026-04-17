@@ -35,6 +35,9 @@ function create_venv {
   deactivate >/dev/null 2>&1 || echo ''
   rm -rf $VENV
   echo "Creating a new virtual environment..."
+
+  # Use Broadcom internal VCFD Artifactory for security compliance
+  export PIP_INDEX_URL="https://packages.vcfd.broadcom.net/artifactory/api/pypi/pypi-virtual/simple"
   virtualenv -q -p python3 $VENV
   source $VENV/bin/activate
   # Build for current project. Assumes tile-generator src is up a dir
