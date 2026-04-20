@@ -25,6 +25,9 @@ fi
 
 deactivate >/dev/null 2>&1 || echo ''
 
+# Use Broadcom internal VCFD Artifactory for security compliance
+export PIP_INDEX_URL="https://packages.vcfd.broadcom.net/artifactory/api/pypi/pypi-virtual/simple"
+
 # If there is no venv dir or anything passed to this script
 if [ ! -d "${_VENV}" ] || [ "$1" = "recreate" ]; then
   rm -rf "${_VENV}"
