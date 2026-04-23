@@ -18,6 +18,7 @@ class TileMetadata(object):
     def build(self):
         self._build_base()
         self._build_stemcell_criteria()
+        self._build_git_info()
         self._build_property_blueprints()
         self._build_form_types()
         self._build_job_types()
@@ -45,6 +46,10 @@ class TileMetadata(object):
             base[key] = self.config[key]
 
         self.tile_metadata['base'] = base
+
+    def _build_git_info(self):
+        self.tile_metadata['git_remotes'] = self.config.get('git_remotes')
+        self.tile_metadata['git_sha'] = self.config.get('git_sha')
 
     def _build_stemcell_criteria(self):
         stemcell_criteria = self.config['stemcell_criteria']
