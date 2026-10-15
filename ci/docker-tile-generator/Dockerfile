@@ -6,9 +6,13 @@ RUN apt-get update && \
     apt-get install --yes git wget zip && \
     rm -rf /var/lib/apt/lists/*
 
-RUN wget -q -O- https://api.github.com/repos/cloudfoundry/bosh-cli/releases/latest | grep 'browser_download_url.*linux-amd64' | cut -d '"' -f 4 | xargs wget -q
-RUN mv bosh-cli-*-linux-amd64 /usr/local/bin/bosh
-RUN chmod 755 /usr/local/bin/bosh
+# Resolve the latest tag from the releases/latest redirect instead of the
+# GitHub API, which rate-limits unauthenticated requests from shared CI IPs.
+RUN BOSH_TAG="$(wget -S --spider --max-redirect=0 https://github.com/cloudfoundry/bosh-cli/releases/latest 2>&1 | sed -n 's#^ *Location: .*/releases/tag/\(v[^ ]*\).*#\1#p' | head -1)" && \
+    test -n "${BOSH_TAG}" && \
+    wget -q -O /usr/local/bin/bosh "https://github.com/cloudfoundry/bosh-cli/releases/download/${BOSH_TAG}/bosh-cli-${BOSH_TAG#v}-linux-amd64" && \
+    chmod 755 /usr/local/bin/bosh && \
+    bosh --version
 
 RUN wget -q -O /tmp/cf.tgz https://packages.cloudfoundry.org/stable\?release\=linux64-binary\&version\=v8
 RUN tar -C /tmp -zxf /tmp/cf.tgz
