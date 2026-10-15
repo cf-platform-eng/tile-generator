@@ -117,13 +117,13 @@ def configure_cmd(product, properties_file, strict=False, skip_validation=False,
 @cli.command('settings')
 @click.argument('product', required=False)
 def settings_cmd(product):
-	settings = opsmgr.get('/api/installation_settings').json()
+	settings = opsmgr.get('/api/v0/staged/products').json()
 	if product is not None:
-		settings = [ p for p in settings['products'] if p['identifier'] == product ]
+		settings = [ p for p in settings if p['type'] == product ]
 		if len(settings) < 1:
 			click.echo('No settings found for product %s' % product, err=True)
 			sys.exit(1)
-		settings = settings[0]
+		settings = opsmgr.get('/api/v0/staged/products/' + settings[0]['guid'] + '/properties').json()
 	click.echo(json.dumps(settings, indent=4))
 
 
@@ -160,12 +160,12 @@ def install_cmd(product, version):
 			'name': product,
 			'product_version': version,
 		}
-		opsmgr.post('/api/installation_settings/products', payload)
+		opsmgr.post_json('/api/v0/staged/products', payload)
 	else:
 		payload = {
 			'to_version': version
 		}
-		response = opsmgr.put('/api/installation_settings/products/' + matches[0]['guid'], payload, check=False)
+		response = opsmgr.put_json('/api/v0/staged/products/' + matches[0]['guid'], payload, check=False)
 		if response.status_code == 422:
 			errors = response.json()["errors"]
 			for error in errors:
@@ -179,14 +179,14 @@ def install_cmd(product, version):
 @click.argument('product')
 @click.argument('version', required=False)
 def uninstall_cmd(product, version):
-	products = opsmgr.get('/api/installation_settings/products').json()
+	products = opsmgr.get('/api/v0/staged/products').json()
 	matches = [p for p in products if p['type'] == product]
 	for match in matches:
 		if version and 'product_version' in match:
 			if match['product_version'] == version:
-				opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+				opsmgr.delete('/api/v0/staged/products/' + match['guid'])
 		else:
-			opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+			opsmgr.delete('/api/v0/staged/products/' + match['guid'])
 
 
 @cli.command('delete-unused-products')
@@ -218,12 +218,12 @@ def cleanup_cmd(product):
 	#
 	# Attempt 1 - Delete any uninstalled versions
 	#
-	products = opsmgr.get('/api/installation_settings/products').json()
+	products = opsmgr.get('/api/v0/staged/products').json()
 	matches = [p for p in products if p['type'] == product]
 	for match in matches:
-		click.echo('- attempting to delete %s' % match['name'], err=True)
-		opsmgr.delete('/api/installation_settings/products/' + match['guid'])
-	products = opsmgr.get('/api/installation_settings/products').json()
+		click.echo('- attempting to delete %s' % match['installation_name'], err=True)
+		opsmgr.delete('/api/v0/staged/products/' + match['guid'])
+	products = opsmgr.get('/api/v0/staged/products').json()
 	matches = [p for p in products if p['type'] == product]
 	if len(matches) < 1:
 		sys.exit(0)
@@ -237,7 +237,7 @@ def cleanup_cmd(product):
 	click.echo('- product was deployed, applying changes to uninstall it', err=True)
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
-	products = opsmgr.get('/api/installation_settings/products').json()
+	products = opsmgr.get('/api/v0/staged/products').json()
 	matches = [p for p in products if p['type'] == product]
 	if len(matches) < 1:
 		sys.exit(0)
@@ -250,10 +250,10 @@ def cleanup_cmd(product):
 	opsmgr.disable_errands(product)
 	apply_changes_cmd()
 	click.echo('- uninstalling with disabled errands', err=True)
-	opsmgr.delete('/api/installation_settings/products/' + match['guid'])
+	opsmgr.delete('/api/v0/staged/products/' + match['guid'])
 	apply_changes_cmd()
 	opsmgr.delete('/api/products')
-	products = opsmgr.get('/api/installation_settings/products').json()
+	products = opsmgr.get('/api/v0/staged/products').json()
 	matches = [p for p in products if p['type'] == product]
 	if len(matches) > 0:
 		click.echo('- failed to uninstall', err=True)
