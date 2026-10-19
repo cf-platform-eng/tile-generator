@@ -9,7 +9,7 @@ from . import template
 
 # docker-boshrelease is vendored under docker-boshrelease/ and published as a
 # GitHub release asset of this repo; see docker-boshrelease/README.md.
-DOCKER_BOSHRELEASE_VERSION = '36.1.0'
+DOCKER_BOSHRELEASE_VERSION = '37.0.0'
 DOCKER_BOSHRELEASE_URL = (
     'https://github.com/Broadcom/tile-generator/releases/download/'
     'docker-boshrelease-v{v}/docker-{v}.tgz'.format(v=DOCKER_BOSHRELEASE_VERSION)

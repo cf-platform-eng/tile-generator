@@ -2128,7 +2128,7 @@
     },
     "docker-boshrelease": {
       "name": "docker-boshrelease",
-      "path": "https://github.com/Broadcom/tile-generator/releases/download/docker-boshrelease-v36.1.0/docker-36.1.0.tgz"
+      "path": "https://github.com/Broadcom/tile-generator/releases/download/docker-boshrelease-v37.0.0/docker-37.0.0.tgz"
     },
     "routing": {
       "name": "routing",
