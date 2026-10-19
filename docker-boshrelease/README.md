@@ -3,6 +3,18 @@
 > package and the `swarm-agent`/`swarm-manager` jobs. Releases are cut from this directory and
 > published as GitHub release assets of tile-generator (tags `docker-boshrelease-v*`).
 
+## Releasing
+
+`config/final.yml` uses a local blobstore (`.blobstore/`, gitignored). Seed it from the
+last published tarball, then create the release:
+
+    scripts/seed-from-upstream.sh /path/to/docker-<prev>.tgz
+    bosh -n create-release --final --sha2 --version <new> --tarball releases/docker/docker-<new>.tgz
+
+Commit the `releases/docker/*.yml` and `.final_builds/**/index.yml` changes, publish the
+tarball as GitHub release `docker-boshrelease-v<new>` of tile-generator (not marked latest),
+and bump `DOCKER_BOSHRELEASE_VERSION` in `tile_generator/package_flags.py`.
+
 # Docker deployed by BOSH
 
 If you're already working with Docker images then BOSH is a great way to put them into production. Deploy a complete system on Day 1 and have confidence with Day 2 operational support: resurrection of missing servers, resize host machines, resize disks, update host servers with CVE patches, and much more.

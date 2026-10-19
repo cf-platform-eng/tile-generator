@@ -26,17 +26,19 @@ AUFS_TOOLS_VERSION="20120411"
 echo "Copying aufs-tools ${AUFS_TOOLS_VERSION}..."
 cp -a ${BOSH_COMPILE_TARGET}/docker/${AUFS_TOOLS_PACKAGE}_${AUFS_TOOLS_VERSION}-3_amd64.deb ${BOSH_INSTALL_TARGET}/
 
-# Build Autoconf package
+# Build Autoconf package (compile-time only, used to regenerate bridge-utils'
+# configure). Install it under BOSH_COMPILE_TARGET, not /usr/local.
+AUTOCONF_PREFIX=${BOSH_COMPILE_TARGET}/autoconf-prefix
 echo "Building Autoconf ${AUTOCONF_VERSION}..."
 cd ${BOSH_COMPILE_TARGET}/${AUTOCONF_PACKAGE}-${AUTOCONF_VERSION}
-./configure
+./configure --prefix=${AUTOCONF_PREFIX}
 make -j${CPUS}
 make install
 
 # Build bridge-utils package
 echo "Building bridge-utils ${BRIDGE_UTILS_VERSION}..."
 cd ${BOSH_COMPILE_TARGET}/bridge-utils-${BRIDGE_UTILS_VERSION}
-autoconf
+PATH=${AUTOCONF_PREFIX}/bin:${PATH} autoconf
 ./configure --prefix=${BOSH_INSTALL_TARGET}
 make -j${CPUS}
 make install
