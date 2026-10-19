@@ -77,4 +77,6 @@ builds:
     version: 36.0.0
   f49788e7-1368-4af1-90f7-f747d9c82f61:
     version: "26"
+  f8a87aa5-c33c-4877-73ca-d62b9517d0bb:
+    version: 36.1.0
 format-version: "2"

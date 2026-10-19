@@ -7,6 +7,15 @@ import sys
 from . import template
 
 
+# docker-boshrelease is vendored under docker-boshrelease/ and published as a
+# GitHub release asset of this repo; see docker-boshrelease/README.md.
+DOCKER_BOSHRELEASE_VERSION = '36.1.0'
+DOCKER_BOSHRELEASE_URL = (
+    'https://github.com/Broadcom/tile-generator/releases/download/'
+    'docker-boshrelease-v{v}/docker-{v}.tgz'.format(v=DOCKER_BOSHRELEASE_VERSION)
+)
+
+
 # This could be defined in App flag _apply method but
 # it would be harder to patch for tests
 def _update_compilation_vm_disk_size(manifest):
@@ -139,7 +148,7 @@ class DockerBosh(FlagBase):
         }]
         config_obj['releases']['docker-boshrelease'] = {
             'name': 'docker-boshrelease',
-            'path': 'https://bosh.io/d/github.com/cloudfoundry-incubator/docker-boshrelease',
+            'path': DOCKER_BOSHRELEASE_URL,
         }
         config_obj['releases']['routing'] = {
             'name': 'routing',

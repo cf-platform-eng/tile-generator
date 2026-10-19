@@ -42,7 +42,6 @@ from .version import version_string
 
 LIB_PATH = os.path.dirname(os.path.realpath(__file__))
 REPO_PATH = os.path.realpath(os.path.join(LIB_PATH, '..'))
-DOCKER_BOSHRELEASE_VERSION = '23'
 
 def build(config):
     build_bosh_releases(config)
