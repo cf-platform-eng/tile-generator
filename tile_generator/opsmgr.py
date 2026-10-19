@@ -355,7 +355,7 @@ def ssh(command=None, login_to_bosh=True, quiet=False):
 
 def get_staged_product(product):
 	matches = [ p for p in get('/api/v0/staged/products').json() if p['type'] == product ]
-	return matches[0] if len(matches) > 0 else None
+	return matches[0] if matches else None
 
 def get_products():
 	available_products = get('/api/products').json()
