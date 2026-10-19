@@ -1,0 +1,9 @@
+set -eu
+
+mkdir -p ${BOSH_INSTALL_TARGET}/bin
+
+FLANNEL_PACKAGE=flannel
+FLANNEL_VERSION=0.5.5
+
+tar xvf flannel/${FLANNEL_PACKAGE}-${FLANNEL_VERSION}-linux-amd64.tar.gz
+cp ${FLANNEL_PACKAGE}-${FLANNEL_VERSION}/flanneld ${BOSH_INSTALL_TARGET}/bin

@@ -90,7 +90,7 @@ resources:
 - name: tile-generator-github-prerelease
   type: github-release
   source:
-    user: cf-platform-eng
+    owner: broadcom
     repository: tile-generator
     access_token: ((github.access_token))
     release: false
@@ -99,7 +99,7 @@ resources:
 - name: tile-generator-github-release
   type: github-release
   source:
-    user: cf-platform-eng
+    owner: broadcom
     repository: tile-generator
     access_token: ((github.access_token))
 
@@ -471,6 +471,9 @@ jobs:
     - get: tile-generator-package-release
       passed: [ install-tile-generator ]
   - task: build-sample-apps
+    params:
+      # Use Broadcom internal VCFD Artifactory for security compliance
+      PIP_INDEX_URL: "https://packages.vcfd.broadcom.net/artifactory/api/pypi/pypi-virtual/simple"
     image: tile-generator-docker-image
     config:
       platform: linux

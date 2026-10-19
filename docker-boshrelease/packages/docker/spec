@@ -1,0 +1,7 @@
+---
+name: docker
+dependencies: []
+files:
+  - docker/autoconf-2.69.tar.gz
+  - docker/bridge-utils-1.5.tar.gz
+  - docker/docker-29.9.1.tgz

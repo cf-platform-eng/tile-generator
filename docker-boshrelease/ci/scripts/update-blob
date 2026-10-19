@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -e
+
+BLOB_BINARY=$1
+BLOB_DESTINATION=${2:?Blob Destination required}
+BLOB_PREFIX=$3
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.."; pwd)
+
+pushd ${REPO_ROOT:?required}
+
+cat <<EOF > "config/private.yml"
+---
+blobstore:
+  provider: gcs
+  options:
+    credentials_source: static
+    json_key: '${GCS_JSON_KEY}'
+EOF
+
+blobs_to_remove=$(spruce json config/blobs.yml | jq -r "keys[] | select(test(\"${BLOB_PREFIX}\"))")
+if [[ ! -z $blobs_to_remove ]]; then
+  echo "$blobs_to_remove" | xargs -L1 bosh remove-blob
+fi
+
+# expand ${VERSION} env var into file path
+eval "blob_destination=${BLOB_DESTINATION}"
+bosh add-blob ${BLOB_BINARY} "${blob_destination}"
+bosh -n upload-blobs
+rm config/private.yml
+
+find packages/ -name "spec" | while read file; do
+  sed -i "s|${BLOB_PREFIX}-.*|${BLOB_DESTINATION}|g" $file
+done
+popd

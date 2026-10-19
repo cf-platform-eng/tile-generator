@@ -1,0 +1,64 @@
+#!/bin/bash -eu
+
+ROOT="${PWD}"
+
+function setup_socks5_proxy() {
+  echo "Setup socks5 proxy..."
+  echo "${PROXY_PRIVATE_KEY}" > "${ROOT}/proxy_private_key"
+  chmod 400 proxy_private_key
+  export BOSH_ALL_PROXY="ssh+socks5://${PROXY_USERNAME}@${PROXY_IP}:22?private-key=${ROOT}/proxy_private_key"
+}
+
+function upload_stemcell() {
+  echo "Upload stemcell..."
+  bosh upload-stemcell stemcell/stemcell.tgz
+}
+
+function create_ops_files() {
+cat > /tmp/update_manifest_name.yml <<EOF
+- type: replace
+  path: /name
+  value: ${BOSH_DEPLOYMENT}
+EOF
+cat > /tmp/local-release.yml <<EOF
+- type: replace
+  path: /releases/name=docker
+  value:
+   name: docker
+   version: create
+   url: file://git-docker-boshrelease/.
+EOF
+
+}
+
+function deploy() {
+  echo "Deploy ${MANIFEST_PATH}..."
+  bosh deploy -n "${MANIFEST_PATH}" \
+    -o /tmp/local-release.yml \
+    -o /tmp/update_manifest_name.yml
+}
+
+function run_tests() {
+  echo "Run tests..."
+  bosh -d "${BOSH_DEPLOYMENT}" \
+    run-errand tests
+}
+
+function cleanup() {
+  echo "Cleanup bosh director..."
+  bosh delete-deployment -n --force
+}
+
+function main() {
+  trap cleanup EXIT SIGTERM SIGINT
+  setup_socks5_proxy
+  upload_stemcell
+  create_ops_files
+  deploy
+  if [ ! -z "${RUN_TESTS}" ]; then
+    run_tests
+  fi
+  exit 0
+}
+
+main

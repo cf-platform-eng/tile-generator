@@ -164,10 +164,17 @@ def put(url, payload, check=True):
 	check_response(response, check=check)
 	return response
 
-def put_json(url, payload):
+def put_json(url, payload, check=True):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
 	response = requests.put(url, auth=auth(creds), verify=False, json=payload)
+	check_response(response, check=check)
+	return response
+
+def patch_json(url, payload):
+	creds = get_credentials()
+	url = creds.get('opsmgr').get('url') + url
+	response = requests.patch(url, auth=auth(creds), verify=False, json=payload)
 	check_response(response)
 	return response
 
@@ -178,11 +185,10 @@ def post(url, payload, files=None, check=True):
 	check_response(response, check)
 	return response
 
-def post_yaml(url, filename, payload):
+def post_json(url, payload):
 	creds = get_credentials()
 	url = creds.get('opsmgr').get('url') + url
-	files = { filename: yaml.safe_dump(payload) }
-	response = requests.post(url, auth=auth(creds), verify=False, files=files)
+	response = requests.post(url, auth=auth(creds), verify=False, json=payload)
 	check_response(response)
 	return response
 
@@ -347,12 +353,16 @@ def ssh(command=None, login_to_bosh=True, quiet=False):
 		# Hand the shell off and make it interactive
 		session.interact()
 
+def get_staged_product(product):
+	matches = [ p for p in get('/api/v0/staged/products').json() if p['type'] == product ]
+	return matches[0] if matches else None
+
 def get_products():
 	available_products = get('/api/products').json()
-	installed_products = get('/api/installation_settings').json()['products']
+	installed_products = get('/api/v0/staged/products').json()
 	products = [{
 		'guid': p['guid'],
-		'name': p['identifier'],
+		'name': p['type'],
 		'product_version': p['product_version'],
 		'installed': True,
 	} for p in installed_products ]
@@ -376,72 +386,58 @@ def get_version():
 
 def get_job_guid(job_identifier, jobs_settings):
 	for job in jobs_settings:
-		if job.get('identifier', None) == job_identifier:
+		if job.get('name', None) == job_identifier:
 			return job['guid']
 	print('Warning: Could not find job with identifier', job_identifier, file=sys.stderr)
 	return None
 
 def configure(product, properties, strict=False, skip_validation=False, network=None):
-	settings = get('/api/installation_settings').json()
-	infrastructure = settings['infrastructure']
-	product_settings = [ p for p in settings['products'] if p['identifier'] == product ]
-	if len(product_settings) < 1:
+	product_settings = get_staged_product(product)
+	if product_settings is None:
 		raise Exception('Product {} does not appear to be installed'.format(product))
-	product_settings = product_settings[0]
+	url = '/api/v0/staged/products/' + product_settings['guid']
 	properties = properties if properties is not None else {}
 	#
 	# Make sure Elastic Runtime tile is installed
 	#
-	cf = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
-	if len(cf) < 1:
+	cf = get_staged_product('cf')
+	if cf is None:
 		raise Exception('Required product Elastic Runtime is missing')
 	#
 	# Use the Elastic Runtime stemcell (unless the --strict option was used)
 	#
 	if not strict:
-		if 'stemcell' in cf[0]:
-			stemcell = cf[0]['stemcell']
-		elif 'stemcells' in cf[0]:
-			stemcell = cf[0]['stemcells'][0]
-		elif 'stemcell_ids' in cf[0]:
-			stemcell = cf[0]['stemcell_ids'][0]
-		else:
+		associations = get('/api/v0/stemcell_associations').json()['products']
+		cf_stemcells = ([ a['staged_stemcells'] for a in associations if a['guid'] == cf['guid'] ] + [ [] ])[0]
+		if len(cf_stemcells) < 1:
 			raise Exception("Cannot find cf stemcell to use")
-		print('- Using stemcell id', stemcell)
-		product_settings['stemcell_ids'][0] = stemcell
-		post_yaml('/api/installation_settings', 'installation[file]', settings)
+		stemcell = { k: cf_stemcells[0][k] for k in ('name', 'os', 'version', 'variant') if k in cf_stemcells[0] }
+		print('- Using stemcell', stemcell['os'], stemcell['version'])
+		patch_json('/api/v0/stemcell_associations', {
+			'products': [ { 'guid': product_settings['guid'], 'staged_stemcells': [ stemcell ] } ]
+		})
 	#
-	# Use the first availability zone (skip this for Azure, which doesn't use them)
+	# Use all availability zones (skip this for Azure, which doesn't use them)
 	#
-	availability_zones = infrastructure.get('availability_zones', [])
-	if 'availability_zones' in infrastructure:
-		product_settings['availability_zone_references'] = [ az['guid'] for az in availability_zones ]
-		product_settings['singleton_availability_zone_reference'] = availability_zones[0]['guid']
+	response = get('/api/v0/staged/director/availability_zones', check=False)
+	availability_zones = response.json().get('availability_zones', []) if response.status_code == requests.codes.ok else []
 	#
-	# Insert supplied properties
+	# Check for required properties that are neither set nor supplied
 	#
 	jobs_properties = properties.pop('jobs', {})
 	missing_properties = []
-	for job in product_settings.get('jobs', []):
-		job_properties = jobs_properties.get(job['identifier'], {})
-		for job_property in job.get('properties', []):
-			property_name = job_property['identifier']
-			if property_name == 'app_credentials':
-				# app_credentials are generated in opsmgr; skip.
-				continue
-			if property_name in job_properties:
-				job_property['value'] = job_properties[property_name]
-			else:
-				if job_property.get('value', None) is None:
-					missing_properties.append('.'.join(('jobs', job['identifier'], property_name)))
-	for p in product_settings.get('properties', []):
-		key = p['identifier']
-		value = properties.get(key, None)
-		if value is not None:
-			p['value'] = value
-		else:
-			if p.get('value', None) is None:
-				missing_properties += [ key ]
+	for key, p in get(url + '/properties').json()['properties'].items():
+		if not p.get('configurable', False) or p.get('optional', False) or p.get('value', None) is not None:
+			continue
+		scope, _, name = key[1:].partition('.')
+		if '.' in name or name == 'app_credentials':
+			# Skip selector option properties; app_credentials are generated in opsmgr.
+			continue
+		if scope == 'properties':
+			if properties.get(name, properties.get(key, None)) is None:
+				missing_properties += [ name ]
+		elif name not in jobs_properties.get(scope, {}):
+			missing_properties.append('.'.join(('jobs', scope, name)))
 	if not skip_validation and len(missing_properties) > 0:
 		message = 'Input file is missing required properties:\n'
 		message += '- ' + '\n- '.join(missing_properties)
@@ -455,59 +451,53 @@ def configure(product, properties, strict=False, skip_validation=False, network=
 	#
 	# Default networks if not provided (preserves prior behavior)
 	#
+	networks = get('/api/v0/staged/director/networks').json()['networks']
 	if network is None:
-		network = infrastructure['networks'][0]['name']
-	service_network = ([ n for n in infrastructure['networks'] if n.get('service_network', False) ] + [ None ])[0]
+		network = networks[0]['name']
+	service_network = ([ n for n in networks if n.get('service_network', False) ] + [ None ])[0]
 	if service_network is not None:
 		service_network = service_network['name']
 	#
-	# Update using the appropriate API for the Ops Manager version
+	# Update networks, AZs, properties, and resource config
 	#
-	version = get_version()
-	if version[0] > 1 or (version[0] == 1 and version[1] >= 8):
-		url = '/api/v0/staged/products/' + product_settings['guid']
-		if 'availability_zones' in infrastructure:
-			networks_and_azs = {
-				'networks_and_azs': {
-					'singleton_availability_zone': { 'name': availability_zones[0]['name'] },
-					'other_availability_zones': [ { 'name': az['name'] } for az in availability_zones ],
-					'network': { 'name': network },
-				}
+	if len(availability_zones) > 0:
+		networks_and_azs = {
+			'networks_and_azs': {
+				'singleton_availability_zone': { 'name': availability_zones[0]['name'] },
+				'other_availability_zones': [ { 'name': az['name'] } for az in availability_zones ],
+				'network': { 'name': network },
 			}
-			if service_network is not None:
-				networks_and_azs['networks_and_azs']['service_network'] = { 'name': service_network }
-			put_json(url + '/networks_and_azs', networks_and_azs)
-		scoped_properties = {}
-		resource_config = {}
-		for job, job_properties in jobs_properties.items():
-			if 'resource_config' in job_properties:
-				job_resource_config = job_properties.pop('resource_config')
-				job_guid = get_job_guid(job, product_settings.get('jobs', []))
-				if job_guid is None:
-					continue
-				resource_config[job_guid] = job_resource_config
-			for name, value in job_properties.items():
-				key = '.'.join(('', job, name))
-				scoped_properties[key] = value
-		for key in properties:
-			value = properties[key]
-			if not key.startswith('.'):
-				key = '.properties.' + key
-			scoped_properties[key] = { 'value': value }
-		properties = { 'properties': scoped_properties }
-		put_json(url + '/properties', properties)
-		for job_guid, job_resource_config in resource_config.items():
-			resource_config_url = url + '/jobs/' + job_guid + '/resource_config'
-			merged_job_resource_config = get(resource_config_url).json()
-			merged_job_resource_config.update(job_resource_config)
-			put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
-
-	else:
-		print("PCF version ({}) is unsupported, but we'll give it a try".format('.'.join(str(x) for x in version)))
-		try:
-			post_yaml('/api/installation_settings', 'installation[file]', settings)
-		except:
-			raise Exception('Configuration failed, probably due to incompatible PCF version.')
+		}
+		if service_network is not None:
+			networks_and_azs['networks_and_azs']['service_network'] = { 'name': service_network }
+		put_json(url + '/networks_and_azs', networks_and_azs)
+	scoped_properties = {}
+	resource_config = {}
+	jobs = None
+	for job, job_properties in jobs_properties.items():
+		if 'resource_config' in job_properties:
+			job_resource_config = job_properties.pop('resource_config')
+			if jobs is None:
+				jobs = get(url + '/jobs').json()['jobs']
+			job_guid = get_job_guid(job, jobs)
+			if job_guid is None:
+				continue
+			resource_config[job_guid] = job_resource_config
+		for name, value in job_properties.items():
+			key = '.'.join(('', job, name))
+			scoped_properties[key] = value
+	for key in properties:
+		value = properties[key]
+		if not key.startswith('.'):
+			key = '.properties.' + key
+		scoped_properties[key] = { 'value': value }
+	properties = { 'properties': scoped_properties }
+	put_json(url + '/properties', properties)
+	for job_guid, job_resource_config in resource_config.items():
+		resource_config_url = url + '/jobs/' + job_guid + '/resource_config'
+		merged_job_resource_config = get(resource_config_url).json()
+		merged_job_resource_config.update(job_resource_config)
+		put_json(url + '/jobs/' + job_guid + '/resource_config', merged_job_resource_config)
 
 def get_changes(product = None, deploy_errands = None, delete_errands = None):
 	return build_changes(deploy_errands, delete_errands)
@@ -566,22 +556,20 @@ def build_changes_1_7(product, deploy_errands, delete_errands):
 	return changes
 
 def get_cfinfo():
-	settings = get('/api/installation_settings').json()
-	cf_settings = [ p for p in settings['products'] if p['identifier'] == 'cf' ]
-	if len(cf_settings) < 1:
+	cf = get_staged_product('cf')
+	if cf is None:
 		raise Exception('Elastic Runtime is not installed')
-	cf_settings = cf_settings[0]
-	jobs = cf_settings['jobs']
-	cc_properties = [ j for j in jobs if j['identifier'] == 'cloud_controller' ][0]['properties']
-	system_domain = [ p for p in cc_properties if p['identifier'] == 'system_domain' ][0]['value']
-	apps_domain = [ p for p in cc_properties if p['identifier'] == 'apps_domain' ][0]['value']
-	uaa_properties = [ j for j in jobs if j['identifier'] == 'uaa' ][0]['properties']
-	admin_credentials = [ c for c in uaa_properties if c['identifier'] == 'admin_credentials' ][0]['value']
-	system_services_credentials = [ c for c in uaa_properties if c['identifier'] == 'system_services_credentials' ][0]['value']
+	cc_properties = get('/api/v0/staged/products/' + cf['guid'] + '/properties').json()['properties']
+	system_domain = cc_properties['.cloud_controller.system_domain']['value']
+	apps_domain = cc_properties['.cloud_controller.apps_domain']['value']
+	credentials_url = '/api/v0/deployed/products/' + cf['guid'] + '/credentials/'
+	admin_credentials = get(credentials_url + '.uaa.admin_credentials').json()['credential']['value']
+	system_services_credentials = get(credentials_url + '.uaa.system_services_credentials').json()['credential']['value']
 	return {
 		'system_domain': system_domain,
 		'apps_domain': apps_domain,
-		'schema_version': settings.get("installation_schema_version"),
+		# The installation schema version is not exposed by the v0 API; the Ops Manager version serves the same purpose for callers
+		'schema_version': get('/api/v0/info').json()['info']['version'],
 		'admin_username': admin_credentials['identity'],
 		'admin_password': admin_credentials.get('password', None),
 		'system_services_username': system_services_credentials['identity'],

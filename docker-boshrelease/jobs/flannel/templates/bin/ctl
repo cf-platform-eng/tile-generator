@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+# Setup env vars and folders for the webapp_ctl script
+source /var/vcap/jobs/flannel/helpers/ctl_setup.sh 'flannel'
+
+export PORT=${PORT:-5000}
+export LANG=en_US.UTF-8
+
+case $1 in
+
+  start)
+    pid_guard $PIDFILE $JOB_NAME
+
+    # store pid in $PIDFILE
+    echo $$ > $PIDFILE
+
+    mkdir -p /dev/net
+    mknod /dev/net/tun c 10 200 || true
+
+    <% if_p('ip-range') do |range| %>
+    curl -XPUT http://<%= p('apiserver.ip') %>:4001/v2/keys/coreos.com/network/config \
+      -d value='{"Network": "<%= range %>"}'
+    <% end %>
+
+    exec /var/vcap/packages/flannel/bin/flanneld \
+      -etcd-endpoints="http://<%= properties.apiserver.ip %>:4001" \
+      >>$LOG_DIR/$JOB_NAME.log 2>&1
+
+    ;;
+
+  stop)
+    kill_and_wait $PIDFILE
+
+    ;;
+  *)
+    echo "Usage: flannel_ctl {start|stop}"
+
+    ;;
+
+esac
+exit 0

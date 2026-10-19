@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+
+#
+# Containers properties
+#
+
+# Directory to store the Containers configuration files
+export CONTAINERS_CONF_DIR=${JOB_DIR}/config
+
+# Directory to store the Containers logs
+export CONTAINERS_LOG_DIR=${LOG_DIR}
+
+# Directory to store the Containers process IDs
+export CONTAINERS_PID_DIR=${RUN_DIR}
+
+# Directory to store the Containers temp files
+export CONTAINERS_TMP_DIR=${TMP_DIR}
+
+# Docker command
+export DOCKER_COMMAND="/var/vcap/packages/docker/bin/docker -H unix:///var/vcap/sys/run/docker/docker.sock"
+
+<% p('containers', []).each do |container| %>
+#
+# "<%= container['name'] %>" properties
+#
+
+# Name of the Docker image to create/run
+export <%= container['name'] %>_image="<%= container['image'] %>"
+
+# Directory to store the Containers data files
+export CONTAINERS_STORE_DIR=<%= container['store_dir'] || '/var/vcap/store' %>/${JOB_NAME}
+export STORE_DIR=${CONTAINERS_STORE_DIR}
+
+<% if container['command'] %>
+# Command to the run (including arguments)
+export <%= container['name'] %>_command="<%= container['command'] %>"
+<% end %>
+
+<% if container['blkio_weight'] %>
+# Block IO (relative weight)
+export <%= container['name'] %>_blkio_weight="--blkio-weight=<%= container['blkio_weight'] %>"
+<% end %>
+
+<% unless container['cap_adds'].nil? || container['cap_adds'].empty? %>
+# Set Linux capabilities to add
+export <%= container['name'] %>_cap_adds="<%= Array(container['cap_adds']).join(',').split(',').map { |cap_add| "--cap-add=#{cap_add}" }.join(' ') %>"
+<% end %>
+
+<% unless container['cap_drops'].nil? || container['cap_drops'].empty? %>
+# Set Linux capabilities to drop
+export <%= container['name'] %>_cap_drops="<%= Array(container['cap_drops']).join(',').split(',').map { |cap_drop| "--cap-drop=#{cap_drop}" }.join(' ') %>"
+<% end %>
+
+<% if container['cpu_period'] %>
+# CPU CFS (Completely Fair Scheduler) period limit
+export <%= container['name'] %>_cpu_period="--cpu-period=<%= container['cpu_period'] %>"
+<% end %>
+
+<% if container['cpu_quota'] %>
+# CPU CFS (Completely Fair Scheduler) quota limit
+export <%= container['name'] %>_cpu_quota="--cpu-quota=<%= container['cpu_quota'] %>"
+<% end %>
+
+<% if container['cpu_shares'] %>
+# CPU shares (relative weight)
+export <%= container['name'] %>_cpu_shares="--cpu-shares=<%= container['cpu_shares'] %>"
+<% end %>
+
+<% unless container['devices'].nil? || container['devices'].empty? %>
+# Host devices to add to the container
+export <%= container['name'] %>_devices="<%= Array(container['devices']).join(',').split(',').map { |device| "--device=#{device}" }.join(' ') %>"
+<% end %>
+
+# Skip image verification
+export <%= container['name'] %>_disable_content_trust="--disable-content-trust=<%= container.has_key?('disable_content_trust') ? container['disable_content_trust'] : true %>"
+
+<% unless container['dns'].nil? || container['dns'].empty? %>
+# Set custom DNS servers
+export <%= container['name'] %>_dns="<%= Array(container['dns']).join(',').split(',').map { |server| "--dns=#{server}" }.join(' ') %>"
+<% end %>
+
+<% unless container['dns_options'].nil? || container['dns_options'].empty? %>
+# Set DNS options
+export <%= container['name'] %>_dns_options="<%= Array(container['dns_options']).join(',').split(',').map { |option| "--dns-opt=#{option}" }.join(' ') %>"
+<% end %>
+
+<% unless container['dns_search'].nil? || container['dns_search'].empty? %>
+# Set custom DNS search domains
+export <%= container['name'] %>_dns_search="<%= Array(container['dns_search']).join(',').split(',').map { |domain| "--dns-search=#{domain}" }.join(' ') %>"
+<% end %>
+
+<% if container['entrypoint'] %>
+# Overwrite the default entrypoint set by the image
+export <%= container['name'] %>_entrypoint="--entrypoint=<%= container['entrypoint'] %>"
+<% end %>
+
+<% unless container['env_file'].nil? || container['env_file'].empty? %>
+# Set environment variables files
+export <%= container['name'] %>_env_file="<%= Array(container['env_file']).join(',').split(',').map { |file| "--env-file #{file}" }.join(' ') %>"
+<% end %>
+
+<% unless container['env_vars'].nil? || container['env_vars'].empty? %>
+# Set environment variables
+export <%= container['name'] %>_env="<%= Array(container['env_vars']).join(',').split(',').map { |var| "--env #{var}" }.join(' ') %>"
+<% end %>
+
+<% unless container['expose_ports'].nil? || container['expose_ports'].empty? %>
+# Expose a port from the container without publishing it to your host
+export <%= container['name'] %>_expose="<%= Array(container['expose_ports']).join(',').split(',').map { |ports| "--expose=#{ports}" }.join(' ') %>"
+<% end %>
+
+<% unless container['group_adds'].nil? || container['group_adds'].empty? %>
+# Additional groups to join
+export <%= container['name'] %>_lgroup_adds="<%= Array(container['group_adds']).join(',').split(',').map { |group| "--group-add=#{group}" }.join(' ') %>"
+<% end %>
+
+<% if container['hostname'] %>
+# Container host name
+export <%= container['name'] %>_hostname="--hostname=<%= container['hostname'] %>"
+<% end %>
+
+<% if container['kernel_memory'] %>
+# Kernel memory limit
+export <%= container['name'] %>_kernel_memory="--kernel-memory=<%= container['kernel_memory'] %>"
+<% end %>
+
+<% unless container['labels'].nil? || container['labels'].empty? %>
+# Set meta data on a container
+export <%= container['name'] %>_labels="<%= Array(container['labels']).join(',').split(',').map { |label| "--label=#{label}" }.join(' ') %>"
+<% end %>
+
+<% unless container['links'].nil? || container['links'].empty? %>
+# Add link to another container (name:alias)
+export <%= container['name'] %>_links="<%= Array(container['links']).join(',').split(',').map { |link| "--link=#{link}" }.join(' ') %>"
+<% end %>
+
+<% if container['log_driver'] %>
+# Log driver for the container
+export <%= container['name'] %>_log_driver="--log-driver=<%= container['log_driver'] %>"
+<% end %>
+
+<% unless container['log_options'].nil? || container['log_options'].empty? %>
+# Log driver options
+export <%= container['name'] %>_log_options="<%= Array(container['log_options']).join(',').split(',').map { |log_option| "--log-opt=#{log_option}" }.join(' ') %>"
+<% end %>
+
+<% unless container['lxc_options'].nil? || container['lxc_options'].empty? %>
+# Custom lxc options
+export <%= container['name'] %>_lxc_options="<%= Array(container['lxc_options']).join(',').split(',').map { |lxc_option| "--lxc-conf=#{lxc_option}" }.join(' ') %>"
+<% end %>
+
+<% if container['mac_address'] %>
+# Container MAC address
+export <%= container['name'] %>_mac_address="--mac-address=<%= container['mac_address'] %>"
+<% end %>
+
+<% if container['memory'] %>
+# Memory limit
+export <%= container['name'] %>_memory="--memory=<%= container['memory'] %>"
+<% end %>
+
+<% if container['memory_reservation'] %>
+# Memory soft limit
+export <%= container['name'] %>_memory_reservation="--memory-reservation=<%= container['memory_reservation'] %>"
+<% end %>
+
+<% if container['memory_swap'] %>
+# Total memory usage (memory + swap)
+export <%= container['name'] %>_memory_swap="--memory-swap=<%= container['memory_swap'] %>"
+<% end %>
+
+<% if container['memory_swappiness'] %>
+# Tuning container memory swappiness
+export <%= container['name'] %>_memory_swappiness="--memory-swappiness=<%= container['memory_swappiness'] %>"
+<% end %>
+
+<% if container['net'] %>
+# Set the network for the container
+export <%= container['name'] %>_net="--net=<%= container['net'] %>"
+<% end %>
+
+# Disable OOM Killer
+export <%= container['name'] %>_oom_kill_disable="--oom-kill-disable=<%= container.has_key?('oom_kill_disable') ? container['oom_kill_disable'] : false %>"
+
+# Give extended privileges to this container
+export <%= container['name'] %>_privileged="--privileged=<%= container.has_key?('privileged') ? container['privileged'] : false %>"
+
+<% unless container['bind_ports'].nil? || container['bind_ports'].empty? %>
+# Map a network port to the container
+export <%= container['name'] %>_publish="<%= Array(container['bind_ports']).join(',').split(',').map { |ports| "--publish=#{ports.strip}" }.join(' ') %>"
+<% end %>
+
+# Mount the container's root filesystem as read only
+export <%= container['name'] %>_read_only="--read-only=<%= container.has_key?('read_only') ? container['read_only'] : false %>"
+
+<% if container['restart'] %>
+# Restart policy to apply when a container exits
+export <%= container['name'] %>_restart="--restart=<%= container['restart'] %>"
+<% end %>
+
+<% unless container['security_options'].nil? || container['security_options'].empty? %>
+# Security Options
+export <%= container['name'] %>_security_options="<%= Array(container['security_options']).join(',').split(',').map { |securityoption| "--security-opt=#{security_option}" }.join(' ') %>"
+<% end %>
+
+<% if container['stop_signal'] %>
+# Signal to stop a container, SIGTERM by default
+export <%= container['name'] %>_stop_signal="--stop-signal=<%= container['stop_signal'] %>"
+<% end %>
+
+<% unless container['ulimits'].nil? || container['ulimits'].empty? %>
+# Set Ulimit options
+export <%= container['name'] %>_ulimits="<%= Array(container['ulimits']).join(',').split(',').map { |ulimit| "--ulimit=#{ulimit}" }.join(' ') %>"
+<% end %>
+
+<% if container['user'] %>
+# Username or UID to run the first process
+export <%= container['name'] %>_user="--user=<%= container['user'] %>"
+<% end %>
+
+<% unless container['volumes'].nil? || container['volumes'].empty? %>
+# Bind mount a volume
+export <%= container['name'] %>_volumes="<%= Array(container['volumes']).join(',').split(',').map { |vol| "--volume=#{vol}" }.join(' ') %>"
+<% end %>
+
+<% unless container['bind_volumes'].nil? || container['bind_volumes'].empty? %>
+# Create a bind mount to a directory
+export <%= container['name'] %>_bind_volumes="<%= Array(container['bind_volumes']).join(',').split(',').map { |vol| "--volume=${CONTAINERS_STORE_DIR}/#{container['name']}:#{vol}" }.join(' ') %>"
+<% end %>
+
+<% unless container['volumes_from'].nil? || container['volumes_from'].empty? %>
+# Mount volumes from the specified container(s)
+export <%= container['name'] %>_volumes_from="<%= Array(container['volumes_from']).join(',').split(',').map { |container| "--volumes-from=#{container}" }.join(' ') %>"
+<% end %>
+
+<% if container['volume_driver'] %>
+# Volume driver for the container
+export <%= container['name'] %>_volume_driver="--volume-driver=<%= container['volume_driver'] %>"
+<% end %>
+
+<% if container['workdir'] %>
+# Working directory inside the container
+export <%= container['name'] %>_workdir="--workdir=<%= container['workdir'] %>"
+<% end %>
+
+<% if container['dockerfile'] %>
+# Dockerfile
+mkdir -p "${CONTAINERS_CONF_DIR}"/<%= container['name'] %>
+cat > "${CONTAINERS_CONF_DIR}"/<%= container['name'] %>/Dockerfile <<DOCKERFILE
+<%= container['dockerfile'] %>
+DOCKERFILE
+<% end %>
+<% end %>

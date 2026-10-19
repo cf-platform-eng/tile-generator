@@ -1,0 +1,73 @@
+> Vendored copy of [cloudfoundry-incubator/docker-boshrelease](https://github.com/cloudfoundry-incubator/docker-boshrelease)
+> at tag `v36.0.2` (commit `08f29450239307b2d17152234e385b2b22d38f98`), without the `swarm`
+> package and the `swarm-agent`/`swarm-manager` jobs. Releases are cut from this directory and
+> published as GitHub release assets of tile-generator (tags `docker-boshrelease-v*`).
+> From 37.0.0 the `docker` package ships Docker 29.9.1 and no longer includes aufs-tools.
+
+## Releasing
+
+`config/final.yml` uses a local blobstore (`.blobstore/`, gitignored). Seed it from the
+last published tarball, then create the release:
+
+    scripts/seed-from-upstream.sh /path/to/docker-<prev>.tgz
+    bosh -n create-release --final --sha2 --version <new> --tarball releases/docker/docker-<new>.tgz
+
+To replace a blob first: `bosh add-blob <file> docker/<name>`, `bosh remove-blob docker/<old>`,
+update `packages/docker/spec`, then `bosh -n upload-blobs` (writes `.blobstore/` and
+`config/blobs.yml`).
+
+Commit the `releases/docker/*.yml` and `.final_builds/**/index.yml` changes, publish the
+tarball as GitHub release `docker-boshrelease-v<new>` of tile-generator (not marked latest),
+and bump `DOCKER_BOSHRELEASE_VERSION` in `tile_generator/package_flags.py`.
+
+# Docker deployed by BOSH
+
+If you're already working with Docker images then BOSH is a great way to put them into production. Deploy a complete system on Day 1 and have confidence with Day 2 operational support: resurrection of missing servers, resize host machines, resize disks, update host servers with CVE patches, and much more.
+
+This BOSH release can help. See an example below of a host machine running several Docker containers, all backed by a persistent disk. Also see how to add a `bosh.yml` deployment file to your `Dockerfile` repository to make life easy for your users.
+
+It can also be used to dynamically provision Docker containers running databases and message buses with an API that is [Open Service Broker API](https://www.openservicebrokerapi.org/) compatible. See the [cf-containers-broker-boshrelease](https://github.com/cloudfoundry-community/cf-containers-broker-boshrelease) for more information.
+
+Finally, you can deploy & manage a cluster of Docker Swarm nodes.
+
+Related links:
+
+* [CI](https://ci-ohio.starkandwayne.com/teams/cfcommunity/pipelines/docker-boshrelease)
+* [cf-containers-broker-boshrelease](https://github.com/cloudfoundry-community/cf-containers-broker-boshrelease) * [docker-broker-deployment](https://github.com/cloudfoundry-community/docker-broker-deployment)
+
+## Initialize Project
+
+There is a submodule for Swarm that needs to be initialized:
+
+`git submodule update --init --recursive`
+
+## Static set of containers on a VM
+
+Run a static set of Docker containers, backed by a persistent disk:
+
+![ctop-example](manifests/containers/ctop-example.png)
+
+See [`manifests/README.md`](manifests/README.md) for deployment instructions.
+
+### Pair your Dockerfile with a `bosh-service.yml`
+
+Make it super easy for your users to deploy your Docker image upon BOSH by including a `bosh-service.yml` file in the same repo.
+
+Known repos that include a BOSH manifest:
+
+* [`frodenas/docker-redis`](https://github.com/frodenas/docker-redis#deploy-the-image-with-bosh)
+* [`frodenas/docker-postgresql`](https://github.com/frodenas/docker-postgresql#deploy-the-image-with-bosh)
+
+For example:
+
+```
+git clone https://github.com/frodenas/docker-redis
+cd docker-redis
+bosh2 deploy bosh-redis.yml --vars-store creds.yml
+```
+
+## Docker Swarm
+
+Deploy and manage a cluster of Docker Swarm.
+
+See [`manifests/README.md`](manifests/README.md) for deployment instructions.
