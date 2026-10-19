@@ -1,0 +1,9 @@
+---
+final_name: docker
+blobstore:
+  provider: local
+  options:
+    # Resolved relative to this directory by the bosh CLI. Seed it from the last
+    # published release tarball (scripts/seed-from-upstream.sh) before running
+    # `bosh create-release --final`.
+    blobstore_path: .blobstore

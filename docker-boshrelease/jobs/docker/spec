@@ -1,0 +1,153 @@
+---
+name: docker
+
+packages:
+  - bosh-helpers
+  - docker
+  - ctop
+  - docker-registry-certs
+
+templates:
+  bin/cgroupfs-mount: bin/cgroupfs-mount
+  bin/ctl: bin/ctl
+  bin/envrc: bin/envrc
+  bin/setup-user-env: bin/setup-user-env
+  bin/job_properties.sh.erb: bin/job_properties.sh
+  config/docker.cacert.erb: config/docker.cacert
+  config/docker.cert.erb: config/docker.cert
+  config/docker.key.erb: config/docker.key
+  config/docker_registry_certs.erb: config/docker_registry_certs
+
+provides:
+- name: docker
+  type: docker-tcp
+  properties:
+  - tcp_port
+  - tls_cacert
+  - tls_cert
+  - tls_key
+
+properties:
+  tcp_address:
+    description: "TCP address where Docker daemon will listen to (if not set, TCP will not be available)"
+    default: "127.0.0.1"
+  tcp_port:
+    description: "TCP port where Docker daemon will listen to (if not set, TCP will not be available)"
+    default: "4243"
+
+  tls_cacert:
+    description: "Trust only remotes providing a certificate signed by the CA given here, if tcp_address not 127.0.0.1"
+  tls_cert:
+    description: "TLS certificate file, if tcp_address not 127.0.0.1"
+  tls_key:
+    description: "TLS key file, if tcp_address not 127.0.0.1"
+
+  bridge:
+    description: "Name of the network bridge to attach containers (defaults to docker0)"
+  cidr_prefix:
+    description: "CIDR notation prefix (first 2 octets) for the network bridges IP"
+  debug:
+    description: "Enable debug mode"
+    default: false
+  default_gateway:
+    description: "Container default gateway IPv4 address"
+  default_gateway_v6:
+    description: "Container default gateway IPv6 address"
+  default_ulimits:
+    description: "Array of default ulimits for containers"
+  dns_servers:
+    description: "Array of DNS servers to be used"
+  dns_options:
+    description: "Array of DNS options to be used"
+  dns_search:
+    description: "Array of DNS search domains to be used"
+  exec_options:
+    description: "Array of exec driver options"
+  icc:
+    description: "Allow unrestricted inter-container and Docker daemon host communication"
+    default: true
+  insecure_registries:
+    description: "Array of insecure registries (no certificate verification for HTTPS and enable HTTP fallback)"
+  ip:
+    description: "Default IP when binding container ports"
+  ip_forward:
+    description: "Enable net.ipv4.ip_forward and IPv6 forwarding"
+    default: true
+  ip_masq:
+    description: "Enable IP masquerading"
+    default: true
+  iptables:
+    description: "Enable Docker's addition of iptables rules"
+    default: true
+  ipv6:
+    description: "Enable IPv6 networking"
+    default: false
+  labels:
+    description: "Array of key=value labels for the daemon"
+  live_restore:
+    description: "Keep containers running if the daemon becomes unavailable"
+    default: false
+  log_level:
+    description: "Set the logging level (debug, info, warn, error, fatal)"
+    default: "info"
+  log_driver:
+    description: "Default driver for container logs"
+  log_options:
+    description: "Array of log driver options"
+  mtu:
+    description: "Set the containers network MTU (if no value is provided: default to the default route MTU or 1500 if no default route is available)"
+  registry_mirrors:
+    description: "Array of preferred Docker registry mirrors"
+  selinux_enable:
+    description: "Enable selinux support"
+    default: false
+  storage_driver:
+    description: "Use a specific storage driver"
+    default: "overlay2"
+  storage_options:
+    description: "Array of storage driver options"
+  shared_mounts_enable:
+    description: "Enable shared_mounts"
+    default: false
+
+  userland_proxy:
+    description: "Use userland proxy for loopback traffic"
+    default: true
+  ulimit.nofile:
+    description: "Maximum number of open files"
+    default: 8192
+
+  vm.max_map_count:
+    description: "If set, sets vm.max_map_count on VM"
+    default: ""
+
+  flannel:
+    description: "Enable flannel support"
+    default: false
+
+  registry_ca_cert:
+    description: |
+      Array of domain names and certificates used to securely communicate with a private docker registry
+    example:
+      registry_ca_cert:
+        - domain_name: |
+            "mydockerregistrydomain.com"
+          ca_cert: |
+            -----BEGIN CERTIFICATE-----
+            -----END CERTIFICATE-----
+        - domain_name: |
+            "mydockerregistrydomain2.com"
+          ca_cert: |
+            -----BEGIN CERTIFICATE-----
+            -----END CERTIFICATE-----
+    default: []
+  env.http_proxy:
+    description: "HTTP proxy that Docker should use"
+  env.https_proxy:
+    description: "HTTPS proxy that Docker should use"
+  env.no_proxy:
+    description: "List of comma-separated hosts that Docker should skip connecting to the proxy"
+
+  store_dir:
+    description: "Path to use as the root of the Docker runtime"
+    default: "/var/vcap/store"

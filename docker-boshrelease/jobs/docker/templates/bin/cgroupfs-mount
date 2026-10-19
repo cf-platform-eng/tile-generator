@@ -1,0 +1,49 @@
+#!/bin/sh
+
+set -e
+
+if grep -v '^#' /etc/fstab | grep -q cgroup || [ ! -e /proc/cgroups ] || [ ! -d /sys/fs/cgroup ]; then
+  mkdir -p /sys/fs/cgroup
+fi
+
+if ! mountpoint -q /sys/fs/cgroup; then
+  mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
+fi
+
+(
+  cd /sys/fs/cgroup
+  if grep -q warden /var/vcap/bosh/etc/infrastructure; then
+    for sys in $(awk -F: '{print $2}' /proc/self/cgroup); do
+      if [ $(echo $sys | grep -c ',') -gt 0 ]
+      then
+        for cgroup in $(echo $sys | sed 's/,/\n/'); do
+          mkdir -p $cgroup
+          if ! mountpoint -q $cgroup; then
+            if ! mount -n -t cgroup -o $sys cgroup $cgroup; then
+              rmdir $cgroup || true
+            fi
+          fi
+        done
+      else
+        cgroup=$(echo $sys | sed 's/name=//')
+        mkdir -p $cgroup
+        if ! mountpoint -q $sys; then
+          if ! mount -n -t cgroup -o $sys cgroup $cgroup; then
+            rmdir $cgroup || true
+          fi
+        fi
+      fi
+    done
+  else
+    for sys in $(awk '!/^#/ { if ($4 == 1) print $1 }' /proc/cgroups); do
+      mkdir -p $sys
+      if ! mountpoint -q $sys; then
+        if ! mount -n -t cgroup -o $sys cgroup $sys; then
+          rmdir $sys || true
+        fi
+      fi
+    done
+  fi
+)
+
+exit 0

@@ -1,0 +1,9 @@
+set -eu
+
+mkdir -p $BOSH_INSTALL_TARGET/bin
+
+CTOP_PACKAGE="ctop"
+CTOP_VERSION="0.5.1"
+
+cp ctop/$CTOP_PACKAGE-$CTOP_VERSION-linux-amd64 $BOSH_INSTALL_TARGET/bin/ctop
+chmod +x $BOSH_INSTALL_TARGET/bin/ctop

@@ -1,0 +1,5 @@
+set -eu
+
+# Copy Bosh Helpers package
+echo "Copying Bosh Helpers..."
+cp -a ${BOSH_COMPILE_TARGET}/bosh-helpers/* ${BOSH_INSTALL_TARGET}/
