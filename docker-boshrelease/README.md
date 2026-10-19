@@ -2,6 +2,7 @@
 > at tag `v36.0.2` (commit `08f29450239307b2d17152234e385b2b22d38f98`), without the `swarm`
 > package and the `swarm-agent`/`swarm-manager` jobs. Releases are cut from this directory and
 > published as GitHub release assets of tile-generator (tags `docker-boshrelease-v*`).
+> From 37.0.0 the `docker` package ships Docker 29.9.1 and no longer includes aufs-tools.
 
 ## Releasing
 
@@ -10,6 +11,10 @@ last published tarball, then create the release:
 
     scripts/seed-from-upstream.sh /path/to/docker-<prev>.tgz
     bosh -n create-release --final --sha2 --version <new> --tarball releases/docker/docker-<new>.tgz
+
+To replace a blob first: `bosh add-blob <file> docker/<name>`, `bosh remove-blob docker/<old>`,
+update `packages/docker/spec`, then `bosh -n upload-blobs` (writes `.blobstore/` and
+`config/blobs.yml`).
 
 Commit the `releases/docker/*.yml` and `.final_builds/**/index.yml` changes, publish the
 tarball as GitHub release `docker-boshrelease-v<new>` of tile-generator (not marked latest),

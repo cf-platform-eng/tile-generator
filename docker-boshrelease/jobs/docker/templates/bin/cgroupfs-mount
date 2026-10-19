@@ -2,6 +2,11 @@
 
 set -e
 
+# cgroup v2 (unified hierarchy): nothing to mount.
+if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
+  exit 0
+fi
+
 if grep -v '^#' /etc/fstab | grep -q cgroup || [ ! -e /proc/cgroups ] || [ ! -d /sys/fs/cgroup ]; then
   mkdir -p /sys/fs/cgroup
 fi

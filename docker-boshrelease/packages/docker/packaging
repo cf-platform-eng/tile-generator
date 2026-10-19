@@ -21,11 +21,6 @@ if [[ $? != 0 ]] ; then
   exit 1
 fi
 
-AUFS_TOOLS_PACKAGE="aufs-tools"
-AUFS_TOOLS_VERSION="20120411"
-echo "Copying aufs-tools ${AUFS_TOOLS_VERSION}..."
-cp -a ${BOSH_COMPILE_TARGET}/docker/${AUFS_TOOLS_PACKAGE}_${AUFS_TOOLS_VERSION}-3_amd64.deb ${BOSH_INSTALL_TARGET}/
-
 # Build Autoconf package (compile-time only, used to regenerate bridge-utils'
 # configure). Install it under BOSH_COMPILE_TARGET, not /usr/local.
 AUTOCONF_PREFIX=${BOSH_COMPILE_TARGET}/autoconf-prefix
