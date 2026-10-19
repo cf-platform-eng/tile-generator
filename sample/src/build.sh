@@ -32,7 +32,9 @@ RESOURCES_DIR="$( cd "${SAMPLE_DIR}/resources" && pwd )"
 
 cd "${APP_DIR}"
 mkdir -p vendor
-pip download --no-binary :all: --dest vendor -r requirements.txt
+# Vendor wheels for the stager's Python (see runtime.txt) so staging works offline.
+pip download --only-binary=:all: --platform manylinux2014_x86_64 \
+	--python-version 3.10 --implementation cp --dest vendor -r requirements.txt
 zip -r "${RESOURCES_DIR}/app.zip" *
 
 cd "${BUILDPACK_DIR}"
