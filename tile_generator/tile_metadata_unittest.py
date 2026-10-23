@@ -145,5 +145,19 @@ class TestTileMetadata(unittest.TestCase):
 
         self.assertEqual(metadata.tile_metadata['property_blueprints'], expected_blueprints)
 
+    def test_git_info(self):
+            config = Config(
+                name='validname',
+                git_sha='some-sha',
+                git_remotes=[{'name': 'name', 'sha1': 'abc'}]
+            )
+
+            metadata = TileMetadata(config)
+            metadata._build_git_info()
+
+            self.assertEqual(metadata.tile_metadata['git_sha'], 'some-sha')
+            self.assertEqual(metadata.tile_metadata['git_remotes'], [{'name': 'name', 'sha1': 'abc'}])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+import subprocess
 
+import git
+from git import Repo
 # tile-generator
 #
 # Copyright (c) 2015-Present Pivotal Software, Inc. All Rights Reserved.
@@ -61,6 +64,12 @@ HISTORY_FILE = "tile-history.yml"
 # Normalize Jobs - Ensure that job type, template, and properties are set for
 # every job
 
+def _find_git_root():
+	try:
+		git_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode("utf-8").strip()
+		return git_root
+	except subprocess.CalledProcessError as e:
+		return e
 
 # Inspired by https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
 def merge_dict(dct, merge_dct):
@@ -172,6 +181,13 @@ class Config(dict):
 			'description': {'type': 'string', 'required': True},
 			'icon_file': {'type': 'string', 'required': True, 'coerce': _base64_img},
 			'metadata_version': {'type': 'number', 'default': 1.8},
+			'git_remotes': {'type': 'list', 'required': False, 'schema': {
+				'type': 'dict', 'schema': {
+					'name': {'type': 'string', 'required': True},
+					'urls': {'type': 'list', 'required': True},
+				}
+			}},
+			'git_sha': {'type': 'string', 'required': False},
 			'stemcell_criteria': {'type': 'dict', 'default': self.default_stemcell(), 'schema': {
 				'os': {'type': 'string'}, 'version': {'type': 'string'}}},
 			'release_overides': {'type': 'dict'},
@@ -462,6 +478,24 @@ class Config(dict):
 			if configurable_persistence is not None:
 				print('ERROR - configurable_persistence has been deprecated, use auto_services instead', file=sys.stderr)
 				sys.exit(1)
+
+
+	def set_git_remotes(self, git_remotes=True):
+		if not git_remotes:
+			return
+		git_root = _find_git_root()
+		repo = git.Repo(git_root)
+
+		remotes = [{"name": remote.name, "urls": [str(url) for url in remote.urls]} for remote in repo.remotes]
+		print("setting remotes {}".format(remotes))
+		self['git_remotes'] = remotes
+
+	def set_git_sha(self, git_sha=True):
+		if not git_sha:
+			return
+		git_root = _find_git_root()
+		repo = git.Repo(git_root)
+		self['git_sha'] = repo.head.commit.hexsha
 
 	def set_version(self, version):
 		if version is None:
